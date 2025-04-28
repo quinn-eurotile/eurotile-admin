@@ -38,6 +38,7 @@ import { useSettings } from '@core/hooks/useSettings'
 
 // Util Imports
 import { getLocalizedUrl } from '@/utils/i18n'
+import { sendRequest } from '@/libs/APIs';
 
 const schema = object({
   email: pipe(string(), minLength(1, 'This field is required'), email('Please enter a valid email address')),
@@ -98,6 +99,13 @@ const Login = ({ mode }) => {
       redirect: false
     })
 
+  //  const res =  await  sendRequest('/login', 'POST',{
+  //   email: data.email,
+  //   password: data.password,
+  //   redirect: false
+  // });
+    console.log(res,'responcesresponces');
+
     if (res && res.ok && res.error === null) {
       // Vars
       const redirectURL = searchParams.get('redirectTo') ?? '/'
@@ -111,7 +119,7 @@ const Login = ({ mode }) => {
       }
     }
   }
-
+  const FullLogoImage =  '/images/euro-tile/logo/Eurotile_Logo.png';
   return (
     <div className='flex bs-full justify-center'>
       <div
@@ -137,7 +145,13 @@ const Login = ({ mode }) => {
       </div>
       <div className='flex justify-center items-center bs-full bg-backgroundPaper !min-is-full p-6 md:!min-is-[unset] md:p-12 md:is-[480px]'>
         <div className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
-          <Logo />
+          <div className='flex items-center min-bs-[24px]'>
+          <img
+            src={FullLogoImage}
+            alt='Logo'
+            className='max-h-[18px]' // Adjust height as needed
+          />
+          </div>
         </div>
         <div className='flex flex-col gap-5 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset]'>
           <div>
@@ -225,14 +239,14 @@ const Login = ({ mode }) => {
             <Button fullWidth variant='contained' type='submit'>
               Log In
             </Button>
-            <div className='flex justify-center items-center flex-wrap gap-2'>
+            {/* <div className='flex justify-center items-center flex-wrap gap-2'>
               <Typography>New on our platform?</Typography>
               <Typography component={Link} href='/register' color='primary.main'>
                 Create an account
               </Typography>
-            </div>
+            </div> */}
           </form>
-          <Divider className='gap-3'>or</Divider>
+          {/* <Divider className='gap-3'>or</Divider>
           <Button
             color='secondary'
             className='self-center text-textPrimary'
@@ -241,7 +255,7 @@ const Login = ({ mode }) => {
             onClick={() => signIn('google')}
           >
             Sign in with Google
-          </Button>
+          </Button> */}
         </div>
       </div>
     </div>

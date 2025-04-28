@@ -16,13 +16,13 @@
  * Another way is to clear the cookie from the browser's Application/Storage tab and then reload the page.
  */
 const themeConfig = {
-  templateName: 'Materio',
+  templateName: 'Euro Tile',
   homePageUrl: '/dashboards/crm',
-  settingsCookieName: 'materio-mui-next-demo-1',
+  settingsCookieName: 'euro-tile-1',
   mode: 'system', // 'system', 'light', 'dark'
   skin: 'default', // 'default', 'bordered'
-  semiDark: false, // true, false
-  layout: 'vertical', // 'vertical', 'collapsed', 'horizontal'
+  semiDark: true, // true, false
+  layout: 'collapsed', // 'vertical', 'collapsed', 'horizontal'
   layoutPadding: 24, // Common padding for header, content, footer layout components (in px)
   compactContentWidth: 1440, // in px
   navbar: {

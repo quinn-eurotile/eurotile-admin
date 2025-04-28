@@ -32,7 +32,7 @@ const LogoText = styled.span`
       : 'opacity: 1; margin-inline-start: 10px;'}
 `
 
-const Logo = ({ color }) => {
+const Logo = ({ color,white=true }) => {
   // Refs
   const logoTextRef = useRef(null)
 
@@ -43,6 +43,12 @@ const Logo = ({ color }) => {
   // Vars
   const { layout } = settings
 
+  const FullLogoImage = white
+  ? '/images/euro-tile/logo/Eurotile_Logo-White.png'
+  : '/images/euro-tile/logo/Eurotile_Logo.png'
+const CollapsedLogoImage = white
+  ? '/images/euro-tile/logo/logo-icon-white.png'
+  : '/images/euro-tile/logo/logo-icon.png'
   useEffect(() => {
     if (layout !== 'collapsed') {
       return
@@ -58,19 +64,15 @@ const Logo = ({ color }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHovered, layout, isBreakpointReached])
 
+
   return (
     <div className='flex items-center min-bs-[24px]'>
-      <MaterioLogo className='text-[22px] text-primary' />
-      <LogoText
-        color={color}
-        ref={logoTextRef}
-        isHovered={isHovered}
-        isCollapsed={layout === 'collapsed'}
-        transitionDuration={transitionDuration}
-        isBreakpointReached={isBreakpointReached}
-      >
-        {themeConfig.templateName}
-      </LogoText>
+       <img
+        src={layout === 'collapsed' && !isHovered  ? CollapsedLogoImage : FullLogoImage}
+        alt='Logo'
+        className='max-h-[18px]' // Adjust height as needed
+      />
+
     </div>
   )
 }
