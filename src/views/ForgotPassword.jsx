@@ -22,6 +22,9 @@ import { useSettings } from '@core/hooks/useSettings'
 
 // Util Imports
 import { getLocalizedUrl } from '@/utils/i18n'
+import { useState } from 'react';
+import { sendRequest } from '@/utils/APIs';
+import { Alert } from '@mui/material';
 
 const ForgotPasswordV2 = ({ mode }) => {
   // Vars
@@ -44,6 +47,46 @@ const ForgotPasswordV2 = ({ mode }) => {
     borderedLightIllustration,
     borderedDarkIllustration
   )
+     // Local States
+  const [email, setEmail] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [responseMessage, setResponseMessage] = useState(null) // To show success or error messages
+
+  // Handle Form Submit
+  const handleSubmit = async event => {
+    event.preventDefault()
+
+    if (!email) {
+      setResponseMessage({ type: 'error', message: 'Please enter your email.' })
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      setResponseMessage(null)
+
+      // Sending request to forgot-password API
+      const response = await sendRequest('/admin/forgot-password', 'POST', { email })
+
+      console.log(response,'response');
+
+
+      // Check if status code is 200 (success)
+      if (response?.status === 200) {
+        setResponseMessage({ type: 'success', message: response?.data?.message || 'Password reset instructions sent successfully.' })
+        setEmail('')
+      } else {
+        setResponseMessage({ type: 'error', message: 'Something went wrong. Please try again later.' })
+      }
+    } catch (error) {
+      console.error('Password reset request failed:', error)
+
+      const errorMessage = error?.response?.data?.message || 'Failed to send reset instructions.'
+      setResponseMessage({ type: 'error', message: errorMessage })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className='flex bs-full justify-center'>
@@ -82,10 +125,23 @@ const ForgotPasswordV2 = ({ mode }) => {
               Enter your email and we&#39;ll send you instructions to reset your password
             </Typography>
           </div>
-          <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()} className='flex flex-col gap-5'>
-            <TextField autoFocus fullWidth label='Email' />
-            <Button fullWidth variant='contained' type='submit'>
-              Send reset link
+            {/* Show Response Message if exists */}
+            {responseMessage && (
+            <Alert severity={responseMessage.type} variant='filled'>
+              {responseMessage.message}
+            </Alert>
+          )}
+          <form noValidate autoComplete='off' onSubmit={handleSubmit} className='flex flex-col gap-5'>
+          <TextField
+              autoFocus
+              fullWidth
+              label='Email'
+              type='email'
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+            />
+            <Button fullWidth variant='contained' type='submit' disabled={isLoading}>
+              {isLoading ? 'Sending...' : 'Send reset link'}
             </Button>
             <Typography className='flex justify-center items-center' color='primary.main'>
               <Link href='/login' className='flex items-center'>

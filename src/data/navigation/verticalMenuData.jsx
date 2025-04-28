@@ -32,7 +32,14 @@ const verticalMenuData = dictionary => [
     ]
   },
   {
-    label: dictionary['navigation'].frontPages,
+    label: 'Team Members',
+    icon: 'ri-mail-open-line',
+    href: '/team-members',
+    exactMatch: false,
+    activeUrl: '/team-members'
+  },
+  {
+    label: dictionary['navigation'].frontPages +'lllll',
     icon: 'ri-file-copy-line',
     children: [
       {

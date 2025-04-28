@@ -34,16 +34,14 @@ export const authOptions = {
 
         try {
           // ** Login API Call to match the user credentials and receive user data in response along with his role
-          const res = await fetch(`${process.env.API_URL}/login`, {
+          const res = await fetch(`${process.env.API_URL}/admin/login`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({ email, password })
           })
-
           const data = await res.json()
-
           if (res.status === 401) {
             throw new Error(JSON.stringify(data))
           }
@@ -102,12 +100,16 @@ export const authOptions = {
      * via `jwt()` callback to make them accessible in the `session()` callback
      */
     async jwt({ token, user }) {
+
       if (user) {
         /*
          * For adding custom parameters to user in session, we first need to add those parameters
          * in token which then will be available in the `session()` callback
          */
         token.name = user.name
+        token.email = user.email
+        token.access_token = user.access_token
+        token.user = user
       }
 
       return token
@@ -116,6 +118,9 @@ export const authOptions = {
       if (session.user) {
         // ** Add custom params to user in session which are added in `jwt()` callback via `token` parameter
         session.user.name = token.name
+        session.email = token.email
+        session.access_token = token.access_token
+        token.user =  token.user
       }
 
       return session

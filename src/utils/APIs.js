@@ -2,7 +2,8 @@
 import axios from 'axios';
 // import { store } from '../app/store';
 
-const RESOURCE_URL = process.env.API_URL;
+const RESOURCE_URL = process.env.NEXT_PUBLIC_API_URL;
+
 
 export const sendRequest = async (endpoint, method = 'GET', body = null) => {
     // const usertoken = store.getState().common.token;

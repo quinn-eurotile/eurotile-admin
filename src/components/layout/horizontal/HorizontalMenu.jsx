@@ -148,7 +148,7 @@ const HorizontalMenu = ({ dictionary }) => {
             activeUrl='/apps/email'
             icon={<i className='ri-mail-open-line' />}
           >
-            {dictionary['navigation'].email}
+            {dictionary['navigation'].email} dfddd
           </MenuItem>
           <MenuItem href={`/${locale}/apps/chat`} icon={<i className='ri-wechat-line' />}>
             {dictionary['navigation'].chat}

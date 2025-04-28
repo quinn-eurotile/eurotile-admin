@@ -75,8 +75,8 @@ const Login = ({ mode }) => {
   } = useForm({
     resolver: valibotResolver(schema),
     defaultValues: {
-      email: 'admin@materio.com',
-      password: 'admin'
+      email: 'admin317@yopmail.com',
+      password: '123456789'
     }
   })
 
@@ -98,14 +98,6 @@ const Login = ({ mode }) => {
       password: data.password,
       redirect: false
     })
-
-  //  const res =  await  sendRequest('/login', 'POST',{
-  //   email: data.email,
-  //   password: data.password,
-  //   redirect: false
-  // });
-    console.log(res,'responcesresponces');
-
     if (res && res.ok && res.error === null) {
       // Vars
       const redirectURL = searchParams.get('redirectTo') ?? '/'
@@ -114,6 +106,7 @@ const Login = ({ mode }) => {
     } else {
       if (res?.error) {
         const error = JSON.parse(res.error)
+
 
         setErrorState(error)
       }
@@ -160,8 +153,8 @@ const Login = ({ mode }) => {
           </div>
           <Alert icon={false} className='bg-primaryLight'>
             <Typography variant='body2' color='primary.main'>
-              Email: <span className='font-medium'>admin@materio.com</span> / Pass:{' '}
-              <span className='font-medium'>admin</span>
+              Email: <span className='font-medium'>admin317@yopmail.com</span> / Pass:{' '}
+              <span className='font-medium'>123456789</span>
             </Typography>
           </Alert>
 

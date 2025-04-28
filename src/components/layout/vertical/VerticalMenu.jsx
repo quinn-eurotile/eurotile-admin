@@ -91,6 +91,14 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
           </MenuItem>
         </SubMenu>
         <MenuSection label={dictionary['navigation'].appsPages}>
+        <MenuItem
+            href={`/${locale}/team-members/list`}
+            exactMatch={false}
+            activeUrl='/team-members/list'
+            icon={<i className='ri-mail-open-line' />}
+          >
+            Team Members
+          </MenuItem>
           <SubMenu label={dictionary['navigation'].eCommerce} icon={<i className='ri-shopping-bag-3-line' />}>
             <MenuItem href={`/${locale}/apps/ecommerce/dashboard`}>{dictionary['navigation'].dashboard}</MenuItem>
             <SubMenu label={dictionary['navigation'].products}>
@@ -137,14 +145,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             <MenuItem href={`/${locale}/apps/logistics/dashboard`}>{dictionary['navigation'].dashboard}</MenuItem>
             <MenuItem href={`/${locale}/apps/logistics/fleet`}>{dictionary['navigation'].fleet}</MenuItem>
           </SubMenu>
-          <MenuItem
-            href={`/${locale}/apps/email`}
-            exactMatch={false}
-            activeUrl='/apps/email'
-            icon={<i className='ri-mail-open-line' />}
-          >
-            {dictionary['navigation'].email}
-          </MenuItem>
+
           <MenuItem href={`/${locale}/apps/chat`} icon={<i className='ri-wechat-line' />}>
             {dictionary['navigation'].chat}
           </MenuItem>
