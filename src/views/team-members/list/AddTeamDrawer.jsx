@@ -1,5 +1,5 @@
 // React Imports
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 // MUI Imports
 import Button from '@mui/material/Button'
@@ -16,15 +16,13 @@ import Divider from '@mui/material/Divider'
 
 // Third-party Imports
 import { useForm, Controller } from 'react-hook-form'
-import { useAddTeamMember, useUpdateTeamMember } from '@/app/server/team-members';
-import { useSession } from 'next-auth/react';
+import { teamMemberService } from '@/services/team-member.service';
 
 
 
 const AddUserDrawer = (props) => {
   // Props
-  const { open, handleClose, userData, setData ,editUserData } = props
-  const addTeamMember = useAddTeamMember()
+  const { open, handleClose, editTeam  } = props
 
 
   // Form Hook
@@ -45,22 +43,32 @@ const AddUserDrawer = (props) => {
   })
   // Fill the form when editing
   useEffect(() => {
-    if (editUserData) {
-      setValue('id', editUserData.id || '')
-      setValue('name', editUserData.name || '')
-      setValue('email', editUserData.email || '')
-      setValue('phone', editUserData.phone || '')
-      setValue('status', editUserData.status || '')
+    if (editTeam) {
+      setValue('id', editTeam.id || '')
+      setValue('name', editTeam.name || '')
+      setValue('email', editTeam.email || '')
+      setValue('phone', editTeam.phone || '')
+      setValue('status', editTeam.status?.toString() || '1') // 👈 Fix here
+
+      console.log(editTeam.status?.toString() ,'editTeam.status?.toString() ');
+
+
     }
-  }, [editUserData, setValue])
+  }, [editTeam, setValue])
+
+
+
   // Function to handle form submission
   const onSubmit = async (formValues) => {
+
+
     try {
       // API call to create user
-      const createdUser = await addTeamMember.addTeamMember(formValues)
-
-      // Add the new user to existing userData
-      setData([...(userData || []), createdUser])
+      if(editTeam){
+          await teamMemberService.updateTeamMember(editTeam.id  , formValues)
+      }else{
+         await teamMemberService.createTeamMember(formValues)
+      }
 
       // Close Drawer and Reset Form
       handleClose()
@@ -168,9 +176,9 @@ const AddUserDrawer = (props) => {
               rules={{ required: 'Status is required' }}
               render={({ field }) => (
                 <Select {...field} label="Select Status">
-                  <MenuItem value="pending">Pending</MenuItem>
-                  <MenuItem value="active">Active</MenuItem>
-                  <MenuItem value="inactive">Inactive</MenuItem>
+                  <MenuItem value="2">Pending</MenuItem>
+                  <MenuItem value="1">Active</MenuItem>
+                  <MenuItem value="0">Inactive</MenuItem>
                 </Select>
               )}
             />

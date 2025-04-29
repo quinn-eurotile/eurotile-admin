@@ -23,7 +23,7 @@ import { useSettings } from '@core/hooks/useSettings'
 // Util Imports
 import { getLocalizedUrl } from '@/utils/i18n'
 import { useState } from 'react';
-import { sendRequest } from '@/utils/APIs';
+import { sendRequest } from '@/utils/api2';
 import { Alert } from '@mui/material';
 
 const ForgotPasswordV2 = ({ mode }) => {

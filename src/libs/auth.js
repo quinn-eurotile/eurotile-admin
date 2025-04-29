@@ -102,6 +102,9 @@ export const authOptions = {
     async jwt({ token, user }) {
 
       if (user) {
+
+        // console.log('helloo jwt',user.data);
+
         /*
          * For adding custom parameters to user in session, we first need to add those parameters
          * in token which then will be available in the `session()` callback
@@ -109,18 +112,19 @@ export const authOptions = {
         token.name = user.name
         token.email = user.email
         token.access_token = user.access_token
-        token.user = user
+        token.user = user.data
       }
 
       return token
     },
     async session({ session, token }) {
       if (session.user) {
+        // console.log('helloo Session', session);
         // ** Add custom params to user in session which are added in `jwt()` callback via `token` parameter
-        session.user.name = token.name
-        session.email = token.email
-        session.access_token = token.access_token
-        session.user =  token.user
+        session.user.name = token.user.name;
+        session.email = token.user.email;
+        session.access_token = token.access_token;
+        session.user =  token.user;
 
       }
 

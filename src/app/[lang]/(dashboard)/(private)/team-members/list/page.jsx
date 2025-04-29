@@ -2,7 +2,7 @@
 
 // Data Imports
 import { getUserData } from '@/app/server/actions'
-import UserList from '@/views/team-members/list';
+import TeamMemberList from '@/views/team-members/list';
 
 /**
  * ! If you need data using an API call, uncomment the below API code, update the `process.env.API_URL` variable in the
@@ -21,10 +21,8 @@ import UserList from '@/views/team-members/list';
   return res.json()
 } */
 const UserListApp = async () => {
-  // Vars
-  const data = await getUserData()
 
-  return <UserList userData={data} />
+  return <TeamMemberList  />
 }
 
 export default UserListApp
