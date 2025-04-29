@@ -1,5 +1,5 @@
 // React Imports
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // MUI Imports
 import Button from '@mui/material/Button'
@@ -16,172 +16,180 @@ import Divider from '@mui/material/Divider'
 
 // Third-party Imports
 import { useForm, Controller } from 'react-hook-form'
+import { useAddTeamMember, useUpdateTeamMember } from '@/app/server/team-members';
+import { useSession } from 'next-auth/react';
 
-// Vars
-const initialData = {
-  company: '',
-  country: '',
-  contact: ''
-}
 
-const AddTeamDrawer = props => {
+
+const AddUserDrawer = (props) => {
   // Props
-  const { open, handleClose, userData, setData } = props
+  const { open, handleClose, userData, setData ,editUserData } = props
+  const addTeamMember = useAddTeamMember()
 
-  // States
-  const [formData, setFormData] = useState(initialData)
 
-  // Hooks
+  // Form Hook
   const {
     control,
-    reset: resetForm,
+    reset,
     handleSubmit,
-    formState: { errors }
+    setError,
+    setValue,
+    formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      status: "",
-    }
+      name: '',
+      email: '',
+      phone: '',
+      status: '',
+    },
   })
-
-  const onSubmit = data => {
-    const newUser = {
-      id: (userData?.length && userData?.length + 1) || 1,
-      avatar: `/images/avatars/${Math.floor(Math.random() * 8) + 1}.png`,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      status: data.status === "active" ? 1 : 0,
+  // Fill the form when editing
+  useEffect(() => {
+    if (editUserData) {
+      setValue('id', editUserData.id || '')
+      setValue('name', editUserData.name || '')
+      setValue('email', editUserData.email || '')
+      setValue('phone', editUserData.phone || '')
+      setValue('status', editUserData.status || '')
     }
+  }, [editUserData, setValue])
+  // Function to handle form submission
+  const onSubmit = async (formValues) => {
+    try {
+      // API call to create user
+      const createdUser = await addTeamMember.addTeamMember(formValues)
 
-    setData([...(userData ?? []), newUser])
-    handleClose()
-    setFormData(initialData)
-    resetForm({ name: '',   email: '',   phone: '', status: 0 })
+      // Add the new user to existing userData
+      setData([...(userData || []), createdUser])
+
+      // Close Drawer and Reset Form
+      handleClose()
+      reset()
+    } catch (error) {
+      console.error('User creation failed:', error)
+      // Optional: Show error on form field
+      setError('apiError', { message: 'Something went wrong. Please try again.' })
+    }
   }
 
-  const handleReset = () => {
+  // Function to handle form reset and drawer close
+  const handleDrawerClose = () => {
     handleClose()
-    setFormData({ name: "", email: "", phone: "", status: "" })
+    reset()
   }
 
   return (
     <Drawer
       open={open}
-      anchor='right'
-      variant='temporary'
-      onClose={handleReset}
+      anchor="right"
+      variant="temporary"
+      onClose={handleDrawerClose}
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 400 } } }}
     >
-      <div className='flex items-center justify-between pli-5 plb-4'>
-        <Typography variant='h5'>Add New Team Member</Typography>
-        <IconButton size='small' onClick={handleReset}>
-          <i className='ri-close-line text-2xl' />
+      {/* Header */}
+      <div className="flex items-center justify-between p-5 pb-4">
+        <Typography variant="h5">Add New User</Typography>
+        <IconButton size="small" onClick={handleDrawerClose}>
+          <i className="ri-close-line text-2xl" />
         </IconButton>
       </div>
       <Divider />
-      <div className='p-5'>
-        <form onSubmit={handleSubmit(data => onSubmit(data))} className='flex flex-col gap-5'>
-        <Controller
+
+      {/* Form Section */}
+      <div className="p-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+
+          {/* Full Name Field */}
+          <Controller
             name="name"
             control={control}
-            rules={{ required: true }}
+            rules={{ required: 'Full Name is required' }}
             render={({ field }) => (
               <TextField
                 {...field}
                 fullWidth
                 label="Full Name"
                 placeholder="John Doe"
-                {...(errors.name && { error: true, helperText: "This field is required." })}
+                error={Boolean(errors.name)}
+                helperText={errors.name?.message}
               />
             )}
           />
+
+          {/* Email Field */}
           <Controller
             name="email"
             control={control}
             rules={{
-              required: true,
+              required: 'Email is required',
               pattern: {
                 value: /\S+@\S+\.\S+/,
-                message: "Please enter a valid email",
+                message: 'Please enter a valid email address',
               },
             }}
             render={({ field }) => (
               <TextField
                 {...field}
                 fullWidth
-                type="email"
                 label="Email"
                 placeholder="johndoe@example.com"
-                {...(errors.email && {
-                  error: true,
-                  helperText: errors.email.message || "This field is required.",
-                })}
+                error={Boolean(errors.email)}
+                helperText={errors.email?.message}
               />
             )}
           />
+
+          {/* Phone Field */}
           <Controller
             name="phone"
             control={control}
-            rules={{ required: true }}
+            rules={{ required: 'Phone number is required' }}
             render={({ field }) => (
               <TextField
                 {...field}
                 fullWidth
                 label="Phone Number"
                 placeholder="(123) 456-7890"
-                {...(errors.phone && { error: true, helperText: "This field is required." })}
+                error={Boolean(errors.phone)}
+                helperText={errors.phone?.message}
               />
             )}
           />
-          <FormControl fullWidth>
-            <InputLabel id='country' error={Boolean(errors.role)}>
-              Select Role
-            </InputLabel>
+
+
+
+          {/* Status Select */}
+          <FormControl fullWidth error={Boolean(errors.status)}>
+            <InputLabel>Select Status</InputLabel>
             <Controller
-              name='role'
+              name="status"
               control={control}
-              rules={{ required: true }}
+              rules={{ required: 'Status is required' }}
               render={({ field }) => (
-                <Select label='Select Role' {...field} error={Boolean(errors.role)}>
-                  <MenuItem value='author'>Author</MenuItem>
-                  <MenuItem value='editor'>Editor</MenuItem>
-                  <MenuItem value='maintainer'>Maintainer</MenuItem>
-                  <MenuItem value='subscriber'>Subscriber</MenuItem>
+                <Select {...field} label="Select Status">
+                  <MenuItem value="pending">Pending</MenuItem>
+                  <MenuItem value="active">Active</MenuItem>
+                  <MenuItem value="inactive">Inactive</MenuItem>
                 </Select>
               )}
             />
-            {errors.role && <FormHelperText error>This field is required.</FormHelperText>}
+            {errors.status && <FormHelperText>{errors.status.message}</FormHelperText>}
           </FormControl>
 
-          <FormControl fullWidth>
-            <InputLabel id='country' error={Boolean(errors.status)}>
-              Select Status
-            </InputLabel>
-            <Controller
-              name='status'
-              control={control}
-              rules={{ required: true }}
-              render={({ field }) => (
-                <Select label='Select Status' {...field} error={Boolean(errors.status)}>
-                  <MenuItem value='pending'>Pending</MenuItem>
-                  <MenuItem value='active'>Active</MenuItem>
-                  <MenuItem value='inactive'>Inactive</MenuItem>
-                </Select>
-              )}
-            />
-            {errors.status && <FormHelperText error>This field is required.</FormHelperText>}
-          </FormControl>
+          {/* API Error Display */}
+          {errors.apiError && (
+            <Typography color="error" variant="body2">
+              {errors.apiError.message}
+            </Typography>
+          )}
 
-
-          <div className='flex items-center gap-4'>
-            <Button variant='contained' type='submit'>
-              Submit
+          {/* Form Buttons */}
+          <div className="flex items-center gap-4">
+            <Button variant="contained" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Submitting...' : 'Submit'}
             </Button>
-            <Button variant='outlined' color='error' type='reset' onClick={() => handleReset()}>
+            <Button variant="outlined" color="error" type="button" onClick={handleDrawerClose}>
               Cancel
             </Button>
           </div>
@@ -191,4 +199,4 @@ const AddTeamDrawer = props => {
   )
 }
 
-export default AddTeamDrawer
+export default AddUserDrawer

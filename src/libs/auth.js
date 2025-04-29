@@ -43,7 +43,7 @@ export const authOptions = {
           })
           const data = await res.json()
           if (res.status === 401) {
-            throw new Error(JSON.stringify(data))
+             throw new Error(JSON.stringify(data))
           }
 
           if (res.status === 200) {
@@ -120,7 +120,8 @@ export const authOptions = {
         session.user.name = token.name
         session.email = token.email
         session.access_token = token.access_token
-        token.user =  token.user
+        session.user =  token.user
+
       }
 
       return session

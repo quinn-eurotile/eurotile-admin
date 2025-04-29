@@ -48,7 +48,7 @@ import { getLocalizedUrl } from '@/utils/i18n'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
-import AddTeamDrawer from './AddTeamDrawer';
+import { useGetTeamMembers } from '@/app/server/team-members';
 
 // Styled Components
 const Icon = styled('i')({})
@@ -103,16 +103,29 @@ const userStatusObj = {
 // Column Definitions
 const columnHelper = createColumnHelper()
 
-const TeamListTable = ({ tableData }) => {
+const TeamListTable = () => {
+  const { tableData, loading, error } = useGetTeamMembers()
+
   // States
   const [addUserOpen, setAddUserOpen] = useState(false)
   const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState(...[tableData])
-  const [filteredData, setFilteredData] = useState(data)
+
+  // Initialize data state properly with empty array
+  const [data, setData] = useState([])
+
+  const [filteredData, setFilteredData] = useState([])
   const [globalFilter, setGlobalFilter] = useState('')
 
-  // Hooks
   const { lang: locale } = useParams()
+
+  // When tableData is fetched, update data
+  useEffect(() => {
+    if (tableData) {
+      setData(tableData)
+      setFilteredData(tableData) // also initialize filtered data
+    }
+  }, [tableData])
+
 
   const columns = useMemo(
     () => [
@@ -367,11 +380,12 @@ const TeamListTable = ({ tableData }) => {
           onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
         />
       </Card>
-      <AddTeamDrawer
+      <AddUserDrawer
         open={addUserOpen}
         handleClose={() => setAddUserOpen(!addUserOpen)}
         userData={data}
         setData={setData}
+
       />
     </>
   )

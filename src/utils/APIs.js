@@ -1,14 +1,21 @@
 
 import axios from 'axios';
+import { getToken } from 'next-auth/jwt';
+import { useSessionStorage } from 'react-use';
 // import { store } from '../app/store';
 
 const RESOURCE_URL = process.env.NEXT_PUBLIC_API_URL;
+const secret = process.env.NEXTAUTH_SECRET
 
 
 export const sendRequest = async (endpoint, method = 'GET', body = null) => {
-    // const usertoken = store.getState().common.token;
+    // const usertoken =  localStorage.getItem('token');
+    const usertoken = await getToken({ req, secret })
+
+    console.log(usertoken ,'usertoken');
+
     const authHeader = {
-        // 'Authorization': 'Bearer ' + usertoken,
+        'Authorization': 'Bearer ' + usertoken,
         'Accept': 'application/json'
     };
 

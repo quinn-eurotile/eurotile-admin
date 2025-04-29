@@ -107,7 +107,6 @@ const Login = ({ mode }) => {
       if (res?.error) {
         const error = JSON.parse(res.error)
 
-
         setErrorState(error)
       }
     }

@@ -5,11 +5,12 @@ import dynamic from 'next/dynamic'
 import Grid from '@mui/material/Grid2'
 
 // Component Imports
-import UserLeftOverview from '@views/apps/user/view/user-left-overview'
-import UserRight from '@views/apps/user/view/user-right'
+
 
 // Data Imports
 import { getPricingData } from '@/app/server/actions'
+import UserLeftOverview from '@/views/team-members/view/user-left-overview';
+import UserRight from '@/views/team-members/view/user-right';
 
 const OverViewTab = dynamic(() => import('@views/apps/user/view/user-right/overview'))
 const SecurityTab = dynamic(() => import('@views/apps/user/view/user-right/security'))
