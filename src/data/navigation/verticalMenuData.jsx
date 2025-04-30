@@ -39,6 +39,13 @@ const verticalMenuData = dictionary => [
     activeUrl: '/team-members'
   },
   {
+    label: 'Supplier',
+    icon: 'ri-mail-open-line',
+    href: '/supplier',
+    exactMatch: false,
+    activeUrl: '/supplier'
+  },
+  {
     label: dictionary['navigation'].frontPages +'lllll',
     icon: 'ri-file-copy-line',
     children: [
