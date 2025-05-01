@@ -26,8 +26,7 @@ import { useImageVariant } from '@core/hooks/useImageVariant'
 
 // Util Imports
 import { getLocalizedUrl } from '@/utils/i18n'
-import { token } from 'stylis';
-import { sendRequest } from '@/utils/api2';
+import { api } from '@/utils/api';
 
 const ResetPasswordV1 = ({ mode }) => {
 
@@ -60,12 +59,12 @@ const ResetPasswordV1 = ({ mode }) => {
 
     try {
       // Sending password reset request
-      const response = await sendRequest('/admin/reset-password', 'POST', { token , password })
-         console.log('response',response);
+       const response = await api.post('/admin/reset-password',  { token , password })
+        console.log(response,'response');
 
       // Handling response from server
-      if (response.type === 'success') {
-        setMessage({ type: 'success', content: 'Password reset successfully' })
+      if (response.statusCode === 200) {
+          setMessage({ type: 'success', content:  response.message  })
 
         router.replace(getLocalizedUrl('/login', locale))
       } else {

@@ -61,22 +61,39 @@ const AddUserDrawer = (props) => {
   // Function to handle form submission
   const onSubmit = async (formValues) => {
 
-
+   // Call appropriate API based on mode
+   let response;
     try {
       // API call to create user
       if(editTeam){
-          await teamMemberService.updateTeamMember(editTeam.id  , formValues)
+        response = await teamMemberService.updateTeamMember(editTeam.id, formValues);
       }else{
-         await teamMemberService.createTeamMember(formValues)
+        response = await teamMemberService.createTeamMember(formValues);
       }
 
-      // Close Drawer and Reset Form
-      handleClose()
-      reset()
+        // Check if API call succeeded with status 200
+      if (response?.statusCode === 200) {
+        handleClose(); // Close drawer
+        reset(); // Reset form
+      } else {
+
+          if (response?.data?.errors) {
+            const fieldErrors = response.data.errors;
+            Object.entries(fieldErrors).forEach(([fieldName, messages]) => {
+              setError(fieldName, { message: messages[0] || 'Invalid value' });
+            });
+          } else {
+            const errorMessage = response?.message || 'Something went wrong. Please try again.';
+            setError('apiError', { message: errorMessage });
+          }
+        }
+
+
     } catch (error) {
-      console.error('User creation failed:', error)
-      // Optional: Show error on form field
-      setError('apiError', { message: 'Something went wrong. Please try again.' })
+      console.error('User creation failed:', error);
+
+      const errorMessage = error?.message || 'Something went wrong. Please try again.';
+      setError('apiError', { message: errorMessage });
     }
   }
 

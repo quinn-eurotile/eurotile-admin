@@ -4,7 +4,7 @@
   "license": "Commercial",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "dotenv -- bash -c 'next dev --turbopack -p $PORT'",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -86,7 +86,7 @@
     "@iconify/utils": "2.2.1",
     "autoprefixer": "10.4.20",
     "consola": "3.3.0",
-    "dotenv-cli": "7.4.4",
+    "dotenv-cli": "^7.4.4",
     "eslint": "8.57.1",
     "eslint-config-next": "15.1.2",
     "eslint-config-prettier": "9.1.0",

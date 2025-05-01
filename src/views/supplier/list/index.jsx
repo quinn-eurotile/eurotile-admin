@@ -107,24 +107,24 @@ const SupplierMemberList = tableData => {
 
   const columns = useMemo(
     () => [
-      {
-        id: 'select',
-        header: ({ table }) => (
-          <Checkbox
-            checked={table.getIsAllRowsSelected()}
-            indeterminate={table.getIsSomeRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            disabled={!row.getCanSelect()}
-            indeterminate={row.getIsSomeSelected()}
-            onChange={row.getToggleSelectedHandler()}
-          />
-        )
-      },
+      // {
+      //   id: 'select',
+      //   header: ({ table }) => (
+      //     <Checkbox
+      //       checked={table.getIsAllRowsSelected()}
+      //       indeterminate={table.getIsSomeRowsSelected()}
+      //       onChange={table.getToggleAllRowsSelectedHandler()}
+      //     />
+      //   ),
+      //   cell: ({ row }) => (
+      //     <Checkbox
+      //       checked={row.getIsSelected()}
+      //       disabled={!row.getCanSelect()}
+      //       indeterminate={row.getIsSomeSelected()}
+      //       onChange={row.getToggleSelectedHandler()}
+      //     />
+      //   )
+      // },
       columnHelper.accessor('id', {
         header: 'Supplier ID',
         cell: ({ row }) => <Typography>{row.original.su}</Typography>
@@ -166,9 +166,9 @@ const SupplierMemberList = tableData => {
               cell: ({ row }) => (
                 <Chip
                   variant='tonal'
-                  label={userStatusNameObj[row.original.status]}
+                  label={userStatusNameObj[row.original.status] ??'Inactive'}
                   size='small'
-                  color={userStatusObj[row.original.status]}
+                  color={userStatusObj[row.original.status]??'secondary'}
                   className='capitalize'
                 />
               )

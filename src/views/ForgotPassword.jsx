@@ -23,9 +23,8 @@ import { useSettings } from '@core/hooks/useSettings'
 // Util Imports
 import { getLocalizedUrl } from '@/utils/i18n'
 import { useState } from 'react';
-import { sendRequest } from '@/utils/api2';
 import { Alert } from '@mui/material';
-
+import { api } from "@/utils/api";
 const ForgotPasswordV2 = ({ mode }) => {
   // Vars
   const darkImg = '/images/pages/auth-v2-mask-dark.png'
@@ -66,14 +65,11 @@ const ForgotPasswordV2 = ({ mode }) => {
       setResponseMessage(null)
 
       // Sending request to forgot-password API
-      const response = await sendRequest('/admin/forgot-password', 'POST', { email })
-
-      console.log(response,'response');
-
+      const response = await  api.post('/admin/forgot-password', { email });
 
       // Check if status code is 200 (success)
-      if (response?.status === 200) {
-        setResponseMessage({ type: 'success', message: response?.data?.message || 'Password reset instructions sent successfully.' })
+      if (response?.statusCode == 200) {
+        setResponseMessage({ type: 'success', message: response?.message || 'Password reset instructions sent successfully.' })
         setEmail('')
       } else {
         setResponseMessage({ type: 'error', message: 'Something went wrong. Please try again later.' })
