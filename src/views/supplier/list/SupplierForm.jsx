@@ -203,7 +203,7 @@ const AddSupplierForm = () => {
         }else{
           response =  await supplierService.create(finalPayload)
         }
-        if (response?.statusCode === 201) {
+        if (response?.statusCode === 201 ||response?.statusCode === 200) {
              router.push(`/${locale}/supplier/list`);
         } else {
           // Map backend field-level validation errors (422)

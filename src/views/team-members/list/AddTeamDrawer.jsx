@@ -72,7 +72,7 @@ const AddUserDrawer = (props) => {
       }
 
         // Check if API call succeeded with status 200
-      if (response?.statusCode === 200) {
+      if (response?.statusCode === 200 || response?.statusCode === 201) {
         handleClose(); // Close drawer
         reset(); // Reset form
       } else {
