@@ -127,17 +127,17 @@ const SupplierMemberList = tableData => {
       // },
       columnHelper.accessor('id', {
         header: 'Supplier ID',
-        cell: ({ row }) => <Typography>{row.original.supplierId}</Typography>
+        cell: ({ row }) => <Typography>{row?.original?.supplierId}</Typography>
       }),
       columnHelper.accessor('companyName', {
         header: 'Company Name',
-        cell: ({ row }) => <Typography>{row.original.companyName}</Typography>
+        cell: ({ row }) => <Typography>{row?.original?.companyName}</Typography>
       }),
       columnHelper.accessor('contactInfo', {
         header: 'Contact Information',
         cell: ({ row }) => (
           <>
-            {row.original.contactInfo.map((info, index) => (
+            {row?.original?.contactInfo?.map((info, index) => (
               <Typography key={index}>{`${info.name} (${info.phone})`}</Typography>
             ))}
           </>
@@ -147,7 +147,7 @@ const SupplierMemberList = tableData => {
         header: 'Email Address',
         cell: ({ row }) => (
           <>
-            {row.original.contactInfo.map((info, index) => (
+            {row?.original?.contactInfo?.map((info, index) => (
               <Typography key={index}>{info.email}</Typography>
             ))}
           </>
@@ -156,7 +156,7 @@ const SupplierMemberList = tableData => {
       columnHelper.accessor('address', {
         header: 'Address',
         cell: ({ row }) => {
-          const { addressLine1, city, state, zipCode, country } = row.original.addresses
+          const { addressLine1} = row?.original?.addresses
           const fullAddress = [addressLine1].filter(Boolean).join(', ')
           return <Typography>
                 {fullAddress && `${fullAddress}, `}
