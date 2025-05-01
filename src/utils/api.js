@@ -39,7 +39,9 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {} ,  s
     const response = await axios(config);
     if (showToastOnError) {
         // Show success toast on success
-    toast.success(response.data?.message || 'Request successful', { toastId: 'success1', autoClose: 3000 },   );
+        if(response.data?.message){
+          toast.success(response.data?.message || 'Request successful', { toastId: 'success1', autoClose: 3000 },   );
+        }
 
     }
 
