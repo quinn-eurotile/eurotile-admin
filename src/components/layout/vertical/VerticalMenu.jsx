@@ -99,7 +99,15 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
           >
             Team Members
           </MenuItem>
-          <SubMenu label={dictionary['navigation'].eCommerce} icon={<i className='ri-shopping-bag-3-line' />}>
+          <MenuItem
+            href={`/${locale}/supplier/list`}
+            exactMatch={false}
+            activeUrl='/supplier/list'
+            icon={<i className='ri-store-line' />}
+          >
+            Supplier
+          </MenuItem>
+          {/* <SubMenu label={dictionary['navigation'].eCommerce} icon={<i className='ri-shopping-bag-3-line' />}>
             <MenuItem href={`/${locale}/apps/ecommerce/dashboard`}>{dictionary['navigation'].dashboard}</MenuItem>
             <SubMenu label={dictionary['navigation'].products}>
               <MenuItem href={`/${locale}/apps/ecommerce/products/list`}>{dictionary['navigation'].list}</MenuItem>
@@ -273,9 +281,9 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
               {dictionary['navigation'].gamification}
             </MenuItem>
             <MenuItem href={`/${locale}/pages/widget-examples/actions`}>{dictionary['navigation'].actions}</MenuItem>
-          </SubMenu>
+          </SubMenu> */}
         </MenuSection>
-        <MenuSection label={dictionary['navigation'].formsAndTables}>
+        {/* <MenuSection label={dictionary['navigation'].formsAndTables}>
           <MenuItem href={`/${locale}/forms/form-layouts`} icon={<i className='ri-layout-4-line' />}>
             {dictionary['navigation'].formLayouts}
           </MenuItem>
@@ -370,7 +378,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             </SubMenu>
             <MenuItem disabled>{dictionary['navigation'].disabledMenu}</MenuItem>
           </SubMenu>
-        </MenuSection>
+        </MenuSection> */}
       </Menu>
       {/* <Menu
           popoutMenuOffset={{ mainAxis: 10 }}

@@ -27,7 +27,7 @@ import { useImageVariant } from '@core/hooks/useImageVariant'
 // Util Imports
 import { getLocalizedUrl } from '@/utils/i18n'
 import { token } from 'stylis';
-import { sendRequest } from '@/utils/APIs';
+import { sendRequest } from '@/utils/api2';
 
 const ResetPasswordV1 = ({ mode }) => {
 
