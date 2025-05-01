@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Select,
   MenuItem
 } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
@@ -17,6 +16,9 @@ import Grid from '@mui/material/Grid2'
 import { toast } from 'react-toastify'
 import { supplierService } from '@/services/supplier.service';
 import { useRouter,useParams  } from 'next/navigation'
+import { locationService } from '@/services/location.service';
+import Select from 'react-select'
+
 const AddSupplierForm = () => {
 
   const params = useParams()
@@ -31,6 +33,8 @@ const AddSupplierForm = () => {
     handleSubmit,
     reset,
     setError,
+    setValue,
+    watch ,
     formState: { errors }
   } = useForm({
     defaultValues: {
@@ -52,9 +56,27 @@ const AddSupplierForm = () => {
     }
   })
 
-  const [discounts, setDiscounts] = useState([
-    { minimumAreaSqFt: '', discountPercentage: '' }
-  ])
+  const [discounts, setDiscounts] = useState([{ minimumAreaSqFt: '', discountPercentage: '' }])
+  const [countryList, setCountryList] = useState([])
+  const [stateList, setStateList] = useState([])
+  const [cityList, setCityList] = useState([])
+
+  const selectedCountryId = watch('country')
+  const selectedStateId = watch('state')
+
+    // Fetch country list once
+    useEffect(() => {
+      const fetchCountries = async () => {
+        try {
+          const response = await locationService.getCountries()
+          setCountryList(response?.data || [])
+        } catch {
+          toast.error('Failed to load countries')
+        }
+      }
+      fetchCountries()
+    }, [])
+
   useEffect(() => {
     const fetchSupplierDetails = async () => {
       if (!supplierId ||  supplierId =='new' ) return
@@ -81,7 +103,16 @@ const AddSupplierForm = () => {
           status: supplier.status,
 
         })
+       // Fetch dependent states and cities for mapped values
+        if (supplier.addresses?.country) {
+          const states = await locationService.getStatesByCountry(supplier.addresses.country)
+          setStateList(states?.data || [])
 
+          if (supplier.addresses?.state) {
+            const cities = await locationService.getCitiesByState(supplier.addresses.state)
+            setCityList(cities?.data || [])
+          }
+        }
         if (supplier.discounts?.length > 0) {
           setDiscounts(
             supplier.discounts.map(d => ({
@@ -97,6 +128,23 @@ const AddSupplierForm = () => {
 
     fetchSupplierDetails()
   }, [supplierId, reset])
+
+    // Watch for changes in country and state and fetch data accordingly
+    useEffect(() => {
+      if (selectedCountryId) {
+        locationService.getStatesByCountry(selectedCountryId).then(states => setStateList(states?.data || []))
+      } else {
+        setStateList([])
+      }
+    }, [selectedCountryId])
+
+    useEffect(() => {
+      if (selectedStateId) {
+        locationService.getCitiesByState(selectedStateId).then(cities => setCityList(cities?.data || []))
+      } else {
+        setCityList([])
+      }
+    }, [selectedStateId])
 
 
   const handleDiscountChange = (index, field, value) => {
@@ -114,6 +162,8 @@ const AddSupplierForm = () => {
     setDiscounts(updatedDiscounts)
   }
   const onSubmit = async (data) => {
+
+
     const formattedDiscounts = discounts.map(discount => ({
       minimumAreaSqFt: Number(discount.minimumAreaSqFt),
       discountPercentage: Number(discount.discountPercentage)
@@ -133,10 +183,10 @@ const AddSupplierForm = () => {
       addresses: {
         addressLine1: data.addressLine1,
         addressLine2: data.addressLine2,
-        city: data.city,
-        state: data.state,
+        city: String(data.city),
+        state: String(data.state),
         postalCode: data.postalCode,
-        country: data.country,
+        country: String(data.country),
         lat: parseFloat(data.lat),
         long: parseFloat(data.long)
       },
@@ -148,15 +198,12 @@ const AddSupplierForm = () => {
     let response;
 
       if(supplierId &&  supplierId !='new'){
-        response =  await supplierService.update(supplierId , finalPayload);
+           response =  await supplierService.update(supplierId , finalPayload);
 
         }else{
           response =  await supplierService.create(finalPayload)
         }
-
-        if (response?.statusCode === 200) {
-
-          reset();
+        if (response?.statusCode === 201) {
              router.push(`/${locale}/supplier/list`);
         } else {
           // Map backend field-level validation errors (422)
@@ -190,6 +237,39 @@ const AddSupplierForm = () => {
     }
 
 
+    const handleCountryChange = async selectedOption => {
+
+        console.log(selectedOption,'selectedOption');
+
+        const countryId = selectedOption?.value || ''
+
+        setCityList([])
+        setValue('country', countryId)
+        setValue('state', '')
+        setValue('city', '')
+
+        try {
+          const states = await locationService.getStatesByCountry(countryId)
+          setStateList(states?.data || [])
+        } catch {
+          toast.error('Failed to load states')
+        }
+      }
+
+      const handleStateChange = async selectedOption => {
+        const stateId = selectedOption?.value || ''
+        setValue('state', stateId)
+        setValue('city', '')
+
+        try {
+          const cities = await locationService.getCitiesByState(stateId)
+          setCityList(cities?.data || [])
+        } catch {
+          toast.error('Failed to load cities')
+        }
+      }
+    const toReactSelectOptions = (list) =>
+      list.map(item => ({ label: item.name, value: item._id }))
 
   return (
     <Card>
@@ -365,57 +445,87 @@ const AddSupplierForm = () => {
                 )}
               />
             </Grid>
-            <Grid item  size={{ xs: 12, sm: 4 }}>
-              <Controller
-                name='city'
-                control={control}
-                rules={{ required: 'City is required' }}
-                render={({ field }) => (
-                  <TextField
-                  sx={{background: '#fff'}}
-                    {...field}
-                    fullWidth
-                    label='City'
-                    error={!!errors.city}
-                    helperText={errors.city?.message}
-                  />
+
+              {/* Country Select */}
+              <Grid item xs={12} sm={4}>
+                <Controller
+                  name="country"
+                  control={control}
+                  rules={{ required: 'Country is required' }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={toReactSelectOptions(countryList)}
+                      onChange={handleCountryChange}
+                      value={
+                        toReactSelectOptions(countryList).find(
+                          option => option.value === field.value
+                        ) || null
+                      }
+                      placeholder="Select Country"
+                    />
+                  )}
+                />
+                {errors.country && (
+                  <Typography color="error" variant="caption">
+                    {errors.country.message}
+                  </Typography>
                 )}
-              />
-            </Grid>
-            <Grid item  size={{ xs: 12, sm: 4 }}>
-              <Controller
-                name='state'
-                control={control}
-                rules={{ required: 'State is required' }}
-                render={({ field }) => (
-                  <TextField
-                  sx={{background: '#fff'}}
-                    {...field}
-                    fullWidth
-                    label='State'
-                    error={!!errors.state}
-                    helperText={errors.state?.message}
-                  />
+              </Grid>
+
+              {/* State Select */}
+              <Grid item xs={12} sm={4}>
+                <Controller
+                  name="state"
+                  control={control}
+                  rules={{ required: 'State is required' }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={toReactSelectOptions(stateList)}
+                      onChange={handleStateChange}
+                      value={
+                        toReactSelectOptions(stateList).find(
+                          option => option.value === field.value
+                        ) || null
+                      }
+                      placeholder="Select State"
+                    />
+                  )}
+                />
+                {errors.state && (
+                  <Typography color="error" variant="caption">
+                    {errors.state.message}
+                  </Typography>
                 )}
-              />
-            </Grid>
-            <Grid item  size={{ xs: 12, sm: 4 }}>
-              <Controller
-                name='country'
-                control={control}
-                rules={{ required: 'Country is required' }}
-                render={({ field }) => (
-                  <TextField
-                  sx={{background: '#fff'}}
-                    {...field}
-                    fullWidth
-                    label='Country'
-                    error={!!errors.country}
-                    helperText={errors.country?.message}
-                  />
+              </Grid>
+
+              {/* City Select */}
+              <Grid item xs={12} sm={4}>
+                <Controller
+                  name="city"
+                  control={control}
+                  rules={{ required: 'City is required' }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={toReactSelectOptions(cityList)}
+                      onChange={(selectedOption) => field.onChange(selectedOption?.value || '')}
+                      value={
+                        toReactSelectOptions(cityList).find(
+                          option => option.value === field.value
+                        ) || null
+                      }
+                      placeholder="Select City"
+                    />
+                  )}
+                />
+                {errors.city && (
+                  <Typography color="error" variant="caption">
+                    {errors.city.message}
+                  </Typography>
                 )}
-              />
-            </Grid>
+              </Grid>
             <Grid item  size={{ xs: 12, sm: 4 }}>
               <Controller
                 name='postalCode'
@@ -433,6 +543,8 @@ const AddSupplierForm = () => {
                 )}
               />
             </Grid>
+
+
 
             {/* <Grid item xs={12} sm={3}>
               <Controller

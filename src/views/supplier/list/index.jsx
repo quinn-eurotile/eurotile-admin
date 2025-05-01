@@ -127,7 +127,7 @@ const SupplierMemberList = tableData => {
       // },
       columnHelper.accessor('id', {
         header: 'Supplier ID',
-        cell: ({ row }) => <Typography>{row.original.su}</Typography>
+        cell: ({ row }) => <Typography>{row.original.supplierId}</Typography>
       }),
       columnHelper.accessor('companyName', {
         header: 'Company Name',
@@ -157,8 +157,15 @@ const SupplierMemberList = tableData => {
         header: 'Address',
         cell: ({ row }) => {
           const { addressLine1, city, state, zipCode, country } = row.original.addresses
-          const fullAddress = [addressLine1, city, state, zipCode, country].filter(Boolean).join(', ')
-          return <Typography>{fullAddress}</Typography>
+          const fullAddress = [addressLine1].filter(Boolean).join(', ')
+          return <Typography>
+                {fullAddress && `${fullAddress}, `}
+                {row?.original?.city?.name && `${row?.original?.city?.name}, `}
+                {row?.original?.state?.name && `${row?.original?.state?.name}, `}
+                {row?.original?.country?.name && `${row?.original?.country?.name}`}
+              </Typography>
+
+
         }
       }),
          columnHelper.accessor('status', {
