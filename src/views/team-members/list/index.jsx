@@ -3,10 +3,6 @@
   // React Imports
   import { useEffect, useState, useMemo } from 'react'
 
-  // Next Imports
-  import Link from 'next/link'
-  import { useParams } from 'next/navigation'
-
   // MUI Imports
   import Card from '@mui/material/Card'
   import CardHeader from '@mui/material/CardHeader'
@@ -132,24 +128,24 @@ import TableFilters from './TableFilters';
 
 
     const columns = useMemo(() => [
-      {
-        id: 'select',
-        header: ({ table }) => (
-          <Checkbox
-            checked={table.getIsAllRowsSelected()}
-            indeterminate={table.getIsSomeRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            disabled={!row.getCanSelect()}
-            indeterminate={row.getIsSomeSelected()}
-            onChange={row.getToggleSelectedHandler()}
-          />
-        )
-      },
+      // {
+      //   id: 'select',
+      //   header: ({ table }) => (
+      //     <Checkbox
+      //       checked={table.getIsAllRowsSelected()}
+      //       indeterminate={table.getIsSomeRowsSelected()}
+      //       onChange={table.getToggleAllRowsSelectedHandler()}
+      //     />
+      //   ),
+      //   cell: ({ row }) => (
+      //     <Checkbox
+      //       checked={row.getIsSelected()}
+      //       disabled={!row.getCanSelect()}
+      //       indeterminate={row.getIsSomeSelected()}
+      //       onChange={row.getToggleSelectedHandler()}
+      //     />
+      //   )
+      // },
       columnHelper.accessor('name', {
         header: 'User',
         cell: ({ row }) => (
@@ -196,20 +192,40 @@ import TableFilters from './TableFilters';
           />
         )
       }),
-          columnHelper.accessor('action', {
-            header: 'Action',
-            cell: ({ row }) => (
-              <div className='flex items-center'>
-                  <IconButton onClick={() => handleDeleteConfirmation(row.original.id)}>
-                  <i className='ri-delete-bin-7-line text-textSecondary' />
-                </IconButton>
-                <IconButton onClick={() => handleEdit(row.original.id)}>
-                  <i className='ri-edit-line text-textSecondary' />
-                </IconButton>
-              </div>
-            ),
-            enableSorting: false
-          })
+      columnHelper.accessor('action', {
+        header: 'Action',
+        cell: ({ row }) => {
+          const currentStatus = row.original.status
+
+          const handleStatusToggle = async () => {
+                const newStatus = currentStatus === 1 ? 0 : 1
+              await teamMemberService.updateStatus(row.original.id, newStatus)
+                  refreshTeamList();
+
+          }
+
+          return (
+            <div className='flex items-center gap-2'>
+              <IconButton onClick={() => handleDeleteConfirmation(row.original.id)}>
+                <i className='ri-delete-bin-7-line text-textSecondary' />
+              </IconButton>
+
+              <IconButton onClick={() => handleEdit(row.original.id)}>
+                <i className='ri-edit-line text-textSecondary' />
+              </IconButton>
+
+              <IconButton onClick={handleStatusToggle}>
+                {currentStatus === 1 ? (
+                  <i className='ri-eye-off-line text-textSecondary' title='Set Inactive' />
+                ) : (
+                  <i className='ri-eye-line text-textSecondary' title='Set Active' />
+                )}
+              </IconButton>
+            </div>
+          )
+        },
+        enableSorting: false
+      })
 
     ], [data])
 

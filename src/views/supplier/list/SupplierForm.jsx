@@ -30,6 +30,7 @@ const AddSupplierForm = () => {
     control,
     handleSubmit,
     reset,
+    setError,
     formState: { errors }
   } = useForm({
     defaultValues: {
@@ -142,17 +143,51 @@ const AddSupplierForm = () => {
       discounts: formattedDiscounts,
       status:data.status
     }
-      if(supplierId){
-           await supplierService.update(supplierId , finalPayload);
+
+    try {
+    let response;
+
+      if(supplierId &&  supplierId !='new'){
+        response =  await supplierService.update(supplierId , finalPayload);
 
         }else{
-         await supplierService.create(finalPayload)
+          response =  await supplierService.create(finalPayload)
         }
-        router.push(`/${locale}/supplier/list`);
-      //  console.log('Final Payload:', finalPayload)
-    // toast.success('Supplier saved successfully!')
-    reset()
-  }
+
+        if (response?.statusCode === 200) {
+
+          reset();
+             router.push(`/${locale}/supplier/list`);
+        } else {
+          // Map backend field-level validation errors (422)
+          if (response?.data?.errors) {
+            const backendErrors = response.data.errors;
+            Object.entries(backendErrors).forEach(([fieldName, messages]) => {
+              if (Array.isArray(messages)) {
+                setError(fieldName, { message: messages[0] });
+              }
+            });
+          } else {
+            const errorMessage = response?.message || 'Something went wrong. Please try again.';
+            setError('apiError', { message: errorMessage });
+          }
+        }
+
+        // router.push(`/${locale}/supplier/list`);
+      } catch (error) {
+        const backendErrors = error?.response?.data?.errors;
+        if (backendErrors) {
+          Object.entries(backendErrors).forEach(([fieldName, messages]) => {
+            if (Array.isArray(messages)) {
+              setError(fieldName, { message: messages[0] });
+            }
+          });
+        } else {
+          const errorMessage = error?.message || 'Something went wrong. Please try again.';
+          setError('apiError', { message: errorMessage });
+        }
+      }
+    }
 
 
 
