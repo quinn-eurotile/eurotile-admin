@@ -105,9 +105,12 @@ const Login = ({ mode }) => {
       router.replace(getLocalizedUrl(redirectURL, locale))
     } else {
       if (res?.error) {
-        const error = JSON.parse(res.error)
 
-        setErrorState(error)
+
+
+        const error = JSON.parse(res.error)
+        console.log(error,'errorerrorerror');
+        setErrorState(error?.message)
       }
     }
   }
@@ -181,7 +184,7 @@ const Login = ({ mode }) => {
                   }}
                   {...((errors.email || errorState !== null) && {
                     error: true,
-                    helperText: errors?.email?.message || errorState?.message[0]
+                    helperText: errors?.email?.message || errorState
                   })}
                 />
               )}
