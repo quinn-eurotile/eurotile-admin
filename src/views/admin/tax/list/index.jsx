@@ -37,7 +37,7 @@ import {
 import CustomAvatar from '@core/components/mui/Avatar';
 
 // Util Imports
-import { getInitials } from '@/utils/getInitials'; 
+import { getInitials } from '@/utils/getInitials';
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css';
@@ -54,9 +54,7 @@ const fuzzyFilter = (row, columnId, value, addMeta) => {
 	const itemRank = rankItem(row.getValue(columnId), value);
 
 	// Store the itemRank info
-	addMeta({
-		itemRank
-	});
+	addMeta({ itemRank });
 
 	// Return if the item should be filtered in/out
 	return itemRank.passed;
@@ -82,8 +80,8 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
 	return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />;
 };
 
-const userStatusObj = {1: 'success',2: 'warning',0: 'secondary'};
-const userStatusNameObj = {1: 'Active',2: 'Pending',0: 'Inactive'};
+const userStatusObj = { 1: 'success', 2: 'warning', 0: 'secondary' };
+const userStatusNameObj = { 1: 'Active', 2: 'Pending', 0: 'Inactive' };
 
 // Column Definitions
 const columnHelper = createColumnHelper();
@@ -104,7 +102,7 @@ const TaxList = () => {
 	// Menu state
 	const [selectedCatId, setSelectedCatId] = useState(null);
 	const [statsData, setStatsData] = useState([]);
- 
+
 	const columns = useMemo(() => [
 		columnHelper.accessor('customerType', {
 			header: 'Customer Type',
@@ -202,20 +200,18 @@ const TaxList = () => {
 			const response = await taxService.get(currentPage, rowsPerPage, searchTerm, filteredData);
 
 			if (response.statusCode === 200 && response.data) {
-				const formatted = response?.data?.docs?.map(category => ({
-					id: category._id,
-					name: category.name,
-					parent: category.parent,
-					status: category.status,
+				const formatted = response?.data?.docs?.map(tax => ({
+					id: tax._id,
+					customerType: tax.customerType,
+					taxPercentage: tax.taxPercentage,
+					status: tax.status,
 					avatar: '',
-					username: category.name.split(' ')[0]
+					username: tax.customerType?.split(' ')[0] || ''
 				}));
 
 				setPage(page);
 				setData(formatted);
 				setTotalRecords(response.data.totalDocs || 0);
-
-
 			}
 		} catch (error) {
 			console.error('Failed to fetch team members', error);
@@ -246,7 +242,7 @@ const TaxList = () => {
 
 	// Handle Edit (open AddUserDrawer with current data)
 	const handleEdit = (id) => {
-		const selectedData = data.find(result => result.id === id);	 
+		const selectedData = data.find(result => result.id === id);
 		setEditData(selectedData);
 		setSelectedCatId(id);  // Store the selected member's ID
 		setAddTaxOpen(true);  // Open the AddUserDrawer
@@ -262,6 +258,12 @@ const TaxList = () => {
 	const handelClose = async () => {
 		setAddTaxOpen(!addTaxOpen);
 		refreshList();
+	};
+
+	// Add New Customer Type Tax Model Form
+	const handleAddNewClick = () => {
+		setEditData(null);
+		setAddTaxOpen(prev => !prev);
 	};
 
 
@@ -287,10 +289,10 @@ const TaxList = () => {
 							<DebouncedInput
 								value={globalFilter ?? ''}
 								onChange={value => setSearch(String(value))}
-								placeholder='Search User'
+								placeholder='Search Customer Type'
 								className='max-sm:is-full'
 							/>
-							<Button variant='contained' onClick={() => setAddTaxOpen(!addTaxOpen)} className='max-sm:is-full'>
+							<Button variant='contained' onClick={handleAddNewClick} className='max-sm:is-full'>
 								Add New Tax
 							</Button>
 						</div>
