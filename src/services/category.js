@@ -13,7 +13,7 @@ export const categoryService = {
       ...(search_string ? { search_string } : {}),
     }).toString()
 
-    return api.get(`${CATEGORY_ENDPOINT}?${queryParams}`)
+    return api.get(`${CATEGORY_ENDPOINT}?${queryParams}`, {}, false)
   },
   getAll: async () => {
     return api.get(`${CATEGORY_ENDPOINT}/cate/all`)
@@ -21,7 +21,7 @@ export const categoryService = {
 
   // Get a single category by ID
   getById: async (id) => {
-    return api.get(`${CATEGORY_ENDPOINT}/${id}`)
+    return api.get(`${CATEGORY_ENDPOINT}/${id}`, {}, false)
   },
 
   // Create a new category

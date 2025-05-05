@@ -137,21 +137,21 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
           {/* Parent Category Select */}
           <FormControl fullWidth error={Boolean(errors.parent)}>
             <InputLabel>Parent Category</InputLabel>
-            <Select
-              label="Parent Category"
-              value={watch('parent') || ''}
-              onChange={(e) => setValue('parent', e.target.value)}
-            >
-              <MenuItem value="">None</MenuItem>
-              {parentOptions.map((option) => (
-                <MenuItem key={option._id} value={option._id}>
-                  {option.name}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.parent && (
-              <FormHelperText>{errors.parent.message}</FormHelperText>
-            )}
+            <Controller
+              name="parent"
+              control={control}
+              render={({ field }) => (
+                <Select {...field} label="Parent Category">
+                  <MenuItem value={null}>None</MenuItem>
+                  {parentOptions.map(option => (
+                    <MenuItem key={option._id} value={option._id}>
+                      {option.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              )}
+            />
+            {errors.parent && <FormHelperText>{errors.parent.message}</FormHelperText>}
           </FormControl>
 
           {/* Status Select */}

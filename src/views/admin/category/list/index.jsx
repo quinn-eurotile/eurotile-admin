@@ -45,7 +45,12 @@ import { categoryService } from '@/services/category';
 import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import TableFilters from './TableFilters';
 import AddCategoryDrawer from './AddCategoryDrawer';
+import { callCommonAction } from '@/redux-store/slices/common';
+import { useDispatch, useSelector } from 'react-redux';
 // import { useGetTeamMembers } from '@/app/server/team-members';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import CircularLoader from '@/components/common/CircularLoader';
 
 // Styled Components
 const Icon = styled('i')({});
@@ -102,7 +107,8 @@ const columnHelper = createColumnHelper();
 const CategoryList = () => {
 	const [addUserOpen, setAddUserOpen] = useState(false);
 	const [rowSelection, setRowSelection] = useState({});
-
+	const dispatch = useDispatch();
+	const commonReducer = useSelector(state => state.commonReducer);
 	// Initialize data state properly with empty array
 	const [data, setData] = useState([]);
 	const [editData, setEditData] = useState(null);
@@ -118,26 +124,7 @@ const CategoryList = () => {
 	const [statsData, setStatsData] = useState([]);
 
 
-
 	const columns = useMemo(() => [
-		// {
-		//   id: 'select',
-		//   header: ({ table }) => (
-		//     <Checkbox
-		//       checked={table.getIsAllRowsSelected()}
-		//       indeterminate={table.getIsSomeRowsSelected()}
-		//       onChange={table.getToggleAllRowsSelectedHandler()}
-		//     />
-		//   ),
-		//   cell: ({ row }) => (
-		//     <Checkbox
-		//       checked={row.getIsSelected()}
-		//       disabled={!row.getCanSelect()}
-		//       indeterminate={row.getIsSomeSelected()}
-		//       onChange={row.getToggleSelectedHandler()}
-		//     />
-		//   )
-		// },
 		columnHelper.accessor('name', {
 			header: 'Name',
 			cell: ({ row }) => (
@@ -204,8 +191,6 @@ const CategoryList = () => {
 
 	], [data]);
 
-
-
 	const table = useReactTable({
 		data,
 		columns,
@@ -235,8 +220,9 @@ const CategoryList = () => {
 
 	const fetchCategories = async (currentPage = 1, searchTerm = '') => {
 		try {
+			dispatch(callCommonAction({ loading: true }));
 			const response = await categoryService.get(currentPage, rowsPerPage, searchTerm, filteredData);
-
+			dispatch(callCommonAction({ loading: false }));
 			if (response.statusCode === 200 && response.data) {
 				const formatted = response?.data?.docs?.map(category => ({
 					id: category._id,
@@ -254,6 +240,7 @@ const CategoryList = () => {
 
 			}
 		} catch (error) {
+			dispatch(callCommonAction({ loading: false }));
 			console.error('Failed to fetch team members', error);
 		}
 	};
@@ -323,130 +310,129 @@ const CategoryList = () => {
 
 	return (
 
-		<Grid container spacing={6}>
-			<Grid size={{ xs: 12 }}>
-				<Card>
-					<CardHeader title='Filters' />
-					<TableFilters setFilters={setFilteredData} />
-					<Divider />
-					<div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
-            <div>
-						{/* <Button
-							color='secondary'
-							variant='outlined'
-							startIcon={<i className='ri-upload-2-line text-xl' />}
-							className='max-sm:is-full'
-						>
-							Export
-						</Button> */}
-            </div>
-						<div className='flex justify-between p-5 items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
-							<DebouncedInput
-								value={globalFilter ?? ''}
-								onChange={value => setSearch(String(value))}
-								placeholder='Search User'
+		<>
+			{commonReducer?.loading &&  <CircularLoader /> }
+			<Grid container spacing={6}>
+				<Grid size={{ xs: 12 }}>
+					<Card>
+						<CardHeader title='Filters' />
+						<TableFilters setFilters={setFilteredData} />
+						<Divider />
+						<div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
+							<Button
+								color='secondary'
+								variant='outlined'
+								startIcon={<i className='ri-upload-2-line text-xl' />}
 								className='max-sm:is-full'
-							/>
-							<Button variant='contained' onClick={() => setAddUserOpen(!addUserOpen)} className='max-sm:is-full'>
-								Add New Category
-							</Button>
+							>Export</Button>
+							<div className='flex justify-between p-5 items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
+								<DebouncedInput
+									value={globalFilter ?? ''}
+									onChange={value => setSearch(String(value))}
+									placeholder='Search User'
+									className='max-sm:is-full'
+								/>
+								<Button variant='contained' onClick={() => setAddUserOpen(!addUserOpen)} className='max-sm:is-full'>
+									Add New Category
+								</Button>
+							</div>
 						</div>
-					</div>
-					<div className='overflow-x-auto'>
-						<table className={tableStyles.table}>
-							<thead>
-								{table.getHeaderGroups().map(headerGroup => (
-									<tr key={headerGroup.id}>
-										{headerGroup.headers.map(header => (
-											<th key={header.id}>
-												{header.isPlaceholder ? null : (
-													<>
-														<div
-															className={classnames({
-																'flex items-center': header.column.getIsSorted(),
-																'cursor-pointer select-none': header.column.getCanSort()
-															})}
-															onClick={header.column.getToggleSortingHandler()}
-														>
-															{flexRender(header.column.columnDef.header, header.getContext())}
-															{{
-																asc: <i className='ri-arrow-up-s-line text-xl' />,
-																desc: <i className='ri-arrow-down-s-line text-xl' />
-															}[header.column.getIsSorted()] ?? null}
-														</div>
-													</>
-												)}
-											</th>
-										))}
-									</tr>
-								))}
-							</thead>
-							{table.getFilteredRowModel().rows.length === 0 ? (
-								<tbody>
-									<tr>
-										<td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-											No data available
-										</td>
-									</tr>
-								</tbody>
-							) : (
-								<tbody>
-									{table
-										.getRowModel()
-										.rows.slice(0, table.getState().pagination.pageSize)
-										.map(row => {
-											return (
-												<tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
-													{row.getVisibleCells().map(cell => (
-														<td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-													))}
-												</tr>
-											);
-										})}
-								</tbody>
-							)}
-						</table>
-					</div>
+						<div className='overflow-x-auto'>
+							<table className={tableStyles.table}>
+								<thead>
+									{table.getHeaderGroups().map(headerGroup => (
+										<tr key={headerGroup.id}>
+											{headerGroup.headers.map(header => (
+												<th key={header.id}>
+													{header.isPlaceholder ? null : (
+														<>
+															<div
+																className={classnames({
+																	'flex items-center': header.column.getIsSorted(),
+																	'cursor-pointer select-none': header.column.getCanSort()
+																})}
+																onClick={header.column.getToggleSortingHandler()}
+															>
+																{flexRender(header.column.columnDef.header, header.getContext())}
+																{{
+																	asc: <i className='ri-arrow-up-s-line text-xl' />,
+																	desc: <i className='ri-arrow-down-s-line text-xl' />
+																}[header.column.getIsSorted()] ?? null}
+															</div>
+														</>
+													)}
+												</th>
+											))}
+										</tr>
+									))}
+								</thead>
+								{table.getFilteredRowModel().rows.length === 0 ? (
+									<tbody>
+										<tr>
+											<td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
+												No data available
+											</td>
+										</tr>
+									</tbody>
+								) : (
+									<tbody>
+										{table
+											.getRowModel()
+											.rows.slice(0, table.getState().pagination.pageSize)
+											.map(row => {
+												return (
+													<tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
+														{row.getVisibleCells().map(cell => (
+															<td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+														))}
+													</tr>
+												);
+											})}
+									</tbody>
+								)}
+							</table>
+						</div>
 
 
-					<TablePagination
-						component='div'
-						count={totalRecords}
-						page={page}
-						onPageChange={handleChangePage}
-						rowsPerPage={rowsPerPage}
-						onRowsPerPageChange={handleChangeRowsPerPage}
-						rowsPerPageOptions={[1, 10, 20, 50]}
+						<TablePagination
+							component='div'
+							count={totalRecords}
+							page={page}
+							onPageChange={handleChangePage}
+							rowsPerPage={rowsPerPage}
+							onRowsPerPageChange={handleChangeRowsPerPage}
+							rowsPerPageOptions={[1, 10, 20, 50]}
+						/>
+
+					</Card>
+					{/* Confirmation Dialog */}
+					<Dialog
+						open={openConfirmDialog}
+						onClose={() => setOpenConfirmDialog(false)}
+					>
+						<DialogTitle>Confirm Deletion</DialogTitle>
+						<DialogContent>
+							<Typography>Are you sure you want to delete this team member?</Typography>
+						</DialogContent>
+						<DialogActions>
+							<Button onClick={() => setOpenConfirmDialog(false)} color="primary">
+								Cancel
+							</Button>
+							<Button onClick={handleDelete} color="secondary">
+								Confirm
+							</Button>
+						</DialogActions>
+					</Dialog>
+
+					<AddCategoryDrawer
+						open={addUserOpen}
+						handleClose={handelClose}
+						editData={editData}
+
 					/>
-
-				</Card>
-				{/* Confirmation Dialog */}
-				<Dialog
-					open={openConfirmDialog}
-					onClose={() => setOpenConfirmDialog(false)}
-				>
-					<DialogTitle>Confirm Deletion</DialogTitle>
-					<DialogContent>
-						<Typography>Are you sure you want to delete this team member?</Typography>
-					</DialogContent>
-					<DialogActions>
-						<Button onClick={() => setOpenConfirmDialog(false)} color="primary">
-							Cancel
-						</Button>
-						<Button onClick={handleDelete} color="secondary">
-							Confirm
-						</Button>
-					</DialogActions>
-				</Dialog>
-
-				<AddCategoryDrawer
-					open={addUserOpen}
-					handleClose={handelClose}
-					editData={editData}
-
-				/>
+				</Grid>
 			</Grid>
-		</Grid>
+		</>
 	);
 };
 

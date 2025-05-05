@@ -16,7 +16,7 @@ import IconButton from '@mui/material/IconButton';
 import { styled } from '@mui/material/styles';
 import TablePagination from '@mui/material/TablePagination';
 import Grid from '@mui/material/Grid2';
-
+import { callCommonAction } from '@/redux-store/slices/common';
 // Third-party Imports
 import classnames from 'classnames';
 import { rankItem } from '@tanstack/match-sorter-utils';
@@ -44,6 +44,8 @@ import tableStyles from '@core/styles/table.module.css';
 import { taxService } from '@/services/tax';
 import TableFilters from './TableFilters';
 import AddTaxDrawer from './AddTaxDrawer';
+import { useDispatch, useSelector } from 'react-redux';
+import CircularLoader from '@/components/common/CircularLoader';
 // import { useGetTeamMembers } from '@/app/server/team-members';
 
 // Styled Components
@@ -89,7 +91,8 @@ const columnHelper = createColumnHelper();
 const TaxList = () => {
 	const [addTaxOpen, setAddTaxOpen] = useState(false);
 	const [rowSelection, setRowSelection] = useState({});
-
+	const dispatch = useDispatch();
+	const commonReducer = useSelector(state => state.commonReducer);
 	// Initialize data state properly with empty array
 	const [data, setData] = useState([]);
 	const [editData, setEditData] = useState(null);
@@ -197,8 +200,9 @@ const TaxList = () => {
 
 	const fetchTax = async (currentPage = 1, searchTerm = '') => {
 		try {
+			dispatch(callCommonAction({ loading: true }));
 			const response = await taxService.get(currentPage, rowsPerPage, searchTerm, filteredData);
-
+			dispatch(callCommonAction({ loading: false }));
 			if (response.statusCode === 200 && response.data) {
 				const formatted = response?.data?.docs?.map(tax => ({
 					id: tax._id,
@@ -214,6 +218,7 @@ const TaxList = () => {
 				setTotalRecords(response.data.totalDocs || 0);
 			}
 		} catch (error) {
+			dispatch(callCommonAction({ loading: false }));
 			console.error('Failed to fetch team members', error);
 		}
 	};
@@ -268,113 +273,113 @@ const TaxList = () => {
 
 
 	return (
+		<>
+			{commonReducer?.loading && <CircularLoader />}
+			<Grid container spacing={6}>
+				<Grid size={{ xs: 12 }}>
 
-		<Grid container spacing={6}>
-			<Grid size={{ xs: 12 }}>
-
-				<Card>
-					<CardHeader title='Filters' />
-					<TableFilters setFilters={setFilteredData} />
-					<Divider />
-					<div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
-            <div>
-						{/* <Button
-							color='secondary'
-							variant='outlined'
-							startIcon={<i className='ri-upload-2-line text-xl' />}
-							className='max-sm:is-full'
-						>
-							Export
-						</Button> */}
-            </div>
-						<div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
-							<DebouncedInput
-								value={globalFilter ?? ''}
-								onChange={value => setSearch(String(value))}
-								placeholder='Search Customer Type'
+					<Card>
+						<CardHeader title='Filters' />
+						<TableFilters setFilters={setFilteredData} />
+						<Divider />
+						<div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
+							<Button
+								color='secondary'
+								variant='outlined'
+								startIcon={<i className='ri-upload-2-line text-xl' />}
 								className='max-sm:is-full'
-							/>
-							<Button variant='contained' onClick={handleAddNewClick} className='max-sm:is-full'>
-								Add New Tax
+							>
+								Export
 							</Button>
+							<div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
+								<DebouncedInput
+									value={globalFilter ?? ''}
+									onChange={value => setSearch(String(value))}
+									placeholder='Search Customer Type'
+									className='max-sm:is-full'
+								/>
+								<Button variant='contained' onClick={handleAddNewClick} className='max-sm:is-full'>
+									Add New Tax
+								</Button>
+							</div>
 						</div>
-					</div>
-					<div className='overflow-x-auto'>
-						<table className={tableStyles.table}>
-							<thead>
-								{table.getHeaderGroups().map(headerGroup => (
-									<tr key={headerGroup.id}>
-										{headerGroup.headers.map(header => (
-											<th key={header.id}>
-												{header.isPlaceholder ? null : (
-													<>
-														<div
-															className={classnames({
-																'flex items-center': header.column.getIsSorted(),
-																'cursor-pointer select-none': header.column.getCanSort()
-															})}
-															onClick={header.column.getToggleSortingHandler()}
-														>
-															{flexRender(header.column.columnDef.header, header.getContext())}
-															{{
-																asc: <i className='ri-arrow-up-s-line text-xl' />,
-																desc: <i className='ri-arrow-down-s-line text-xl' />
-															}[header.column.getIsSorted()] ?? null}
-														</div>
-													</>
-												)}
-											</th>
-										))}
-									</tr>
-								))}
-							</thead>
-							{table.getFilteredRowModel().rows.length === 0 ? (
-								<tbody>
-									<tr>
-										<td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-											No data available
-										</td>
-									</tr>
-								</tbody>
-							) : (
-								<tbody>
-									{table
-										.getRowModel()
-										.rows.slice(0, table.getState().pagination.pageSize)
-										.map(row => {
-											return (
-												<tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
-													{row.getVisibleCells().map(cell => (
-														<td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-													))}
-												</tr>
-											);
-										})}
-								</tbody>
-							)}
-						</table>
-					</div>
+						<div className='overflow-x-auto'>
+							<table className={tableStyles.table}>
+								<thead>
+									{table.getHeaderGroups().map(headerGroup => (
+										<tr key={headerGroup.id}>
+											{headerGroup.headers.map(header => (
+												<th key={header.id}>
+													{header.isPlaceholder ? null : (
+														<>
+															<div
+																className={classnames({
+																	'flex items-center': header.column.getIsSorted(),
+																	'cursor-pointer select-none': header.column.getCanSort()
+																})}
+																onClick={header.column.getToggleSortingHandler()}
+															>
+																{flexRender(header.column.columnDef.header, header.getContext())}
+																{{
+																	asc: <i className='ri-arrow-up-s-line text-xl' />,
+																	desc: <i className='ri-arrow-down-s-line text-xl' />
+																}[header.column.getIsSorted()] ?? null}
+															</div>
+														</>
+													)}
+												</th>
+											))}
+										</tr>
+									))}
+								</thead>
+								{table.getFilteredRowModel().rows.length === 0 ? (
+									<tbody>
+										<tr>
+											<td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
+												No data available
+											</td>
+										</tr>
+									</tbody>
+								) : (
+									<tbody>
+										{table
+											.getRowModel()
+											.rows.slice(0, table.getState().pagination.pageSize)
+											.map(row => {
+												return (
+													<tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
+														{row.getVisibleCells().map(cell => (
+															<td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+														))}
+													</tr>
+												);
+											})}
+									</tbody>
+								)}
+							</table>
+						</div>
 
-					<TablePagination
-						component='div'
-						count={totalRecords}
-						page={page}
-						onPageChange={handleChangePage}
-						rowsPerPage={rowsPerPage}
-						onRowsPerPageChange={handleChangeRowsPerPage}
-						rowsPerPageOptions={[1, 10, 20, 50]}
+						<TablePagination
+							component='div'
+							count={totalRecords}
+							page={page}
+							onPageChange={handleChangePage}
+							rowsPerPage={rowsPerPage}
+							onRowsPerPageChange={handleChangeRowsPerPage}
+							rowsPerPageOptions={[1, 10, 20, 50]}
+						/>
+
+					</Card>
+
+					<AddTaxDrawer
+						open={addTaxOpen}
+						handleClose={handelClose}
+						editData={editData}
+
 					/>
-
-				</Card>
-
-				<AddTaxDrawer
-					open={addTaxOpen}
-					handleClose={handelClose}
-					editData={editData}
-
-				/>
+				</Grid>
 			</Grid>
-		</Grid>
+		</>
 	);
 };
 

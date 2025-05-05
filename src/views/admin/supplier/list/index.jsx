@@ -14,7 +14,7 @@ import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import TablePagination from '@mui/material/TablePagination';
 import Grid from '@mui/material/Grid2';
-
+import { callCommonAction } from '@/redux-store/slices/common';
 // Third-party Imports
 import classnames from 'classnames';
 import { rankItem } from '@tanstack/match-sorter-utils';
@@ -37,6 +37,8 @@ import { Chip, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/ma
 import TableFilters from './TableFilters';
 import { supplierService } from '@/services/supplier';
 import { useRouter, useParams } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
+import CircularLoader from '@/components/common/CircularLoader';
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   // Rank the item
@@ -75,6 +77,8 @@ const columnHelper = createColumnHelper();
 
 const SupplierMemberList = tableData => {
   // const { tableData, loading, error } = useGetTeamMembers()
+  const dispatch = useDispatch();
+  const commonReducer = useSelector(state => state.commonReducer);
 
   // States
   const [rowSelection, setRowSelection] = useState({});
@@ -156,8 +160,8 @@ const SupplierMemberList = tableData => {
       columnHelper.accessor('address', {
         header: 'Address',
         cell: ({ row }) => {
-          const { addressLine1} = row?.original?.addresses
-          const fullAddress = [addressLine1].filter(Boolean).join(', ')
+          const { addressLine1 } = row?.original?.addresses;
+          const fullAddress = [addressLine1].filter(Boolean).join(', ');
           return <Typography>
             {fullAddress && `${fullAddress}, `}
             {row?.original?.city?.name && `${row?.original?.city?.name}, `}
@@ -250,13 +254,16 @@ const SupplierMemberList = tableData => {
 
   const fetchTeamMembers = async (currentPage = 1, searchTerm = '') => {
     try {
+      dispatch(callCommonAction({ loading: true }));
       const response = await supplierService.get(currentPage, rowsPerPage, searchTerm, filteredData);
+      dispatch(callCommonAction({ loading: false }));
       if (response.success && response.data) {
         setPage(page);
         setData(response?.data?.docs ?? null);
         setTotalRecords(response.data.totalDocs || 0);
       }
     } catch (error) {
+      dispatch(callCommonAction({ loading: false }));
       console.error('Failed to fetch team members', error);
     }
   };
@@ -300,13 +307,15 @@ const SupplierMemberList = tableData => {
   };
 
   return (
-    <Grid container spacing={6}>
-      <Grid size={{ xs: 12 }}>
-        <Card>
-          <CardHeader title='Filters' />
-          <TableFilters setFilters={setFilteredData} />
-          <Divider />
-          {/* <div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
+    <>
+      {commonReducer?.loading &&  <CircularLoader /> }
+      <Grid container spacing={6}>
+        <Grid size={{ xs: 12 }}>
+          <Card>
+            <CardHeader title='Filters' />
+            <TableFilters setFilters={setFilteredData} />
+            <Divider />
+            {/* <div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
            <Button
               color='secondary'
               variant='outlined'
@@ -331,107 +340,108 @@ const SupplierMemberList = tableData => {
               </Button>
             </div>
           </div> */}
-          <div className='flex justify-end p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
-          <div className='flex items-end gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
-            <DebouncedInput
-              value={globalFilter ?? ''}
-              onChange={value => setSearch(String(value))}
-              placeholder='Search Supplier'
-              className='max-sm:is-full'
+            <div className='flex justify-end p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
+              <div className='flex items-end gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
+                <DebouncedInput
+                  value={globalFilter ?? ''}
+                  onChange={value => setSearch(String(value))}
+                  placeholder='Search Supplier'
+                  className='max-sm:is-full'
+                />
+                <Button
+                  variant='contained'
+                  onClick={() => router.push(`/${locale}/admin/supplier/new`)}
+                  className='max-sm:is-full'
+                >
+                  <i className='ri-add-line text-xl' />   Add Supplier
+                </Button>
+              </div>
+            </div>
+
+            <div className='overflow-x-auto'>
+              <table className={tableStyles.table}>
+                <thead>
+                  {table.getHeaderGroups().map(headerGroup => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map(header => (
+                        <th key={header.id}>
+                          {header.isPlaceholder ? null : (
+                            <>
+                              <div
+                                className={classnames({
+                                  'flex items-center': header.column.getIsSorted(),
+                                  'cursor-pointer select-none': header.column.getCanSort()
+                                })}
+                                onClick={header.column.getToggleSortingHandler()}
+                              >
+                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                {{
+                                  asc: <i className='ri-arrow-up-s-line text-xl' />,
+                                  desc: <i className='ri-arrow-down-s-line text-xl' />
+                                }[header.column.getIsSorted()] ?? null}
+                              </div>
+                            </>
+                          )}
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                {table.getFilteredRowModel().rows.length === 0 ? (
+                  <tbody>
+                    <tr>
+                      <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
+                        No data available
+                      </td>
+                    </tr>
+                  </tbody>
+                ) : (
+                  <tbody>
+                    {table
+                      .getRowModel()
+                      .rows.slice(0, table.getState().pagination.pageSize)
+                      .map(row => {
+                        return (
+                          <tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
+                            {row.getVisibleCells().map(cell => (
+                              <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                )}
+              </table>
+            </div>
+
+            <TablePagination
+              component='div'
+              count={totalRecords}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              rowsPerPageOptions={[1, 10, 20, 50]}
             />
-            <Button
-              variant='contained'
-              onClick={() => router.push(`/${locale}/admin/supplier/new`)}
-              className='max-sm:is-full'
-            >
-              <i className='ri-add-line text-xl' />   Add Supplier
-            </Button>
-          </div>
-        </div>
-
-          <div className='overflow-x-auto'>
-            <table className={tableStyles.table}>
-              <thead>
-                {table.getHeaderGroups().map(headerGroup => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map(header => (
-                      <th key={header.id}>
-                        {header.isPlaceholder ? null : (
-                          <>
-                            <div
-                              className={classnames({
-                                'flex items-center': header.column.getIsSorted(),
-                                'cursor-pointer select-none': header.column.getCanSort()
-                              })}
-                              onClick={header.column.getToggleSortingHandler()}
-                            >
-                              {flexRender(header.column.columnDef.header, header.getContext())}
-                              {{
-                                asc: <i className='ri-arrow-up-s-line text-xl' />,
-                                desc: <i className='ri-arrow-down-s-line text-xl' />
-                              }[header.column.getIsSorted()] ?? null}
-                            </div>
-                          </>
-                        )}
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-              {table.getFilteredRowModel().rows.length === 0 ? (
-                <tbody>
-                  <tr>
-                    <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                      No data available
-                    </td>
-                  </tr>
-                </tbody>
-              ) : (
-                <tbody>
-                  {table
-                    .getRowModel()
-                    .rows.slice(0, table.getState().pagination.pageSize)
-                    .map(row => {
-                      return (
-                        <tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
-                          {row.getVisibleCells().map(cell => (
-                            <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-                          ))}
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              )}
-            </table>
-          </div>
-
-          <TablePagination
-            component='div'
-            count={totalRecords}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[1, 10, 20, 50]}
-          />
-        </Card>
-        {/* Confirmation Dialog */}
-        <Dialog open={openConfirmDialog} onClose={() => setOpenConfirmDialog(false)}>
-          <DialogTitle>Confirm Deletion</DialogTitle>
-          <DialogContent>
-            <Typography>Are you sure you want to delete this team member?</Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenConfirmDialog(false)} color='primary'>
-              Cancel
-            </Button>
-            <Button onClick={handleDelete} color='secondary'>
-              Confirm
-            </Button>
-          </DialogActions>
-        </Dialog>
+          </Card>
+          {/* Confirmation Dialog */}
+          <Dialog open={openConfirmDialog} onClose={() => setOpenConfirmDialog(false)}>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogContent>
+              <Typography>Are you sure you want to delete this team member?</Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setOpenConfirmDialog(false)} color='primary'>
+                Cancel
+              </Button>
+              <Button onClick={handleDelete} color='secondary'>
+                Confirm
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </Grid>
       </Grid>
-    </Grid>
+    </>
   );
 };
 
