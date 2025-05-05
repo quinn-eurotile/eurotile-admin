@@ -18,7 +18,7 @@ export const supplierService = {
 
   // Get a single team member by ID
   getById: async (id) => {
-    return api.get(`${TEAM_MEMBERS_ENDPOINT}/${id}`)
+    return api.get(`${TEAM_MEMBERS_ENDPOINT}/${id}`,null,false)
   },
 
   // Create a new team member

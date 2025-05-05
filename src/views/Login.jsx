@@ -181,7 +181,7 @@ const Login = ({ mode }) => {
                   }}
                   {...((errors.email || errorState !== null) && {
                     error: true,
-                    helperText: errors?.email?.message || errorState?.message[0]
+                    helperText: errors?.email?.message || errorState?.message
                   })}
                 />
               )}

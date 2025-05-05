@@ -95,7 +95,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             href={`/${locale}/team-members/list`}
             exactMatch={false}
             activeUrl='/team-members/list'
-            icon={<i className='ri-mail-open-line' />}
+            icon={<i className='ri-team-fill' />}
           >
             Team Members
           </MenuItem>

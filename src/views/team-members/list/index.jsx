@@ -406,15 +406,9 @@ import TableFilters from './TableFilters';
           <CardHeader title='Filters' />
           <TableFilters setFilters={setFilteredData} />
           <Divider />
-          <div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
-            <Button
-              color='secondary'
-              variant='outlined'
-              startIcon={<i className='ri-upload-2-line text-xl' />}
-              className='max-sm:is-full'
-            >
-              Export
-            </Button>
+          {/* <div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
+          
+          .
             <div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
               <DebouncedInput
                 value={globalFilter ?? ''}
@@ -422,11 +416,30 @@ import TableFilters from './TableFilters';
                 placeholder='Search User'
                 className='max-sm:is-full'
               />
-              <Button variant='contained' onClick={() => setAddUserOpen(!addUserOpen)} className='max-sm:is-full'>
-                Add New Team Member
+              <Button variant='contained' onClick={() => setAddUserOpen(!addUserOpen)}  className='max-sm:is-full flex items-center gap-2'
+              >
+              <i className='ri-add-line text-xl' />  Add Team Member
               </Button>
             </div>
+          </div> */}
+          <div className='flex justify-end p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
+          <div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
+            <DebouncedInput
+              value={globalFilter ?? ''}
+              onChange={value => setSearch(String(value))}
+              placeholder='Search User'
+              className='max-sm:is-full'
+            />
+            <Button
+              variant='contained'
+              onClick={() => setAddUserOpen(!addUserOpen)}
+              className='max-sm:is-full flex items-center gap-2'
+            >
+              <i className='ri-add-line text-xl' /> Add Team Member
+            </Button>
           </div>
+        </div>
+
           <div className='overflow-x-auto'>
             <table className={tableStyles.table}>
               <thead>

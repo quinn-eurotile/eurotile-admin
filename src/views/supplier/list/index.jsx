@@ -306,8 +306,8 @@ const SupplierMemberList = tableData => {
           <CardHeader title='Filters' />
           <TableFilters setFilters={setFilteredData} />
           <Divider />
-          <div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
-            <Button
+          {/* <div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
+           <Button
               color='secondary'
               variant='outlined'
               startIcon={<i className='ri-upload-2-line text-xl' />}
@@ -315,7 +315,7 @@ const SupplierMemberList = tableData => {
             >
               Export
             </Button>
-            <div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
+            <div className='flex items-end gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
               <DebouncedInput
                 value={globalFilter ?? ''}
                 onChange={value => setSearch(String(value))}
@@ -330,7 +330,25 @@ const SupplierMemberList = tableData => {
                 Add New Supplier
               </Button>
             </div>
+          </div> */}
+          <div className='flex justify-end p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
+          <div className='flex items-end gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
+            <DebouncedInput
+              value={globalFilter ?? ''}
+              onChange={value => setSearch(String(value))}
+              placeholder='Search Supplier'
+              className='max-sm:is-full'
+            />
+            <Button
+              variant='contained'
+              onClick={() => router.push(`/${locale}/supplier/new`)}
+              className='max-sm:is-full'
+            >
+              <i className='ri-add-line text-xl' />   Add Supplier
+            </Button>
           </div>
+        </div>
+
           <div className='overflow-x-auto'>
             <table className={tableStyles.table}>
               <thead>

@@ -114,7 +114,7 @@ const AddUserDrawer = (props) => {
     >
       {/* Header */}
       <div className="flex items-center justify-between p-5 pb-4">
-        <Typography variant="h5">Add New User</Typography>
+        <Typography variant="h5"> { editTeam ? 'Edit Team Member' : ' Add Team Member'} </Typography>
         <IconButton size="small" onClick={handleDrawerClose}>
           <i className="ri-close-line text-2xl" />
         </IconButton>
