@@ -13,12 +13,12 @@ export const teamMemberService = {
       ...(search_string ? { search_string } : {}),
     }).toString()
 
-    return api.get(`${TEAM_MEMBERS_ENDPOINT}?${queryParams}`)
+    return api.get(`${TEAM_MEMBERS_ENDPOINT}?${queryParams}`, {}, false)
   },
 
   // Get a single team member by ID
   getTeamMemberById: async (id) => {
-    return api.get(`${TEAM_MEMBERS_ENDPOINT}/${id}`)
+    return api.get(`${TEAM_MEMBERS_ENDPOINT}/${id}`, {}, false)
   },
 
   // Create a new team member

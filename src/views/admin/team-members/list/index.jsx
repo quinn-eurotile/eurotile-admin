@@ -36,7 +36,7 @@ import {
 // Component Imports
 import OptionMenu from '@core/components/option-menu';
 import CustomAvatar from '@core/components/mui/Avatar';
-
+import { callCommonAction } from '@/redux-store/slices/common';
 // Util Imports
 import { getInitials } from '@/utils/getInitials';
 import { getLocalizedUrl } from '@/utils/i18n';
@@ -48,6 +48,8 @@ import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material
 import TeamListCards from './TeamListCards';
 import AddUserDrawer from './AddTeamDrawer';
 import TableFilters from './TableFilters';
+import { useDispatch, useSelector } from 'react-redux';
+import CircularLoader from '@/components/common/CircularLoader';
 // import { useGetTeamMembers } from '@/app/server/team-members';
 
 // Styled Components
@@ -104,7 +106,8 @@ const columnHelper = createColumnHelper();
 
 const TeamMemberList = (tableData) => {
 	// const { tableData, loading, error } = useGetTeamMembers()
-
+	const dispatch = useDispatch();
+	const commonReducer = useSelector(state => state.commonReducer);
 	// States
 	const [addUserOpen, setAddUserOpen] = useState(false);
 	const [rowSelection, setRowSelection] = useState({});
@@ -263,7 +266,9 @@ const TeamMemberList = (tableData) => {
 
 	const fetchTeamMembers = async (currentPage = 1, searchTerm = '') => {
 		try {
+			dispatch(callCommonAction({ loading: true }));
 			const response = await teamMemberService.getTeamMembers(currentPage, rowsPerPage, searchTerm, filteredData);
+			dispatch(callCommonAction({ loading: false }));
 			if (response.success && response.data) {
 				const formatted = response.data.docs.map(member => ({
 					id: member._id,
@@ -330,6 +335,7 @@ const TeamMemberList = (tableData) => {
 
 			}
 		} catch (error) {
+			dispatch(callCommonAction({ loading: false }));
 			console.error('Failed to fetch team members', error);
 		}
 	};
@@ -394,19 +400,20 @@ const TeamMemberList = (tableData) => {
 	};
 
 	return (
+		<>
+			{commonReducer?.loading && <CircularLoader />}
+			<Grid container spacing={6}>
+				<Grid size={{ xs: 12 }}>
+					<TeamListCards statsData={statsData} />
 
-		<Grid container spacing={6}>
-			<Grid size={{ xs: 12 }}>
-				<TeamListCards statsData={statsData} />
+				</Grid>
+				<Grid size={{ xs: 12 }}>
 
-			</Grid>
-			<Grid size={{ xs: 12 }}>
-
-				<Card>
-					<CardHeader title='Filters' />
-					<TableFilters setFilters={setFilteredData} />
-					<Divider />
-					{/* <div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
+					<Card>
+						<CardHeader title='Filters' />
+						<TableFilters setFilters={setFilteredData} />
+						<Divider />
+						{/* <div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
 
           .
             <div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
@@ -422,119 +429,122 @@ const TeamMemberList = (tableData) => {
               </Button>
             </div>
           </div> */}
-					<div className='flex justify-end p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
-						<div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
-							<DebouncedInput
-								value={globalFilter ?? ''}
-								onChange={value => setSearch(String(value))}
-								placeholder='Search User'
-								className='max-sm:is-full'
-							/>
-							<Button
-								variant='contained'
-								onClick={() => setAddUserOpen(!addUserOpen)}
-								className='max-sm:is-full flex items-center gap-2'
-							>
-								<i className='ri-add-line text-xl' /> Add Team Member
-							</Button>
+						<div className='flex justify-end p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
+							<div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
+								<DebouncedInput
+									value={globalFilter ?? ''}
+									onChange={value => setSearch(String(value))}
+									placeholder='Search User'
+									className='max-sm:is-full'
+								/>
+								<Button
+									variant='contained'
+									onClick={() => setAddUserOpen(!addUserOpen)}
+									className='max-sm:is-full flex items-center gap-2'
+								>
+									<i className='ri-add-line text-xl' /> Add Team Member
+								</Button>
+							</div>
 						</div>
-					</div>
 
-					<div className='overflow-x-auto'>
-						<table className={tableStyles.table}>
-							<thead>
-								{table.getHeaderGroups().map(headerGroup => (
-									<tr key={headerGroup.id}>
-										{headerGroup.headers.map(header => (
-											<th key={header.id}>
-												{header.isPlaceholder ? null : (
-													<>
-														<div
-															className={classnames({
-																'flex items-center': header.column.getIsSorted(),
-																'cursor-pointer select-none': header.column.getCanSort()
-															})}
-															onClick={header.column.getToggleSortingHandler()}
-														>
-															{flexRender(header.column.columnDef.header, header.getContext())}
-															{{
-																asc: <i className='ri-arrow-up-s-line text-xl' />,
-																desc: <i className='ri-arrow-down-s-line text-xl' />
-															}[header.column.getIsSorted()] ?? null}
-														</div>
-													</>
-												)}
-											</th>
-										))}
-									</tr>
-								))}
-							</thead>
-							{table.getFilteredRowModel().rows.length === 0 ? (
-								<tbody>
-									<tr>
-										<td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-											No data available
-										</td>
-									</tr>
-								</tbody>
-							) : (
-								<tbody>
-									{table
-										.getRowModel()
-										.rows.slice(0, table.getState().pagination.pageSize)
-										.map(row => {
-											return (
-												<tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
-													{row.getVisibleCells().map(cell => (
-														<td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-													))}
-												</tr>
-											);
-										})}
-								</tbody>
-							)}
-						</table>
-					</div>
+						<div className='overflow-x-auto'>
+							<table className={tableStyles.table}>
+								<thead>
+									{table.getHeaderGroups().map(headerGroup => (
+										<tr key={headerGroup.id}>
+											{headerGroup.headers.map(header => (
+												<th key={header.id}>
+													{header.isPlaceholder ? null : (
+														<>
+															<div
+																className={classnames({
+																	'flex items-center': header.column.getIsSorted(),
+																	'cursor-pointer select-none': header.column.getCanSort()
+																})}
+																onClick={header.column.getToggleSortingHandler()}
+															>
+																{flexRender(header.column.columnDef.header, header.getContext())}
+																{{
+																	asc: <i className='ri-arrow-up-s-line text-xl' />,
+																	desc: <i className='ri-arrow-down-s-line text-xl' />
+																}[header.column.getIsSorted()] ?? null}
+															</div>
+														</>
+													)}
+												</th>
+											))}
+										</tr>
+									))}
+								</thead>
+								{table.getFilteredRowModel().rows.length === 0 ? (
+									<tbody>
+										<tr>
+											<td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
+												No data available
+											</td>
+										</tr>
+									</tbody>
+								) : (
+									<tbody>
+										{table
+											.getRowModel()
+											.rows.slice(0, table.getState().pagination.pageSize)
+											.map(row => {
+												return (
+													<tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
+														{row.getVisibleCells().map(cell => (
+															<td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+														))}
+													</tr>
+												);
+											})}
+									</tbody>
+								)}
+							</table>
+						</div>
 
 
-					<TablePagination
-						component='div'
-						count={totalRecords}
-						page={page}
-						onPageChange={handleChangePage}
-						rowsPerPage={rowsPerPage}
-						onRowsPerPageChange={handleChangeRowsPerPage}
-						rowsPerPageOptions={[1, 10, 20, 50]}
+						<TablePagination
+							component='div'
+							count={totalRecords}
+							page={page}
+							onPageChange={handleChangePage}
+							rowsPerPage={rowsPerPage}
+							onRowsPerPageChange={handleChangeRowsPerPage}
+							rowsPerPageOptions={[1, 10, 20, 50]}
+						/>
+
+					</Card>
+					{/* Confirmation Dialog */}
+					<Dialog
+						open={openConfirmDialog}
+						onClose={() => setOpenConfirmDialog(false)}
+					>
+						<DialogTitle>Confirm Deletion</DialogTitle>
+						<DialogContent>
+							<Typography>Are you sure you want to delete this team member?</Typography>
+						</DialogContent>
+						<DialogActions>
+							<Button onClick={() => setOpenConfirmDialog(false)} color="primary">
+								Cancel
+							</Button>
+							<Button onClick={handleDelete} color="secondary">
+								Confirm
+							</Button>
+						</DialogActions>
+					</Dialog>
+
+					<AddUserDrawer
+						open={addUserOpen}
+						handleClose={handelClose}
+						editTeam={editTeam}
+
 					/>
-
-				</Card>
-				{/* Confirmation Dialog */}
-				<Dialog
-					open={openConfirmDialog}
-					onClose={() => setOpenConfirmDialog(false)}
-				>
-					<DialogTitle>Confirm Deletion</DialogTitle>
-					<DialogContent>
-						<Typography>Are you sure you want to delete this team member?</Typography>
-					</DialogContent>
-					<DialogActions>
-						<Button onClick={() => setOpenConfirmDialog(false)} color="primary">
-							Cancel
-						</Button>
-						<Button onClick={handleDelete} color="secondary">
-							Confirm
-						</Button>
-					</DialogActions>
-				</Dialog>
-
-				<AddUserDrawer
-					open={addUserOpen}
-					handleClose={handelClose}
-					editTeam={editTeam}
-
-				/>
+				</Grid>
 			</Grid>
-		</Grid>
+		</>
+
+
 	);
 };
 

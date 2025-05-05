@@ -16,7 +16,7 @@ const getCommonHeaders = async () => {
 };
 
 // Generic API request using Axios
-const apiRequest = async (endpoint, method, data = null, customHeaders = {} ,  showToastOnError = true) => {
+const apiRequest = async (endpoint, method, data = null, customHeaders = {}, showToastOnError = true) => {
   try {
     const headers = {
       ...(await getCommonHeaders()),
@@ -30,53 +30,52 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {} ,  s
       method: method,
       url: REQUEST_URL,
       headers: headers,
-      data: data??'',
+      data: data ?? '',
       withCredentials: true,
     };
-    if(method=='DELETE'){
-      delete config.data
+    if (method == 'DELETE') {
+      delete config.data;
     }
     const response = await axios(config);
     if (showToastOnError) {
-        // Show success toast on success
-        if(response.data?.message){
-          toast.success(response.data?.message , { toastId: 'success1', autoClose: 3000 },   );
-        }
+      // Show success toast on success
+      if (response.data?.message) {
+        toast.success(response.data?.message, { toastId: 'success1', autoClose: 3000 },);
+      }
 
     }
 
     return {
       success: true,
       data: response.data?.data || response.data,
-      message: response.data?.message ,
+      message: response.data?.message,
       statusCode: response.status,
     };
 
   } catch (error) {
-    console.error("API request error:", error);
 
     const statusCode = error?.response?.status || 500;
     const errorData = error?.response?.data || {};
-    const errorMessage = errorData?.message || error.message ;
+    const errorMessage = errorData?.message || error.message;
     if (errorMessage) {
       if (showToastOnError) {
-      switch (statusCode) {
-        case 400:
-          toast.error("Bad Request: " + errorMessage , { toastId: 'success1' , autoClose: 3000});
-          break;
-        case 401:
-          toast.error("Unauthorized. Please log in.", { toastId: 'success1' , autoClose: 3000});
-          break;
-        case 422:
-          toast.error("Validation error: " + errorMessage, { toastId: 'success1', autoClose: 3000 });
-          break;
-        case 500:
-        default:
-          // toast.error("Server error: " + errorMessage, { toastId: 'success1' , autoClose: 3000});
-          break;
+        switch (statusCode) {
+          case 400:
+            toast.error(errorMessage, { toastId: 'success1', autoClose: 3000 });
+            break;
+          case 401:
+            toast.error("Unauthorized. Please log in.", { toastId: 'success1', autoClose: 3000 });
+            break;
+          case 422:
+            toast.error(errorMessage, { toastId: 'success1', autoClose: 3000 });
+            break;
+          case 500:
+          default:
+            toast.error(errorMessage, { toastId: 'success1', autoClose: 3000 });
+            break;
+        }
       }
     }
-  }
 
     return {
       success: false,
@@ -90,19 +89,10 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {} ,  s
 
 // Exported API methods
 export const api = {
-  get: (endpoint, customHeaders,showToastOnError) => apiRequest(endpoint, "GET", null, customHeaders,showToastOnError),
-  post: (endpoint, data, customHeaders,showToastOnError) => apiRequest(endpoint, "POST", data, customHeaders,showToastOnError),
-  put: (endpoint, data, customHeaders,showToastOnError) => apiRequest(endpoint, "PUT", data, customHeaders,showToastOnError),
-  patch: (endpoint, data, customHeaders,showToastOnError) => apiRequest(endpoint, "PATCH", data, customHeaders,showToastOnError),
-  delete: (endpoint, customHeaders,showToastOnError) => apiRequest(endpoint, "DELETE", null, customHeaders,showToastOnError),
+  get: (endpoint, customHeaders, showToastOnError) => apiRequest(endpoint, "GET", null, customHeaders, showToastOnError),
+  post: (endpoint, data, customHeaders, showToastOnError) => apiRequest(endpoint, "POST", data, customHeaders, showToastOnError),
+  put: (endpoint, data, customHeaders, showToastOnError) => apiRequest(endpoint, "PUT", data, customHeaders, showToastOnError),
+  patch: (endpoint, data, customHeaders, showToastOnError) => apiRequest(endpoint, "PATCH", data, customHeaders, showToastOnError),
+  delete: (endpoint, customHeaders, showToastOnError) => apiRequest(endpoint, "DELETE", null, customHeaders, showToastOnError),
 };
 
-// Error handling helper
-export const handleApiError = (error) => {
-  console.error("API Error:", error);
-
-  return {
-    success: false,
-    message: error?.message || "An unexpected error occurred",
-  };
-};

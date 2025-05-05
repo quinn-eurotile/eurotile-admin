@@ -6,7 +6,7 @@ import chatReducer from '@/redux-store/slices/chat'
 import calendarReducer from '@/redux-store/slices/calendar'
 import kanbanReducer from '@/redux-store/slices/kanban'
 import emailReducer from '@/redux-store/slices/email'
-import userReducer from '@/redux-store/slices/user'
+import commonReducer from '@/redux-store/slices/common'
 
 export const store = configureStore({
   reducer: {
@@ -14,7 +14,7 @@ export const store = configureStore({
     calendarReducer,
     kanbanReducer,
     emailReducer,
-
+    commonReducer
   },
   middleware: getDefaultMiddleware => getDefaultMiddleware({ serializableCheck: false })
 })

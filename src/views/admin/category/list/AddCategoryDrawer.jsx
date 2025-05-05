@@ -146,7 +146,7 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
               control={control}
               render={({ field }) => (
                 <Select {...field} label="Parent Category">
-                  <MenuItem value="">None</MenuItem>
+                  <MenuItem value={null}>None</MenuItem>
                   {parentOptions.map(option => (
                     <MenuItem key={option._id} value={option._id}>
                       {option.name}
