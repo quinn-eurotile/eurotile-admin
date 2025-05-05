@@ -40,7 +40,7 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {} ,  s
     if (showToastOnError) {
         // Show success toast on success
         if(response.data?.message){
-          toast.success(response.data?.message || 'Request successful', { toastId: 'success1', autoClose: 3000 },   );
+          toast.success(response.data?.message , { toastId: 'success1', autoClose: 3000 },   );
         }
 
     }
@@ -48,7 +48,7 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {} ,  s
     return {
       success: true,
       data: response.data?.data || response.data,
-      message: response.data?.message || "Request successful",
+      message: response.data?.message ,
       statusCode: response.status,
     };
 
@@ -57,8 +57,9 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {} ,  s
 
     const statusCode = error?.response?.status || 500;
     const errorData = error?.response?.data || {};
-    const errorMessage = errorData?.message || error.message || "An error occurred";
-    if (showToastOnError) {
+    const errorMessage = errorData?.message || error.message ;
+    if (errorMessage) {
+      if (showToastOnError) {
       switch (statusCode) {
         case 400:
           toast.error("Bad Request: " + errorMessage , { toastId: 'success1' , autoClose: 3000});
@@ -71,10 +72,11 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {} ,  s
           break;
         case 500:
         default:
-          toast.error("Server error: " + errorMessage, { toastId: 'success1' , autoClose: 3000});
+          // toast.error("Server error: " + errorMessage, { toastId: 'success1' , autoClose: 3000});
           break;
       }
     }
+  }
 
     return {
       success: false,

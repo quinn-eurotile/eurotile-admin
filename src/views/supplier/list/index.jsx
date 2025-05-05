@@ -127,17 +127,17 @@ const SupplierMemberList = tableData => {
       // },
       columnHelper.accessor('id', {
         header: 'Supplier ID',
-        cell: ({ row }) => <Typography>{row.original.supplierId}</Typography>
+        cell: ({ row }) => <Typography>{row?.original?.supplierId}</Typography>
       }),
       columnHelper.accessor('companyName', {
         header: 'Company Name',
-        cell: ({ row }) => <Typography>{row.original.companyName}</Typography>
+        cell: ({ row }) => <Typography>{row?.original?.companyName}</Typography>
       }),
       columnHelper.accessor('contactInfo', {
         header: 'Contact Information',
         cell: ({ row }) => (
           <>
-            {row.original.contactInfo.map((info, index) => (
+            {row?.original?.contactInfo?.map((info, index) => (
               <Typography key={index}>{`${info.name} (${info.phone})`}</Typography>
             ))}
           </>
@@ -147,7 +147,7 @@ const SupplierMemberList = tableData => {
         header: 'Email Address',
         cell: ({ row }) => (
           <>
-            {row.original.contactInfo.map((info, index) => (
+            {row?.original?.contactInfo?.map((info, index) => (
               <Typography key={index}>{info.email}</Typography>
             ))}
           </>
@@ -156,8 +156,13 @@ const SupplierMemberList = tableData => {
       columnHelper.accessor('address', {
         header: 'Address',
         cell: ({ row }) => {
+<<<<<<< HEAD
           const { addressLine1, city, state, zipCode, country } = row.original.addresses;
           const fullAddress = [addressLine1].filter(Boolean).join(', ');
+=======
+          const { addressLine1} = row?.original?.addresses
+          const fullAddress = [addressLine1].filter(Boolean).join(', ')
+>>>>>>> bb1412c5e77a8439c604336b0d9855316dc9ba80
           return <Typography>
             {fullAddress && `${fullAddress}, `}
             {row?.original?.city?.name && `${row?.original?.city?.name}, `}
@@ -306,8 +311,8 @@ const SupplierMemberList = tableData => {
           <CardHeader title='Filters' />
           <TableFilters setFilters={setFilteredData} />
           <Divider />
-          <div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
-            <Button
+          {/* <div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
+           <Button
               color='secondary'
               variant='outlined'
               startIcon={<i className='ri-upload-2-line text-xl' />}
@@ -315,7 +320,7 @@ const SupplierMemberList = tableData => {
             >
               Export
             </Button>
-            <div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
+            <div className='flex items-end gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
               <DebouncedInput
                 value={globalFilter ?? ''}
                 onChange={value => setSearch(String(value))}
@@ -330,7 +335,25 @@ const SupplierMemberList = tableData => {
                 Add New Supplier
               </Button>
             </div>
+          </div> */}
+          <div className='flex justify-end p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
+          <div className='flex items-end gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
+            <DebouncedInput
+              value={globalFilter ?? ''}
+              onChange={value => setSearch(String(value))}
+              placeholder='Search Supplier'
+              className='max-sm:is-full'
+            />
+            <Button
+              variant='contained'
+              onClick={() => router.push(`/${locale}/supplier/new`)}
+              className='max-sm:is-full'
+            >
+              <i className='ri-add-line text-xl' />   Add Supplier
+            </Button>
           </div>
+        </div>
+
           <div className='overflow-x-auto'>
             <table className={tableStyles.table}>
               <thead>

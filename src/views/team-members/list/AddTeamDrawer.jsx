@@ -71,10 +71,17 @@ const AddUserDrawer = (props) => {
         response = await teamMemberService.createTeamMember(formValues);
       }
 
+<<<<<<< HEAD
       // Check if API call succeeded with status 200 ,201
         if (response?.statusCode === 200 || response?.statusCode === 201) {
             handleClose(); // Close drawer
             reset(); // Reset form
+=======
+        // Check if API call succeeded with status 200
+      if (response?.statusCode === 200 || response?.statusCode === 201) {
+        handleClose(); // Close drawer
+        reset(); // Reset form
+>>>>>>> bb1412c5e77a8439c604336b0d9855316dc9ba80
       } else {
 
         if (response?.data?.errors) {
@@ -114,7 +121,7 @@ const AddUserDrawer = (props) => {
     >
       {/* Header */}
       <div className="flex items-center justify-between p-5 pb-4">
-        <Typography variant="h5">Add New User</Typography>
+        <Typography variant="h5"> { editTeam ? 'Edit Team Member' : ' Add Team Member'} </Typography>
         <IconButton size="small" onClick={handleDrawerClose}>
           <i className="ri-close-line text-2xl" />
         </IconButton>
