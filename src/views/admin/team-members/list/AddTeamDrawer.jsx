@@ -49,10 +49,6 @@ const AddUserDrawer = (props) => {
       setValue('email', editTeam.email || '');
       setValue('phone', editTeam.phone || '');
       setValue('status', editTeam.status?.toString() || '1'); // 👈 Fix here
-
-      console.log(editTeam.status?.toString(), 'editTeam.status?.toString() ');
-
-
     }
   }, [editTeam, setValue]);
 
@@ -135,12 +131,15 @@ const AddUserDrawer = (props) => {
                 {...field}
                 fullWidth
                 label="Full Name"
+                id="name"
                 placeholder="John Doe"
+                // required
                 error={Boolean(errors.name)}
                 helperText={errors.name?.message}
               />
             )}
           />
+
 
           {/* Email Field */}
           <Controller

@@ -407,7 +407,7 @@ const TeamMemberList = (tableData) => {
 					<TableFilters setFilters={setFilteredData} />
 					<Divider />
 					{/* <div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
-          
+
           .
             <div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
               <DebouncedInput

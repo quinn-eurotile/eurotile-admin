@@ -16,7 +16,7 @@ const getCommonHeaders = async () => {
 };
 
 // Generic API request using Axios
-const apiRequest = async (endpoint, method, data = null, customHeaders = {} ,  showToastOnError = true) => {
+const apiRequest = async (endpoint, method, data = null, customHeaders = {} ,  showToastOnError = false) => {
   try {
     const headers = {
       ...(await getCommonHeaders()),
@@ -57,7 +57,8 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {} ,  s
 
     const statusCode = error?.response?.status || 500;
     const errorData = error?.response?.data || {};
-    const errorMessage = errorData?.message || error.message ;
+    const errorMessage = errorData?.message || error.message
+
     if (errorMessage) {
       if (showToastOnError) {
       switch (statusCode) {
@@ -71,6 +72,7 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {} ,  s
           toast.error("Validation error: " + errorMessage, { toastId: 'success1', autoClose: 3000 });
           break;
         case 500:
+          toast.error("Something went wrong", { toastId: 'success1' , autoClose: 3000});
         default:
           // toast.error("Server error: " + errorMessage, { toastId: 'success1' , autoClose: 3000});
           break;

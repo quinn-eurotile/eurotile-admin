@@ -1,4 +1,3 @@
-// React Imports
 import { useEffect, useState } from 'react';
 
 // MUI Imports
@@ -14,8 +13,8 @@ import FormHelperText from '@mui/material/FormHelperText';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 
-// Third-party Imports
-import { useForm, Controller } from 'react-hook-form';
+// React Hook Form
+import { useForm } from 'react-hook-form';
 
 // Services
 import { categoryService } from '@/services/category';
@@ -24,11 +23,12 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
   const [parentOptions, setParentOptions] = useState([]);
 
   const {
-    control,
+    register,
     reset,
     handleSubmit,
     setError,
     setValue,
+    watch,
     formState: { errors, isSubmitting }
   } = useForm({
     defaultValues: {
@@ -38,12 +38,18 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
     }
   });
 
-  // Populate form for editing
+  // Manually register fields not using ref
+  useEffect(() => {
+    register('parent');
+    register('status', { required: 'Status is required' });
+  }, [register]);
+
+  // Set form values for editing
   useEffect(() => {
     if (editData) {
       setValue('id', editData.id || '');
       setValue('name', editData.name || '');
-      setValue('parent', editData?.parent?.id || '');
+      setValue('parent', editData?.parent?.id || null);
       setValue('status', editData.status?.toString() || '1');
     }
   }, [editData, setValue]);
@@ -77,12 +83,10 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
         handleClose();
         reset();
       } else if (response?.data?.errors) {
-        // Handle validation errors from API
         Object.entries(response.data.errors).forEach(([field, messages]) => {
           setError(field, { message: messages?.[0] || 'Invalid value' });
         });
       } else {
-        // Handle other API errors
         setError('apiError', {
           message: response?.message || 'An unexpected error occurred.',
         });
@@ -93,7 +97,6 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
       });
     }
   };
-
 
   const handleDrawerClose = () => {
     handleClose();
@@ -122,72 +125,62 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
       <div className="p-5">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
           {/* Name Field */}
-          <Controller
-            name="name"
-            control={control}
-            rules={{ required: 'Category name is required' }}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                fullWidth
-                label="Category Name"
-                placeholder="Enter category name"
-                error={Boolean(errors.name)}
-                helperText={errors.name?.message}
-              />
-            )}
+          <TextField
+            fullWidth
+            label="Category Name"
+            placeholder="Enter category name"
+            {...register('name', { required: 'Category name is required' })}
+            error={Boolean(errors.name)}
+            helperText={errors.name?.message}
           />
 
           {/* Parent Category Select */}
           <FormControl fullWidth error={Boolean(errors.parent)}>
             <InputLabel>Parent Category</InputLabel>
-            <Controller
-              name="parent"
-              control={control}
-              render={({ field }) => (
-                <Select {...field} label="Parent Category">
-                  <MenuItem value="">None</MenuItem>
-                  {parentOptions.map(option => (
-                    <MenuItem key={option._id} value={option._id}>
-                      {option.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              )}
-            />
-            {errors.parent && <FormHelperText>{errors.parent.message}</FormHelperText>}
+            <Select
+              label="Parent Category"
+              value={watch('parent') || ''}
+              onChange={(e) => setValue('parent', e.target.value)}
+            >
+              <MenuItem value="">None</MenuItem>
+              {parentOptions.map((option) => (
+                <MenuItem key={option._id} value={option._id}>
+                  {option.name}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.parent && (
+              <FormHelperText>{errors.parent.message}</FormHelperText>
+            )}
           </FormControl>
 
           {/* Status Select */}
           <FormControl fullWidth error={Boolean(errors.status)}>
             <InputLabel>Status</InputLabel>
-            <Controller
-              name="status"
-              control={control}
-              rules={{ required: 'Status is required' }}
-              render={({ field }) => (
-                <Select {...field} label="Status">
-                  <MenuItem value="1">Active</MenuItem>
-                  <MenuItem value="0">Inactive</MenuItem>
-                </Select>
-              )}
-            />
-            {errors.status && <FormHelperText>{errors.status.message}</FormHelperText>}
+            <Select
+              label="Status"
+              value={watch('status') || '1'}
+              onChange={(e) => setValue('status', e.target.value)}
+            >
+              <MenuItem value="1">Active</MenuItem>
+              <MenuItem value="0">Inactive</MenuItem>
+            </Select>
+            {errors.status && (
+              <FormHelperText>{errors.status.message}</FormHelperText>
+            )}
           </FormControl>
-
-          {/* API Error */}
-          {errors.apiError && (
-            <Typography color="error" variant="body2">
-              {errors.apiError.message}
-            </Typography>
-          )}
 
           {/* Buttons */}
           <div className="flex items-center gap-4">
             <Button variant="contained" type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Saving...' : 'Save'}
             </Button>
-            <Button variant="outlined" color="error" type="button" onClick={handleDrawerClose}>
+            <Button
+              variant="outlined"
+              color="error"
+              type="button"
+              onClick={handleDrawerClose}
+            >
               Cancel
             </Button>
           </div>

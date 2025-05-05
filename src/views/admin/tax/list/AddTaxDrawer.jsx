@@ -53,7 +53,7 @@ const AddTaxDrawer = ({ open, handleClose, editData }) => {
         status: Number(editData.status) || 1,
       });
     }
-    
+
   }, [editData, reset]);
 
   const onSubmit = async formValues => {

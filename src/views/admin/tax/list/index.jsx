@@ -33,7 +33,7 @@ import {
 	getSortedRowModel
 } from '@tanstack/react-table';
 
-// Component Imports 
+// Component Imports
 import CustomAvatar from '@core/components/mui/Avatar';
 
 // Util Imports
@@ -277,14 +277,16 @@ const TaxList = () => {
 					<TableFilters setFilters={setFilteredData} />
 					<Divider />
 					<div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
-						<Button
+            <div>
+						{/* <Button
 							color='secondary'
 							variant='outlined'
 							startIcon={<i className='ri-upload-2-line text-xl' />}
 							className='max-sm:is-full'
 						>
 							Export
-						</Button>
+						</Button> */}
+            </div>
 						<div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
 							<DebouncedInput
 								value={globalFilter ?? ''}
