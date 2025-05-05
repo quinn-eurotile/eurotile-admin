@@ -202,7 +202,7 @@ const SupplierMemberList = tableData => {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
-            <IconButton onClick={() => router.push(`/${locale}/supplier/view/${row.original._id}`)}>
+            <IconButton onClick={() => router.push(`/${locale}/admin/supplier/view/${row.original._id}`)}>
               <i className="ri-eye-line text-textSecondary" />
             </IconButton>
             <IconButton onClick={() => handleDeleteConfirmation(row.original._id)}>
@@ -286,7 +286,7 @@ const SupplierMemberList = tableData => {
   };
 
   const handleEdit = id => {
-    router.push(`/${locale}/supplier/${id}`); // Adjust the path as per your routing
+    router.push(`/${locale}/admin/supplier/${id}`); // Adjust the path as per your routing
   };
 
   // Handle Confirm Delete action
@@ -341,7 +341,7 @@ const SupplierMemberList = tableData => {
             />
             <Button
               variant='contained'
-              onClick={() => router.push(`/${locale}/supplier/new`)}
+              onClick={() => router.push(`/${locale}/admin/supplier/new`)}
               className='max-sm:is-full'
             >
               <i className='ri-add-line text-xl' />   Add Supplier

@@ -33,7 +33,7 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
   } = useForm({
     defaultValues: {
       name: '',
-      parent: '',
+      parent: null,
       status: '1'
     }
   })
@@ -43,7 +43,7 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
     if (editData) {
       setValue('id', editData.id || '')
       setValue('name', editData.name || '')
-      setValue('parent', editData?.parent?.id || '')
+      setValue('parent', editData?.parent?.id || null)
       setValue('status', editData.status?.toString() || '1')
     }
   }, [editData, setValue])

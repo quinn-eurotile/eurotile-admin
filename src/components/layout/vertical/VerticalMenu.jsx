@@ -103,7 +103,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             href={`/${locale}/admin/supplier/list`}
             exactMatch={false}
             activeUrl='/admin/supplier/list'
-            icon={<i className='ri-store-line' />}
+            icon={<i className="ri-store-3-line"></i>}
           >
             Supplier
           </MenuItem>
@@ -111,7 +111,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             href={`/${locale}/admin/category/list`}
             exactMatch={false}
             activeUrl='/admin/category/list'
-            icon={<i className='ri-store-line' />}
+            icon={<i className="ri-list-indefinite"></i>}
           >
             Category
           </MenuItem>
@@ -119,7 +119,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             href={`/${locale}/admin/tax/list`}
             exactMatch={false}
             activeUrl='/admin/tax/list'
-            icon={<i className='ri-store-line' />}
+            icon={<i className="ri-money-dollar-box-line"></i>}
           >
             Tax Management
           </MenuItem>
