@@ -28,7 +28,6 @@ const statusOptions = [
 ];
 
 const AddTaxDrawer = ({ open, handleClose, editData }) => {
-  console.log('AddTaxDrawer editData',editData)
   const {
     register,
     handleSubmit,
@@ -88,8 +87,6 @@ const AddTaxDrawer = ({ open, handleClose, editData }) => {
     handleClose();
     reset();
   };
-
-  console.log('editData', editData);
 
   return (
     <Drawer
