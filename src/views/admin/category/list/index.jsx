@@ -33,21 +33,18 @@ import {
 	getSortedRowModel
 } from '@tanstack/react-table';
 
-// Component Imports
-import OptionMenu from '@core/components/option-menu';
+// Component Imports 
 import CustomAvatar from '@core/components/mui/Avatar';
 
 // Util Imports
-import { getInitials } from '@/utils/getInitials';
-import { getLocalizedUrl } from '@/utils/i18n';
+import { getInitials } from '@/utils/getInitials'; 
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css';
-import { teamMemberService } from '@/services/team-member';
+import { categoryService } from '@/services/category';
 import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
-import TeamListCards from './TeamListCards';
-import AddUserDrawer from './AddTeamDrawer';
 import TableFilters from './TableFilters';
+import AddCategoryDrawer from './AddCategoryDrawer';
 // import { useGetTeamMembers } from '@/app/server/team-members';
 
 // Styled Components
@@ -102,17 +99,13 @@ const userStatusNameObj = {
 // Column Definitions
 const columnHelper = createColumnHelper();
 
-const TeamMemberList = (tableData) => {
-	// const { tableData, loading, error } = useGetTeamMembers()
-
-	// States
+const CategoryList = () => {
 	const [addUserOpen, setAddUserOpen] = useState(false);
 	const [rowSelection, setRowSelection] = useState({});
 
 	// Initialize data state properly with empty array
 	const [data, setData] = useState([]);
-	const [editTeam, setEditTeam] = useState(null);
-
+	const [editData, setEditData] = useState(null);
 	const [filteredData, setFilteredData] = useState(null);
 	const [globalFilter, setGlobalFilter] = useState('');
 	const [search, setSearch] = useState("");
@@ -121,10 +114,9 @@ const TeamMemberList = (tableData) => {
 	const [rowsPerPage, setRowsPerPage] = useState(10);
 	const [totalRecords, setTotalRecords] = useState(0);
 	// Menu state
-	const [selectedMemberId, setSelectedMemberId] = useState(null);
-
+	const [selectedCatId, setSelectedCatId] = useState(null);
 	const [statsData, setStatsData] = useState([]);
-
+ 
 
 
 	const columns = useMemo(() => [
@@ -147,7 +139,7 @@ const TeamMemberList = (tableData) => {
 		//   )
 		// },
 		columnHelper.accessor('name', {
-			header: 'User',
+			header: 'Name',
 			cell: ({ row }) => (
 				<div className='flex items-center gap-4'>
 					{getAvatar({ avatar: row.original.avatar, fullName: row.original.name })}
@@ -160,26 +152,10 @@ const TeamMemberList = (tableData) => {
 				</div>
 			)
 		}),
-		columnHelper.accessor('email', {
-			header: 'Email',
-			cell: ({ row }) => <Typography>{row.original.email}</Typography>
+		columnHelper.accessor('parent', {
+			header: 'Parent',
+			cell: ({ row }) => <Typography>{row?.original?.parent ? row?.original?.parent?.name : 'N/A'}</Typography>
 		}),
-		columnHelper.accessor('phone', {
-			header: 'Phone',
-			cell: ({ row }) => <Typography>{row.original.phone}</Typography>
-		}),
-		// columnHelper.accessor('role', {
-		//   header: 'Role',
-		//   cell: ({ row }) => (
-		//     <div className='flex items-center gap-2'>
-		//       <Icon className={userRoleObj[row.original.role]?.icon} sx={{ color: `var(--mui-palette-${userRoleObj[row.original.role]?.color}-main)`, fontSize: '1.375rem' }} />
-		//       <Typography className='capitalize' color='text.primary'>
-		//         {row.original.role}
-		//       </Typography>
-		//     </div>
-		//   )
-		// }),
-
 		columnHelper.accessor('status', {
 			header: 'Status',
 			cell: ({ row }) => (
@@ -199,9 +175,8 @@ const TeamMemberList = (tableData) => {
 
 				const handleStatusToggle = async () => {
 					const newStatus = currentStatus === 1 ? 0 : 1;
-					await teamMemberService.updateStatus(row.original.id, newStatus);
-					refreshTeamList();
-
+					await categoryService.updateStatus(row.original.id, newStatus);
+					refreshList();
 				};
 
 				return (
@@ -255,78 +230,27 @@ const TeamMemberList = (tableData) => {
 
 	// Fetch members on page or rowsPerPage change
 	useEffect(() => {
-
-		console.log(filteredData, 'filteredData');
-
-		fetchTeamMembers(page + 1, search, filteredData);
+		fetchCategories(page + 1, search, filteredData);
 	}, [page, rowsPerPage, search, filteredData]);
 
-	const fetchTeamMembers = async (currentPage = 1, searchTerm = '') => {
+	const fetchCategories = async (currentPage = 1, searchTerm = '') => {
 		try {
-			const response = await teamMemberService.getTeamMembers(currentPage, rowsPerPage, searchTerm, filteredData);
-			if (response.success && response.data) {
-				const formatted = response.data.docs.map(member => ({
-					id: member._id,
-					name: member.name,
-					email: member.email,
-					phone: member.phone,
-					role: 'maintainer',
-					status: member.status,
+			const response = await categoryService.get(currentPage, rowsPerPage, searchTerm, filteredData);
+
+			if (response.statusCode === 200 && response.data) {
+				const formatted = response?.data?.docs?.map(category => ({
+					id: category._id,
+					name: category.name,
+					parent: category.parent,
+					status: category.status,
 					avatar: '',
-					username: member.email.split('@')[0]
+					username: category.name.split(' ')[0]
 				}));
-				// Count status totals
-				const totalDocs = response?.data?.totalDocs || 0;
-				const totalActive = response?.data?.statusSummary?.active || 0;
-				const totalPending = response?.data?.statusSummary?.pending || 0;
-				const totalInactive = response?.data?.statusSummary?.inactive || 0;
-				const getTrend = (count) => {
-					const percentage = totalDocs ? ((count / totalDocs) * 100).toFixed(2) : 0;
-					return {
-						trendNumber: `${percentage}%`,
-						trend: percentage >= 50 ? 'positive' : 'negative'
-					};
-				};
-				const statsData = [
-					{
-						title: 'All Users',
-						stats: totalDocs.toString(),
-						avatarIcon: 'ri-user-add-line',
-						avatarColor: 'error',
-						avatarColor: 'error',
-						trend: 'neutral',
-						trendNumber: '100%',
-						// subtitle: 'Total registered users'
-					},
-					{
-						title: 'Active Users',
-						stats: totalActive.toString(),
-						avatarIcon: 'ri-user-follow-line',
-						avatarColor: 'success',
-						...getTrend(totalActive),
-						// subtitle: 'Last week analytics'
-					},
-					{
-						title: 'Pending Users',
-						stats: totalPending.toString(),
-						avatarIcon: 'ri-user-search-line',
-						avatarColor: 'warning',
-						...getTrend(totalPending),
-						// subtitle: 'Last week analytics'
-					},
-					{
-						title: 'Inactive Users',
-						stats: totalInactive.toString(),
-						avatarIcon: 'ri-user-search-line',
-						avatarColor: 'secondary',
-						...getTrend(totalInactive),
-						// subtitle: 'Last week analytics'
-					}
-				];
+
 				setPage(page);
 				setData(formatted);
 				setTotalRecords(response.data.totalDocs || 0);
-				setStatsData(statsData);
+
 
 			}
 		} catch (error) {
@@ -335,6 +259,7 @@ const TeamMemberList = (tableData) => {
 	};
 
 	const handleChangePage = (event, newPage) => setPage(newPage);
+
 	const handleChangeRowsPerPage = event => {
 		setRowsPerPage(parseInt(event.target.value, 10));
 		setPage(0);
@@ -354,17 +279,13 @@ const TeamMemberList = (tableData) => {
 		}
 	};
 
-
-
-	// Handle Delete
-
 	// Handle Delete (show confirmation dialog)
 	const handleDelete = async () => {
 		try {
-			const response = await teamMemberService.deleteTeamMember(selectedMemberId);
+			const response = await categoryService.delete(selectedCatId);
 			if (response.success) {
 				// Remove the deleted user from the table
-				setData(prevData => prevData.filter(user => user.id !== selectedMemberId));
+				setData(prevData => prevData.filter(user => user.id !== selectedCatId));
 			}
 			setOpenConfirmDialog(false); // Close the dialog after deletion
 		} catch (error) {
@@ -372,36 +293,38 @@ const TeamMemberList = (tableData) => {
 			setOpenConfirmDialog(false); // Close the dialog on error as well
 		}
 	};
+
 	// Handle Edit (open AddUserDrawer with current data)
 	const handleEdit = (id) => {
-		const member = data.find(user => user.id === id);
-		setEditTeam(member);
-		setSelectedMemberId(id);  // Store the selected member's ID
+
+	
+		const selectedData = data.find(result => result.id === id);	 
+		setEditData(selectedData);
+		setSelectedCatId(id);  // Store the selected member's ID
 		setAddUserOpen(true);  // Open the AddUserDrawer
 	};
 	// Handle Confirm Delete action
 	const handleDeleteConfirmation = (id) => {
-		setSelectedMemberId(id);
+		setSelectedCatId(id);
 		setOpenConfirmDialog(true);
 	};
 
-	const refreshTeamList = async () => {
-		await fetchTeamMembers(page + 1, search, filteredData);
+	// Handle Refresh List
+	const refreshList = async () => {
+		await fetchCategories(page + 1, search, filteredData);
 	};
+
+	// Handle Close Model
 	const handelClose = async () => {
 		setAddUserOpen(!addUserOpen);
-		refreshTeamList();
+		refreshList();
 	};
+
 
 	return (
 
 		<Grid container spacing={6}>
 			<Grid size={{ xs: 12 }}>
-				<TeamListCards statsData={statsData} />
-
-			</Grid>
-			<Grid size={{ xs: 12 }}>
-
 				<Card>
 					<CardHeader title='Filters' />
 					<TableFilters setFilters={setFilteredData} />
@@ -415,7 +338,7 @@ const TeamMemberList = (tableData) => {
 						>
 							Export
 						</Button>
-						<div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
+						<div className='flex justify-between p-5 items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
 							<DebouncedInput
 								value={globalFilter ?? ''}
 								onChange={value => setSearch(String(value))}
@@ -423,7 +346,7 @@ const TeamMemberList = (tableData) => {
 								className='max-sm:is-full'
 							/>
 							<Button variant='contained' onClick={() => setAddUserOpen(!addUserOpen)} className='max-sm:is-full'>
-								Add New Team Member
+								Add New Category
 							</Button>
 						</div>
 					</div>
@@ -514,10 +437,10 @@ const TeamMemberList = (tableData) => {
 					</DialogActions>
 				</Dialog>
 
-				<AddUserDrawer
+				<AddCategoryDrawer
 					open={addUserOpen}
 					handleClose={handelClose}
-					editTeam={editTeam}
+					editData={editData}
 
 				/>
 			</Grid>
@@ -525,5 +448,5 @@ const TeamMemberList = (tableData) => {
 	);
 };
 
-export default TeamMemberList
+export default CategoryList
 

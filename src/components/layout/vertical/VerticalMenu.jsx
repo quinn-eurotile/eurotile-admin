@@ -107,6 +107,22 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
           >
             Supplier
           </MenuItem>
+          <MenuItem
+            href={`/${locale}/admin/category/list`}
+            exactMatch={false}
+            activeUrl='/admin/category/list'
+            icon={<i className='ri-store-line' />}
+          >
+            Category
+          </MenuItem>
+          <MenuItem
+            href={`/${locale}/admin/tax/list`}
+            exactMatch={false}
+            activeUrl='/admin/tax/list'
+            icon={<i className='ri-store-line' />}
+          >
+            Tax Management
+          </MenuItem>
           {/* <SubMenu label={dictionary['navigation'].eCommerce} icon={<i className='ri-shopping-bag-3-line' />}>
             <MenuItem href={`/${locale}/apps/ecommerce/dashboard`}>{dictionary['navigation'].dashboard}</MenuItem>
             <SubMenu label={dictionary['navigation'].products}>

@@ -4,7 +4,7 @@
   "license": "Commercial",
   "private": true,
   "scripts": {
-    "dev": "dotenv -- bash -c 'next dev --turbopack -p $PORT'",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

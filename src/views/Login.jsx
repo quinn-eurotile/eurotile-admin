@@ -37,8 +37,7 @@ import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
 
 // Util Imports
-import { getLocalizedUrl } from '@/utils/i18n'
-import { sendRequest } from '@/libs/APIs';
+import { getLocalizedUrl } from '@/utils/i18n' 
 
 const schema = object({
   email: pipe(string(), minLength(1, 'This field is required'), email('Please enter a valid email address')),
