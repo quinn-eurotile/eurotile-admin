@@ -156,13 +156,8 @@ const SupplierMemberList = tableData => {
       columnHelper.accessor('address', {
         header: 'Address',
         cell: ({ row }) => {
-<<<<<<< HEAD
-          const { addressLine1, city, state, zipCode, country } = row.original.addresses;
-          const fullAddress = [addressLine1].filter(Boolean).join(', ');
-=======
           const { addressLine1} = row?.original?.addresses
           const fullAddress = [addressLine1].filter(Boolean).join(', ')
->>>>>>> bb1412c5e77a8439c604336b0d9855316dc9ba80
           return <Typography>
             {fullAddress && `${fullAddress}, `}
             {row?.original?.city?.name && `${row?.original?.city?.name}, `}
