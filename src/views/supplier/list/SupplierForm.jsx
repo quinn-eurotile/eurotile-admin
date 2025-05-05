@@ -15,9 +15,9 @@ import {
 import { Controller, useForm } from 'react-hook-form'
 import Grid from '@mui/material/Grid2'
 import { toast } from 'react-toastify'
-import { supplierService } from '@/services/supplier.service';
+import { supplierService } from '@/services/supplier';
 import { useRouter, useParams } from 'next/navigation'
-import { locationService } from '@/services/location.service';
+import { locationService } from '@/services/location';
 import Select from 'react-select'
 
 const AddSupplierForm = () => {
@@ -347,8 +347,8 @@ const AddSupplierForm = () => {
                             e.preventDefault();
                           }
                         },
-                      }}  
-                      fullWidth 
+                      }}
+                      fullWidth
                       label='Company Phone'
                       error={!!errors.companyPhone}
                       helperText={errors.companyPhone?.message}

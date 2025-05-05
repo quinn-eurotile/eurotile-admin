@@ -92,17 +92,17 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
         </SubMenu> */}
         <MenuSection label={'Pages'}>
         <MenuItem
-            href={`/${locale}/team-members/list`}
+            href={`/${locale}/admin/team-members/list`}
             exactMatch={false}
-            activeUrl='/team-members/list'
+            activeUrl='/admin/team-members/list'
             icon={<i className='ri-team-fill' />}
           >
             Team Members
           </MenuItem>
           <MenuItem
-            href={`/${locale}/supplier/list`}
+            href={`/${locale}/admin/supplier/list`}
             exactMatch={false}
-            activeUrl='/supplier/list'
+            activeUrl='/admin/supplier/list'
             icon={<i className='ri-store-line' />}
           >
             Supplier

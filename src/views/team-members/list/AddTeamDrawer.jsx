@@ -71,17 +71,10 @@ const AddUserDrawer = (props) => {
         response = await teamMemberService.createTeamMember(formValues);
       }
 
-<<<<<<< HEAD
-      // Check if API call succeeded with status 200 ,201
-        if (response?.statusCode === 200 || response?.statusCode === 201) {
-            handleClose(); // Close drawer
-            reset(); // Reset form
-=======
         // Check if API call succeeded with status 200
       if (response?.statusCode === 200 || response?.statusCode === 201) {
         handleClose(); // Close drawer
         reset(); // Reset form
->>>>>>> bb1412c5e77a8439c604336b0d9855316dc9ba80
       } else {
 
         if (response?.data?.errors) {
