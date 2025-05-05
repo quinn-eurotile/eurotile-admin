@@ -1,27 +1,27 @@
 // React Imports
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 
 // MUI Imports
-import Button from '@mui/material/Button'
-import Drawer from '@mui/material/Drawer'
-import FormControl from '@mui/material/FormControl'
-import IconButton from '@mui/material/IconButton'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
-import TextField from '@mui/material/TextField'
-import FormHelperText from '@mui/material/FormHelperText'
-import Typography from '@mui/material/Typography'
-import Divider from '@mui/material/Divider'
+import Button from '@mui/material/Button';
+import Drawer from '@mui/material/Drawer';
+import FormControl from '@mui/material/FormControl';
+import IconButton from '@mui/material/IconButton';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import TextField from '@mui/material/TextField';
+import FormHelperText from '@mui/material/FormHelperText';
+import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
 
 // Third-party Imports
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form';
 
 // Services
-import { categoryService } from '@/services/category'
+import { categoryService } from '@/services/category';
 
 const AddCategoryDrawer = ({ open, handleClose, editData }) => {
-  const [parentOptions, setParentOptions] = useState([])
+  const [parentOptions, setParentOptions] = useState([]);
 
   const {
     control,
@@ -36,63 +36,69 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
       parent: '',
       status: '1'
     }
-  })
+  });
 
   // Populate form for editing
   useEffect(() => {
     if (editData) {
-      setValue('id', editData.id || '')
-      setValue('name', editData.name || '')
-      setValue('parent', editData?.parent?.id || '')
-      setValue('status', editData.status?.toString() || '1')
+      setValue('id', editData.id || '');
+      setValue('name', editData.name || '');
+      setValue('parent', editData?.parent?.id || '');
+      setValue('status', editData.status?.toString() || '1');
     }
-  }, [editData, setValue])
+  }, [editData, setValue]);
 
   // Load parent category options
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await categoryService.getAll()
+        const res = await categoryService.getAll();
         if (res.statusCode === 200) {
-          setParentOptions(res.data)
+          setParentOptions(res.data);
         }
       } catch (error) {
-        console.error('Failed to fetch parent categories:', error)
+        console.error('Failed to fetch parent categories:', error);
       }
-    }
+    };
 
-    fetchCategories()
-  }, [])
+    fetchCategories();
+  }, []);
 
-  const onSubmit = async formValues => {
-    let response
+  const onSubmit = async (formValues) => {
     try {
-      if (editData) {
-        response = await categoryService.update(editData.id, formValues)
-      } else {
-        response = await categoryService.create(formValues)
-      }
-         console.log('response?.statusCode',);
-      if (response?.statusCode === 200 || response?.statusCode === 201) {
-        handleClose()
-        reset()
+      const response = editData
+        ? await categoryService.update(editData.id, formValues)
+        : await categoryService.create(formValues);
+  
+      const statusCode = response?.statusCode;
+      const success = statusCode === 200 || statusCode === 201;
+  
+      if (success) {
+        handleClose();
+        reset();
       } else if (response?.data?.errors) {
+        // Handle validation errors from API
         Object.entries(response.data.errors).forEach(([field, messages]) => {
-          setError(field, { message: messages[0] || 'Invalid value' })
-        })
+          setError(field, { message: messages?.[0] || 'Invalid value' });
+        });
       } else {
-        setError('apiError', { message: response?.message || 'Something went wrong' })
+        // Handle other API errors
+        setError('apiError', {
+          message: response?.message || 'An unexpected error occurred.',
+        });
       }
     } catch (err) {
-      console.error('Category save failed:', err)
-      setError('apiError', { message: err.message || 'Something went wrong' })
+      setError('apiError', {
+        message: err?.message || 'An error occurred while saving the category.',
+      });
     }
-  }
+  };
+  
 
   const handleDrawerClose = () => {
-    handleClose()
-    reset()
-  }
+    handleClose();
+    reset();
+  };
 
   return (
     <Drawer
@@ -188,7 +194,7 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
         </form>
       </div>
     </Drawer>
-  )
-}
+  );
+};
 
-export default AddCategoryDrawer
+export default AddCategoryDrawer;

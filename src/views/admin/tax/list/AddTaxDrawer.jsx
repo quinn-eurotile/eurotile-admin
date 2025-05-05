@@ -1,98 +1,95 @@
-// React Imports
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react';
 
 // MUI Imports
-import Button from '@mui/material/Button'
-import Drawer from '@mui/material/Drawer'
-import FormControl from '@mui/material/FormControl'
-import IconButton from '@mui/material/IconButton'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
-import TextField from '@mui/material/TextField'
-import FormHelperText from '@mui/material/FormHelperText'
-import Typography from '@mui/material/Typography'
-import Divider from '@mui/material/Divider'
+import {
+  Button,
+  Drawer,
+  FormControl,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  FormHelperText,
+  Typography,
+  Divider,
+} from '@mui/material';
 
-// Third-party Imports
-import { useForm, Controller } from 'react-hook-form'
+// Third-party
+import { useForm } from 'react-hook-form';
 
 // Services
-import { categoryService } from '@/services/category'
+import { taxService } from '@/services/tax';
 
-const AddCategoryDrawer = ({ open, handleClose, editData }) => {
-  const [parentOptions, setParentOptions] = useState([])
+const customerTypes = ['Retail', 'Trade'];
+const statusOptions = [
+  { value: '1', label: 'Active' },
+  { value: '0', label: 'Inactive' },
+];
 
+const AddTaxDrawer = ({ open, handleClose, editData }) => {
+  console.log('AddTaxDrawer editData',editData)
   const {
-    control,
-    reset,
+    register,
     handleSubmit,
+    reset,
     setError,
-    setValue,
-    formState: { errors, isSubmitting }
+    watch,
+    formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
-      name: '',
-      parent: '',
-      status: '1'
-    }
-  })
+      id: editData?.id || '',
+      customerType: editData?.customerType || '',
+      taxPercentage: Number(editData?.taxPercentage) || '',
+      status: Number(editData?.status) || '1',
+    },
+  });
 
-  // Populate form for editing
   useEffect(() => {
     if (editData) {
-      setValue('id', editData.id || '')
-      setValue('name', editData.name || '')
-      setValue('parent', editData?.parent?.id || '')
-      setValue('status', editData.status?.toString() || '1')
+      reset({
+        id: editData.id || '',
+        customerType: editData.customerType || '',
+        taxPercentage: Number(editData.taxPercentage) || '',
+        status: Number(editData.status) || 1,
+      });
     }
-  }, [editData, setValue])
-
-  // Load parent category options
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await categoryService.getAll()
-        if (res.statusCode === 200) {
-          setParentOptions(res.data)
-        }
-      } catch (error) {
-        console.error('Failed to fetch parent categories:', error)
-      }
-    }
-
-    fetchCategories()
-  }, [])
+    
+  }, [editData, reset]);
 
   const onSubmit = async formValues => {
-    let response
     try {
-      if (editData) {
-        response = await categoryService.update(editData.id, formValues)
-      } else {
-        response = await categoryService.create(formValues)
-      }
-         console.log('response?.statusCode',);
-      if (response?.statusCode === 200 || response?.statusCode === 201) {
-        handleClose()
-        reset()
+      const payload = {
+        ...formValues,
+        taxPercentage: parseFloat(formValues.taxPercentage),
+      };
+
+      const response = editData
+        ? await taxService.update(editData.id, payload)
+        : await taxService.create(payload);
+
+      if ([200, 201].includes(response?.statusCode)) {
+        handleClose();
+        reset();
       } else if (response?.data?.errors) {
         Object.entries(response.data.errors).forEach(([field, messages]) => {
-          setError(field, { message: messages[0] || 'Invalid value' })
-        })
+          setError(field, { message: messages[0] || 'Invalid value' });
+        });
       } else {
-        setError('apiError', { message: response?.message || 'Something went wrong' })
+        setError('apiError', { message: response?.message || 'Something went wrong' });
       }
     } catch (err) {
-      console.error('Category save failed:', err)
-      setError('apiError', { message: err.message || 'Something went wrong' })
+      console.error('Tax save failed:', err);
+      setError('apiError', { message: err.message || 'Something went wrong' });
     }
-  }
+  };
 
   const handleDrawerClose = () => {
-    handleClose()
-    reset()
-  }
+    handleClose();
+    reset();
+  };
+
+  console.log('editData', editData);
 
   return (
     <Drawer
@@ -105,7 +102,7 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
     >
       <div className="flex items-center justify-between p-5 pb-4">
         <Typography variant="h5">
-          {editData ? 'Edit Category' : 'Add New Category'}
+          {editData ? 'Edit Tax' : 'Add New Tax'}
         </Typography>
         <IconButton size="small" onClick={handleDrawerClose}>
           <i className="ri-close-line text-2xl" />
@@ -115,58 +112,73 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
 
       <div className="p-5">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-          {/* Name Field */}
-          <Controller
-            name="name"
-            control={control}
-            rules={{ required: 'Category name is required' }}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                fullWidth
-                label="Category Name"
-                placeholder="Enter category name"
-                error={Boolean(errors.name)}
-                helperText={errors.name?.message}
-              />
-            )}
-          />
 
-          {/* Parent Category Select */}
-          <FormControl fullWidth error={Boolean(errors.parent)}>
-            <InputLabel>Parent Category</InputLabel>
-            <Controller
-              name="parent"
-              control={control}
-              render={({ field }) => (
-                <Select {...field} label="Parent Category">
-                  <MenuItem value="">None</MenuItem>
-                  {parentOptions.map(option => (
-                    <MenuItem key={option._id} value={option._id}>
-                      {option.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              )}
-            />
-            {errors.parent && <FormHelperText>{errors.parent.message}</FormHelperText>}
+          {/* Customer Type */}
+          <FormControl fullWidth error={Boolean(errors.customerType)}>
+            <InputLabel id="customerType-label">Customer Type</InputLabel>
+            <Select
+              labelId="customerType-label"
+              label="Customer Type"
+              value={watch('customerType') || ''}
+              onChange={(e) => setValue('customerType', e.target.value)}
+              error={Boolean(errors.customerType)}
+            >
+              <MenuItem value="">None</MenuItem>
+              {customerTypes.map(type => (
+                <MenuItem key={type} value={type}>{type}</MenuItem>
+              ))}
+            </Select>
+            {errors.customerType && (
+              <FormHelperText>{errors.customerType.message}</FormHelperText>
+            )}
           </FormControl>
 
-          {/* Status Select */}
+          {/* Tax Percentage */}
+          <TextField
+            {...register('taxPercentage', {
+              required: 'Tax percentage is required',
+              valueAsNumber: true, // ✅ ensures value is a number
+              min: {
+                value: 0,
+                message: 'Minimum value is 0',
+              },
+              max: {
+                value: 100,
+                message: 'Maximum value is 100',
+              },
+              pattern: {
+                value: /^\d{1,3}(\.\d{1,2})?$/,
+                message: 'Enter a valid percentage (e.g. 12 or 12.5)',
+              },
+            })}
+            fullWidth
+            type="number"
+            label="Tax Percentage"
+            placeholder="Enter tax percentage"
+            error={Boolean(errors.taxPercentage)}
+            helperText={errors.taxPercentage?.message}
+            InputLabelProps={{ shrink: true }} // ✅ force label to float
+          />
+
+
+          {/* Status */}
           <FormControl fullWidth error={Boolean(errors.status)}>
-            <InputLabel>Status</InputLabel>
-            <Controller
-              name="status"
-              control={control}
-              rules={{ required: 'Status is required' }}
-              render={({ field }) => (
-                <Select {...field} label="Status">
-                  <MenuItem value="1">Active</MenuItem>
-                  <MenuItem value="0">Inactive</MenuItem>
-                </Select>
-              )}
-            />
-            {errors.status && <FormHelperText>{errors.status.message}</FormHelperText>}
+            <InputLabel id="status-label">Status</InputLabel>
+            <Select
+              labelId="status-label"
+              label="Status"
+              defaultValue="1"
+              {...register('status', { required: 'Status is required' })}
+            >
+              {statusOptions.map(opt => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.status && (
+              <FormHelperText>{errors.status.message}</FormHelperText>
+            )}
           </FormControl>
 
           {/* API Error */}
@@ -181,14 +193,14 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
             <Button variant="contained" type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Saving...' : 'Save'}
             </Button>
-            <Button variant="outlined" color="error" type="button" onClick={handleDrawerClose}>
+            <Button variant="outlined" color="error" onClick={handleDrawerClose}>
               Cancel
             </Button>
           </div>
         </form>
       </div>
     </Drawer>
-  )
-}
+  );
+};
 
-export default AddCategoryDrawer
+export default AddTaxDrawer;
