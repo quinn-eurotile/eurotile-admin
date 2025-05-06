@@ -12,8 +12,6 @@ import Select from '@mui/material/Select'
 const TableFilters = ({ setFilters }) => {
    // Local state to store selected filter values
    const [selectedStatus, setSelectedStatus] = useState('')
-       console.log(selectedStatus,'selectedStatus');
-
    // Update parent with selected filters
    useEffect(() => {
      setFilters({

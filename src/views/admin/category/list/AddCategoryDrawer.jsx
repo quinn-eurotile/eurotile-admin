@@ -14,7 +14,7 @@ import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 
 // React Hook Form
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
 // Services
 import { categoryService } from '@/services/category';
@@ -23,6 +23,7 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
   const [parentOptions, setParentOptions] = useState([]);
 
   const {
+    control,
     register,
     reset,
     handleSubmit,

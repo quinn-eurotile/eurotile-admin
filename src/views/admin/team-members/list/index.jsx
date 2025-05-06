@@ -258,11 +258,10 @@ const TeamMemberList = (tableData) => {
 
 	// Fetch members on page or rowsPerPage change
 	useEffect(() => {
+    if (!filteredData || filteredData.length === 0) return;
+    fetchTeamMembers(page + 1, search, filteredData);
+  }, [page, rowsPerPage, search, filteredData]);
 
-		console.log(filteredData, 'filteredData');
-
-		fetchTeamMembers(page + 1, search, filteredData);
-	}, [page, rowsPerPage, search, filteredData]);
 
 	const fetchTeamMembers = async (currentPage = 1, searchTerm = '') => {
 		try {
