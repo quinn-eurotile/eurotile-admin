@@ -14,7 +14,7 @@ import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 
 // React Hook Form
-import { Controller, useForm } from 'react-hook-form';
+import { useForm, Controller  } from 'react-hook-form';
 
 // Services
 import { categoryService } from '@/services/category';
