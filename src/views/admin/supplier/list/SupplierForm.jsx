@@ -172,7 +172,7 @@ const AddSupplierForm = () => {
 
   const onSubmit = async (data) => {
 
-    console.log(data,'datadata')
+    console.log(data, 'datadata');
     const formattedDiscounts = discounts.map(discount => ({
       minimumAreaSqFt: Number(discount.minimumAreaSqFt),
       discountPercentage: Number(discount.discountPercentage)
@@ -247,11 +247,11 @@ const AddSupplierForm = () => {
 
 
   const handleCountryChange = async country => {
-    const countryId = country?._id
+    const countryId = country?._id;
     setSelectedCountry(country);
     // setValue('country', countryId);
     setSelectedState(null);
-    setSelectedCity(null);  
+    setSelectedCity(null);
 
     setValue('state', '');
     setValue('city', '');
@@ -266,7 +266,7 @@ const AddSupplierForm = () => {
         toast.error('Failed to load states');
       }
     }
-    else{
+    else {
       setCityList([]);
       setStateList([]);
     }
@@ -274,7 +274,7 @@ const AddSupplierForm = () => {
 
   const handleStateChange = async stateId => {
     setValue('state', stateId);
-    setSelectedCity(null);  
+    setSelectedCity(null);
     setValue('city', '');
     if (stateId) {
       try {
@@ -290,7 +290,7 @@ const AddSupplierForm = () => {
 
   return (
     <Card>
-      <CardHeader title="Add Supplier" />
+      <CardHeader title="Factory / Supplier" />
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Box mb={5} sx={{ background: '#f7f7f7a6', borderRadius: '10px', border: '1px solid #ededed', p: 5 }}>
@@ -346,8 +346,8 @@ const AddSupplierForm = () => {
                   rules={{
                     required: 'Company phone is required',
                     pattern: {
-                      value: /^[0-9]*$/,
-                      message: 'Only numbers are allowed',
+                      value: /^\+?[0-9\s\-().]{7,20}$/,
+                      message: 'Enter a valid phone number (no letters)',
                     },
                   }}
                   render={({ field }) => (
@@ -356,10 +356,25 @@ const AddSupplierForm = () => {
                       {...field}
                       type='tel'
                       inputProps={{
-                        inputMode: 'numeric',
-                        pattern: '[0-9]*',
+                        inputMode: 'tel',
+                        pattern: '\\+?[0-9\\s\\-().]{7,20}',
                         onKeyDown: (e) => {
-                          if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Tab') {
+                          const allowedKeys = [
+                            'Backspace',
+                            'Tab',
+                            'ArrowLeft',
+                            'ArrowRight',
+                            'Delete',
+                            'Home',
+                            'End',
+                            '+',
+                            '-',
+                            '(',
+                            ')',
+                            ' ',
+                          ];
+                          const isNumber = /[0-9]/.test(e.key);
+                          if (!isNumber && !allowedKeys.includes(e.key)) {
                             e.preventDefault();
                           }
                         },
@@ -371,8 +386,8 @@ const AddSupplierForm = () => {
                     />
                   )}
                 />
-
               </Grid>
+
             </Grid>
           </Box>
 
@@ -428,8 +443,8 @@ const AddSupplierForm = () => {
                   rules={{
                     required: 'Contact phone is required',
                     pattern: {
-                      value: /^[0-9]*$/,
-                      message: 'Only numbers are allowed',
+                      value: /^\+?[0-9\s\-().]{7,20}$/,
+                      message: 'Enter a valid phone number (no letters)',
                     },
                   }}
                   render={({ field }) => (
@@ -438,10 +453,25 @@ const AddSupplierForm = () => {
                       {...field}
                       type='tel'
                       inputProps={{
-                        inputMode: 'numeric',
-                        pattern: '[0-9]*',
+                        inputMode: 'tel',
+                        pattern: '\\+?[0-9\\s\\-().]{7,20}',
                         onKeyDown: (e) => {
-                          if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Tab') {
+                          const allowedKeys = [
+                            'Backspace',
+                            'Tab',
+                            'ArrowLeft',
+                            'ArrowRight',
+                            'Delete',
+                            'Home',
+                            'End',
+                            '+',
+                            '-',
+                            '(',
+                            ')',
+                            ' ',
+                          ];
+                          const isNumber = /[0-9]/.test(e.key);
+                          if (!isNumber && !allowedKeys.includes(e.key)) {
                             e.preventDefault();
                           }
                         },
@@ -451,10 +481,10 @@ const AddSupplierForm = () => {
                       error={!!errors.contactPhone}
                       helperText={errors.contactPhone?.message}
                     />
-
                   )}
                 />
               </Grid>
+
 
             </Grid>
           </Box>
@@ -505,8 +535,7 @@ const AddSupplierForm = () => {
                   value={selectedCountry}
                   onChange={(event, value) => {
                     handleCountryChange(value);
-                  }
-                  }
+                  }}
                   renderInput={(params) => <TextField {...params} label="Country" />}
                 />
               </Grid>
@@ -520,8 +549,7 @@ const AddSupplierForm = () => {
                   onChange={(event, value) => {
                     setSelectedState(value);
                     handleStateChange(value?._id);
-                  }
-                  }
+                  }}
                   disabled={!selectedCountry}
                   renderInput={(params) => <TextField {...params} label="State" />}
                 />
@@ -534,7 +562,7 @@ const AddSupplierForm = () => {
                   getOptionLabel={(option) => option.name}
                   value={selectedCity}
                   onChange={(event, value) => {
-                    setSelectedCity(value)
+                    setSelectedCity(value);
                     setValue('city', value?._id);
                   }
                   }
