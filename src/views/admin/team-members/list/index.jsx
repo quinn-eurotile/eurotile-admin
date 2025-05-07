@@ -360,16 +360,12 @@ const TeamMemberList = (tableData) => {
 	};
 
 
-
-	// Handle Delete
-
 	// Handle Delete (show confirmation dialog)
 	const handleDelete = async () => {
 		try {
 			const response = await teamMemberService.deleteTeamMember(selectedMemberId);
 			if (response.success) {
-				// Remove the deleted user from the table
-				setData(prevData => prevData.filter(user => user.id !== selectedMemberId));
+        refreshTeamList();
 			}
 			setOpenConfirmDialog(false); // Close the dialog after deletion
 		} catch (error) {
@@ -377,6 +373,7 @@ const TeamMemberList = (tableData) => {
 			setOpenConfirmDialog(false); // Close the dialog on error as well
 		}
 	};
+
 	// Handle Edit (open AddUserDrawer with current data)
 	const handleEdit = (id) => {
 		const member = data.find(user => user.id === id);

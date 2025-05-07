@@ -110,14 +110,27 @@ const AddSupplierForm = () => {
         });
         // Fetch dependent states and cities for mapped values
         if (supplier.addresses?.country) {
+          const countries = await locationService.getCountries();
           const states = await locationService.getStatesByCountry(supplier.addresses.country);
+
+          setCountryList(countries?.data || []);
           setStateList(states?.data || []);
+
+          const selectedCountryObj = countries?.data?.find(c => c._id === supplier.addresses.country);
+          setSelectedCountry(selectedCountryObj);
 
           if (supplier.addresses?.state) {
             const cities = await locationService.getCitiesByState(supplier.addresses.state);
             setCityList(cities?.data || []);
+
+            const selectedStateObj = states?.data?.find(s => s._id === supplier.addresses.state);
+            const selectedCityObj = cities?.data?.find(c => c._id === supplier.addresses.city);
+
+            setSelectedState(selectedStateObj);
+            setSelectedCity(selectedCityObj);
           }
         }
+
         if (supplier.discounts?.length > 0) {
           setDiscounts(
             supplier.discounts.map(d => ({

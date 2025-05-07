@@ -37,7 +37,7 @@ import { useImageVariant } from '@core/hooks/useImageVariant'
 import { useSettings } from '@core/hooks/useSettings'
 
 // Util Imports
-import { getLocalizedUrl } from '@/utils/i18n' 
+import { getLocalizedUrl } from '@/utils/i18n'
 
 const schema = object({
   email: pipe(string(), minLength(1, 'This field is required'), email('Please enter a valid email address')),
@@ -52,6 +52,8 @@ const Login = ({ mode }) => {
   // States
   const [isPasswordShown, setIsPasswordShown] = useState(false)
   const [errorState, setErrorState] = useState(null)
+
+  const [error, setError] = useState(null)
 
   // Vars
   const darkImg = '/images/pages/auth-v2-mask-dark.png'
@@ -103,17 +105,20 @@ const Login = ({ mode }) => {
 
       router.replace(getLocalizedUrl(redirectURL, locale))
     } else {
-      if (res?.error) {
+      setError('User not Found')
+      // console.log(res,'resres');
 
-
-
-        const error = JSON.parse(res.error)
-        console.log(error,'errorerrorerror');
-        setErrorState(error?.message)
-      }
+      // if (res?.error) {
+      //   const error = JSON.parse(res.error);
+      //   if(error.message){
+      //     console.log(error.message,'under password');
+      //   }
+      //   // setErrorState(error?.error)
+      // }
+      //   console.log("anotehr error")
     }
   }
-  const FullLogoImage =  '/images/euro-tile/logo/Eurotile_Logo.png';
+  const FullLogoImage = '/images/euro-tile/logo/Eurotile_Logo.png'
   return (
     <div className='flex bs-full justify-center'>
       <div
@@ -140,11 +145,11 @@ const Login = ({ mode }) => {
       <div className='flex justify-center items-center bs-full bg-backgroundPaper !min-is-full p-6 md:!min-is-[unset] md:p-12 md:is-[480px]'>
         <div className='absolute block-start-5 sm:block-start-[33px] inline-start-6 sm:inline-start-[38px]'>
           <div className='flex items-center min-bs-[24px]'>
-          <img
-            src={FullLogoImage}
-            alt='Logo'
-            className='max-h-[18px]' // Adjust height as needed
-          />
+            <img
+              src={FullLogoImage}
+              alt='Logo'
+              className='max-h-[18px]' // Adjust height as needed
+            />
           </div>
         </div>
         <div className='flex flex-col gap-5 is-full sm:is-auto md:is-full sm:max-is-[400px] md:max-is-[unset]'>
@@ -152,12 +157,12 @@ const Login = ({ mode }) => {
             <Typography variant='h4'>{`Welcome to ${themeConfig.templateName}!👋🏻`}</Typography>
             <Typography>Please sign-in to your account and start the adventure</Typography>
           </div>
-          <Alert icon={false} className='bg-primaryLight'>
+          {/* <Alert icon={false} className='bg-primaryLight'>
             <Typography variant='body2' color='primary.main'>
               Email: <span className='font-medium'>admin317@yopmail.com</span> / Pass:{' '}
               <span className='font-medium'>123456789</span>
             </Typography>
-          </Alert>
+          </Alert> */}
 
           <form
             noValidate
@@ -224,6 +229,28 @@ const Login = ({ mode }) => {
                 />
               )}
             />
+
+            {error && (
+              <Alert
+              onClose={() => {
+                setError(false)
+              }}
+                sx={{
+                  padding: '5px 15px',
+                  fontSize: '13px',
+                  gap: '2px',
+                  '& .MuiAlert-icon': {
+                    fontSize: '17px',
+                    background: 'transparent',
+                    color: 'red'
+                  }
+                }}
+                severity='error'
+              >
+                {error}
+              </Alert>
+            )}
+
             <div className='flex justify-between items-center flex-wrap gap-x-3 gap-y-1'>
               <FormControlLabel control={<Checkbox defaultChecked />} label='Remember me' />
               <Typography className='text-end' color='primary.main' component={Link} href='/admin/forgot-password'>
