@@ -70,7 +70,7 @@ const fuzzyFilter = (row, columnId, value, addMeta) => {
 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
 	// States
-	const [value, setValue] = useState(initialValue);
+	const [value, setValue] = useState(initialValue ?? '');
 
 	useEffect(() => {
 		setValue(initialValue);
@@ -84,7 +84,7 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [value]);
 
-	return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />;
+	return <TextField {...props} value={value ?? ''} onChange={e => setValue(e.target.value)} size='small' />;
 };
 
 // Vars
@@ -272,7 +272,7 @@ const CategoryList = () => {
 			const response = await categoryService.delete(selectedCatId);
 			if (response.success) {
 				// Remove the deleted user from the table
-				setData(prevData => prevData.filter(user => user.id !== selectedCatId));
+        refreshList();
 			}
 			setOpenConfirmDialog(false); // Close the dialog after deletion
 		} catch (error) {
@@ -283,8 +283,6 @@ const CategoryList = () => {
 
 	// Handle Edit (open AddUserDrawer with current data)
 	const handleEdit = (id) => {
-
-
 		const selectedData = data.find(result => result.id === id);
 		setEditData(selectedData);
 		setSelectedCatId(id);  // Store the selected member's ID
@@ -307,7 +305,6 @@ const CategoryList = () => {
 		refreshList();
 	};
 
-
 	return (
 
 		<>
@@ -319,17 +316,19 @@ const CategoryList = () => {
 						<TableFilters setFilters={setFilteredData} />
 						<Divider />
 						<div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
-							<Button
+              <div>
+							{/* <Button
 								color='secondary'
 								variant='outlined'
 								startIcon={<i className='ri-upload-2-line text-xl' />}
 								className='max-sm:is-full'
-							>Export</Button>
+							>Export</Button> */}
+              </div>
 							<div className='flex justify-between p-5 items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
 								<DebouncedInput
 									value={globalFilter ?? ''}
 									onChange={value => setSearch(String(value))}
-									placeholder='Search User'
+									placeholder='Search by Name'
 									className='max-sm:is-full'
 								/>
 								<Button variant='contained' onClick={() => setAddUserOpen(!addUserOpen)} className='max-sm:is-full'>

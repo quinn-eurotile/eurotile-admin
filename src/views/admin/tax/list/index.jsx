@@ -11,7 +11,6 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
-import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import { styled } from '@mui/material/styles';
 import TablePagination from '@mui/material/TablePagination';
@@ -283,14 +282,14 @@ const TaxList = () => {
 						<TableFilters setFilters={setFilteredData} />
 						<Divider />
 						<div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
-							<Button
+            <div>
+							{/* <Button
 								color='secondary'
 								variant='outlined'
 								startIcon={<i className='ri-upload-2-line text-xl' />}
 								className='max-sm:is-full'
-							>
-								Export
-							</Button>
+							>Export</Button> */}
+              </div>
 							<div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
 								<DebouncedInput
 									value={globalFilter ?? ''}

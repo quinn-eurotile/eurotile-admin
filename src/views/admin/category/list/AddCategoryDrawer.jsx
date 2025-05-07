@@ -34,7 +34,7 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
   } = useForm({
     defaultValues: {
       name: '',
-      parent: null,
+      parent: '',
       status: '1'
     }
   });
@@ -50,7 +50,7 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
     if (editData) {
       setValue('id', editData.id || '');
       setValue('name', editData.name || '');
-      setValue('parent', editData?.parent?.id || null);
+      setValue('parent', editData?.parent?.id || '');
       setValue('status', editData.status?.toString() || '1');
     }
   }, [editData, setValue]);
@@ -73,9 +73,14 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
 
   const onSubmit = async (formValues) => {
     try {
+      const transformedValues = {
+        ...formValues,
+        parent: formValues.parent === '' ? null : formValues.parent
+      };
+
       const response = editData
-        ? await categoryService.update(editData.id, formValues)
-        : await categoryService.create(formValues);
+        ? await categoryService.update(editData.id, transformedValues)
+        : await categoryService.create(transformedValues);
 
       const statusCode = response?.statusCode;
       const success = statusCode === 200 || statusCode === 201;
@@ -98,6 +103,7 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
       });
     }
   };
+
 
   const handleDrawerClose = () => {
     handleClose();
@@ -143,7 +149,7 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
               control={control}
               render={({ field }) => (
                 <Select {...field} label="Parent Category">
-                  <MenuItem value={null}>None</MenuItem>
+                  <MenuItem value={''}>None</MenuItem>
                   {parentOptions.map(option => (
                     <MenuItem key={option._id} value={option._id}>
                       {option.name}

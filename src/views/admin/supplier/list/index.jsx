@@ -137,28 +137,18 @@ const SupplierMemberList = tableData => {
         header: 'Company Name',
         cell: ({ row }) => <Typography>{row?.original?.companyName}</Typography>
       }),
-      columnHelper.accessor('contactInfo', {
-        header: 'Contact Information',
-        cell: ({ row }) => (
-          <>
-            {row?.original?.contactInfo?.map((info, index) => (
-              <Typography key={index}>{`${info.name} (${info.phone})`}</Typography>
-            ))}
-          </>
-        )
-      }),
+
       columnHelper.accessor('email', {
-        header: 'Email Address',
+        header: 'Compnay Email',
         cell: ({ row }) => (
           <>
-            {row?.original?.contactInfo?.map((info, index) => (
-              <Typography key={index}>{info.email}</Typography>
-            ))}
+            {row?.original?.companyEmail ?? '-'}
           </>
         )
       }),
+
       columnHelper.accessor('address', {
-        header: 'Address',
+        header: 'Company Address',
         cell: ({ row }) => {
           const { addressLine1 } = row?.original?.addresses;
           const fullAddress = [addressLine1].filter(Boolean).join(', ');
@@ -247,8 +237,7 @@ const SupplierMemberList = tableData => {
 
   // Fetch members on page or rowsPerPage change
   useEffect(() => {
-    console.log(filteredData, 'filteredData');
-
+    if (!filteredData || filteredData.length === 0) return;
     fetchTeamMembers(page + 1, search, filteredData);
   }, [page, rowsPerPage, search, filteredData]);
 

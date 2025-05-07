@@ -34,6 +34,7 @@ const AddTaxDrawer = ({ open, handleClose, editData }) => {
     reset,
     setError,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
