@@ -187,7 +187,7 @@ const NavSearch = () => {
 
   return (
     <>
-      {isBreakpointReached || settings.layout === 'horizontal' ? (
+      {/* {isBreakpointReached || settings.layout === 'horizontal' ? (
         <IconButton className='text-textPrimary' onClick={() => setOpen(true)}>
           <i className='ri-search-line text-textPrimary' />
         </IconButton>
@@ -198,7 +198,7 @@ const NavSearch = () => {
           </IconButton>
           <div className='whitespace-nowrap select-none text-textDisabled'>Search ⌘K</div>
         </div>
-      )}
+      )} */}
       <CommandDialog open={open} onOpenChange={setOpen}>
         <div className='flex items-center justify-between border-be pli-4 plb-3 gap-2'>
           <Title hidden />
