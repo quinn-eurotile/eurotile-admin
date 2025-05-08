@@ -1,5 +1,5 @@
 // React Imports
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // MUI Imports
 import Button from '@mui/material/Button';
@@ -16,14 +16,13 @@ import Divider from '@mui/material/Divider';
 
 // Third-party Imports
 import { useForm, Controller } from 'react-hook-form';
-import { teamMemberService } from '@/services/team-member';
-
-
+import { toast } from 'react-toastify';
 
 const AddUserDrawer = (props) => {
   // Props
-  const { open, handleClose, editTeam } = props;
+  const { open, handleClose, editTeam, updateTeamMember, createTeamMember } = props;
 
+  const [isLoading, setIsLoading] = useState(false);
 
   // Form Hook
   const {
@@ -32,7 +31,8 @@ const AddUserDrawer = (props) => {
     handleSubmit,
     setError,
     setValue,
-    formState: { errors, isSubmitting },
+    clearErrors,
+    formState: { errors },
   } = useForm({
     defaultValues: {
       name: '',
@@ -41,6 +41,7 @@ const AddUserDrawer = (props) => {
       status: '',
     },
   });
+
   // Fill the form when editing
   useEffect(() => {
     if (editTeam) {
@@ -52,46 +53,40 @@ const AddUserDrawer = (props) => {
     }
   }, [editTeam, setValue]);
 
-
-
-  // Function to handle form submission
   const onSubmit = async (formValues) => {
+    setIsLoading(true);
 
-    // Call appropriate API based on mode
-    let response;
     try {
-      // API call to create user
-      if (editTeam) {
-        response = await teamMemberService.updateTeamMember(editTeam.id, formValues);
-      } else {
-        response = await teamMemberService.createTeamMember(formValues);
+      const response = editTeam
+        ? await updateTeamMember(editTeam.id, formValues)
+        : await createTeamMember(formValues);
+
+      const isSuccess = response?.statusCode === 200 || response?.statusCode === 201;
+
+      if (isSuccess) {
+        toast.success(response?.message || 'Operation successful');
+        handleClose();
+        reset();
+        return;
       }
 
-        // Check if API call succeeded with status 200
-      if (response?.statusCode === 200 || response?.statusCode === 201) {
-        handleClose(); // Close drawer
-        reset(); // Reset form
+      const fieldErrors = response?.data?.errors;
+      if (fieldErrors) {
+        Object.entries(fieldErrors).forEach(([fieldName, messages]) => {
+          setError(fieldName, { message: messages?.[0] || 'Invalid value' });
+        });
       } else {
-
-        if (response?.data?.errors) {
-          const fieldErrors = response.data.errors;
-          Object.entries(fieldErrors).forEach(([fieldName, messages]) => {
-            setError(fieldName, { message: messages[0] || 'Invalid value' });
-          });
-        } else {
-          const errorMessage = response?.message || 'Something went wrong. Please try again.';
-          setError('apiError', { message: errorMessage });
-        }
+        toast.error(response?.message || 'Something went wrong.');
       }
-
 
     } catch (error) {
       console.error('User creation failed:', error);
-
-      const errorMessage = error?.message || 'Something went wrong. Please try again.';
-      setError('apiError', { message: errorMessage });
+      toast.error('Unexpected error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
+
 
   // Function to handle form reset and drawer close
   const handleDrawerClose = () => {
@@ -181,8 +176,6 @@ const AddUserDrawer = (props) => {
             )}
           />
 
-
-
           {/* Status Select */}
           <FormControl fullWidth error={Boolean(errors.status)}>
             <InputLabel>Select Status</InputLabel>
@@ -210,8 +203,8 @@ const AddUserDrawer = (props) => {
 
           {/* Form Buttons */}
           <div className="flex items-center gap-4">
-            <Button variant="contained" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Submitting...' : 'Submit'}
+            <Button variant="contained" type="submit" disabled={isLoading}>
+              {isLoading ? 'Submitting...' : 'Submit'}
             </Button>
             <Button variant="outlined" color="error" type="button" onClick={handleDrawerClose}>
               Cancel

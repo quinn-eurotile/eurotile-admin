@@ -11,23 +11,19 @@ import {
   CardContent,
   CardHeader,
   MenuItem,
-  FormControl, InputLabel,
-  Stack
 } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import Grid from '@mui/material/Grid2';
 import { toast } from 'react-toastify';
-import { supplierService } from '@/services/supplier';
 import { useRouter, useParams } from 'next/navigation';
-import { locationService } from '@/services/location';
-import Select from 'react-select';
+import { getCitiesByState, getCountries, getStatesByCountry } from '@/services/location';
+import { createSupplier, fetchSupplierById, updateSupplier } from '@/app/[lang]/(dashboard)/(private)/admin/supplier/list/page';
 
 const AddSupplierForm = () => {
 
   const params = useParams();
   const supplierId = params?.id || null;
   const locale = params?.lang || null;
-
 
   const router = useRouter();
 
@@ -37,7 +33,6 @@ const AddSupplierForm = () => {
     reset,
     setError,
     setValue,
-    watch,
     register,
     formState: { errors }
   } = useForm({
@@ -73,7 +68,7 @@ const AddSupplierForm = () => {
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        const response = await locationService.getCountries();
+        const response = await getCountries();
         setCountryList(response?.data || []);
       } catch {
         toast.error('Failed to load countries');
@@ -87,7 +82,7 @@ const AddSupplierForm = () => {
       if (!supplierId || supplierId == 'new') return;
 
       try {
-        const response = await supplierService.getById(supplierId);
+        const response = await fetchSupplierById(supplierId);
         const supplier = response?.data;
 
         reset({
@@ -110,8 +105,8 @@ const AddSupplierForm = () => {
         });
         // Fetch dependent states and cities for mapped values
         if (supplier.addresses?.country) {
-          const countries = await locationService.getCountries();
-          const states = await locationService.getStatesByCountry(supplier.addresses.country);
+          const countries = await getCountries();
+          const states = await getStatesByCountry(supplier.addresses.country);
 
           setCountryList(countries?.data || []);
           setStateList(states?.data || []);
@@ -120,7 +115,7 @@ const AddSupplierForm = () => {
           setSelectedCountry(selectedCountryObj);
 
           if (supplier.addresses?.state) {
-            const cities = await locationService.getCitiesByState(supplier.addresses.state);
+            const cities = await getCitiesByState(supplier.addresses.state);
             setCityList(cities?.data || []);
 
             const selectedStateObj = states?.data?.find(s => s._id === supplier.addresses.state);
@@ -147,26 +142,6 @@ const AddSupplierForm = () => {
     fetchSupplierDetails();
   }, [supplierId, reset]);
 
-  // Watch for changes in country and state and fetch data accordingly
-  // useEffect(() => {
-  //   if (!selectedCountry) {
-  //     console.log('selectedCountry', selectedCountry);
-  //     handleCountryChange(selectedCountry?._id);
-  //   } else {
-  //     setStateList([]);
-  //   }
-  // }, [selectedCountry]);
-
-
-  // useEffect(() => {
-  //   if (!selectedState) {
-  //     handleStateChange(selectedState?._id);
-  //   } else {
-  //     setCityList([]);
-  //   }
-  // }, [selectedState]);
-
-
 
   const handleDiscountChange = (index, field, value) => {
     const updatedDiscounts = [...discounts];
@@ -185,7 +160,6 @@ const AddSupplierForm = () => {
 
   const onSubmit = async (data) => {
 
-    console.log(data, 'datadata');
     const formattedDiscounts = discounts.map(discount => ({
       minimumAreaSqFt: Number(discount.minimumAreaSqFt),
       discountPercentage: Number(discount.discountPercentage)
@@ -220,10 +194,10 @@ const AddSupplierForm = () => {
       let response;
 
       if (supplierId && supplierId != 'new') {
-        response = await supplierService.update(supplierId, finalPayload);
+        response = await updateSupplier(supplierId, finalPayload);
 
       } else {
-        response = await supplierService.create(finalPayload);
+        response = await createSupplier(finalPayload);
       }
       if (response?.statusCode === 201 || response?.statusCode === 200) {
         router.push(`/${locale}/admin/supplier/list`);
@@ -272,7 +246,7 @@ const AddSupplierForm = () => {
     if (countryId) {
       setValue('country', countryId);
       try {
-        const states = await locationService.getStatesByCountry(countryId);
+        const states = await getStatesByCountry(countryId);
         setStateList(states?.data || []);
         setCityList([]);
       } catch {
@@ -291,15 +265,13 @@ const AddSupplierForm = () => {
     setValue('city', '');
     if (stateId) {
       try {
-        const cities = await locationService.getCitiesByState(stateId);
+        const cities = await getCitiesByState(stateId);
         setCityList(cities?.data || []);
       } catch {
         toast.error('Failed to load cities');
       }
     }
   };
-
-  const toReactSelectOptions = (list) => list.map(item => ({ label: item.name, value: item._id }));
 
   return (
     <Card>

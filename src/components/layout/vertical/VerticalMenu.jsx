@@ -123,6 +123,14 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
           >
             Tax Management
           </MenuItem>
+          <MenuItem
+            href={`/${locale}/admin/trade-professionals/list`}
+            exactMatch={false}
+            activeUrl='/admin/trade-professionals/list'
+            icon={<i className='ri-team-fill' />}
+          >
+            Trade Professionals
+          </MenuItem>
           {/* <SubMenu label={dictionary['navigation'].eCommerce} icon={<i className='ri-shopping-bag-3-line' />}>
             <MenuItem href={`/${locale}/apps/ecommerce/dashboard`}>{dictionary['navigation'].dashboard}</MenuItem>
             <SubMenu label={dictionary['navigation'].products}>

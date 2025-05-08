@@ -60,7 +60,6 @@ const ResetPasswordV1 = ({ mode }) => {
     try {
       // Sending password reset request
        const response = await api.post('/admin/reset-password',  { token , password })
-        console.log(response,'response');
 
       // Handling response from server
       if (response.statusCode === 200) {

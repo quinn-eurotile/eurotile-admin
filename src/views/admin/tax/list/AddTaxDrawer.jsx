@@ -18,8 +18,7 @@ import {
 // Third-party
 import { useForm } from 'react-hook-form';
 
-// Services
-import { taxService } from '@/services/tax';
+import { createTax, updateTax } from '@/app/[lang]/(dashboard)/(private)/admin/tax/list/page';
 
 const customerTypes = ['Retail', 'Trade'];
 const statusOptions = [
@@ -41,19 +40,18 @@ const AddTaxDrawer = ({ open, handleClose, editData }) => {
       id: editData?.id || '',
       customerType: editData?.customerType || '',
       taxPercentage: Number(editData?.taxPercentage) || '',
-      status: Number(editData?.status) || '1',
+      status: String(editData?.status) || '1',
     },
   });
 
+
   useEffect(() => {
-    if (editData) {
-      reset({
-        id: editData.id || '',
-        customerType: editData.customerType || '',
-        taxPercentage: Number(editData.taxPercentage) || '',
-        status: Number(editData.status) || 1,
-      });
-    }
+    reset({
+      id: editData?.id || '',
+      customerType: editData?.customerType || '',
+      taxPercentage: editData?.taxPercentage ? Number(editData?.taxPercentage) : '',
+      status: editData ? String(editData?.status) : '1',
+    });
 
   }, [editData, reset]);
 
@@ -65,8 +63,8 @@ const AddTaxDrawer = ({ open, handleClose, editData }) => {
       };
 
       const response = editData
-        ? await taxService.update(editData.id, payload)
-        : await taxService.create(payload);
+        ? await updateTax(editData.id, payload)
+        : await createTax(payload);
 
       if ([200, 201].includes(response?.statusCode)) {
         handleClose();
@@ -117,7 +115,7 @@ const AddTaxDrawer = ({ open, handleClose, editData }) => {
             <Select
               labelId="customerType-label"
               label="Customer Type"
-              value={watch('customerType') || ''}
+              value={watch('customerType') ?? ''}
               onChange={(e) => setValue('customerType', e.target.value)}
               error={Boolean(errors.customerType)}
             >
@@ -135,7 +133,7 @@ const AddTaxDrawer = ({ open, handleClose, editData }) => {
           <TextField
             {...register('taxPercentage', {
               required: 'Tax percentage is required',
-              valueAsNumber: true, // ✅ ensures value is a number
+              valueAsNumber: true,
               min: {
                 value: 0,
                 message: 'Minimum value is 0',
@@ -155,7 +153,7 @@ const AddTaxDrawer = ({ open, handleClose, editData }) => {
             placeholder="Enter tax percentage"
             error={Boolean(errors.taxPercentage)}
             helperText={errors.taxPercentage?.message}
-            InputLabelProps={{ shrink: true }} // ✅ force label to float
+            InputLabelProps={{ shrink: true }}
           />
 
 
@@ -165,7 +163,8 @@ const AddTaxDrawer = ({ open, handleClose, editData }) => {
             <Select
               labelId="status-label"
               label="Status"
-              defaultValue="1"
+              defaultValue='1'
+              value={String(watch('status')) ?? '1'}
               {...register('status', { required: 'Status is required' })}
             >
               {statusOptions.map(opt => (

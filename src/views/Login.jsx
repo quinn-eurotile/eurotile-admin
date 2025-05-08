@@ -106,16 +106,6 @@ const Login = ({ mode }) => {
       router.replace(getLocalizedUrl(redirectURL, locale))
     } else {
       setError('User not Found')
-      // console.log(res,'resres');
-
-      // if (res?.error) {
-      //   const error = JSON.parse(res.error);
-      //   if(error.message){
-      //     console.log(error.message,'under password');
-      //   }
-      //   // setErrorState(error?.error)
-      // }
-      //   console.log("anotehr error")
     }
   }
   const FullLogoImage = '/images/euro-tile/logo/Eurotile_Logo.png'

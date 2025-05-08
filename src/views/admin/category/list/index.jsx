@@ -104,7 +104,7 @@ const userStatusNameObj = {
 // Column Definitions
 const columnHelper = createColumnHelper();
 
-const CategoryList = () => {
+const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus}) => {
 	const [addUserOpen, setAddUserOpen] = useState(false);
 	const [rowSelection, setRowSelection] = useState({});
 	const dispatch = useDispatch();
@@ -121,7 +121,6 @@ const CategoryList = () => {
 	const [totalRecords, setTotalRecords] = useState(0);
 	// Menu state
 	const [selectedCatId, setSelectedCatId] = useState(null);
-	const [statsData, setStatsData] = useState([]);
 
 
 	const columns = useMemo(() => [
@@ -162,7 +161,7 @@ const CategoryList = () => {
 
 				const handleStatusToggle = async () => {
 					const newStatus = currentStatus === 1 ? 0 : 1;
-					await categoryService.updateStatus(row.original.id, newStatus);
+					await updateCategoryStatus(row.original.id, newStatus);
 					refreshList();
 				};
 
@@ -178,9 +177,9 @@ const CategoryList = () => {
 
 						<IconButton onClick={handleStatusToggle}>
 							{currentStatus === 1 ? (
-								<i className='ri-eye-off-line text-textSecondary' title='Set Inactive' />
+								<i className='ri-eye-line text-textSecondary' title='Set Inactive' />
 							) : (
-								<i className='ri-eye-line text-textSecondary' title='Set Active' />
+                <i className='ri-eye-off-line text-textSecondary' title='Set Active' />
 							)}
 						</IconButton>
 					</div>
@@ -215,13 +214,14 @@ const CategoryList = () => {
 
 	// Fetch members on page or rowsPerPage change
 	useEffect(() => {
+    if (!filteredData || filteredData.length === 0) return
 		fetchCategories(page + 1, search, filteredData);
 	}, [page, rowsPerPage, search, filteredData]);
 
 	const fetchCategories = async (currentPage = 1, searchTerm = '') => {
 		try {
 			dispatch(callCommonAction({ loading: true }));
-			const response = await categoryService.get(currentPage, rowsPerPage, searchTerm, filteredData);
+			const response = await fetchCategoryList(currentPage, rowsPerPage, searchTerm, filteredData);
 			dispatch(callCommonAction({ loading: false }));
 			if (response.statusCode === 200 && response.data) {
 				const formatted = response?.data?.docs?.map(category => ({
@@ -236,8 +236,6 @@ const CategoryList = () => {
 				setPage(page);
 				setData(formatted);
 				setTotalRecords(response.data.totalDocs || 0);
-
-
 			}
 		} catch (error) {
 			dispatch(callCommonAction({ loading: false }));
@@ -245,9 +243,14 @@ const CategoryList = () => {
 		}
 	};
 
+  useEffect(()=>{
+    fetchCategories();
+  },[])
+
 	const handleChangePage = (event, newPage) => setPage(newPage);
 
 	const handleChangeRowsPerPage = event => {
+    table.setPageSize(parseInt(event.target.value))
 		setRowsPerPage(parseInt(event.target.value, 10));
 		setPage(0);
 	};
@@ -269,7 +272,7 @@ const CategoryList = () => {
 	// Handle Delete (show confirmation dialog)
 	const handleDelete = async () => {
 		try {
-			const response = await categoryService.delete(selectedCatId);
+			const response = await deleteCategory(selectedCatId);
 			if (response.success) {
 				// Remove the deleted user from the table
         refreshList();

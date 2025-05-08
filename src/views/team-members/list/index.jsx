@@ -255,9 +255,6 @@ const TeamMemberList = (tableData) => {
 
 	// Fetch members on page or rowsPerPage change
 	useEffect(() => {
-
-		console.log(filteredData, 'filteredData');
-
 		fetchTeamMembers(page + 1, search, filteredData);
 	}, [page, rowsPerPage, search, filteredData]);
 

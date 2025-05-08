@@ -1,8 +1,8 @@
-// Component Imports
+'use server'
 
 // Data Imports
-import { getUserData } from '@/app/server/actions'
-import TeamMemberList from '@/views/admin/supplier/list';
+import { supplierService } from '@/services/supplier';
+import SupplierList from '@/views/admin/supplier/list';
 
 /**
  * ! If you need data using an API call, uncomment the below API code, update the `process.env.API_URL` variable in the
@@ -20,9 +20,56 @@ import TeamMemberList from '@/views/admin/supplier/list';
 
   return res.json()
 } */
-const UserListApp = async () => {
 
-  return <TeamMemberList  />
+export async function fetchSupplierList (currentPage = 1,rowsPerPage = 10, searchTerm = '', filteredData=null) {
+  try {
+    return await supplierService.get(currentPage, rowsPerPage, searchTerm, filteredData);
+  } catch (error) {
+    console.error('Failed to fetch Supplier List', error);
+  }
+};
+
+export async function fetchSupplierById (id) {
+  try {
+    return await supplierService.getById(id);
+  } catch (error) {
+    console.error('Failed to fetch Supplier', error);
+  }
+};
+
+export async function updateSupplier (id, finalPayload) {
+  try {
+    return await supplierService.update(id, finalPayload);
+  } catch (error) {
+    console.error('Failed to update Supplier', error);
+  }
+};
+
+export async function createSupplier (finalPayload) {
+  try {
+    return await supplierService.create(finalPayload);
+  } catch (error) {
+    console.error('Failed to create Supplier', error);
+  }
+};
+
+export async function deleteTeamMember(id) {
+  try {
+    return await supplierService.delete(id);
+  } catch (error) {
+    console.error('Error deleting team member:', error);
+    return { success: false };
+  }
 }
 
-export default UserListApp
+const SupplierListApp = async () => {
+
+    const initialData = await fetchSupplierList();
+  return <SupplierList
+          initialData={initialData}
+          fetchSupplierList={fetchSupplierList}
+          deleteTeamMember={deleteTeamMember}
+        />
+}
+
+export default SupplierListApp

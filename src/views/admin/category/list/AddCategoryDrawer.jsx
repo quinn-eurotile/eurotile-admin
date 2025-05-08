@@ -18,6 +18,7 @@ import { useForm, Controller  } from 'react-hook-form';
 
 // Services
 import { categoryService } from '@/services/category';
+import { createCategory, getAllCategory, updateCategory } from '@/app/[lang]/(dashboard)/(private)/admin/category/list/page';
 
 const AddCategoryDrawer = ({ open, handleClose, editData }) => {
   const [parentOptions, setParentOptions] = useState([]);
@@ -59,7 +60,7 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await categoryService.getAll();
+        const res = await getAllCategory();
         if (res.statusCode === 200) {
           setParentOptions(res.data);
         }
@@ -75,34 +76,36 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
     try {
       const transformedValues = {
         ...formValues,
-        parent: formValues.parent === '' ? null : formValues.parent
+        parent: formValues.parent || null
       };
 
       const response = editData
-        ? await categoryService.update(editData.id, transformedValues)
-        : await categoryService.create(transformedValues);
+        ? await updateCategory(editData.id, transformedValues)
+        : await createCategory(transformedValues);
 
       const statusCode = response?.statusCode;
-      const success = statusCode === 200 || statusCode === 201;
+      const isSuccess = statusCode === 200 || statusCode === 201;
 
-      if (success) {
+      if (isSuccess) {
         handleClose();
         reset();
-      } else if (response?.data?.errors) {
-        Object.entries(response.data.errors).forEach(([field, messages]) => {
-          setError(field, { message: messages?.[0] || 'Invalid value' });
-        });
-      } else {
-        setError('apiError', {
-          message: response?.message || 'An unexpected error occurred.',
+        return;
+      }
+
+      // Handle field-level validation errors returned from API
+      const serverErrors = response?.data?.errors || {};
+      for (const [field, messages] of Object.entries(serverErrors)) {
+        setError(field, {
+          message: messages?.[0] || 'Invalid input',
         });
       }
-    } catch (err) {
-      setError('apiError', {
-        message: err?.message || 'An error occurred while saving the category.',
-      });
+
+    } catch (error) {
+      // Optionally handle logging or show toast notification here
+      console.error('Submission failed:', error);
     }
   };
+
 
 
   const handleDrawerClose = () => {
@@ -131,15 +134,18 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
 
       <div className="p-5">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-          {/* Name Field */}
+          <FormControl fullWidth error={Boolean(errors.name)}>
           <TextField
             fullWidth
             label="Category Name"
             placeholder="Enter category name"
+            value={watch('name') ?? ''}
             {...register('name', { required: 'Category name is required' })}
             error={Boolean(errors.name)}
             helperText={errors.name?.message}
           />
+        </FormControl>
+
 
           {/* Parent Category Select */}
           <FormControl fullWidth error={Boolean(errors.parent)}>

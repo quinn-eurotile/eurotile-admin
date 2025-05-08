@@ -87,7 +87,7 @@ const userStatusNameObj = { 1: 'Active', 2: 'Pending', 0: 'Inactive' };
 // Column Definitions
 const columnHelper = createColumnHelper();
 
-const TaxList = () => {
+const TaxList = ({fetchTaxs, updateStatus}) => {
 	const [addTaxOpen, setAddTaxOpen] = useState(false);
 	const [rowSelection, setRowSelection] = useState({});
 	const dispatch = useDispatch();
@@ -103,7 +103,6 @@ const TaxList = () => {
 	const [totalRecords, setTotalRecords] = useState(0);
 	// Menu state
 	const [selectedCatId, setSelectedCatId] = useState(null);
-	const [statsData, setStatsData] = useState([]);
 
 	const columns = useMemo(() => [
 		columnHelper.accessor('customerType', {
@@ -143,7 +142,7 @@ const TaxList = () => {
 
 				const handleStatusToggle = async () => {
 					const newStatus = currentStatus === 1 ? 0 : 1;
-					await taxService.updateStatus(row.original.id, newStatus);
+					await updateStatus(row.original.id, newStatus);
 					refreshList();
 				};
 
@@ -155,9 +154,10 @@ const TaxList = () => {
 
 						<IconButton onClick={handleStatusToggle}>
 							{currentStatus === 1 ? (
-								<i className='ri-eye-off-line text-textSecondary' title='Set Inactive' />
+								<i className='ri-eye-line text-textSecondary' title='Set Inactive' />
 							) : (
-								<i className='ri-eye-line text-textSecondary' title='Set Active' />
+                <i className='ri-eye-off-line text-textSecondary' title='Set Active' />
+
 							)}
 						</IconButton>
 					</div>
@@ -192,15 +192,20 @@ const TaxList = () => {
 		onRowSelectionChange: setRowSelection
 	});
 
+  useEffect(()=>{
+    fetchTax();
+  },[])
+
 	// Fetch members on page or rowsPerPage change
 	useEffect(() => {
-		fetchTax(page + 1, search, filteredData);
+    if (!filteredData || filteredData.length === 0) return
+		fetchTax();
 	}, [page, rowsPerPage, search, filteredData]);
 
-	const fetchTax = async (currentPage = 1, searchTerm = '') => {
+	const fetchTax = async (currentPage = 1) => {
 		try {
 			dispatch(callCommonAction({ loading: true }));
-			const response = await taxService.get(currentPage, rowsPerPage, searchTerm, filteredData);
+			const response = await fetchTaxs(currentPage, rowsPerPage, search, filteredData);
 			dispatch(callCommonAction({ loading: false }));
 			if (response.statusCode === 200 && response.data) {
 				const formatted = response?.data?.docs?.map(tax => ({
@@ -222,9 +227,11 @@ const TaxList = () => {
 		}
 	};
 
+
 	const handleChangePage = (event, newPage) => setPage(newPage);
 
 	const handleChangeRowsPerPage = event => {
+    table.setPageSize(parseInt(event.target.value))
 		setRowsPerPage(parseInt(event.target.value, 10));
 		setPage(0);
 	};
@@ -248,7 +255,6 @@ const TaxList = () => {
 	const handleEdit = (id) => {
 		const selectedData = data.find(result => result.id === id);
 		setEditData(selectedData);
-		setSelectedCatId(id);  // Store the selected member's ID
 		setAddTaxOpen(true);  // Open the AddUserDrawer
 	};
 
@@ -262,6 +268,7 @@ const TaxList = () => {
 	const handelClose = async () => {
 		setAddTaxOpen(!addTaxOpen);
 		refreshList();
+    setEditData(null);
 	};
 
 	// Add New Customer Type Tax Model Form

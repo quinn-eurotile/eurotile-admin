@@ -1,14 +1,15 @@
+import { authOptions } from "@/libs/auth";
 import axios from "axios";
+import { getServerSession } from "next-auth";
 import { getSession } from "next-auth/react";
-import { toast } from "react-toastify";
 
 // Base API URL
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 // Get common headers including Authorization
 const getCommonHeaders = async () => {
-  const session = await getSession();
-
+  // const session = await getSession();
+  const session = await getServerSession(authOptions);
   return {
     "Content-Type": "application/json",
     authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
@@ -30,20 +31,14 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {}, sho
       method: method,
       url: REQUEST_URL,
       headers: headers,
-      data: data ?? '',
+      data: data ?? {},
       withCredentials: true,
     };
+
     if (method == 'DELETE') {
       delete config.data;
     }
     const response = await axios(config);
-    if (showToastOnError) {
-      // Show success toast on success
-      if (response.data?.message) {
-        toast.success(response.data?.message, { toastId: 'success1', autoClose: 3000 },);
-      }
-
-    }
 
     return {
       success: true,
@@ -57,26 +52,6 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {}, sho
     const statusCode = error?.response?.status || 500;
     const errorData = error?.response?.data || {};
     const errorMessage = errorData?.message || error.message;
-    if (errorMessage) {
-      if (showToastOnError) {
-        switch (statusCode) {
-          case 400:
-            toast.error(errorMessage, { toastId: 'success1', autoClose: 3000 });
-            break;
-          case 401:
-            toast.error("Unauthorized. Please log in.", { toastId: 'success1', autoClose: 3000 });
-            break;
-          case 422:
-            toast.error(errorMessage, { toastId: 'success1', autoClose: 3000 });
-            break;
-          case 500:
-            toast.error("Something went wrong", { toastId: 'success1' , autoClose: 3000});
-          default:
-            toast.error('Something went wrong', { toastId: 'success1', autoClose: 3000 });
-            break;
-        }
-      }
-    }
 
     return {
       success: false,

@@ -3,14 +3,15 @@
 // Server Component (no 'use client' directive needed)
 import { Suspense } from 'react';
 import CircularLoader from '@/components/common/CircularLoader';
-import TeamMemberList from '@/views/admin/team-members/list';
+import TradeProfessionalsList from '@/views/admin/trade-professionals/list';
+import { getTradeProfessionals } from '@/app/server/trade-professionals';
 import { teamMemberService } from '@/services/team-member';
 
 // Server-side data fetching
 export async function getTeamMembersData(page = 1, rowsPerPage = 10, search = '', filters = null) {
 
   try {
-    const response = await teamMemberService.getTeamMembers(page, rowsPerPage, search, filters);
+    const response = await getTradeProfessionals(page, rowsPerPage, search, filters);
     if (response.success && response.data) {
       const formatted = response.data.docs.map(member => ({
         id: member._id,
@@ -85,33 +86,18 @@ export async function getTeamMembersData(page = 1, rowsPerPage = 10, search = ''
 }
 
 // Server actions for data mutations
-export async function updateTeamMember(id, data) {
+export async function updateTeamMemberStatus(id, newStatus) {
+  // 'use server';
   try {
-    return await teamMemberService.updateTeamMember(id, data);
+    return await teamMemberService.updateStatus(id, newStatus);
   } catch (error) {
-    console.error('Error updating Team Member:', error);
-    return { success: false };
-  }
-}
-export async function updateStatus(id, data) {
-  try {
-    return await teamMemberService.updateStatus(id, data);
-  } catch (error) {
-    console.error('Error updating Status:', error);
-    return { success: false };
-  }
-}
-
-export async function createTeamMember(data) {
-  try {
-    return await teamMemberService.createTeamMember(data);
-  } catch (error) {
-    console.error('Error updating Create Member:', error);
+    console.error('Error updating status:', error);
     return { success: false };
   }
 }
 
 export async function deleteTeamMember(id) {
+  // 'use server';
   try {
     return await teamMemberService.deleteTeamMember(id);
   } catch (error) {
@@ -129,13 +115,12 @@ export default async function TradeProfessionalsPage() {
 
   return (
     <Suspense fallback={<CircularLoader />}>
-      <TeamMemberList
+      <TradeProfessionalsList
         initialData={initialData}
-        updateTeamMember={updateTeamMember}
+        updateTeamMemberStatus={updateTeamMemberStatus}
         deleteTeamMember={deleteTeamMember}
         getTeamMembersData={getTeamMembersData}
-        createTeamMember={createTeamMember}
-        updateStatus={updateStatus}
+
       />
     </Suspense>
   );
