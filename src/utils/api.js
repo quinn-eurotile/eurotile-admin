@@ -18,6 +18,7 @@ const getCommonHeaders = async () => {
 
 // Generic API request using Axios
 const apiRequest = async (endpoint, method, data = null, customHeaders = {}, showToastOnError = true) => {
+  console.log('showToastOnError',showToastOnError)
   try {
     const headers = {
       ...(await getCommonHeaders()),

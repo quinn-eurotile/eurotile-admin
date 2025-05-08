@@ -10,7 +10,7 @@ import {
   Card,
   CardContent,
   CardHeader,
-  MenuItem,
+  MenuItem, Dialog, DialogActions, DialogContent, DialogTitle
 } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import Grid from '@mui/material/Grid2';
@@ -62,6 +62,8 @@ const AddSupplierForm = () => {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [selectedState, setSelectedState] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState(null);
 
 
   // Fetch country list once
@@ -575,40 +577,6 @@ const AddSupplierForm = () => {
                 />
               </Grid>
 
-
-
-              {/* <Grid item xs={12} sm={3}>
-              <Controller
-                name='lat'
-                control={control}
-                rules={{ required: 'Latitude is required' }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label='Latitude'
-                    error={!!errors.lat}
-                    helperText={errors.lat?.message}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={3}>
-              <Controller
-                name='long'
-                control={control}
-                rules={{ required: 'Longitude is required' }}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    label='Longitude'
-                    error={!!errors.long}
-                    helperText={errors.long?.message}
-                  />
-                )}
-              />
-            </Grid> */}
               <Grid item size={{ xs: 12, sm: 4 }}>
                 <Controller
                   name="status"
@@ -649,7 +617,6 @@ const AddSupplierForm = () => {
                     label='Minimum Area (sqft)'
                     type='number'
                     value={discount.minimumAreaSqFt}
-                    inputProps={{ min: 0 }}
                     onChange={e => {
                       const value = parseFloat(e.target.value);
                       handleDiscountChange(index, 'minimumAreaSqFt', value < 0 ? 0 : value);
@@ -663,15 +630,26 @@ const AddSupplierForm = () => {
                     label='Discount (%)'
                     type='number'
                     value={discount.discountPercentage}
-                    inputProps={{ min: 0 }}
                     onChange={e => {
-                      const value = parseFloat(e.target.value);
-                      handleDiscountChange(index, 'discountPercentage', value < 0 ? 0 : value);
+                      let value = parseFloat(e.target.value);
+                      if (isNaN(value)) value = 0;
+                      if (value < 0) value = 0;
+                      if (value > 100) value = 100;
+                      handleDiscountChange(index, 'discountPercentage', value);
                     }}
                   />
                 </Grid>
                 <Grid item size={{ xs: 12, sm: 4 }}>
-                  <IconButton onClick={() => handleRemoveDiscount(index)}>
+                  <IconButton
+                    onClick={() => {
+                      if (discount.minimumAreaSqFt || discount.discountPercentage) {
+                        setDeleteIndex(index);
+                        setOpenConfirmDialog(true);
+                      } else {
+                        handleRemoveDiscount(index);
+                      }
+                    }}
+                  >
                     <i className='ri-delete-bin-7-line text-textSecondary' />
                   </IconButton>
                 </Grid>
@@ -686,6 +664,31 @@ const AddSupplierForm = () => {
               Add Discount
             </Button>
           </Box>
+
+          {/* Confirmation Dialog */}
+          <Dialog open={openConfirmDialog} onClose={() => setOpenConfirmDialog(false)}>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogContent>
+              <Typography>Are you sure you want to delete this team member?</Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={() => {
+                  setOpenConfirmDialog(false);
+                  setDeleteIndex(null);
+                }} color='primary'>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  handleRemoveDiscount(deleteIndex);
+                  setOpenConfirmDialog(false);
+                  setDeleteIndex(null);
+                }} color='secondary'>
+                Confirm
+              </Button>
+            </DialogActions>
+          </Dialog>
 
           <Box mt={4}>
             <Button type='submit' variant='contained'>
