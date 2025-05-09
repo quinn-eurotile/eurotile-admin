@@ -4,11 +4,11 @@ import { getServerSession } from "next-auth";
 import { getSession } from "next-auth/react";
 
 // Base API URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Get common headers including Authorization
 const getCommonHeaders = async () => {
-  // const session = await getSession();
+  //const session = await getSession();
   const session = await getServerSession(authOptions);
   return {
     "Content-Type": "application/json",

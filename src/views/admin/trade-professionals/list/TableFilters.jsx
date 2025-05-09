@@ -10,19 +10,19 @@ import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
 
 const TableFilters = ({ setFilters }) => {
-   // Local state to store selected filter values
-   const [selectedStatus, setSelectedStatus] = useState('')
-   // Update parent with selected filters
-   useEffect(() => {
-     setFilters({
-       status: selectedStatus
-     })
-   }, [selectedStatus, setFilters])
+  // Local state to store selected filter values
+  const [selectedStatus, setSelectedStatus] = useState('')
+
+  // Update parent with selected filters
+  useEffect(() => {
+    setFilters({
+      status: selectedStatus
+    })
+  }, [selectedStatus, setFilters])
 
   return (
     <CardContent>
       <Grid container spacing={5}>
-
         <Grid size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <InputLabel id='status-select'>Select Status</InputLabel>
@@ -36,7 +36,6 @@ const TableFilters = ({ setFilters }) => {
               inputProps={{ placeholder: 'Select Status' }}
             >
               <MenuItem value=''>Select Status</MenuItem>
-              <MenuItem value='2'>Pending</MenuItem>
               <MenuItem value='1'>Active</MenuItem>
               <MenuItem value='0'>Inactive</MenuItem>
             </Select>

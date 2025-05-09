@@ -15,8 +15,8 @@ import InputAdornment from '@mui/material/InputAdornment'
 import Checkbox from '@mui/material/Checkbox'
 import Button from '@mui/material/Button'
 import FormControlLabel from '@mui/material/FormControlLabel'
-import Divider from '@mui/material/Divider'
 import Alert from '@mui/material/Alert'
+import CircularProgress from '@mui/material/CircularProgress'
 
 // Third-party Imports
 import { signIn } from 'next-auth/react'
@@ -54,6 +54,7 @@ const Login = ({ mode }) => {
   const [errorState, setErrorState] = useState(null)
 
   const [error, setError] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   // Vars
   const darkImg = '/images/pages/auth-v2-mask-dark.png'
@@ -94,20 +95,25 @@ const Login = ({ mode }) => {
   const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
   const onSubmit = async data => {
+    setIsLoading(true)
+    setError(null)
+
     const res = await signIn('credentials', {
       email: data.email,
       password: data.password,
       redirect: false
     })
-    if (res && res.ok && res.error === null) {
-      // Vars
-      const redirectURL = searchParams.get('redirectTo') ?? '/'
 
+    if (res && res.ok && res.error === null) {
+      const redirectURL = searchParams.get('redirectTo') ?? '/'
       router.replace(getLocalizedUrl(redirectURL, locale))
     } else {
       setError('User not Found')
     }
+
+    setIsLoading(false)
   }
+
   const FullLogoImage = '/images/euro-tile/logo/Eurotile_Logo.png'
   return (
     <div className='flex bs-full justify-center'>
@@ -247,8 +253,8 @@ const Login = ({ mode }) => {
                 Forgot password?
               </Typography>
             </div>
-            <Button fullWidth variant='contained' type='submit'>
-              Log In
+            <Button fullWidth variant='contained' type='submit' disabled={isLoading}>
+              {isLoading ? <CircularProgress size={20} color='inherit' /> : 'Log In'}
             </Button>
             {/* <div className='flex justify-center items-center flex-wrap gap-2'>
               <Typography>New on our platform?</Typography>

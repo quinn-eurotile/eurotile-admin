@@ -25,6 +25,7 @@ import { getLocalizedUrl } from '@/utils/i18n'
 import { useState } from 'react';
 import { Alert } from '@mui/material';
 import { api } from "@/utils/api";
+import { forgotPasswordApi } from '@/services/auth';
 const ForgotPasswordV2 = ({ mode }) => {
   // Vars
   const darkImg = '/images/pages/auth-v2-mask-dark.png'
@@ -65,7 +66,7 @@ const ForgotPasswordV2 = ({ mode }) => {
       setResponseMessage(null)
 
       // Sending request to forgot-password API
-      const response = await  api.post('/admin/forgot-password', { email });
+      const response = await forgotPasswordApi(email);
 
       // Check if status code is 200 (success)
       if (response?.statusCode == 200) {
