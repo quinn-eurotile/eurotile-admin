@@ -338,7 +338,7 @@ const TeamMemberList = ({
   const handelClose = async () => {
     setAddUserOpen(!addUserOpen)
     refreshTeamList()
-    setEditTeam([])
+    setEditTeam(null)
   }
 
 
