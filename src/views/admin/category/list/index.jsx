@@ -51,6 +51,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import CircularLoader from '@/components/common/CircularLoader';
+import { toast } from 'react-toastify';
 
 // Styled Components
 const Icon = styled('i')({});
@@ -273,10 +274,17 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 	const handleDelete = async () => {
 		try {
 			const response = await deleteCategory(selectedCatId);
+
+      console.log(response,'response');
+
 			if (response.success) {
 				// Remove the deleted user from the table
         refreshList();
-			}
+			}else{
+        console.log(response,'responseresponseresponseresponseresponse');
+
+                toast.error(response.message || 'Failed to delete.');
+            }
 			setOpenConfirmDialog(false); // Close the dialog after deletion
 		} catch (error) {
 			console.error("Error deleting team member:", error);

@@ -1,7 +1,8 @@
 'use server'
 
+import { tradeProfessionalService } from '@/services/trade-professionals';
 // Data Imports
-import { supplierService } from '@/services/supplier';
+
 import TradeProfessionalsList from '@/views/admin/trade-professionals/list';
 
 /**
@@ -21,25 +22,25 @@ import TradeProfessionalsList from '@/views/admin/trade-professionals/list';
   return res.json()
 } */
 
-export async function fetchTradeProfessionalList (currentPage = 1,rowsPerPage = 10, searchTerm = '', filteredData=null) {
+export async function fetchList (currentPage = 1,rowsPerPage = 10, searchTerm = '', filteredData=null) {
   try {
-    return await supplierService.get(currentPage, rowsPerPage, searchTerm, filteredData);
+    return await tradeProfessionalService.get(currentPage, rowsPerPage, searchTerm, filteredData);
   } catch (error) {
     console.error('Failed to fetch Supplier List', error);
   }
 };
 
-export async function fetchSupplierById (id) {
+export async function fetchById (id) {
   try {
-    return await supplierService.getById(id);
+    return await tradeProfessionalService.getById(id);
   } catch (error) {
     console.error('Failed to fetch Supplier', error);
   }
 };
 
-export async function updateSupplier (id, finalPayload) {
+export async function update (id, finalPayload) {
   try {
-    return await supplierService.update(id, finalPayload);
+    return await tradeProfessionalService.update(id, finalPayload);
   } catch (error) {
     console.error('Failed to update Supplier', error);
   }
@@ -47,15 +48,15 @@ export async function updateSupplier (id, finalPayload) {
 
 export async function createSupplier (finalPayload) {
   try {
-    return await supplierService.create(finalPayload);
+    return await tradeProfessionalService.create(finalPayload);
   } catch (error) {
     console.error('Failed to create Supplier', error);
   }
 };
 
-export async function deleteTeamMember(id) {
+export async function deleteRecord(id) {
   try {
-    return await supplierService.delete(id);
+    return await tradeProfessionalService.delete(id);
   } catch (error) {
     console.error('Error deleting team member:', error);
     return { success: false };
@@ -65,8 +66,9 @@ export async function deleteTeamMember(id) {
 const TradeProfessionals = async () => {
 
   return <TradeProfessionalsList
-          fetchTradeProfessionalList={fetchTradeProfessionalList}
-          deleteTeamMember={deleteTeamMember}
+          fetchList={fetchList}
+          deleteRecord={deleteRecord}
+          update={update}
         />
 }
 

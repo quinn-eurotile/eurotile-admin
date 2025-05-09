@@ -36,6 +36,7 @@ import { Chip, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/ma
 import TableFilters from './TableFilters'
 import { useRouter, useParams } from 'next/navigation'
 import CircularLoader from '@/components/common/CircularLoader'
+import { toast } from 'react-toastify';
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   // Rank the item
@@ -72,7 +73,7 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
 // Column Definitions
 const columnHelper = createColumnHelper()
 
-const TradeProfessionalsList = ({ fetchTradeProfessionalList, deleteTeamMember }) => {
+const TradeProfessionalsList = ({ fetchList, deleteTeamMember }) => {
 
   // States
   const [rowSelection, setRowSelection] = useState({})
@@ -104,105 +105,112 @@ const TradeProfessionalsList = ({ fetchTradeProfessionalList, deleteTeamMember }
     0: 'Inactive'
   }
 
-  const columns = useMemo(
-    () => [
-      // {
-      //   id: 'select',
-      //   header: ({ table }) => (
-      //     <Checkbox
-      //       checked={table.getIsAllRowsSelected()}
-      //       indeterminate={table.getIsSomeRowsSelected()}
-      //       onChange={table.getToggleAllRowsSelectedHandler()}
-      //     />
-      //   ),
-      //   cell: ({ row }) => (
-      //     <Checkbox
-      //       checked={row.getIsSelected()}
-      //       disabled={!row.getCanSelect()}
-      //       indeterminate={row.getIsSomeSelected()}
-      //       onChange={row.getToggleSelectedHandler()}
-      //     />
-      //   )
-      // },
-      columnHelper.accessor('id', {
-        header: 'Supplier ID',
-        cell: ({ row }) => <Typography>{row?.original?.supplierId}</Typography>
-      }),
-      columnHelper.accessor('companyName', {
-        header: 'Company Name',
-        cell: ({ row }) => <Typography>{row?.original?.companyName}</Typography>
-      }),
-
-      columnHelper.accessor('email', {
-        header: 'Compnay Email',
-        cell: ({ row }) => <>{row?.original?.companyEmail ?? '-'}</>
-      }),
-
-      columnHelper.accessor('address', {
-        header: 'Company Address',
-        cell: ({ row }) => {
-          const { addressLine1 } = row?.original?.addresses
-          const fullAddress = [addressLine1].filter(Boolean).join(', ')
-          return (
+const columns = useMemo(() => [
+  columnHelper.accessor('_id', {
+    header: 'User ID',
+    cell: ({ row }) => <Typography>{row.original._id}</Typography>
+  }),
+  columnHelper.accessor('name', {
+    header: 'Name',
+    cell: ({ row }) => <Typography>{row.original.name || '-'}</Typography>
+  }),
+  columnHelper.accessor('phone', {
+    header: 'Contact Information',
+    cell: ({ row }) => <Typography>{row.original.phone || '-'}</Typography>
+  }),
+  columnHelper.accessor('email', {
+    header: 'Email Address',
+    cell: ({ row }) => <Typography>{row.original.email || '-'}</Typography>
+  }),
+  columnHelper.accessor('createdAt', {
+    header: 'Registration Date',
+    cell: ({ row }) =>
+      <Typography>{row.original.createdAt ? new Date(row.original.createdAt).toLocaleDateString() : '-'}</Typography>
+  }),
+  columnHelper.accessor('lastLoginDate', {
+    header: 'Last Login Date',
+    cell: ({ row }) =>
+      <Typography>{row.original.lastLoginDate ? new Date(row.original.lastLoginDate).toLocaleDateString() : '-'}</Typography>
+  }),
+  columnHelper.accessor('status', {
+    header: 'Status',
+    cell: ({ row }) => (
+      <Chip
+        variant="tonal"
+        label={row.original.status === 1 ? 'Active' : 'Inactive'}
+        size="small"
+        color={row.original.status === 1 ? 'success' : 'default'}
+        className="capitalize"
+      />
+    )
+  }),
+  columnHelper.accessor('businessDetails', {
+    header: 'Business Details',
+    cell: ({ row }) => <Typography>{row.original.businessDetails || '-'}</Typography>
+  }),
+  columnHelper.accessor('verificationStatus', {
+    header: 'Verification Status',
+    cell: ({ row }) => (
+      <Chip
+        variant="tonal"
+        label={row.original.verificationStatus ? 'Verified' : 'Unverified'}
+        size="small"
+        color={row.original.verificationStatus ? 'success' : 'warning'}
+      />
+    )
+  }),
+  columnHelper.accessor('commissionDetails', {
+    header: 'Commission Details',
+    cell: ({ row }) => <Typography>{row.original.commissionDetails || '-'}</Typography>
+  }),
+  columnHelper.accessor('orderHistory', {
+    header: 'Order History',
+    cell: ({ row }) => (
+      <Button variant="link" onClick={() => router.push(`/admin/orders?userId=${row.original._id}`)}>
+        View Orders
+      </Button>
+    )
+  }),
+  columnHelper.accessor('documents', {
+    header: 'Uploaded Documents',
+    cell: ({ row }) => {
+      const vat = row.original.documents?.vat
+      const registration = row.original.documents?.companyRegistration
+      return (
+        <>
+          {vat && (
             <Typography>
-              {fullAddress && `${fullAddress}, `}
-              {row?.original?.city?.name && `${row?.original?.city?.name}, `}
-              {row?.original?.state?.name && `${row?.original?.state?.name}, `}
-              {row?.original?.country?.name && `${row?.original?.country?.name}`}
+              <a href={vat} target="_blank" rel="noopener noreferrer">VAT</a>
             </Typography>
-          )
-        }
-      }),
-      columnHelper.accessor('status', {
-        header: 'Status',
-        cell: ({ row }) => (
-          <Chip
-            variant='tonal'
-            label={userStatusNameObj[row.original.status] ?? 'Inactive'}
-            size='small'
-            color={userStatusObj[row.original.status] ?? 'secondary'}
-            className='capitalize'
-          />
-        )
-      }),
-      // columnHelper.accessor('products', {
-      //   header: 'Product Catalogs',
-      //   cell: ({ row }) => (
-      //     <Typography>{row.original.products?.map(product => product.name).join(', ') || '—'}</Typography>
-      //   )
-      // }),
-      // columnHelper.accessor('discounts', {
-      //   header: 'Client Discounts',
-      //   cell: ({ row }) => (
-      //     <>
-      //       {row.original.discounts?.map((discount, index) => (
-      //         <Typography key={index}>
-      //           {discount.clientName}: {discount.percentage}%
-      //         </Typography>
-      //       )) || <Typography>—</Typography>}
-      //     </>
-      //   )
-      // }),
-      columnHelper.accessor('action', {
-        header: 'Action',
-        cell: ({ row }) => (
-          <div className='flex items-center'>
-            <IconButton onClick={() => router.push(`/${locale}/admin/supplier/view/${row.original._id}`)}>
-              <i className='ri-eye-line text-textSecondary' />
-            </IconButton>
-            <IconButton onClick={() => handleDeleteConfirmation(row.original._id)}>
-              <i className='ri-delete-bin-7-line text-textSecondary' />
-            </IconButton>
-            <IconButton onClick={() => handleEdit(row.original._id)}>
-              <i className='ri-edit-line text-textSecondary' />
-            </IconButton>
-          </div>
-        ),
-        enableSorting: false
-      })
-    ],
-    [data]
-  )
+          )}
+          {registration && (
+            <Typography>
+              <a href={registration} target="_blank" rel="noopener noreferrer">Company Registration</a>
+            </Typography>
+          )}
+          {!vat && !registration && <Typography>—</Typography>}
+        </>
+      )
+    }
+  }),
+  columnHelper.accessor('action', {
+    header: 'Action',
+    cell: ({ row }) => (
+      <div className='flex items-center'>
+        <IconButton onClick={() => router.push(`/admin/trade-professionals/view/${row.original._id}`)}>
+          <i className='ri-eye-line text-textSecondary' />
+        </IconButton>
+        <IconButton onClick={() => handleEdit(row.original._id)}>
+          <i className='ri-edit-line text-textSecondary' />
+        </IconButton>
+        <IconButton onClick={() => handleDeleteConfirmation(row.original._id)}>
+          <i className='ri-delete-bin-line text-textSecondary' />
+        </IconButton>
+      </div>
+    ),
+    enableSorting: false
+  })
+], [data])
 
   const table = useReactTable({
     data,
@@ -233,7 +241,7 @@ const TradeProfessionalsList = ({ fetchTradeProfessionalList, deleteTeamMember }
       setLoading(true)
       if (search || filteredData) {
         try {
-          const data = await fetchTradeProfessionalList(page + 1, rowsPerPage, search, filteredData)
+          const data = await fetchList(page + 1, rowsPerPage, search, filteredData)
           // Update your state with the fetched data
           setData(data?.data?.docs ?? [])
           setTotalRecords(data?.data?.totalDocs)
@@ -265,6 +273,8 @@ const TradeProfessionalsList = ({ fetchTradeProfessionalList, deleteTeamMember }
       const response = await deleteTeamMember(selectedMemberId)
       if (response.success) {
         refreshSupplierList()
+      }else{
+          toast.error(response.message || 'Failed to delete.');
       }
       setOpenConfirmDialog(false) // Close the dialog after deletion
     } catch (error) {
@@ -284,7 +294,7 @@ const TradeProfessionalsList = ({ fetchTradeProfessionalList, deleteTeamMember }
   }
 
   const refreshSupplierList = async () => {
-    const updatedResult = await fetchTradeProfessionalList(page + 1, rowsPerPage, search, filteredData)
+    const updatedResult = await fetchList(page + 1, rowsPerPage, search, filteredData)
     setData(updatedResult?.data?.docs ?? [])
     setTotalRecords(updatedResult?.data?.totalDocs)
   }

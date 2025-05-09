@@ -201,6 +201,7 @@ const AddSupplierForm = () => {
       } else {
         response = await createSupplier(finalPayload);
       }
+
       if (response?.statusCode === 201 || response?.statusCode === 200) {
         router.push(`/${locale}/admin/supplier/list`);
       } else {
@@ -327,7 +328,7 @@ const AddSupplierForm = () => {
                 />
               </Grid>
               <Grid item size={{ xs: 12, sm: 4 }}>
-                <Controller
+                  <Controller
                   name='companyPhone'
                   control={control}
                   rules={{
@@ -373,6 +374,7 @@ const AddSupplierForm = () => {
                     />
                   )}
                 />
+
               </Grid>
 
             </Grid>
