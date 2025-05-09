@@ -115,6 +115,7 @@ const AddTaxDrawer = ({ open, handleClose, editData }) => {
             <Select
               labelId="customerType-label"
               label="Customer Type"
+              disabled
               value={watch('customerType') ?? ''}
               onChange={(e) => setValue('customerType', e.target.value)}
               error={Boolean(errors.customerType)}
@@ -164,6 +165,7 @@ const AddTaxDrawer = ({ open, handleClose, editData }) => {
               labelId="status-label"
               label="Status"
               defaultValue='1'
+
               value={String(watch('status')) ?? '1'}
               {...register('status', { required: 'Status is required' })}
             >
