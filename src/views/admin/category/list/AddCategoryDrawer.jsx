@@ -70,7 +70,7 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
     };
 
     fetchCategories();
-  }, []);
+  }, [open]);
 
   const onSubmit = async (formValues) => {
     try {
@@ -91,6 +91,14 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
         reset();
         return;
       }
+       if(statusCode === 422 ){
+        const errors = response?.data || {};
+      for (const [field, messages] of Object.entries(errors)) {
+        setError(field, {
+          message: messages?.[0] || 'Invalid input',
+        });
+      }
+       }
 
       // Handle field-level validation errors returned from API
       const serverErrors = response?.data?.errors || {};
@@ -156,8 +164,11 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
               render={({ field }) => (
                 <Select {...field} label="Parent Category">
                   <MenuItem value={''}>None</MenuItem>
-                  {parentOptions.map(option => (
-                    <MenuItem key={option._id} value={option._id}>
+                  {(editData?.id
+                    ? parentOptions.filter(option => option._id !== editData.id)
+                    : parentOptions
+                  ).map(option => (
+                    <MenuItem key={option._id} value={option._id}   disabled={option.status === 0}  >
                       {option.name}
                     </MenuItem>
                   ))}

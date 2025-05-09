@@ -275,16 +275,14 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 		try {
 			const response = await deleteCategory(selectedCatId);
 
-      console.log(response,'response');
 
 			if (response.success) {
 				// Remove the deleted user from the table
         refreshList();
 			}else{
-        console.log(response,'responseresponseresponseresponseresponse');
-
-                toast.error(response.message || 'Failed to delete.');
-            }
+        console.log(response,'d');
+          toast.error(response.message || 'Failed to delete.');
+       }
 			setOpenConfirmDialog(false); // Close the dialog after deletion
 		} catch (error) {
 			console.error("Error deleting team member:", error);
@@ -335,7 +333,7 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 								className='max-sm:is-full'
 							>Export</Button> */}
               </div>
-							<div className='flex justify-between p-5 items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
+							<div className='flex justify-between  items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
 								<DebouncedInput
 									value={globalFilter ?? ''}
 									onChange={value => setSearch(String(value))}
