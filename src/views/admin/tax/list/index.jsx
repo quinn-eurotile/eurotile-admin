@@ -304,9 +304,9 @@ const TaxList = ({fetchTaxs, updateStatus}) => {
 									placeholder='Search Customer Type'
 									className='max-sm:is-full'
 								/>
-								<Button variant='contained' onClick={handleAddNewClick} className='max-sm:is-full'>
+								{/* <Button variant='contained' onClick={handleAddNewClick} className='max-sm:is-full'>
 									Add New Tax
-								</Button>
+								</Button> */}
 							</div>
 						</div>
 						<div className='overflow-x-auto'>

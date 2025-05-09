@@ -341,7 +341,7 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 									className='max-sm:is-full'
 								/>
 								<Button variant='contained' onClick={() => setAddUserOpen(!addUserOpen)} className='max-sm:is-full'>
-									Add New Category
+								  <i className='ri-add-line text-xl' />	Add New Category
 								</Button>
 							</div>
 						</div>
