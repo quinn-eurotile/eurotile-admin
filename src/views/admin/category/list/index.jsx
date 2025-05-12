@@ -292,6 +292,7 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 
 	// Handle Edit (open AddUserDrawer with current data)
 	const handleEdit = (id) => {
+    setEditData(null);
 		const selectedData = data.find(result => result.id === id);
 		setEditData(selectedData);
 		setSelectedCatId(id);  // Store the selected member's ID
