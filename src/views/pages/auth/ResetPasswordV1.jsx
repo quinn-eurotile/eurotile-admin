@@ -27,7 +27,7 @@ import { useImageVariant } from '@core/hooks/useImageVariant'
 // Util Imports
 import { getLocalizedUrl } from '@/utils/i18n'
 import { api } from '@/utils/api';
-
+import { resetPasswordApi } from '@/services/auth';
 const ResetPasswordV1 = ({ mode }) => {
 
   // States
@@ -59,7 +59,7 @@ const ResetPasswordV1 = ({ mode }) => {
 
     try {
       // Sending password reset request
-       const response = await api.post('/admin/reset-password',  { token , password })
+        const response = await resetPasswordApi({ token , password }); 
 
       // Handling response from server
       if (response.statusCode === 200) {

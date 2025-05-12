@@ -313,6 +313,7 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 	const handelClose = async () => {
 		setAddUserOpen(!addUserOpen);
 		refreshList();
+		setEditData(null);
 	};
 
 	return (
