@@ -32,7 +32,6 @@ const LayoutContent = ({ children }) => {
         [verticalLayoutClasses.contentWide]: contentWide
       })}
     >
-      {console.log('kali',com)}
       {com?.loading ? <Box sx={{ display: 'flex' }}>
       <CircularProgress />
     </Box> : children  }

@@ -30,21 +30,15 @@ export async function fetchList (currentPage = 1,rowsPerPage = 10, searchTerm = 
   }
 };
 
-export async function fetchById (id) {
-  try {
-    return await tradeProfessionalService.getById(id);
-  } catch (error) {
-    console.error('Failed to fetch Supplier', error);
-  }
-};
 
-export async function update (id, finalPayload) {
+export async function updateStatus(id, subPath, data) {
   try {
-    return await tradeProfessionalService.update(id, finalPayload);
+    return await tradeProfessionalService.patch(id, subPath, data);
   } catch (error) {
-    console.error('Failed to update Supplier', error);
+    console.error('Error updating Status:', error);
+    return { success: false };
   }
-};
+}
 
 export async function createSupplier (finalPayload) {
   try {
@@ -68,7 +62,7 @@ const TradeProfessionals = async () => {
   return <TradeProfessionalsList
           fetchList={fetchList}
           deleteRecord={deleteRecord}
-          update={update}
+          updateStatus={updateStatus}
         />
 }
 

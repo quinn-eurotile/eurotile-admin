@@ -4,7 +4,11 @@
   "license": "Commercial",
   "private": true,
   "scripts": {
+<<<<<<< HEAD
     "dev": "dotenv -e .env -- sh -c 'cross-env next dev -p $PORT'",
+=======
+   "dev": "next dev",
+>>>>>>> 9f60136e11a572b3d9d61fc7f0b4f04fad87a915
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

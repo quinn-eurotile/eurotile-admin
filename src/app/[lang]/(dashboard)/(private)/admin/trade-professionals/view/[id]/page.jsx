@@ -1,3 +1,4 @@
+'use server'
 // Next Imports
 import dynamic from 'next/dynamic'
 
@@ -6,26 +7,18 @@ import Grid from '@mui/material/Grid2'
 
 // Component Imports
 
-
 // Data Imports
-import { getPricingData } from '@/app/server/actions'
-import UserLeftOverview from '@/views/admin/supplier/view/user-left-overview';
-import UserRight from '@/views/admin/supplier/view/user-right';
+import { getOrderHistory } from '@/app/server/actions'
+import UserLeftOverview from '@/views/admin/trade-professionals/view/user-left-overview'
+import UserRight from '@/views/admin/trade-professionals/view/user-right'
+import { tradeProfessionalService } from '@/services/trade-professionals'
 
-const OverViewTab = dynamic(() => import('@views/apps/user/view/user-right/overview'))
+import OverViewTab from '@/views/admin/trade-professionals/view/user-right/overview'
+import OrderList from '@/views/admin/trade-professionals/view/user-right/orders/list';
 const SecurityTab = dynamic(() => import('@views/apps/user/view/user-right/security'))
 const BillingPlans = dynamic(() => import('@views/apps/user/view/user-right/billing-plans'))
 const NotificationsTab = dynamic(() => import('@views/apps/user/view/user-right/notifications'))
 const ConnectionsTab = dynamic(() => import('@views/apps/user/view/user-right/connections'))
-
-// Vars
-const tabContentList = data => ({
-  overview: <OverViewTab />,
-  security: <SecurityTab />,
-  'billing-plans': <BillingPlans data={data} />,
-  notifications: <NotificationsTab />,
-  connections: <ConnectionsTab />
-})
 
 /**
  * ! If you need data using an API call, uncomment the below API code, update the `process.env.API_URL` variable in the
@@ -43,17 +36,52 @@ const tabContentList = data => ({
 
   return res.json()
 } */
-const UserViewTab = async () => {
-  // Vars
-  const data = await getPricingData()
+
+export async function fetchById(id) {
+  try {
+    return await tradeProfessionalService.getById(id)
+  } catch (error) {
+    console.error('Failed to fetch Trade Professional', error)
+  }
+}
+
+export async function update(id, data) {
+  try {
+    return await tradeProfessionalService.update(id, data)
+  } catch (error) {
+    console.error('Failed to Update Trade Professional', error)
+  }
+}
+
+export async function orderData() {
+  try {
+    return await getOrderHistory()
+  } catch (error) {
+    console.error('Failed to fetch ecommerce data', error)
+  }
+}
+
+const UserViewTab = async props => {
+  const params = await props.params // Ensure await if needed (based on error)
+  const userId = params?.id
+
+  const response = await fetchById(userId)
+  const data = response?.data
+
+  const overviewTab = await OverViewTab({ data, params })
+
+  const tabContentList = {
+    overview: overviewTab,
+    orders: <OrderList />,
+  }
 
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, lg: 4, md: 5 }}>
-        <UserLeftOverview />
+        <UserLeftOverview data={data} />
       </Grid>
       <Grid size={{ xs: 12, lg: 8, md: 7 }}>
-        <UserRight tabContentList={tabContentList(data)} />
+        <UserRight tabContentList={tabContentList} />
       </Grid>
     </Grid>
   )

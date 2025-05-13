@@ -52,7 +52,7 @@ const UserDropdown = () => {
   const { settings } = useSettings()
   const { lang: locale } = useParams()
 
- 
+
 
 
   const handleDropdownOpen = () => {
