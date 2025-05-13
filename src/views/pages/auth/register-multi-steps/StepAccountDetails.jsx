@@ -1,29 +1,47 @@
+'use client';
 // React Imports
-import { useState } from 'react'
+
+import { useState } from 'react';
+
 
 // MUI Imports
-import Grid from '@mui/material/Grid2'
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
-import InputAdornment from '@mui/material/InputAdornment'
+import Grid from '@mui/material/Grid2';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
 
 // Component Imports
-import DirectionalIcon from '@components/DirectionalIcon'
+import DirectionalIcon from '@components/DirectionalIcon';
+import { Autocomplete } from '@mui/material';
 
-const StepAccountDetails = ({ handleNext, activeStep }) => {
+const StepAccountDetails = ({
+  activeStep,
+  handleNext,
+  handlePrev,
+  countryList,
+  stateList,
+  cityList,
+  register,
+  control,
+  handleSubmit,
+  errors,
+  selectedCountry
+}) => {
   // States
-  const [isPasswordShown, setIsPasswordShown] = useState(false)
-  const [isConfirmPasswordShown, setIsConfirmPasswordShown] = useState(false)
+  const [isPasswordShown, setIsPasswordShown] = useState(false);
+  const [isConfirmPasswordShown, setIsConfirmPasswordShown] = useState(false);
 
   const handleClickShowPassword = () => {
-    setIsPasswordShown(!isPasswordShown)
-  }
+    setIsPasswordShown(!isPasswordShown);
+  };
 
   const handleClickShowConfirmPassword = () => {
-    setIsConfirmPasswordShown(!isConfirmPasswordShown)
-  }
+    setIsConfirmPasswordShown(!isConfirmPasswordShown);
+  };
+
+
 
   return (
     <>
@@ -33,13 +51,32 @@ const StepAccountDetails = ({ handleNext, activeStep }) => {
       </div>
       <Grid container spacing={5}>
         <Grid size={{ xs: 12, sm: 6 }}>
-          <TextField fullWidth label='Username' placeholder='johnDoe' />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <TextField fullWidth type='email' label='Email' placeholder='johndoe@gmail.com' />
+          <TextField
+            {...register('name', { required: 'Name is required' })}
+            error={Boolean(errors?.name)}
+            helperText={errors.name?.message}
+            fullWidth
+            label='Name'
+            placeholder='John Doe'
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
+            {...register('email', { required: 'Email is required' })}
+            error={Boolean(errors?.email)}
+            helperText={errors.email?.message}
+            fullWidth
+            type='email'
+            label='Email'
+            placeholder='johndoe@gmail.com'
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextField
+            {...register('password', { required: 'Password is required' })}
+            error={Boolean(errors?.password)}
+            helperText={errors.password?.message}
             fullWidth
             label='Password'
             placeholder='············'
@@ -66,6 +103,9 @@ const StepAccountDetails = ({ handleNext, activeStep }) => {
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
+            {...register('confirmPassword', { required: 'Confirm Password is required' })}
+            error={Boolean(errors?.confirmPassword)}
+            helperText={errors.confirmPassword?.message}
             fullWidth
             label='Confirm Password'
             placeholder='············'
@@ -90,8 +130,36 @@ const StepAccountDetails = ({ handleNext, activeStep }) => {
             }}
           />
         </Grid>
-        <Grid size={{ xs: 12 }}>
-          <TextField fullWidth label='Profile Link' placeholder='johndoe/profile' />
+
+        <Grid item size={{ xs: 12, sm: 4 }}>
+          <Autocomplete
+            {...register("country", { required: true })}
+            fullWidth
+            options={countryList}
+            getOptionLabel={(option) => option.name}
+            // value={selectedCountry}
+            renderInput={(params) => <TextField {...params} label="Country" />}
+          />
+        </Grid>
+        <Grid item size={{ xs: 12, sm: 4 }}>
+          <Autocomplete
+            {...register("state", { required: true })}
+            fullWidth
+            options={stateList}
+            getOptionLabel={(option) => option.name}
+            // value={selectedState}
+            renderInput={(params) => <TextField {...params} label="State" />}
+          />
+        </Grid>
+        <Grid item size={{ xs: 12, sm: 4 }}>
+          <Autocomplete
+            {...register("city", { required: true })}
+            fullWidth
+            options={cityList}
+            getOptionLabel={(option) => option.name}
+            // value={selectedCity}
+            renderInput={(params) => <TextField {...params} label="City" />}
+          />
         </Grid>
         <Grid size={{ xs: 12 }} className='flex justify-between'>
           <Button
@@ -112,7 +180,7 @@ const StepAccountDetails = ({ handleNext, activeStep }) => {
         </Grid>
       </Grid>
     </>
-  )
-}
+  );
+};
 
-export default StepAccountDetails
+export default StepAccountDetails;
