@@ -1,3 +1,4 @@
+
 // MUI Imports
 import Grid from '@mui/material/Grid2'
 
@@ -7,7 +8,7 @@ import UserActivityTimeLine from './UserActivityTimeline'
 import InvoiceListTable from './InvoiceListTable'
 
 // Data Imports
-import { getInvoiceData } from '@/app/server/actions'
+import { getTradeProfessionalDetails } from '@/app/server/actions'
 
 /**
  * ! If you need data using an API call, uncomment the below API code, update the `process.env.API_URL` variable in the
@@ -24,20 +25,15 @@ import { getInvoiceData } from '@/app/server/actions'
 
   return res.json()
 } */
-const OverViewTab = async () => {
-  // Vars
-  const invoiceData = await getInvoiceData()
-
+const OverViewTab = async (props) => {
+  const params = await props.params;
+  const documentData = await getTradeProfessionalDetails(params?.id);
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
-        <ProjectListTable />
-      </Grid>
-      <Grid size={{ xs: 12 }}>
-        <UserActivityTimeLine />
-      </Grid>
-      <Grid size={{ xs: 12 }}>
-        <InvoiceListTable invoiceData={invoiceData} />
+        <ProjectListTable
+        documentData={documentData?.data}
+        />
       </Grid>
     </Grid>
   )
