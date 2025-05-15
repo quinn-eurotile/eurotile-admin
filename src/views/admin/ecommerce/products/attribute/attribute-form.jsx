@@ -263,7 +263,7 @@ export default function AttributeForm({ attributeId, onClose, refreshList }) {
                       setValue('measurements', updatedMeasurements)
                     }}
                   >
-                    -
+                    <i class="ri-subtract-fill text-xl"></i>
                   </IconButton>
                 )}
               </Box>
@@ -278,7 +278,7 @@ export default function AttributeForm({ attributeId, onClose, refreshList }) {
                   setValue('measurements', [...attributeMeasurements, 'cm'])
                 }}
               >
-                +
+                <i className="ri-add-line text-xl"></i>
               </IconButton>
             </Box>
           </Box>
