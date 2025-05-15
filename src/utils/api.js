@@ -27,6 +27,8 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {}, sho
     const RESOURCE_URL = API_BASE_URL;
     const REQUEST_URL = RESOURCE_URL + endpoint;
     console.log(REQUEST_URL,'REQUEST_URLREQUEST_URL')
+    console.log(data,'bodydata..........................')
+
 
     const config = {
       method: method,
@@ -49,8 +51,6 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {}, sho
     };
 
   } catch (error) {
-
-    console.log('error comming',error)
 
     const statusCode = error?.response?.status || 500;
     const errorData = error?.response?.data || {};

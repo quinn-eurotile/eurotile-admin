@@ -280,7 +280,6 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 				// Remove the deleted user from the table
         refreshList();
 			}else{
-        console.log(response,'d');
           toast.error(response.message || 'Failed to delete.');
        }
 			setOpenConfirmDialog(false); // Close the dialog after deletion

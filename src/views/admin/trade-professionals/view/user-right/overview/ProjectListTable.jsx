@@ -45,7 +45,6 @@ const columnHelper = createColumnHelper()
 const ProjectListTable = ({ documentData }) => {
   // States
   const [data, setData] = useState(documentData?.documents ?? [])
-  console.log(data, 'datadatadatadatadata')
   const [rowSelection, setRowSelection] = useState({})
   const [globalFilter, setGlobalFilter] = useState('')
 

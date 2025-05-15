@@ -37,7 +37,6 @@ export const createApiService = (baseEndpoint, customMethods = {}) => {
 
     // Patch sub-resource or partial update
     patch: async (id, subPath, data) => {
-      console.log(`${baseEndpoint}/${id}/${subPath}`)
       return api.patch(`${baseEndpoint}/${id}/${subPath}`, data)
     },
   }
