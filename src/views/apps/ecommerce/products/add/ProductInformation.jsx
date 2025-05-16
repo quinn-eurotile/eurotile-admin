@@ -49,7 +49,7 @@ const ProductInformation = () => {
       <CardContent>
         <Grid container spacing={5} className='mbe-5'>
           <Grid size={{ xs: 12 }}>
-            <TextField fullWidth label='Product Name' placeholder='iPhone 14' {...register('productName')} />
+            <TextField fullWidth label='Product Name' placeholder='iPhone 14' {...register('name')} />
           </Grid>
           {/* <Grid size={{ xs: 12, sm: 6 }}>
             <TextField fullWidth label='SKU' placeholder='FXSK123U' {...register('sku')} />

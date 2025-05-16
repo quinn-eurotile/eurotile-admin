@@ -19,9 +19,12 @@ import ProductFeaturedImage from './ProductFeaturedImage';
 import { useEffect, useState } from 'react';
 import { createProduct, getProductRawData } from '@/app/server/actions';
 import { generateSku, generateSlug } from '@/components/common/helper';
+import { useParams, useRouter } from 'next/navigation';
 
 const AddProduct = () => {
   const formMethods = useForm()
+  const router = useRouter()
+  const { lang: locale } = useParams()
 
   const { handleSubmit } = formMethods
    const [rawProduct, setRawProduct] = useState([])
@@ -45,7 +48,7 @@ const AddProduct = () => {
 const onSubmit = async (data) => {
   console.log(data,'datadatadata')
   // Generate slug and SKU
-  const slug = generateSlug(data.name);
+  const slug = generateSlug(data?.name);
   const sku = generateSku();
 
   // Create a new FormData instance
@@ -84,6 +87,9 @@ const onSubmit = async (data) => {
 
   // Call the API with FormData (make sure API accepts multipart/form-data)
   const response = await createProduct(formData);
+  if(response.success){
+     router.push(`/${locale}/admin/ecommerce/products/list`)
+  }
 
   console.log(response, 'response from createProduct');
 };

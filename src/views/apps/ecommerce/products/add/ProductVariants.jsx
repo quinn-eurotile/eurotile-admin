@@ -51,8 +51,8 @@ function generateVariations(selectedAttributeValues) {
       purchasedPrice: 0,
       customImageUrl: '',
       image: '',
-      shippingClass: '',
-      taxClass: ''
+      // shippingClass: '',
+      // taxClass: ''
     }
   })
 }
@@ -541,7 +541,7 @@ export default function ProductVariants({ productAttributes }) {
                       />
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 4 }}>
+                    {/* <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
                         name={`productVariations.${index}.shippingClass`}
                         control={control}
@@ -550,16 +550,16 @@ export default function ProductVariants({ productAttributes }) {
                           <TextField {...field} label='Shipping Class' fullWidth variant='outlined' />
                         )}
                       />
-                    </Grid>
+                    </Grid> */}
 
-                    <Grid size={{ xs: 12, md: 4 }}>
+                    {/* <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
                         name={`productVariations.${index}.taxClass`}
                         control={control}
                         defaultValue={variation.taxClass}
                         render={({ field }) => <TextField {...field} label='Tax Class' fullWidth variant='outlined' />}
                       />
-                    </Grid>
+                    </Grid> */}
                   </Grid>
                 </Box>
               ))}
