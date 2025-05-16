@@ -138,36 +138,48 @@ const TradeProfessionalsList = ({ fetchList, deleteTeamMember, updateStatus }) =
       }),
       columnHelper.accessor('status', {
         header: 'Status',
-        cell: ({ row }) => (
-          <>
-            <Stack alignItems={'center'}>
+        cell: ({ row }) => {
+          const userStatus = row.original.status
+          console.log(userStatus,'userStatususerStatus')
+
+          // If status is 4 (Rejected), show plain text instead of switch
+          if (userStatus === 2) {
+            return (
+               <Chip label="Pending" color='info' size='small' variant='tonal' />
+            )
+          }
+          if (userStatus === 4) {
+            return (
+               <Chip label="Rejected" color='error' size='small' variant='tonal' />
+            )
+          }
+
+          // Render switch for other statuses (1 = Active, 0 = Inactive)
+          return (
+            <Stack alignItems='center'>
               <FormGroup>
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={row.original.status === 1}
+                      checked={userStatus === 1 || userStatus === 3 }
                       onChange={async event => {
                         const newStatus = event.target.checked ? 1 : 0
                         const rowData = row.original
-                        await updateStatus(rowData._id,'status', {status : newStatus})
+                        await updateStatus(rowData._id, 'status', { status: newStatus })
                         refreshTradeProfessionalList()
                       }}
                     />
                   }
+                  // label={userStatus === 1 ? 'Active' : 'Inactive'}
+                  labelPlacement='end'
                   sx={{ m: 0 }}
                 />
               </FormGroup>
-              {/* <Chip
-                variant='tonal'
-                label={row.original.status === 1 ? 'Active' : 'Inactive'}
-                size='small'
-                color={row.original.status === 1 ? 'success' : 'default'}
-                className='capitalize'
-              /> */}
             </Stack>
-          </>
-        )
+          )
+        }
       }),
+
       columnHelper.accessor('action', {
         header: 'Action',
         cell: ({ row }) => (

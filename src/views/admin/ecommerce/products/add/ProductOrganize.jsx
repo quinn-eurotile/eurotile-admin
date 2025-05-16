@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -13,62 +13,156 @@ import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 
-// Component Imports
-import CustomIconButton from '@core/components/mui/IconButton'
+// React Hook Form Imports
+import { useFormContext, Controller } from 'react-hook-form'
 
-const ProductOrganize = () => {
-  // States
-  const [vendor, setVendor] = useState('')
-  const [category, setCategory] = useState('')
-  const [collection, setCollection] = useState('')
-  const [status, setStatus] = useState('')
+import { Autocomplete } from '@mui/material'
+
+const ProductOrganize = ({ rawProductData }) => {
+  // Access RHF context methods and form control
+  const { control } = useFormContext()
+  const [vendorList, setVendorList] = useState([])
+  const [categoryList, setCategoryList] = useState([])
+
+  useEffect(() => {
+    if (rawProductData?.suppliers && Array.isArray(rawProductData?.suppliers)) {
+      setVendorList(rawProductData?.suppliers)
+    }
+
+    if (rawProductData?.nestedCategories && Array.isArray(rawProductData.nestedCategories)) {
+      setCategoryList(rawProductData.nestedCategories)
+    }
+  }, [rawProductData])
+
+  function flattenCategories(categories, parent = '', level = 0) {
+    return categories.flatMap(cat => {
+      const current = {
+        id: cat._id,
+        title: cat.name,
+        fullPath: parent ? `${parent} > ${cat.name}` : cat.name,
+        level
+      }
+      const children = cat.children ? flattenCategories(cat.children, current.fullPath, level + 1) : []
+      return [current, ...children]
+    })
+  }
+
+  const flatOptions = flattenCategories(categoryList)
 
   return (
     <Card>
       <CardHeader title='Organize' />
       <CardContent>
-        <form onSubmit={e => e.preventDefault()} className='flex flex-col gap-5'>
-          <FormControl fullWidth>
-            <InputLabel>Select Vendor</InputLabel>
-            <Select label='Select Vendor' value={vendor} onChange={e => setVendor(e.target.value)}>
-              <MenuItem value={`Men's Clothing`}>Men&apos;s Clothing</MenuItem>
-              <MenuItem value={`Women's Clothing`}>Women&apos;s Clothing</MenuItem>
-              <MenuItem value={`Kid's Clothing`}>Kid&apos;s Clothing</MenuItem>
-            </Select>
-          </FormControl>
-          <div className='flex items-center gap-4'>
-            <FormControl fullWidth>
-              <InputLabel>Select Category</InputLabel>
-              <Select label='Select Category' value={category} onChange={e => setCategory(e.target.value)}>
-                <MenuItem value='Household'>Household</MenuItem>
-                <MenuItem value='Office'>Office</MenuItem>
-                <MenuItem value='Electronics'>Electronics</MenuItem>
-                <MenuItem value='Management'>Management</MenuItem>
-                <MenuItem value='Automotive'>Automotive</MenuItem>
+        {/* Vendor Select */}
+        <FormControl fullWidth margin='normal'>
+          <InputLabel id='vendor-label'>Select Vendor</InputLabel>
+          <Controller
+            name='supplier'
+            control={control}
+            defaultValue=''
+            render={({ field }) => (
+              <Select {...field} labelId='vendor-label' label='Select Vendor' fullWidth>
+                {vendorList.length > 0 ? (
+                  vendorList.map(vendor => (
+                    <MenuItem key={vendor._id} value={vendor._id}>
+                      {vendor.companyName}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>No vendors available</MenuItem>
+                )}
               </Select>
-            </FormControl>
-            <CustomIconButton size='large' variant='outlined' color='primary' className='min-is-fit'>
-              <i className='ri-add-line' />
-            </CustomIconButton>
-          </div>
+            )}
+          />
+        </FormControl>
+
+        {/* Category Select with Add Button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: 16, marginBottom: 16 }}>
+          {/* <FormControl fullWidth>
+            <Autocomplete
+              multiple={true}
+              options={flatOptions}
+              getOptionLabel={option => option.fullPath}
+              renderInput={params => <TextField {...params} label='Select Category' />}
+              sx={{ width: 400 }}
+              groupBy={option => option.fullPath.split(' > ')[0]} // Group by top-level category
+            />
+          </FormControl> */}
+
           <FormControl fullWidth>
-            <InputLabel>Select Collection</InputLabel>
-            <Select label='Select Collection' value={collection} onChange={e => setCollection(e.target.value)}>
-              <MenuItem value={`Men's Clothing`}>Men&apos;s Clothing</MenuItem>
-              <MenuItem value={`Women's Clothing`}>Women&apos;s Clothing</MenuItem>
-              <MenuItem value={`Kid's Clothing`}>Kid&apos;s Clothing</MenuItem>
-            </Select>
+            <Controller
+              name='categories'
+              control={control}
+              defaultValue={[]} // Will store: ["681221f4...", "6813576d..."]
+              render={({ field }) => (
+                <Autocomplete
+                  multiple
+                  options={flatOptions}
+                  getOptionLabel={option => option.fullPath}
+                  groupBy={option => option.fullPath.split(' > ')[0]}
+                  // Convert full objects to just IDs when selecting
+                  onChange={(_, selectedOptions) => {
+                    field.onChange(selectedOptions.map(opt => opt.id))
+                  }}
+                  // Convert current ID array back to option objects for display
+                  value={flatOptions.filter(opt => field.value.includes(opt.id))}
+                  renderInput={params => <TextField {...params} label='Select Category' />}
+                  sx={{ width: 400 }}
+                />
+              )}
+            />
           </FormControl>
-          <FormControl fullWidth>
-            <InputLabel>Select Status</InputLabel>
-            <Select label='Select Status' value={status} onChange={e => setStatus(e.target.value)}>
-              <MenuItem value='Published'>Published</MenuItem>
-              <MenuItem value='Inactive'>Inactive</MenuItem>
-              <MenuItem value='Scheduled'>Scheduled</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField fullWidth label='Enter Tags' placeholder='Fashion, Trending, Summer' />
-        </form>
+        </div>
+
+        {/* Collection Select */}
+        {/* <FormControl fullWidth margin='normal'>
+          <InputLabel id='collection-label'>Select Collection</InputLabel>
+          <Controller
+            name='collection'
+            control={control}
+            defaultValue=''
+            render={({ field }) => (
+              <Select {...field} labelId='collection-label' label='Select Collection' fullWidth>
+                <MenuItem value="Men's Clothing">Men&apos;s Clothing</MenuItem>
+                <MenuItem value="Women's Clothing">Women&apos;s Clothing</MenuItem>
+                <MenuItem value="Kid's Clothing">Kid&apos;s Clothing</MenuItem>
+              </Select>
+            )}
+          />
+        </FormControl> */}
+
+        {/* Status Select */}
+        <FormControl fullWidth margin='normal'>
+          <InputLabel id='status-label'>Select Status</InputLabel>
+          <Controller
+            name='status'
+            control={control}
+            defaultValue={1} // ✅ Set default to Published
+            render={({ field }) => (
+              <Select {...field} labelId='status-label' label='Select Status' fullWidth>
+                <MenuItem value={1}>Published</MenuItem>
+                <MenuItem value={0}>Draft</MenuItem>
+              </Select>
+            )}
+          />
+        </FormControl>
+
+        {/* Tags TextField */}
+        {/* <Controller
+          name='tags'
+          control={control}
+          defaultValue=''
+          render={({ field }) => (
+            <TextField
+              {...field}
+              fullWidth
+              margin='normal'
+              label='Enter Tags'
+              placeholder='Fashion, Trending, Summer'
+              variant='outlined'
+            />
+          )}
+        /> */}
       </CardContent>
     </Card>
   )

@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server'
 
 // Mock data for demo purpose
 import { users } from './users'
-import { sendRequest } from '@/libs/APIs';
 
 export async function POST(req) {
   // Vars

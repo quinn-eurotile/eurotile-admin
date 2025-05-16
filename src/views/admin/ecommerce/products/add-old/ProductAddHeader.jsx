@@ -1,5 +1,3 @@
-'use client'
-
 // MUI Imports
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
@@ -14,13 +12,11 @@ const ProductAddHeader = () => {
         <Typography>Orders placed across your store</Typography>
       </div>
       <div className='flex flex-wrap max-sm:flex-col gap-4'>
-        {/* <Button variant='outlined' color='secondary'>
+        <Button variant='outlined' color='secondary'>
           Discard
-        </Button> */}
-        {/* <Button variant='outlined'>Save Draft</Button> */}
-        <Button variant='contained' type='submit'>
-          Publish Product
         </Button>
+        <Button variant='outlined'>Save Draft</Button>
+        <Button variant='contained'>Publish Product</Button>
       </div>
     </div>
   )
