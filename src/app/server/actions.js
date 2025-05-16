@@ -17,6 +17,7 @@ import { db as pricingData } from '@/fake-db/pages/pricing'
 import { db as statisticsData } from '@/fake-db/pages/widgetExamples'
 import { tradeProfessionalService } from '@/services/trade-professionals';
 import { productAttribute, productsServices } from '@/services/productAttribute';
+import { productRawDataServices } from '@/services/product-raw-data';
 
 export const getEcommerceData = async () => {
   return eCommerceData
@@ -69,6 +70,10 @@ export const getteamMemberList = async () => {
 
 export const getTradeProfessionalDetails = async (userId) => {
      return await tradeProfessionalService.getById(userId);
+}
+
+export const getProductRawData = async () => {
+     return await productRawDataServices.getRawData();
 }
 
 

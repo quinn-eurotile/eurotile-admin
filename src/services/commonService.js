@@ -20,6 +20,10 @@ export const createApiService = (baseEndpoint, customMethods = {}) => {
       return api.get(`${baseEndpoint}/${id}`, {}, false)
     },
 
+     getRawData: async (data={}) => {
+      return api.get(`${baseEndpoint}`, data, false)
+    },
+
     // Create a new item
     create: async (data) => {
       return api.post(baseEndpoint, data)

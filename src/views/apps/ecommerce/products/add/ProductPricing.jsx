@@ -17,7 +17,6 @@ const ProductPricing = () => {
     <Card>
       <CardHeader title='Pricing' />
       <CardContent>
-        <Form>
           <TextField fullWidth label='Base Price' placeholder='Enter Base Price' className='mbe-5' />
           <TextField fullWidth label='Discounted Price' placeholder='$499' className='mbe-5' />
           <FormControlLabel control={<Checkbox defaultChecked />} label='Charge tax on this product' />
@@ -26,7 +25,6 @@ const ProductPricing = () => {
             <Typography>In stock</Typography>
             <Switch defaultChecked />
           </div>
-        </Form>
       </CardContent>
     </Card>
   )
