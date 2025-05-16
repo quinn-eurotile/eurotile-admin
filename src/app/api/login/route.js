@@ -8,6 +8,7 @@ export async function POST(req) {
   // Vars
   const { email, password } = await req.json()
   const user = users.find(u => u.email === email && u.password === password)
+
   // console.log('hello 0990');
   //  const responces =  await  sendRequest('/login', 'POST',req);
   //   console.log(responces,'responcesresponces');

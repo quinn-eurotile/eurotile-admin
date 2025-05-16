@@ -16,7 +16,6 @@ import { db as faqData } from '@/fake-db/pages/faq'
 import { db as pricingData } from '@/fake-db/pages/pricing'
 import { db as statisticsData } from '@/fake-db/pages/widgetExamples'
 import { tradeProfessionalService } from '@/services/trade-professionals';
-import { productAttribute, productsServices } from '@/services/productAttribute';
 import { productRawDataServices } from '@/services/product-raw-data';
 import { productServices } from '@/services/product';
 
@@ -66,7 +65,9 @@ export const getOrderHistory = async () => {
 
 export const getteamMemberList = async () => {
     const response = await sendRequest('/admin/forgot-password', 'POST', { email })
-  return userData
+
+
+return userData
 }
 
 export const getTradeProfessionalDetails = async (userId) => {

@@ -10,7 +10,9 @@ const AUTH_RESET_ENDPOINT = "/admin/rest-password";
 export async function forgotPasswordApi(email) {
   try {
     const response = await api.post(`${AUTH_ENDPOINT}/`, { email })
-    return response.data
+
+    
+return response.data
   } catch (error) {
     throw error?.response || error
   }
@@ -20,7 +22,9 @@ export async function forgotPasswordApi(email) {
 export async function resetPasswordApi(data) {
   try {
     const response = await api.post(`${AUTH_RESET_ENDPOINT}/`, data);
-    return response.data;
+
+    
+return response.data;
   } catch (error) {
     throw error?.response || error;
   }

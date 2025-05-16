@@ -15,6 +15,7 @@ export const taxService = {
 
     return api.get(`${TAX_MANAGEMENT_ENDPOINT}?${queryParams}`, {}, false);
   },
+
   // Get a single category by ID
   getById: async (id) => {
     return api.get(`${TAX_MANAGEMENT_ENDPOINT}/${id}`, {}, false);

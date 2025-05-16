@@ -31,7 +31,9 @@ const apiRequest = async (endpoint, method = 'GET', body = null) => {
 
   try {
       const response = await axios(requestOptions);
-      return response.data;
+
+      
+return response.data;
   } catch (error) {
       console.error('API request failed', error);
       throw error;

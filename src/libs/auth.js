@@ -41,7 +41,9 @@ export const authOptions = {
             },
             body: JSON.stringify({ email, password })
           })
+
           const data = await res.json()
+
           if (res.status === 401) {
             console.log(data,'data');
 

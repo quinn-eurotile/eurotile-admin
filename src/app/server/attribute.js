@@ -26,6 +26,7 @@ export const updateStatus = async (id, subPath, data) => {
 export const getAttributesDetails = async (id) => {
      return await productAttribute.getById(id);
 }
+
 export const getMeasurementUnits = async (id) => {
      return await measurementUnit.get();
 }
