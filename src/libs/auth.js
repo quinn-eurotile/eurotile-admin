@@ -1,10 +1,10 @@
 // Third-party Imports
-import CredentialProvider from 'next-auth/providers/credentials'
-import GoogleProvider from 'next-auth/providers/google'
-import { PrismaAdapter } from '@auth/prisma-adapter'
-import { PrismaClient } from '@prisma/client'
+import CredentialProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 export const authOptions = {
   adapter: PrismaAdapter(prisma),
@@ -30,7 +30,7 @@ export const authOptions = {
          * For e.g. return { id: 1, name: 'J Smith', email: 'jsmith@example.com' }
          * You can also use the `req` object to obtain additional parameters (i.e., the request IP address)
          */
-        const { email, password } = credentials
+        const { email, password } = credentials;
 
         try {
           // ** Login API Call to match the user credentials and receive user data in response along with his role
@@ -40,12 +40,12 @@ export const authOptions = {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({ email, password })
-          })
-          const data = await res.json()
+          });
+          const data = await res.json();
           if (res.status === 401) {
-            console.log(data,'data');
+            console.log(data, 'data');
 
-             throw new Error(JSON.stringify(data))
+            throw new Error(JSON.stringify(data));
           }
 
           if (res.status === 200) {
@@ -54,12 +54,12 @@ export const authOptions = {
              * user data below. Below return statement will set the user object in the token and the same is set in
              * the session which will be accessible all over the app.
              */
-            return data
+            return data;
           }
 
-          return null
+          return null;
         } catch (e) {
-          throw new Error(e.message)
+          throw new Error(e.message);
         }
       }
     }),
@@ -111,13 +111,13 @@ export const authOptions = {
          * For adding custom parameters to user in session, we first need to add those parameters
          * in token which then will be available in the `session()` callback
          */
-        token.name = user.name
-        token.email = user.email
-        token.access_token = user.access_token
-        token.user = user.data
+        token.name = user.name;
+        token.email = user.email;
+        token.access_token = user.access_token;
+        token.user = user.data;
       }
 
-      return token
+      return token;
     },
     async session({ session, token }) {
       if (session.user) {
@@ -126,11 +126,11 @@ export const authOptions = {
         session.user.name = token.user.name;
         session.email = token.user.email;
         session.access_token = token.access_token;
-        session.user =  token.user;
+        session.user = token.user;
 
       }
 
-      return session
+      return session;
     }
   }
-}
+};
