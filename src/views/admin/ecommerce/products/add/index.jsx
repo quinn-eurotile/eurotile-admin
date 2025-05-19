@@ -142,6 +142,7 @@ const AddProduct = () => {
   }, [productId])
 
   const onSubmit = async data => {
+    console.log(data, '0000000000000000000000000000000000')
     // Generate slug and SKU
     const slug = generateSlug(data?.name)
     const sku = generateSku()
@@ -155,7 +156,7 @@ const AddProduct = () => {
 
     // Append all fields except files first
     for (const key in data) {
-      if (!['productFeaturedImage', 'productImages'].includes(key)) {
+      if (!['productFeaturedImage'].includes(key)) {
         // Handle arrays or objects by stringifying
         if (Array.isArray(data[key]) || typeof data[key] === 'object') {
           formData.append(key, JSON.stringify(data[key]))
@@ -172,11 +173,18 @@ const AddProduct = () => {
       formData.append('productFeaturedImage', [])
     }
 
-    if (data.variationImage instanceof File) {
-      formData.append('variationImage', data.variationImage)
-    } else {
-      formData.append('variationImage', [])
-    }
+    data?.productVariations?.forEach((variation, index) => {
+      // Append variation images
+      if (Array.isArray(variation.variationImages)) {
+        variation.variationImages.forEach((imageFile) => {
+          if (imageFile instanceof File) {
+            formData.append(`variationImages`, imageFile)
+          }
+        })
+      } else {
+        formData.append('variationImages', [])
+      }
+    })
 
     // Call the API with FormData (make sure API accepts multipart/form-data)
     const response = await createProduct(formData)
