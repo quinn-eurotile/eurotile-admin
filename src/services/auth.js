@@ -25,5 +25,4 @@ export async function resetPasswordApi(data) {
   } catch (error) {
     throw error?.response || error;
   }
-
 }
