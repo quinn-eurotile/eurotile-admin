@@ -1,5 +1,5 @@
 // services/commonService.js
-import { api } from "@/utils/api"
+import { api } from "@/utils/api";
 
 export const createApiService = (baseEndpoint, customMethods = {}) => {
   const defaultService = {
@@ -10,44 +10,44 @@ export const createApiService = (baseEndpoint, customMethods = {}) => {
         limit: limit.toString(),
         ...filter,
         ...(searchString ? { search_string: searchString } : {}),
-      }).toString()
+      }).toString();
 
-      return api.get(`${baseEndpoint}?${queryParams}`, {}, false)
+      return api.get(`${baseEndpoint}?${queryParams}`, {}, false);
     },
 
     // Get item by ID
     getById: async (id) => {
-      return api.get(`${baseEndpoint}/${id}`, {}, false)
+      return api.get(`${baseEndpoint}/${id}`, {}, false);
     },
 
-     getRawData: async (data={}) => {
-      return api.get(`${baseEndpoint}`, data, false)
+    getRawData: async (data = {}) => {
+      return api.get(`${baseEndpoint}`, data, false);
     },
 
-    // Create a new item
     create: async (data) => {
-      return api.post(baseEndpoint, data)
+      return api.post(baseEndpoint, data);
     },
+
 
     // Update an item
     update: async (id, data) => {
-      return api.put(`${baseEndpoint}/${id}`, data)
+      return api.put(`${baseEndpoint}/${id}`, data);
     },
 
     // Delete an item
     delete: async (id) => {
-      return api.delete(`${baseEndpoint}/${id}`)
+      return api.delete(`${baseEndpoint}/${id}`);
     },
 
     // Patch sub-resource or partial update
     patch: async (id, subPath, data) => {
-      return api.patch(`${baseEndpoint}/${id}/${subPath}`, data)
+      return api.patch(`${baseEndpoint}/${id}/${subPath}`, data);
     },
-  }
+  };
 
   // Merge and return with overrides or new methods
   return {
     ...defaultService,
     ...customMethods,
-  }
-}
+  };
+};

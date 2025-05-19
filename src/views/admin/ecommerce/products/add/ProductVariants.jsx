@@ -18,11 +18,16 @@ import {
   Card,
   CardHeader,
   CardContent,
-  FormHelperText
+  FormHelperText,
+  Button,
+  List,
+  ListItem,
+  IconButton
 } from '@mui/material'
 import { useFormContext, Controller } from 'react-hook-form'
 import Grid from '@mui/material/Grid2'
-
+import Dropzone, { useDropzone } from 'react-dropzone'
+import CustomAvatar from '@/@core/components/mui/Avatar'
 
 // Helper to generate Cartesian product variations based on selected attribute values
 function generateVariations(selectedAttributeValues) {
@@ -50,20 +55,77 @@ function generateVariations(selectedAttributeValues) {
       salePrice: 0,
       purchasedPrice: 0,
       customImageUrl: '',
-      image: '',
-      shippingClass: '',
-      taxClass: ''
+      image: ''
+      // shippingClass: '',
+      // taxClass: ''
     }
   })
 }
 
-export default function ProductVariants({ productAttributes }) {
-  console.log(productAttributes, 'productAttributes')
+export default function ProductVariants({ productAttributes, defaultAttributeVariations, defaultProductVariations }) {
   const hasAttributes = productAttributes && productAttributes.length > 0
   const [tabIndex, setTabIndex] = useState(0)
   const [selectedAttributes, setSelectedAttributes] = useState([])
   const [selectedAttributeValues, setSelectedAttributeValues] = useState({})
   const [allAttributes, setAllAttributes] = useState({})
+  const { control, watch, reset, setValue } = useFormContext()
+
+  useEffect(() => {
+    // Step 0: Guard clause — only run when all required data is available
+    const isReady =
+      Array.isArray(productAttributes) &&
+      productAttributes.length > 0 &&
+      Array.isArray(defaultAttributeVariations) &&
+      defaultAttributeVariations.length > 0 &&
+      Array.isArray(defaultProductVariations) &&
+      defaultProductVariations.length > 0
+
+    if (!isReady || !hasAttributes) return
+
+    // Debug
+    console.log('All data ready:', {
+      productAttributes,
+      defaultAttributeVariations,
+      defaultProductVariations
+    })
+
+    // Step 1: Build attribute selection map based on defaultAttributeVariations
+    const attributeValueMap = {}
+    const selectedAttributeNames = new Set()
+
+    productAttributes.forEach(attribute => {
+      const attributeName = attribute.name.toLowerCase()
+
+      attribute.variations.forEach(variation => {
+        const variationId = variation._id
+
+        if (defaultAttributeVariations.includes(variationId)) {
+          // Format value with measurement unit if available
+          const formattedValue = variation.measurementUnit
+            ? `${variation.metaValue} ${variation.measurementUnit.name}`
+            : variation.metaValue
+
+          if (!attributeValueMap[attributeName]) {
+            attributeValueMap[attributeName] = []
+          }
+
+          if (!attributeValueMap[attributeName].includes(formattedValue)) {
+            attributeValueMap[attributeName].push(formattedValue)
+          }
+
+          selectedAttributeNames.add(attributeName)
+        }
+      })
+    })
+
+    // Step 2: Update local UI state
+    setSelectedAttributes(Array.from(selectedAttributeNames))
+    setSelectedAttributeValues(attributeValueMap)
+
+    // Step 3: Set form values using React Hook Form
+    setValue('attributeVariations', defaultAttributeVariations, { shouldValidate: true })
+    setValue('productVariations', defaultProductVariations, { shouldValidate: true })
+  }, [hasAttributes, productAttributes, defaultAttributeVariations, defaultProductVariations, setValue])
 
   useEffect(() => {
     if (productAttributes && productAttributes.length > 0) {
@@ -82,7 +144,6 @@ export default function ProductVariants({ productAttributes }) {
   }, [productAttributes])
 
   // Get RHF methods from context (parent form)
-  const { control, watch, reset, setValue } = useFormContext()
 
   // Watch variations from form context
   const variations = watch('productVariations') || []
@@ -103,37 +164,34 @@ export default function ProductVariants({ productAttributes }) {
     setValue('productVariations', newVariations, { shouldValidate: true })
   }, [selectedAttributeValues, setValue])
 
-    useEffect(() => {
-      // Collect matched variation IDs based on selected attribute values
-      const matchedVariationIds = []
+  useEffect(() => {
+    // Collect matched variation IDs based on selected attribute values
+    const matchedVariationIds = []
 
-      selectedAttributes.forEach(selectedAttributeName => {
-        const lowerCaseName = selectedAttributeName.toLowerCase()
+    selectedAttributes.forEach(selectedAttributeName => {
+      const lowerCaseName = selectedAttributeName.toLowerCase()
 
-        // Find the corresponding attribute object from productAttributes
-        const matchedAttribute = productAttributes.find(
-          attr => attr.name.toLowerCase() === lowerCaseName
-        )
+      // Find the corresponding attribute object from productAttributes
+      const matchedAttribute = productAttributes.find(attr => attr.name.toLowerCase() === lowerCaseName)
 
-        if (matchedAttribute) {
-          const selectedValues = selectedAttributeValues[lowerCaseName] || []
+      if (matchedAttribute) {
+        const selectedValues = selectedAttributeValues[lowerCaseName] || []
 
-          matchedAttribute.variations.forEach(variation => {
-            const formattedValue = variation.measurementUnit
-              ? `${variation.metaValue} ${variation.measurementUnit.name}`
-              : variation.metaValue
+        matchedAttribute.variations.forEach(variation => {
+          const formattedValue = variation.measurementUnit
+            ? `${variation.metaValue} ${variation.measurementUnit.name}`
+            : variation.metaValue
 
-            if (selectedValues.includes(formattedValue)) {
-              matchedVariationIds.push(variation._id)
-            }
-          })
-        }
-      })
+          if (selectedValues.includes(formattedValue)) {
+            matchedVariationIds.push(variation._id)
+          }
+        })
+      }
+    })
 
-      // Update attributeVariations in form context with array of variation IDs
-      setValue('attributeVariations', matchedVariationIds, { shouldValidate: true })
-    }, [selectedAttributes, selectedAttributeValues, productAttributes, setValue])
-
+    // Update attributeVariations in form context with array of variation IDs
+    setValue('attributeVariations', matchedVariationIds, { shouldValidate: true })
+  }, [selectedAttributes, selectedAttributeValues, productAttributes, setValue])
 
   // Disable variations tab if no attributes or any attribute has no values selected
   const isVariationsDisabled =
@@ -150,11 +208,6 @@ export default function ProductVariants({ productAttributes }) {
       ...prev,
       [attributeName]: values
     }))
-  }
-
-  // Submit handler for variations form inside tab 2
-  const onSubmitVariations = data => {
-    console.log('Submitted variations:', data.variations)
   }
 
   return (
@@ -186,7 +239,7 @@ export default function ProductVariants({ productAttributes }) {
                 Choose Attributes to Combine
               </Typography>
 
-              <FormControl sx={{ mb: 4, minWidth: 300 }} variant="outlined" margin="normal" error={!hasAttributes}>
+              <FormControl sx={{ mb: 4, minWidth: 300 }} variant='outlined' margin='normal' error={!hasAttributes}>
                 <InputLabel id='select-attributes-label'>Attributes</InputLabel>
                 <Select
                   labelId='select-attributes-label'
@@ -204,9 +257,7 @@ export default function ProductVariants({ productAttributes }) {
                   ))}
                 </Select>
 
-                {!hasAttributes && (
-                    <FormHelperText >Please create the attribute to show here.</FormHelperText>
-                  )}
+                {!hasAttributes && <FormHelperText>Please create the attribute to show here.</FormHelperText>}
               </FormControl>
 
               {selectedAttributes.length > 0 && (
@@ -244,74 +295,6 @@ export default function ProductVariants({ productAttributes }) {
                 </>
               )}
             </Box>
-            // <Box sx={{ p: 3, flexGrow: 1 }}>
-            //   <Typography variant='h6' gutterBottom>
-            //     Choose Attributes to Combine
-            //   </Typography>
-
-            //   <FormControl sx={{ mb: 4, minWidth: 300 }}>
-            //     <InputLabel id='select-attributes-label'>Attributes</InputLabel>
-            //     <Select
-            //       labelId='select-attributes-label'
-            //       multiple
-            //       value={selectedAttributes}
-            //       onChange={handleAttributesChange}
-            //       input={<OutlinedInput label='Attributes' />}
-            //       renderValue={selected => selected.join(', ')}
-            //     >
-            //       {Object.keys(allAttributes).map(attributeName => (
-            //         <MenuItem key={attributeName} value={attributeName}>
-            //           <Checkbox checked={selectedAttributes.indexOf(attributeName) > -1} />
-            //           <ListItemText primary={attributeName.charAt(0).toUpperCase() + attributeName.slice(1)} />
-            //         </MenuItem>
-            //       ))}
-            //     </Select>
-            //   </FormControl>
-
-            //   {selectedAttributes.length > 0 && (
-            //     <>
-            //       <Typography variant='h6' gutterBottom>
-            //         Select Attribute Values
-            //       </Typography>
-            //       <Grid container spacing={2}>
-            //         {selectedAttributes.map(attributeName => (
-            //           <Grid size={{ xs: 12, md: 6 }}>
-            //             <FormControl key={attributeName} sx={{ mb: 3, minWidth: 300 }} fullWidth>
-            //               <InputLabel id={`${attributeName}-label`}>
-            //                 {attributeName.charAt(0).toUpperCase() + attributeName.slice(1)}
-            //               </InputLabel>
-
-            //               <Select
-            //               fullWidth
-            //                 labelId={`${attributeName}-label`}
-            //                 multiple
-            //                 value={selectedAttributeValues[attributeName] || []}
-            //                 onChange={e => handleAttributeValuesChange(attributeName, e.target.value)}
-            //                 input={
-            //                   <OutlinedInput label={attributeName.charAt(0).toUpperCase() + attributeName.slice(1)} />
-            //                 }
-            //                 renderValue={selected => selected.join(', ')}
-            //               >
-            //                 {allAttributes[attributeName].map(value => (
-            //                   <MenuItem key={value} value={value}>
-            //                     <Checkbox
-            //                       checked={
-            //                         selectedAttributeValues[attributeName]
-            //                           ? selectedAttributeValues[attributeName].indexOf(value) > -1
-            //                           : false
-            //                       }
-            //                     />
-            //                     <ListItemText primary={value} />
-            //                   </MenuItem>
-            //                 ))}
-            //               </Select>
-            //             </FormControl>
-            //           </Grid>
-            //         ))}
-            //       </Grid>
-            //     </>
-            //   )}
-            // </Box>
           )}
 
           {tabIndex === 1 && (
@@ -330,14 +313,91 @@ export default function ProductVariants({ productAttributes }) {
 
                   <Grid container spacing={2}>
                     <Grid size={{ xs: 12 }}>
-                      <Controller
-                        name={`productVariations.${index}.description`}
-                        control={control}
-                        defaultValue={variation.description}
-                        render={({ field }) => (
-                          <TextField {...field} label='Description' multiline rows={2} fullWidth variant='outlined' />
-                        )}
-                      />
+                      <Card style={{ marginBottom: '20px' }}>
+                        <CardHeader
+                          title='Variation Image'
+                          sx={{ '& .MuiCardHeader-action': { alignSelf: 'center' } }}
+                        />
+                        <CardContent>
+                          <Controller
+                            name={`productVariations.${index}.variationImages`}
+                            control={control}
+                            defaultValue={[]} // Array of images
+                            render={({ field: { value = [], onChange } }) => {
+                              const onDrop = acceptedFiles => {
+                                if (acceptedFiles?.length > 0) {
+                                  // Append newly selected images to the current list
+                                  onChange([...value, ...acceptedFiles])
+                                }
+                              }
+
+                              const { getRootProps, getInputProps } = useDropzone({
+                                onDrop,
+                                multiple: true,
+                                accept: { 'image/*': [] }
+                              })
+
+                              const handleRemoveImage = removeIndex => {
+                                const updated = value.filter((_, i) => i !== removeIndex)
+                                onChange(updated)
+                              }
+
+                              return (
+                                <Box>
+                                  <div {...getRootProps({ className: 'dropzone' })}>
+                                    <input {...getInputProps()} />
+                                    <div className='flex items-center flex-col gap-2 text-center'>
+                                      <CustomAvatar variant='rounded' skin='light' color='secondary'>
+                                        <i className='ri-upload-2-line' />
+                                      </CustomAvatar>
+                                      <Typography variant='h4'>Drag and Drop Images</Typography>
+                                      <Typography color='text.disabled'>or</Typography>
+                                      <Button variant='outlined' size='small'>
+                                        Browse Images
+                                      </Button>
+                                    </div>
+                                  </div>
+
+                                  {value.length > 0 && (
+                                    <List>
+                                      {value.map((file, i) => (
+                                        <ListItem
+                                          key={i}
+                                          secondaryAction={
+                                            <IconButton onClick={() => handleRemoveImage(i)}>
+                                              <i className='ri-close-line text-xl' />
+                                            </IconButton>
+                                          }
+                                        >
+                                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                            <img
+                                              src={typeof file === 'string' ? file : URL.createObjectURL(file)}
+                                              alt={`variation-image-${i}`}
+                                              style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4 }}
+                                            />
+                                            <div>
+                                              <Typography className='file-name font-medium' color='text.primary'>
+                                                {file.name || `Image ${i + 1}`}
+                                              </Typography>
+                                              {file.size && (
+                                                <Typography variant='body2'>
+                                                  {file.size > 1000000
+                                                    ? `${(file.size / 1024 / 1024).toFixed(1)} MB`
+                                                    : `${(file.size / 1024).toFixed(1)} KB`}
+                                                </Typography>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </ListItem>
+                                      ))}
+                                    </List>
+                                  )}
+                                </Box>
+                              )
+                            }}
+                          />
+                        </CardContent>
+                      </Card>
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 6 }}>
@@ -369,6 +429,60 @@ export default function ProductVariants({ productAttributes }) {
                             label='Stock Quantity'
                             type='number'
                             inputProps={{ min: 0 }}
+                            fullWidth
+                            variant='outlined'
+                          />
+                        )}
+                      />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <Controller
+                        name={`productVariations.${index}.regularPrice`}
+                        control={control}
+                        defaultValue={variation.regularPrice}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            label='Regular Price'
+                            type='number'
+                            inputProps={{ step: 0.01, min: 0 }}
+                            fullWidth
+                            variant='outlined'
+                          />
+                        )}
+                      />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <Controller
+                        name={`productVariations.${index}.salePrice`}
+                        control={control}
+                        defaultValue={variation.salePrice}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            label='Sale Price'
+                            type='number'
+                            inputProps={{ step: 0.01, min: 0 }}
+                            fullWidth
+                            variant='outlined'
+                          />
+                        )}
+                      />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <Controller
+                        name={`productVariations.${index}.purchasedPrice`}
+                        control={control}
+                        defaultValue={variation.purchasedPrice}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            label='Purchased Price'
+                            type='number'
+                            inputProps={{ step: 0.01, min: 0 }}
                             fullWidth
                             variant='outlined'
                           />
@@ -469,59 +583,38 @@ export default function ProductVariants({ productAttributes }) {
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`productVariations.${index}.regularPrice`}
+                        name={`productVariations.${index}.NumberOfTiles`}
                         control={control}
-                        defaultValue={variation.regularPrice}
+                        defaultValue={variation.NumberOfTiles}
                         render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label='Regular Price'
-                            type='number'
-                            inputProps={{ step: 0.01, min: 0 }}
-                            fullWidth
-                            variant='outlined'
-                          />
+                          <TextField {...field} label='Number of tiles per box' fullWidth variant='outlined' />
                         )}
                       />
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`productVariations.${index}.salePrice`}
+                        name={`productVariations.${index}.BoxSize`}
                         control={control}
-                        defaultValue={variation.salePrice}
+                        defaultValue={variation.BoxSize}
                         render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label='Sale Price'
-                            type='number'
-                            inputProps={{ step: 0.01, min: 0 }}
-                            fullWidth
-                            variant='outlined'
-                          />
+                          <TextField {...field} label='Box sizes (sqm/kg)' fullWidth variant='outlined' />
                         )}
                       />
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`productVariations.${index}.purchasedPrice`}
+                        name={`productVariations.${index}.PalletSize`}
                         control={control}
-                        defaultValue={variation.purchasedPrice}
+                        defaultValue={variation.PalletSize}
                         render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label='Purchased Price'
-                            type='number'
-                            inputProps={{ step: 0.01, min: 0 }}
-                            fullWidth
-                            variant='outlined'
-                          />
+                          <TextField {...field} label='Pallet Size (sqm/kg)' fullWidth variant='outlined' />
                         )}
                       />
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 4 }}>
+                    <Grid size={{ xs: 12, md: 12 }}>
                       <Controller
                         name={`productVariations.${index}.customImageUrl`}
                         control={control}
@@ -532,16 +625,27 @@ export default function ProductVariants({ productAttributes }) {
                       />
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 4 }}>
+                    <Grid size={{ xs: 12 }}>
+                      <Controller
+                        name={`productVariations.${index}.description`}
+                        control={control}
+                        defaultValue={variation.description}
+                        render={({ field }) => (
+                          <TextField {...field} label='Description' multiline rows={2} fullWidth variant='outlined' />
+                        )}
+                      />
+                    </Grid>
+
+                    {/* <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
                         name={`productVariations.${index}.image`}
                         control={control}
                         defaultValue={variation.image}
                         render={({ field }) => <TextField {...field} label='Image' fullWidth variant='outlined' />}
                       />
-                    </Grid>
+                    </Grid> */}
 
-                    <Grid size={{ xs: 12, md: 4 }}>
+                    {/* <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
                         name={`productVariations.${index}.shippingClass`}
                         control={control}
@@ -559,7 +663,7 @@ export default function ProductVariants({ productAttributes }) {
                         defaultValue={variation.taxClass}
                         render={({ field }) => <TextField {...field} label='Tax Class' fullWidth variant='outlined' />}
                       />
-                    </Grid>
+                    </Grid> */}
                   </Grid>
                 </Box>
               ))}

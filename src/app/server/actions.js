@@ -94,4 +94,8 @@ export const updateStatus = async (id, subPath, data) => {
      return await productServices.patch(id, subPath, data);
 }
 
+export const getProductDetails = async (id) => {
+     return await productServices.getById(id);
+}
+
 

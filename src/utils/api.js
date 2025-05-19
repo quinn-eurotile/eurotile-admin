@@ -9,30 +9,29 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Get common headers including Authorization
 const getCommonHeaders = async () => {
-  //const session = await getSession();
   const session = await getServerSession(authOptions);
 
-  
-return {
-    "Content-Type": "application/json",
+  const headers = {
     authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+    'Accept': 'application/json'
   };
+
+
+  return headers;
 };
 
 // Generic API request using Axios
 const apiRequest = async (endpoint, method, data = null, customHeaders = {}, showToastOnError = true) => {
   try {
+
+
     const headers = {
-      ...(await getCommonHeaders()),
+      ...(await getCommonHeaders()), // 👈 Skip Content-Type if FormData
       ...customHeaders,
     };
 
     const RESOURCE_URL = API_BASE_URL;
     const REQUEST_URL = RESOURCE_URL + endpoint;
-
-    console.log(REQUEST_URL,'REQUEST_URLREQUEST_URL')
-    console.log(data,'bodydata..........................')
-
 
     const config = {
       method: method,
@@ -45,6 +44,10 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {}, sho
     if (method == 'DELETE') {
       delete config.data;
     }
+
+    console.log('.......headers', headers);
+    console.log(REQUEST_URL, 'REQUEST_URLREQUEST_URL');
+    console.log(data, 'data');
 
     const response = await axios(config);
 

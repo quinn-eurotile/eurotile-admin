@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
 
 // TipTap and RHF Imports
-import { useFormContext } from 'react-hook-form'
+import { Controller, useFormContext } from 'react-hook-form'
 import { useEditor, EditorContent } from '@tiptap/react'
 import { StarterKit } from '@tiptap/starter-kit'
 import { Underline } from '@tiptap/extension-underline'
@@ -20,19 +20,18 @@ import { TextAlign } from '@tiptap/extension-text-align'
 // Components
 import CustomIconButton from '@core/components/mui/IconButton'
 import '@/libs/styles/tiptapEditor.css'
+import { TextareaAutosize } from '@mui/material'
 
 const EditorToolbar = ({ editor }) => {
   if (!editor) return null
 
   return (
-    <div className='flex flex-wrap gap-x-3 gap-y-1 pbs-5 pbe-4 pli-5'>
-      {/* ...Toolbar Buttons Same As Before... */}
-    </div>
+    <div className='flex flex-wrap gap-x-3 gap-y-1 pbs-5 pbe-4 pli-5'>{/* ...Toolbar Buttons Same As Before... */}</div>
   )
 }
 
 const ProductInformation = () => {
-  const { register } = useFormContext()
+ const { control } = useFormContext()
 
   const editor = useEditor({
     extensions: [
@@ -49,7 +48,19 @@ const ProductInformation = () => {
       <CardContent>
         <Grid container spacing={5} className='mbe-5'>
           <Grid size={{ xs: 12 }}>
-            <TextField fullWidth label='Product Name' placeholder='iPhone 14' {...register('productName')} />
+            <Controller
+              name='name'
+              control={control}
+              defaultValue='' // default value needed to avoid uncontrolled warnings
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label='Product Name'
+                  placeholder='Product Name'
+                />
+              )}
+            />
           </Grid>
           {/* <Grid size={{ xs: 12, sm: 6 }}>
             <TextField fullWidth label='SKU' placeholder='FXSK123U' {...register('sku')} />
@@ -59,13 +70,27 @@ const ProductInformation = () => {
           </Grid> */}
         </Grid>
         <Typography className='mbe-1'>Description (Optional)</Typography>
-        <Card className='p-0 border shadow-none'>
           <CardContent className='p-0'>
-            <EditorToolbar editor={editor} />
+            <Controller
+            name='productDescription'
+            control={control}
+            defaultValue=''
+            render={({ field }) => (
+              <TextField
+                {...field}
+                fullWidth
+                label='Product Description'
+                placeholder='Enter product description'
+                multiline
+                rows={4}
+                sx={{ mt: 2 }}
+              />
+            )}
+          />
+            {/* <EditorToolbar editor={editor} />
             <Divider className='mli-5' />
-            <EditorContent editor={editor} className='bs-[135px] overflow-y-auto flex' />
+            <EditorContent editor={editor} className='bs-[135px] overflow-y-auto flex' /> */}
           </CardContent>
-        </Card>
       </CardContent>
     </Card>
   )
