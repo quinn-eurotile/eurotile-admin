@@ -43,7 +43,9 @@ export const api2 =   () => {
 
         try {
             const response = await axios(requestOptions);
-            return response.data;
+
+            
+return response.data;
         } catch (error) {
             console.error('API request failed', error);
             throw error;

@@ -154,7 +154,8 @@ const UserDetails = ({ data }) => {
 
         {/* Action Buttons */}
 
-        {[2, 4].includes(userData?.status) ? (
+        {userData?.status === 2 ? (
+          // Pending state: Show Approve/Reject buttons
           <div className='flex gap-4 justify-center'>
             <Button
               variant='outlined'
@@ -163,7 +164,7 @@ const UserDetails = ({ data }) => {
                 openConfirmationDialog({
                   title: 'Approved User',
                   description: 'Are you sure you want to Approved this user?',
-                  confirmText: 'Approved User',
+                  confirmText: 'Approve User',
                   cancelText: 'Cancel',
                   confirmColor: 'success',
                   cancelColor: 'error',
@@ -192,35 +193,37 @@ const UserDetails = ({ data }) => {
               Reject
             </Button>
           </div>
+        ) : userData?.status === 4 ? (
+          // Rejected state: Show disabled button
+          <Chip label="Status Disabled" color='error' size='small' variant='tonal' />
         ) : (
-          <>
-            <Box gap={2} display={'flex'} flexDirection={'column'}>
-              <Divider />
-              <FormGroup>
-                <FormControlLabel
-                  label='Status'
-                  control={
-                    <Switch
-                      checked={userStatus}
-                      onChange={async event => {
-                        const newStatus = event.target.checked ? 1 : 0
-                        try {
-                          await updateStatus(userData._id, 'status', { status: newStatus })
-                          setUserStatus(newStatus) // update local state
-                          refreshUserDetails(userData._id)
-                          toast.success('User status updated successfully.')
-                        } catch (error) {
-                          console.error('Error updating user status:', error)
-                          toast.error('Failed to update user status.')
-                        }
-                      }}
-                    />
-                  }
-                  sx={{ m: 0 }}
-                />
-              </FormGroup>
-            </Box>
-          </>
+          // Active or Inactive state: Show toggle switch
+          <Box gap={2} display='flex' flexDirection='column'>
+            <Divider />
+            <FormGroup>
+              <FormControlLabel
+                label='Status'
+                control={
+                  <Switch
+                    checked={userStatus}
+                    onChange={async event => {
+                      const newStatus = event.target.checked ? 1 : 0
+                      try {
+                        await updateStatus(userData._id, 'status', { status: newStatus })
+                        setUserStatus(newStatus)
+                        refreshUserDetails(userData._id)
+                        toast.success('User status updated successfully.')
+                      } catch (error) {
+                        console.error('Error updating user status:', error)
+                        toast.error('Failed to update user status.')
+                      }
+                    }}
+                  />
+                }
+                sx={{ m: 0 }}
+              />
+            </FormGroup>
+          </Box>
         )}
       </CardContent>
 

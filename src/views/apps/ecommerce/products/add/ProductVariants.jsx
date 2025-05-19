@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from 'react'
 import {
   Box,
@@ -21,11 +23,6 @@ import {
 import { useFormContext, Controller } from 'react-hook-form'
 import Grid from '@mui/material/Grid2'
 
-// Available attributes and their values
-const allAttributes = {
-  color: ['Red', 'Blue', 'Green'],
-  size: ['19', '20', '30']
-}
 
 // Helper to generate Cartesian product variations based on selected attribute values
 function generateVariations(selectedAttributeValues) {
@@ -54,20 +51,20 @@ function generateVariations(selectedAttributeValues) {
       purchasedPrice: 0,
       customImageUrl: '',
       image: '',
-      shippingClass: '',
-      taxClass: ''
+      // shippingClass: '',
+      // taxClass: ''
     }
   })
 }
 
 export default function ProductVariants({ productAttributes }) {
+  console.log(productAttributes, 'productAttributes')
   const hasAttributes = productAttributes && productAttributes.length > 0
   const [tabIndex, setTabIndex] = useState(0)
   const [selectedAttributes, setSelectedAttributes] = useState([])
   const [selectedAttributeValues, setSelectedAttributeValues] = useState({})
   const [allAttributes, setAllAttributes] = useState({})
 
-  console.log(productAttributes)
   useEffect(() => {
     if (productAttributes && productAttributes.length > 0) {
       const attributesMap = {}
@@ -84,12 +81,11 @@ export default function ProductVariants({ productAttributes }) {
     }
   }, [productAttributes])
 
-  console.log(allAttributes,'allAttributesallAttributes')
   // Get RHF methods from context (parent form)
   const { control, watch, reset, setValue } = useFormContext()
 
   // Watch variations from form context
-  const variations = watch('variations') || []
+  const variations = watch('productVariations') || []
 
   // When selectedAttributes changes, initialize attribute values if not set
   useEffect(() => {
@@ -104,8 +100,40 @@ export default function ProductVariants({ productAttributes }) {
   useEffect(() => {
     const newVariations = generateVariations(selectedAttributeValues)
     // Update variations in form context
-    setValue('variations', newVariations, { shouldValidate: true })
+    setValue('productVariations', newVariations, { shouldValidate: true })
   }, [selectedAttributeValues, setValue])
+
+    useEffect(() => {
+      // Collect matched variation IDs based on selected attribute values
+      const matchedVariationIds = []
+
+      selectedAttributes.forEach(selectedAttributeName => {
+        const lowerCaseName = selectedAttributeName.toLowerCase()
+
+        // Find the corresponding attribute object from productAttributes
+        const matchedAttribute = productAttributes.find(
+          attr => attr.name.toLowerCase() === lowerCaseName
+        )
+
+        if (matchedAttribute) {
+          const selectedValues = selectedAttributeValues[lowerCaseName] || []
+
+          matchedAttribute.variations.forEach(variation => {
+            const formattedValue = variation.measurementUnit
+              ? `${variation.metaValue} ${variation.measurementUnit.name}`
+              : variation.metaValue
+
+            if (selectedValues.includes(formattedValue)) {
+              matchedVariationIds.push(variation._id)
+            }
+          })
+        }
+      })
+
+      // Update attributeVariations in form context with array of variation IDs
+      setValue('attributeVariations', matchedVariationIds, { shouldValidate: true })
+    }, [selectedAttributes, selectedAttributeValues, productAttributes, setValue])
+
 
   // Disable variations tab if no attributes or any attribute has no values selected
   const isVariationsDisabled =
@@ -303,7 +331,7 @@ export default function ProductVariants({ productAttributes }) {
                   <Grid container spacing={2}>
                     <Grid size={{ xs: 12 }}>
                       <Controller
-                        name={`variations.${index}.description`}
+                        name={`productVariations.${index}.description`}
                         control={control}
                         defaultValue={variation.description}
                         render={({ field }) => (
@@ -314,7 +342,7 @@ export default function ProductVariants({ productAttributes }) {
 
                     <Grid size={{ xs: 12, md: 6 }}>
                       <Controller
-                        name={`variations.${index}.stockStatus`}
+                        name={`productVariations.${index}.stockStatus`}
                         control={control}
                         defaultValue={variation.stockStatus}
                         render={({ field }) => (
@@ -332,7 +360,7 @@ export default function ProductVariants({ productAttributes }) {
 
                     <Grid size={{ xs: 12, md: 6 }}>
                       <Controller
-                        name={`variations.${index}.stockQuantity`}
+                        name={`productVariations.${index}.stockQuantity`}
                         control={control}
                         defaultValue={variation.stockQuantity}
                         render={({ field }) => (
@@ -349,7 +377,7 @@ export default function ProductVariants({ productAttributes }) {
                     </Grid>
                     <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
                       <Controller
-                        name={`variations.${index}.allowBackorders`}
+                        name={`productVariations.${index}.allowBackorders`}
                         control={control}
                         defaultValue={variation.allowBackorders}
                         render={({ field }) => (
@@ -368,7 +396,7 @@ export default function ProductVariants({ productAttributes }) {
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`variations.${index}.weight`}
+                        name={`productVariations.${index}.weight`}
                         control={control}
                         defaultValue={variation.weight}
                         render={({ field }) => (
@@ -387,7 +415,7 @@ export default function ProductVariants({ productAttributes }) {
                     {/* Dimensions */}
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`variations.${index}.dimensions.length`}
+                        name={`productVariations.${index}.dimensions.length`}
                         control={control}
                         defaultValue={variation.dimensions.length}
                         render={({ field }) => (
@@ -405,7 +433,7 @@ export default function ProductVariants({ productAttributes }) {
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`variations.${index}.dimensions.width`}
+                        name={`productVariations.${index}.dimensions.width`}
                         control={control}
                         defaultValue={variation.dimensions.width}
                         render={({ field }) => (
@@ -423,7 +451,7 @@ export default function ProductVariants({ productAttributes }) {
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`variations.${index}.dimensions.height`}
+                        name={`productVariations.${index}.dimensions.height`}
                         control={control}
                         defaultValue={variation.dimensions.height}
                         render={({ field }) => (
@@ -441,7 +469,7 @@ export default function ProductVariants({ productAttributes }) {
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`variations.${index}.regularPrice`}
+                        name={`productVariations.${index}.regularPrice`}
                         control={control}
                         defaultValue={variation.regularPrice}
                         render={({ field }) => (
@@ -459,7 +487,7 @@ export default function ProductVariants({ productAttributes }) {
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`variations.${index}.salePrice`}
+                        name={`productVariations.${index}.salePrice`}
                         control={control}
                         defaultValue={variation.salePrice}
                         render={({ field }) => (
@@ -477,7 +505,7 @@ export default function ProductVariants({ productAttributes }) {
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`variations.${index}.purchasedPrice`}
+                        name={`productVariations.${index}.purchasedPrice`}
                         control={control}
                         defaultValue={variation.purchasedPrice}
                         render={({ field }) => (
@@ -495,7 +523,7 @@ export default function ProductVariants({ productAttributes }) {
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`variations.${index}.customImageUrl`}
+                        name={`productVariations.${index}.customImageUrl`}
                         control={control}
                         defaultValue={variation.customImageUrl}
                         render={({ field }) => (
@@ -506,32 +534,32 @@ export default function ProductVariants({ productAttributes }) {
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`variations.${index}.image`}
+                        name={`productVariations.${index}.image`}
                         control={control}
                         defaultValue={variation.image}
                         render={({ field }) => <TextField {...field} label='Image' fullWidth variant='outlined' />}
                       />
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 4 }}>
+                    {/* <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`variations.${index}.shippingClass`}
+                        name={`productVariations.${index}.shippingClass`}
                         control={control}
                         defaultValue={variation.shippingClass}
                         render={({ field }) => (
                           <TextField {...field} label='Shipping Class' fullWidth variant='outlined' />
                         )}
                       />
-                    </Grid>
+                    </Grid> */}
 
-                    <Grid size={{ xs: 12, md: 4 }}>
+                    {/* <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`variations.${index}.taxClass`}
+                        name={`productVariations.${index}.taxClass`}
                         control={control}
                         defaultValue={variation.taxClass}
                         render={({ field }) => <TextField {...field} label='Tax Class' fullWidth variant='outlined' />}
                       />
-                    </Grid>
+                    </Grid> */}
                   </Grid>
                 </Box>
               ))}

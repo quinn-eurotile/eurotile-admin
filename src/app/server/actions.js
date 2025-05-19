@@ -16,8 +16,9 @@ import { db as faqData } from '@/fake-db/pages/faq'
 import { db as pricingData } from '@/fake-db/pages/pricing'
 import { db as statisticsData } from '@/fake-db/pages/widgetExamples'
 import { tradeProfessionalService } from '@/services/trade-professionals';
-import { productAttribute, productsServices } from '@/services/productAttribute';
 import { productRawDataServices } from '@/services/product-raw-data';
+import { productServices } from '@/services/product';
+import { productAttributeList } from '@/services/productAttribute';
 
 export const getEcommerceData = async () => {
   return eCommerceData
@@ -65,7 +66,9 @@ export const getOrderHistory = async () => {
 
 export const getteamMemberList = async () => {
     const response = await sendRequest('/admin/forgot-password', 'POST', { email })
-  return userData
+
+
+return userData
 }
 
 export const getTradeProfessionalDetails = async (userId) => {
@@ -74,6 +77,22 @@ export const getTradeProfessionalDetails = async (userId) => {
 
 export const getProductRawData = async () => {
      return await productRawDataServices.getRawData();
+}
+
+export const getProductList = async (currentPage, rowsPerPage, searchTerm, filteredData) => {
+     return await productAttributeList.get(currentPage, rowsPerPage, searchTerm, filteredData);
+}
+
+export const createProduct = async (data) => {
+     return await productServices.create(data);
+}
+
+export const deleteProduct = async (id) => {
+     return await productServices.delete(id);
+}
+
+export const updateStatus = async (id, subPath, data) => {
+     return await productServices.patch(id, subPath, data);
 }
 
 

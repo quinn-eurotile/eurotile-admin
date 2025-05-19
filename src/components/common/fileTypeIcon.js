@@ -3,6 +3,7 @@ import React from 'react';
 
 const FileTypeIcon = ({ type }) => {
   console.log(type,'pdfIconpdfIconpdfIcon')
+
   switch (type) {
     case 'image':
         return (

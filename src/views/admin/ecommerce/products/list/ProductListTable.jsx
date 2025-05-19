@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 // Next Imports
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -46,6 +46,12 @@ import { getLocalizedUrl } from '@/utils/i18n'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
+import { deleteProduct, getProductList, getProductRawData, updateStatus } from '@/app/server/actions'
+import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
+import { useDispatch } from 'react-redux'
+import { callCommonAction } from '@/redux-store/slices/common'
+import { toast } from 'react-toastify'
+import { Router } from 'next/router'
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   // Rank the item
@@ -98,118 +104,232 @@ const productStatusObj = {
 // Column Definitions
 const columnHelper = createColumnHelper()
 
-const ProductListTable = ({ productData }) => {
+const ProductListTable = () => {
+  const router = useRouter()
   // States
   const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState(...[productData])
-  const [filteredData, setFilteredData] = useState(data)
-  const [globalFilter, setGlobalFilter] = useState('')
+  const [data, setData] = useState([])
+  const [filteredData, setFilteredData] = useState({})
+  const [globalFilter, setGlobalFilter] = useState(null)
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [totalRecords, setTotalRecords] = useState(0)
+  const [selectedCatId, setSelectedCatId] = useState(null)
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false) // State for dialog
+  const [search, setSearch] = useState('')
+  const [rawProduct, setRawProduct] = useState([])
 
   // Hooks
   const { lang: locale } = useParams()
+  const dispatch = useDispatch()
+
+  const fetchProducts = async (currentPage = 1, searchTerm = '') => {
+    try {
+      dispatch(callCommonAction({ loading: true }))
+      const response = await getProductList(currentPage, rowsPerPage, searchTerm, filteredData)
+      dispatch(callCommonAction({ loading: false }))
+      if (response.statusCode === 200 && response.data) {
+        const formatted = response?.data?.docs?.map(product => ({
+          id: product?._id,
+          name: product?.name,
+          categories: product?.categories,
+          supplier: product?.supplier,
+          totalQuantity: product?.totalQuantity,
+          sku: product?.sku,
+          status: product?.status,
+          avatar: '',
+          username: product?.name.split(' ')[0]
+        }))
+
+        setPage(page)
+        setData(formatted)
+        setTotalRecords(response.data.totalDocs || 0)
+      }
+    } catch (error) {
+      dispatch(callCommonAction({ loading: false }))
+      console.error('Failed to fetch team members', error)
+    }
+  }
+
+    useEffect(() => {
+      if (!filteredData || filteredData.length === 0) return
+      fetchProducts(page + 1, search, filteredData);
+    }, [page, rowsPerPage, search, filteredData]);
+
+
+
+  const getRawData = async () => {
+    try {
+      const response = await getProductRawData()
+      if (response?.data) {
+        setRawProduct(response?.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch raw data:', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchProducts()
+    getRawData()
+  }, [])
+
+  console.log(data, 'form data')
+
+  const refreshList = async () => {
+    await fetchProducts()
+  }
+
+  const handleDeleteConfirmation = id => {
+    setSelectedCatId(id)
+    setOpenConfirmDialog(true)
+  }
+
+  const handleDelete = async () => {
+    try {
+      const response = await deleteProduct(selectedCatId)
+
+      if (response.success) {
+        // Remove the deleted user from the table
+        refreshList()
+      } else {
+        toast.error(response.message || 'Failed to delete.')
+      }
+      setOpenConfirmDialog(false) // Close the dialog after deletion
+    } catch (error) {
+      console.error('Error deleting team member:', error)
+      setOpenConfirmDialog(false) // Close the dialog on error as well
+    }
+  }
+
+  const handleEdit = id => {
+    router.push(`/${locale}/admin/ecommerce/products/${id}`) // Adjust the path as per your routing
+  }
 
   const columns = useMemo(
     () => [
-      {
-        id: 'select',
-        header: ({ table }) => (
-          <Checkbox
-            {...{
-              checked: table.getIsAllRowsSelected(),
-              indeterminate: table.getIsSomeRowsSelected(),
-              onChange: table.getToggleAllRowsSelectedHandler()
-            }}
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            {...{
-              checked: row.getIsSelected(),
-              disabled: !row.getCanSelect(),
-              indeterminate: row.getIsSomeSelected(),
-              onChange: row.getToggleSelectedHandler()
-            }}
-          />
-        )
-      },
-      columnHelper.accessor('productName', {
-        header: 'Product',
+      // {
+      //   id: 'select',
+      //   header: ({ table }) => (
+      //     <Checkbox
+      //       {...{
+      //         checked: table.getIsAllRowsSelected(),
+      //         indeterminate: table.getIsSomeRowsSelected(),
+      //         onChange: table.getToggleAllRowsSelectedHandler()
+      //       }}
+      //     />
+      //   ),
+      //   cell: ({ row }) => (
+      //     <Checkbox
+      //       {...{
+      //         checked: row.getIsSelected(),
+      //         disabled: !row.getCanSelect(),
+      //         indeterminate: row.getIsSomeSelected(),
+      //         onChange: row.getToggleSelectedHandler()
+      //       }}
+      //     />
+      //   )
+      // },
+      columnHelper.accessor('name', {
+        header: 'Name',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
             <img src={row.original.image} width={38} height={38} className='rounded bg-actionHover' />
             <div className='flex flex-col'>
               <Typography className='font-medium' color='text.primary'>
-                {row.original.productName}
+                {row.original.name}
               </Typography>
-              <Typography variant='body2'>{row.original.productBrand}</Typography>
+              <Typography variant='body2'>{'Short description goes here'}</Typography>
             </div>
           </div>
         )
       }),
-      columnHelper.accessor('category', {
+      columnHelper.accessor('supplier', {
+        header: 'Supplier',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-4'>
+            {/* <CustomAvatar skin='light' color={productCategoryObj[row.original.category]?.color} size={30}>
+              <i className={classnames(productCategoryObj[row.original.category]?.icon, 'text-lg')} />
+            </CustomAvatar> */}
+            <Typography color='text.primary'>{row.original?.supplier?.companyName}</Typography>
+          </div>
+        )
+      }),
+      columnHelper.accessor('categories', {
         header: 'Category',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
-            <CustomAvatar skin='light' color={productCategoryObj[row.original.category].color} size={30}>
-              <i className={classnames(productCategoryObj[row.original.category].icon, 'text-lg')} />
-            </CustomAvatar>
-            <Typography color='text.primary'>{row.original.category}</Typography>
+            {/* <CustomAvatar skin='light' color={productCategoryObj[row.original.category]?.color} size={30}>
+              <i className={classnames(productCategoryObj[row.original.category]?.icon, 'text-lg')} />
+            </CustomAvatar> */}
+            <Typography color='text.primary'>{row.original?.categories?.map(ele => ele?.name).join(', ')}</Typography>
           </div>
         )
-      }),
-      columnHelper.accessor('stock', {
-        header: 'Stock',
-        cell: ({ row }) => <Switch defaultChecked={row.original.stock} />,
-        enableSorting: false
       }),
       columnHelper.accessor('sku', {
         header: 'SKU',
-        cell: ({ row }) => <Typography>{row.original.sku}</Typography>
+        cell: ({ row }) => <Typography>{row.original?.sku}</Typography>
       }),
-      columnHelper.accessor('price', {
-        header: 'Price',
-        cell: ({ row }) => <Typography>{row.original.price}</Typography>
-      }),
-      columnHelper.accessor('qty', {
+      // columnHelper.accessor('price', {
+      //   header: 'Price',
+      //   cell: ({ row }) => <Typography>{row.original?.defaultPrice}</Typography>
+      // }),
+      columnHelper.accessor('totalQuantity', {
         header: 'QTY',
-        cell: ({ row }) => <Typography>{row.original.qty}</Typography>
+        cell: ({ row }) => <Typography>{row.original.totalQuantity}</Typography>
       }),
       columnHelper.accessor('status', {
         header: 'Status',
-        cell: ({ row }) => (
-          <Chip
-            label={productStatusObj[row.original.status].title}
-            variant='tonal'
-            color={productStatusObj[row.original.status].color}
-            size='small'
-          />
-        )
+        cell: ({ row }) => {
+          const status = row.original.status
+          const isPublished = status === 1
+
+          return (
+            <Chip
+              label={isPublished ? 'Publish' : 'Draft'}
+              color={isPublished ? 'success' : 'default'}
+              variant='tonal'
+              size='small'
+            />
+          )
+        }
       }),
+
       columnHelper.accessor('actions', {
         header: 'Actions',
-        cell: ({ row }) => (
-          <div className='flex items-center'>
-            <IconButton size='small'>
-              <i className='ri-edit-box-line text-[22px] text-textSecondary' />
-            </IconButton>
-            <OptionMenu
-              iconButtonProps={{ size: 'medium' }}
-              iconClassName='text-textSecondary text-[22px]'
-              options={[
-                { text: 'Download', icon: 'ri-download-line', menuItemProps: { className: 'gap-2' } },
-                {
-                  text: 'Delete',
-                  icon: 'ri-delete-bin-7-line',
-                  menuItemProps: {
-                    className: 'gap-2',
-                    onClick: () => setData(data?.filter(product => product.id !== row.original.id))
-                  }
-                },
-                { text: 'Duplicate', icon: 'ri-stack-line', menuItemProps: { className: 'gap-2' } }
-              ]}
-            />
-          </div>
-        ),
+        cell: ({ row }) => {
+          const currentStatus = row.original.status
+
+          const handleStatusToggle = async () => {
+            const newStatus = currentStatus === 1 ? 0 : 1
+            const response = await updateStatus(row.original.id, 'status', { status: newStatus })
+            refreshList()
+          }
+
+          return (
+            <div className='flex items-center'>
+              {/* Edit button */}
+              <IconButton size='small' onClick={() => handleEdit(row.original.id)}>
+                <i className='ri-edit-box-line text-[22px] text-textSecondary' />
+              </IconButton>
+
+              {/* Delete button */}
+              <IconButton size='small' onClick={() => handleDeleteConfirmation(row.original.id)}>
+                <i className='ri-delete-bin-line text-[22px] text-red-500' />
+              </IconButton>
+
+              {/* Status toggle button */}
+              <IconButton onClick={handleStatusToggle}>
+                {currentStatus === 1 ? (
+                  <i className='ri-eye-line text-textSecondary' title='Set Inactive' />
+                ) : (
+                  <i className='ri-eye-off-line text-textSecondary' title='Set Active' />
+                )}
+              </IconButton>
+            </div>
+          )
+        },
+
         enableSorting: false
       })
     ],
@@ -218,39 +338,41 @@ const ProductListTable = ({ productData }) => {
   )
 
   const table = useReactTable({
-    data: filteredData,
-    columns,
-    filterFns: {
-      fuzzy: fuzzyFilter
-    },
-    state: {
-      rowSelection,
-      globalFilter
-    },
-    initialState: {
-      pagination: {
-        pageSize: 10
-      }
-    },
-    enableRowSelection: true, //enable row selection for all rows
-    // enableRowSelection: row => row.original.age > 18, // or enable row selection conditionally per row
-    globalFilterFn: fuzzyFilter,
-    onRowSelectionChange: setRowSelection,
-    getCoreRowModel: getCoreRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues()
-  })
+      data,
+      columns,
+      state: {
+        rowSelection,
+        globalFilter
+      },
+      filterFns: {
+        fuzzy: fuzzyFilter
+      },
+      getCoreRowModel: getCoreRowModel(),
+      onGlobalFilterChange: setGlobalFilter,
+      globalFilterFn: fuzzyFilter,
+      getFilteredRowModel: getFilteredRowModel(),
+      getSortedRowModel: getSortedRowModel(),
+      getPaginationRowModel: getPaginationRowModel(),
+      getFacetedRowModel: getFacetedRowModel(),
+      getFacetedUniqueValues: getFacetedUniqueValues(),
+      getFacetedMinMaxValues: getFacetedMinMaxValues(),
+      onRowSelectionChange: setRowSelection
+    });
+
+
+  const handleChangePage = (event, newPage) => setPage(newPage);
+  const handleChangeRowsPerPage = event => {
+    table.setPageSize(parseInt(event.target.value))
+		setRowsPerPage(parseInt(event.target.value, 10));
+		setPage(0);
+	};
+
 
   return (
     <>
       <Card>
         <CardHeader title='Filters' className='pbe-4' />
-        <TableFilters setData={setFilteredData} productData={data} />
+        <TableFilters setFilters={setFilteredData} rawProductData={rawProduct} />
         <Divider />
         <div className='flex justify-between flex-col items-start sm:flex-row sm:items-center gap-y-4 p-5'>
           <DebouncedInput
@@ -271,7 +393,7 @@ const ProductListTable = ({ productData }) => {
             <Button
               variant='contained'
               component={Link}
-              href={getLocalizedUrl('/apps/ecommerce/products/add', locale)}
+              href={getLocalizedUrl('/admin/ecommerce/products/add', locale)}
               startIcon={<i className='ri-add-line' />}
               className='max-sm:is-full is-auto'
             >
@@ -312,7 +434,7 @@ const ProductListTable = ({ productData }) => {
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    No data available
+                    No data available {table.getFilteredRowModel().rows.length}
                   </td>
                 </tr>
               </tbody>
@@ -334,19 +456,32 @@ const ProductListTable = ({ productData }) => {
             )}
           </table>
         </div>
+
         <TablePagination
-          rowsPerPageOptions={[10, 25, 50]}
           component='div'
-          className='border-bs'
-          count={table.getFilteredRowModel().rows.length}
-          rowsPerPage={table.getState().pagination.pageSize}
-          page={table.getState().pagination.pageIndex}
-          onPageChange={(_, page) => {
-            table.setPageIndex(page)
-          }}
-          onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
+          count={totalRecords}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[1, 10, 20, 50]}
         />
       </Card>
+
+      <Dialog open={openConfirmDialog} onClose={() => setOpenConfirmDialog(false)}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this team member?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenConfirmDialog(false)} color='primary'>
+            Cancel
+          </Button>
+          <Button onClick={handleDelete} color='secondary'>
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   )
 }

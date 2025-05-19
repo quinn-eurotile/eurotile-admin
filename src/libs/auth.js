@@ -40,8 +40,15 @@ export const authOptions = {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({ email, password })
+<<<<<<< HEAD
           });
           const data = await res.json();
+=======
+          })
+
+          const data = await res.json()
+
+>>>>>>> af287bfff46962993535c01566a1c5e3411f1e2b
           if (res.status === 401) {
             console.log(data, 'data');
 

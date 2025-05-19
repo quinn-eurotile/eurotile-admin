@@ -8,20 +8,22 @@ import Grid from '@mui/material/Grid2'
 import Button from '@mui/material/Button'
 
 // Component Imports
-import ProductAddHeader from '@views/apps/ecommerce/products/add/ProductAddHeader'
-import ProductInformation from '@views/apps/ecommerce/products/add/ProductInformation'
-import ProductImage from '@views/apps/ecommerce/products/add/ProductImage'
-import ProductVariants from '@views/apps/ecommerce/products/add/ProductVariants'
-import ProductInventory from '@views/apps/ecommerce/products/add/ProductInventory'
-import ProductPricing from '@views/apps/ecommerce/products/add/ProductPricing'
-import ProductOrganize from '@views/apps/ecommerce/products/add/ProductOrganize'
+
 import ProductFeaturedImage from './ProductFeaturedImage';
 import { useEffect, useState } from 'react';
 import { createProduct, getProductRawData } from '@/app/server/actions';
 import { generateSku, generateSlug } from '@/components/common/helper';
+import { useParams, useRouter } from 'next/navigation';
+import ProductVariants from './ProductVariants';
+import ProductOrganize from './ProductOrganize';
+import ProductAddHeader from './ProductAddHeader';
+import ProductInformation from './ProductInformation';
+import ProductImage from './ProductImage';
 
 const AddProduct = () => {
   const formMethods = useForm()
+  const router = useRouter()
+  const { lang: locale } = useParams()
 
   const { handleSubmit } = formMethods
    const [rawProduct, setRawProduct] = useState([])
@@ -43,13 +45,17 @@ const AddProduct = () => {
   }, [])
 
 const onSubmit = async (data) => {
-  console.log(data,'datadatadata')
+  console.log(data,'.........................')
   // Generate slug and SKU
-  const slug = generateSlug(data.name);
+  const slug = generateSlug(data?.name);
   const sku = generateSku();
 
   // Create a new FormData instance
   const formData = new FormData();
+
+  // Append slug and sku as strings
+  formData.append('slug', slug);
+  formData.append('sku', sku);
 
   // Append all fields except files first
   for (const key in data) {
@@ -62,10 +68,6 @@ const onSubmit = async (data) => {
       }
     }
   }
-
-  // Append slug and sku as strings
-  formData.append('slug', slug);
-  formData.append('sku', sku);
 
   // Append productFeaturedImage file if exists
   if (data.productFeaturedImage && data.productFeaturedImage.file) {
@@ -84,6 +86,9 @@ const onSubmit = async (data) => {
 
   // Call the API with FormData (make sure API accepts multipart/form-data)
   const response = await createProduct(formData);
+  if(response.success){
+     router.push(`/${locale}/admin/ecommerce/products/list`)
+  }
 
   console.log(response, 'response from createProduct');
 };

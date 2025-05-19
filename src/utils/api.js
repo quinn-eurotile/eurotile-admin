@@ -1,7 +1,8 @@
-import { authOptions } from "@/libs/auth";
 import axios from "axios";
 import { getServerSession } from "next-auth";
 import { getSession } from "next-auth/react";
+
+import { authOptions } from "@/libs/auth";
 
 // Base API URL
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -10,7 +11,9 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const getCommonHeaders = async () => {
   //const session = await getSession();
   const session = await getServerSession(authOptions);
-  return {
+
+  
+return {
     "Content-Type": "application/json",
     authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
   };
@@ -26,6 +29,7 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {}, sho
 
     const RESOURCE_URL = API_BASE_URL;
     const REQUEST_URL = RESOURCE_URL + endpoint;
+
     console.log(REQUEST_URL,'REQUEST_URLREQUEST_URL')
     console.log(data,'bodydata..........................')
 
@@ -41,6 +45,7 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {}, sho
     if (method == 'DELETE') {
       delete config.data;
     }
+
     const response = await axios(config);
 
     return {

@@ -38,6 +38,7 @@ const TableFilters = ({ setFilters }) => {
               <MenuItem value=''>Select Status</MenuItem>
               <MenuItem value='1'>Active</MenuItem>
               <MenuItem value='0'>Inactive</MenuItem>
+              <MenuItem value='2'>Pending</MenuItem>
             </Select>
           </FormControl>
         </Grid>

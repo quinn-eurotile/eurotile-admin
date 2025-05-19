@@ -1,4 +1,4 @@
-import AddProduct from "@/views/apps/ecommerce/products/add";
+import AddProduct from "@/views/admin/ecommerce/products/add";
 
 
 const eCommerceProductsAdd = () => {

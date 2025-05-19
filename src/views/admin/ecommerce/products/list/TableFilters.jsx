@@ -8,6 +8,8 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
+import { Controller, useForm } from 'react-hook-form'
+import { Autocomplete, TextField } from '@mui/material'
 
 // Vars
 const productStockObj = {
@@ -15,27 +17,43 @@ const productStockObj = {
   'Out of Stock': false
 }
 
-const TableFilters = ({ setData, productData }) => {
-  // States
-  const [category, setCategory] = useState('')
+const TableFilters = ({ setFilters, rawProductData }) => {
   const [stock, setStock] = useState('')
   const [status, setStatus] = useState('')
+  const [categories, setCategories] = useState([])
+  const [categoryList, setCategoryList] = useState([])
 
-  useEffect(
-    () => {
-      const filteredData = productData?.filter(product => {
-        if (category && product.category !== category) return false
-        if (stock && product.stock !== productStockObj[stock]) return false
-        if (status && product.status !== status) return false
+  useEffect(() => {
+    setFilters({
+      status: status,
+      categories: categories,
+      stockStatus: stock
+    })
+  }, [categories, stock, status, setFilters])
 
-        return true
-      })
+  useEffect(() => {
+    if (rawProductData?.nestedCategories && Array.isArray(rawProductData.nestedCategories)) {
+      setCategoryList(rawProductData.nestedCategories)
+    }
+  }, [rawProductData])
 
-      setData(filteredData ?? [])
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [category, stock, status, productData]
-  )
+  console.log(categoryList, 'categoryListcategoryList')
+
+  function flattenCategories(categories, parent = '', level = 0) {
+    return categories.flatMap(cat => {
+      const current = {
+        id: cat._id,
+        title: cat.name,
+        fullPath: parent ? `${parent} > ${cat.name}` : cat.name,
+        level
+      }
+      const children = cat.children ? flattenCategories(cat.children, current.fullPath, level + 1) : []
+      return [current, ...children]
+    })
+  }
+
+  const flatOptions = flattenCategories(categoryList)
+  const selectedOptions = flatOptions.filter(opt => categories.includes(opt.id))
 
   return (
     <CardContent>
@@ -52,14 +70,13 @@ const TableFilters = ({ setData, productData }) => {
               labelId='status-select'
             >
               <MenuItem value=''>Select Status</MenuItem>
-              <MenuItem value='Scheduled'>Scheduled</MenuItem>
-              <MenuItem value='Published'>Publish</MenuItem>
-              <MenuItem value='Inactive'>Inactive</MenuItem>
+              <MenuItem value={1}>Publish</MenuItem>
+              <MenuItem value={0}>Draft</MenuItem>
             </Select>
           </FormControl>
         </Grid>
         <Grid size={{ xs: 12, sm: 4 }}>
-          <FormControl fullWidth>
+          {/* <FormControl fullWidth>
             <InputLabel id='category-select'>Category</InputLabel>
             <Select
               fullWidth
@@ -77,6 +94,22 @@ const TableFilters = ({ setData, productData }) => {
               <MenuItem value='Office'>Office</MenuItem>
               <MenuItem value='Games'>Games</MenuItem>
             </Select>
+          </FormControl> */}
+
+          <FormControl fullWidth>
+            <Autocomplete
+              multiple
+              options={flatOptions}
+              getOptionLabel={option => option.fullPath}
+              groupBy={option => option.fullPath.split(' > ')[0]}
+              value={selectedOptions}
+              onChange={(_, selectedOptions) => {
+                const selectedIds = selectedOptions.map(opt => opt.id)
+                setCategories(selectedIds)
+              }}
+              renderInput={params => <TextField {...params} label='Select Category' />}
+              sx={{ width: 400 }}
+            />
           </FormControl>
         </Grid>
         <Grid size={{ xs: 12, sm: 4 }}>
@@ -91,8 +124,8 @@ const TableFilters = ({ setData, productData }) => {
               labelId='stock-select'
             >
               <MenuItem value=''>Select Stock</MenuItem>
-              <MenuItem value='In Stock'>In Stock</MenuItem>
-              <MenuItem value='Out of Stock'>Out of Stock</MenuItem>
+              <MenuItem value='in_stock'>In Stock</MenuItem>
+              <MenuItem value='out_of_stock'>Out of Stock</MenuItem>
             </Select>
           </FormControl>
         </Grid>
