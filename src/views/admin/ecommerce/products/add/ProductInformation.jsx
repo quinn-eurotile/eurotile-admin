@@ -20,14 +20,13 @@ import { TextAlign } from '@tiptap/extension-text-align'
 // Components
 import CustomIconButton from '@core/components/mui/IconButton'
 import '@/libs/styles/tiptapEditor.css'
+import { TextareaAutosize } from '@mui/material'
 
 const EditorToolbar = ({ editor }) => {
   if (!editor) return null
 
   return (
-    <div className='flex flex-wrap gap-x-3 gap-y-1 pbs-5 pbe-4 pli-5'>
-      {/* ...Toolbar Buttons Same As Before... */}
-    </div>
+    <div className='flex flex-wrap gap-x-3 gap-y-1 pbs-5 pbe-4 pli-5'>{/* ...Toolbar Buttons Same As Before... */}</div>
   )
 }
 
@@ -49,7 +48,7 @@ const ProductInformation = () => {
       <CardContent>
         <Grid container spacing={5} className='mbe-5'>
           <Grid size={{ xs: 12 }}>
-            <TextField fullWidth label='Product Name' placeholder='iPhone 14' {...register('productName')} />
+            <TextField fullWidth label='Product Name' placeholder='Product Name' {...register('name')} />
           </Grid>
           {/* <Grid size={{ xs: 12, sm: 6 }}>
             <TextField fullWidth label='SKU' placeholder='FXSK123U' {...register('sku')} />
@@ -59,13 +58,21 @@ const ProductInformation = () => {
           </Grid> */}
         </Grid>
         <Typography className='mbe-1'>Description (Optional)</Typography>
-        <Card className='p-0 border shadow-none'>
           <CardContent className='p-0'>
-            <EditorToolbar editor={editor} />
+            <TextField
+              fullWidth
+              label='Product Description'
+              placeholder='Enter product description'
+              multiline // enable multiple lines
+              rows={4} // show 4 rows by default
+              // register under the camelCase key 'productDescription'
+              {...register('productDescription')}
+              sx={{ mt: 2 }} // add top margin for spacing
+            />
+            {/* <EditorToolbar editor={editor} />
             <Divider className='mli-5' />
-            <EditorContent editor={editor} className='bs-[135px] overflow-y-auto flex' />
+            <EditorContent editor={editor} className='bs-[135px] overflow-y-auto flex' /> */}
           </CardContent>
-        </Card>
       </CardContent>
     </Card>
   )

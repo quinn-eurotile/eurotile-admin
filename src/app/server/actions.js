@@ -18,6 +18,7 @@ import { db as statisticsData } from '@/fake-db/pages/widgetExamples'
 import { tradeProfessionalService } from '@/services/trade-professionals';
 import { productRawDataServices } from '@/services/product-raw-data';
 import { productServices } from '@/services/product';
+import { productAttributeList } from '@/services/productAttribute';
 
 export const getEcommerceData = async () => {
   return eCommerceData
@@ -79,7 +80,7 @@ export const getProductRawData = async () => {
 }
 
 export const getProductList = async (currentPage, rowsPerPage, searchTerm, filteredData) => {
-     return await productServices.get(currentPage, rowsPerPage, searchTerm, filteredData);
+     return await productAttributeList.get(currentPage, rowsPerPage, searchTerm, filteredData);
 }
 
 export const createProduct = async (data) => {
