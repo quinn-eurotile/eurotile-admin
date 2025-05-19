@@ -1,28 +1,28 @@
-'use client'
+'use client';
 
 // React Imports
-import { useEffect, useMemo, useState } from 'react'
-
+import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 // Next Imports
-import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
 
 // MUI Imports
-import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
-import Button from '@mui/material/Button'
-import Chip from '@mui/material/Chip'
-import Checkbox from '@mui/material/Checkbox'
-import Divider from '@mui/material/Divider'
-import IconButton from '@mui/material/IconButton'
-import Switch from '@mui/material/Switch'
-import TablePagination from '@mui/material/TablePagination'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import Checkbox from '@mui/material/Checkbox';
+import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
+import Switch from '@mui/material/Switch';
+import TablePagination from '@mui/material/TablePagination';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 
 // Third-party Imports
-import classnames from 'classnames'
-import { rankItem } from '@tanstack/match-sorter-utils'
+import classnames from 'classnames';
+import { rankItem } from '@tanstack/match-sorter-utils';
 import {
   createColumnHelper,
   flexRender,
@@ -34,56 +34,56 @@ import {
   getFacetedMinMaxValues,
   getPaginationRowModel,
   getSortedRowModel
-} from '@tanstack/react-table'
+} from '@tanstack/react-table';
 
 // Component Imports
-import TableFilters from './TableFilters'
-import CustomAvatar from '@core/components/mui/Avatar'
-import OptionMenu from '@core/components/option-menu'
+import TableFilters from './TableFilters';
+import CustomAvatar from '@core/components/mui/Avatar';
+import OptionMenu from '@core/components/option-menu';
 
 // Util Imports
-import { getLocalizedUrl } from '@/utils/i18n'
+import { getLocalizedUrl } from '@/utils/i18n';
 
 // Style Imports
-import tableStyles from '@core/styles/table.module.css'
-import { deleteProduct, getProductList, getProductRawData, updateStatus } from '@/app/server/actions'
-import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
-import { useDispatch } from 'react-redux'
-import { callCommonAction } from '@/redux-store/slices/common'
-import { toast } from 'react-toastify'
-import { Router } from 'next/router'
+import tableStyles from '@core/styles/table.module.css';
+import { deleteProduct, getProductList, getProductRawData, updateStatus } from '@/app/server/actions';
+import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { useDispatch } from 'react-redux';
+import { callCommonAction } from '@/redux-store/slices/common';
+import { toast } from 'react-toastify';
+import { Router } from 'next/router';
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value)
+  const itemRank = rankItem(row.getValue(columnId), value);
 
   // Store the itemRank info
   addMeta({
     itemRank
-  })
+  });
 
   // Return if the item should be filtered in/out
-  return itemRank.passed
-}
+  return itemRank.passed;
+};
 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
   // States
-  const [value, setValue] = useState(initialValue)
+  const [value, setValue] = useState(initialValue);
 
   useEffect(() => {
-    setValue(initialValue)
-  }, [initialValue])
+    setValue(initialValue);
+  }, [initialValue]);
   useEffect(() => {
     const timeout = setTimeout(() => {
-      onChange(value)
-    }, debounce)
+      onChange(value);
+    }, debounce);
 
-    return () => clearTimeout(timeout)
+    return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
+  }, [value]);
 
-  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
-}
+  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />;
+};
 
 // Vars
 const productCategoryObj = {
@@ -93,41 +93,43 @@ const productCategoryObj = {
   Shoes: { icon: 'ri-footprint-line', color: 'success' },
   Office: { icon: 'ri-briefcase-line', color: 'warning' },
   Games: { icon: 'ri-gamepad-line', color: 'secondary' }
-}
+};
 
 const productStatusObj = {
   Scheduled: { title: 'Scheduled', color: 'warning' },
   Published: { title: 'Publish', color: 'success' },
   Inactive: { title: 'Inactive', color: 'error' }
-}
+};
 
 // Column Definitions
-const columnHelper = createColumnHelper()
+const columnHelper = createColumnHelper();
 
 const ProductListTable = () => {
-  const router = useRouter()
+  const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
+  const router = useRouter();
   // States
-  const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState([])
-  const [filteredData, setFilteredData] = useState({})
-  const [globalFilter, setGlobalFilter] = useState(null)
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [totalRecords, setTotalRecords] = useState(0)
-  const [selectedCatId, setSelectedCatId] = useState(null)
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false) // State for dialog
-  const [search, setSearch] = useState('')
-  const [rawProduct, setRawProduct] = useState([])
+  const [rowSelection, setRowSelection] = useState({});
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState({});
+  const [globalFilter, setGlobalFilter] = useState(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [selectedCatId, setSelectedCatId] = useState(null);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false); // State for dialog
+  const [search, setSearch] = useState('');
+  const [rawProduct, setRawProduct] = useState([]);
 
   // Hooks
-  const { lang: locale } = useParams()
-  const dispatch = useDispatch()
+  const { lang: locale } = useParams();
+  const dispatch = useDispatch();
 
   const fetchProducts = async (currentPage = 1, searchTerm = '') => {
     try {
-      dispatch(callCommonAction({ loading: true }))
-      const response = await getProductList(currentPage, rowsPerPage, searchTerm, filteredData)
-      dispatch(callCommonAction({ loading: false }))
+      dispatch(callCommonAction({ loading: true }));
+      const response = await getProductList(currentPage, rowsPerPage, searchTerm, filteredData);
+      console.log('response data', response);
+      dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
         const formatted = response?.data?.docs?.map(product => ({
           id: product?._id,
@@ -137,74 +139,74 @@ const ProductListTable = () => {
           totalQuantity: product?.totalQuantity,
           sku: product?.sku,
           status: product?.status,
-          avatar: '',
+          avatar: product?.featuredImage?.filePath,
           username: product?.name.split(' ')[0]
-        }))
+        }));
 
-        setPage(page)
-        setData(formatted)
-        setTotalRecords(response.data.totalDocs || 0)
+        setPage(page);
+        setData(formatted);
+        setTotalRecords(response.data.totalDocs || 0);
       }
     } catch (error) {
-      dispatch(callCommonAction({ loading: false }))
-      console.error('Failed to fetch team members', error)
+      dispatch(callCommonAction({ loading: false }));
+      console.error('Failed to fetch team members', error);
     }
-  }
+  };
 
-    useEffect(() => {
-      if (!filteredData || filteredData.length === 0) return
-      fetchProducts(page + 1, search, filteredData);
-    }, [page, rowsPerPage, search, filteredData]);
+  useEffect(() => {
+    if (!filteredData || filteredData.length === 0) return;
+    fetchProducts(page + 1, search, filteredData);
+  }, [page, rowsPerPage, search, filteredData]);
 
 
 
   const getRawData = async () => {
     try {
-      const response = await getProductRawData()
+      const response = await getProductRawData();
       if (response?.data) {
-        setRawProduct(response?.data)
+        setRawProduct(response?.data);
       }
     } catch (error) {
-      console.error('Failed to fetch raw data:', error)
+      console.error('Failed to fetch raw data:', error);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchProducts()
-    getRawData()
-  }, [])
+    fetchProducts();
+    getRawData();
+  }, []);
 
-  console.log(data, 'form data')
+  console.log(data, 'form data');
 
   const refreshList = async () => {
-    await fetchProducts()
-  }
+    await fetchProducts();
+  };
 
   const handleDeleteConfirmation = id => {
-    setSelectedCatId(id)
-    setOpenConfirmDialog(true)
-  }
+    setSelectedCatId(id);
+    setOpenConfirmDialog(true);
+  };
 
   const handleDelete = async () => {
     try {
-      const response = await deleteProduct(selectedCatId)
+      const response = await deleteProduct(selectedCatId);
 
       if (response.success) {
         // Remove the deleted user from the table
-        refreshList()
+        refreshList();
       } else {
-        toast.error(response.message || 'Failed to delete.')
+        toast.error(response.message || 'Failed to delete.');
       }
-      setOpenConfirmDialog(false) // Close the dialog after deletion
+      setOpenConfirmDialog(false); // Close the dialog after deletion
     } catch (error) {
-      console.error('Error deleting team member:', error)
-      setOpenConfirmDialog(false) // Close the dialog on error as well
+      console.error('Error deleting team member:', error);
+      setOpenConfirmDialog(false); // Close the dialog on error as well
     }
-  }
+  };
 
   const handleEdit = id => {
-    router.push(`/${locale}/admin/ecommerce/products/${id}`) // Adjust the path as per your routing
-  }
+    router.push(`/${locale}/admin/ecommerce/products/${id}`); // Adjust the path as per your routing
+  };
 
   const columns = useMemo(
     () => [
@@ -234,7 +236,8 @@ const ProductListTable = () => {
         header: 'Name',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
-            <img src={row.original.image} width={38} height={38} className='rounded bg-actionHover' />
+            {console.log('NEXT_PUBLIC_BACKEND_DOMAIN', `${NEXT_PUBLIC_BACKEND_DOMAIN}${row.original.avatar}`)}
+            <Image src={`${NEXT_PUBLIC_BACKEND_DOMAIN}${row?.original?.avatar}`} width={38} height={38} alt="Picture of the author" />
             <div className='flex flex-col'>
               <Typography className='font-medium' color='text.primary'>
                 {row.original.name}
@@ -281,8 +284,8 @@ const ProductListTable = () => {
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => {
-          const status = row.original.status
-          const isPublished = status === 1
+          const status = row.original.status;
+          const isPublished = status === 1;
 
           return (
             <Chip
@@ -291,20 +294,20 @@ const ProductListTable = () => {
               variant='tonal'
               size='small'
             />
-          )
+          );
         }
       }),
 
       columnHelper.accessor('actions', {
         header: 'Actions',
         cell: ({ row }) => {
-          const currentStatus = row.original.status
+          const currentStatus = row.original.status;
 
           const handleStatusToggle = async () => {
-            const newStatus = currentStatus === 1 ? 0 : 1
-            const response = await updateStatus(row.original.id, 'status', { status: newStatus })
-            refreshList()
-          }
+            const newStatus = currentStatus === 1 ? 0 : 1;
+            const response = await updateStatus(row.original.id, 'status', { status: newStatus });
+            refreshList();
+          };
 
           return (
             <div className='flex items-center'>
@@ -327,7 +330,7 @@ const ProductListTable = () => {
                 )}
               </IconButton>
             </div>
-          )
+          );
         },
 
         enableSorting: false
@@ -335,37 +338,37 @@ const ProductListTable = () => {
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, filteredData]
-  )
+  );
 
   const table = useReactTable({
-      data,
-      columns,
-      state: {
-        rowSelection,
-        globalFilter
-      },
-      filterFns: {
-        fuzzy: fuzzyFilter
-      },
-      getCoreRowModel: getCoreRowModel(),
-      onGlobalFilterChange: setGlobalFilter,
-      globalFilterFn: fuzzyFilter,
-      getFilteredRowModel: getFilteredRowModel(),
-      getSortedRowModel: getSortedRowModel(),
-      getPaginationRowModel: getPaginationRowModel(),
-      getFacetedRowModel: getFacetedRowModel(),
-      getFacetedUniqueValues: getFacetedUniqueValues(),
-      getFacetedMinMaxValues: getFacetedMinMaxValues(),
-      onRowSelectionChange: setRowSelection
-    });
+    data,
+    columns,
+    state: {
+      rowSelection,
+      globalFilter
+    },
+    filterFns: {
+      fuzzy: fuzzyFilter
+    },
+    getCoreRowModel: getCoreRowModel(),
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: fuzzyFilter,
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFacetedMinMaxValues: getFacetedMinMaxValues(),
+    onRowSelectionChange: setRowSelection
+  });
 
 
   const handleChangePage = (event, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = event => {
-    table.setPageSize(parseInt(event.target.value))
-		setRowsPerPage(parseInt(event.target.value, 10));
-		setPage(0);
-	};
+    table.setPageSize(parseInt(event.target.value));
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
 
   return (
@@ -450,7 +453,7 @@ const ProductListTable = () => {
                           <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                         ))}
                       </tr>
-                    )
+                    );
                   })}
               </tbody>
             )}
@@ -483,7 +486,7 @@ const ProductListTable = () => {
         </DialogActions>
       </Dialog>
     </>
-  )
-}
+  );
+};
 
-export default ProductListTable
+export default ProductListTable;
