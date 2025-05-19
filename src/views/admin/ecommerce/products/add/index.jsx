@@ -30,7 +30,7 @@ const AddProduct = () => {
   const [productSuppliers, setProductSuppliers] = useState([])
   const [attributeVariations, setAttributeVariations] = useState([])
   const [productVariations, setProductVariations] = useState([])
-  console.log(productVariations,'productVariationsproductVariations')
+  console.log(productVariations, 'productVariationsproductVariations')
 
   useEffect(() => {
     getRawData()
@@ -99,7 +99,7 @@ const AddProduct = () => {
 
         // Prepare full form values object
         const formValues = {
-          _id:product._id,
+          _id: product._id,
           externalId: product.externalId || '',
           sku: product.sku || '',
           name: product.name || '',
@@ -122,7 +122,7 @@ const AddProduct = () => {
           updatedAt: product.updatedAt || null
         }
 
-        console.log(formValues,'formValuesformValues')
+        console.log(formValues, 'formValuesformValues')
 
         setAttributeVariations(attributeVariationIds)
         setProductVariations(productVariations)
@@ -166,18 +166,16 @@ const AddProduct = () => {
     }
 
     // Append productFeaturedImage file if exists
-    if (data.productFeaturedImage && data.productFeaturedImage.file) {
-      // Assuming your file object is in productFeaturedImage.file
-      formData.append('productFeaturedImage', data.productFeaturedImage.file)
+    if (data.productFeaturedImage instanceof File) {
+      formData.append('productFeaturedImage', data.productFeaturedImage)
+    } else {
+      formData.append('productFeaturedImage', [])
     }
 
-    // Append multiple productImages files if exist
-    if (Array.isArray(data.productImages)) {
-      data.productImages.forEach((img, index) => {
-        if (img.file) {
-          formData.append('productImages[]', img.file) // name as array
-        }
-      })
+    if (data.variationImage instanceof File) {
+      formData.append('variationImage', data.variationImage)
+    } else {
+      formData.append('variationImage', [])
     }
 
     // Call the API with FormData (make sure API accepts multipart/form-data)
