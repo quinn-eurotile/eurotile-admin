@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   Box,
   Tabs,
@@ -24,43 +24,51 @@ import {
   ListItem,
   IconButton
 } from '@mui/material'
-import { useFormContext, Controller } from 'react-hook-form'
+import { useFormContext, Controller, useWatch } from 'react-hook-form'
 import Grid from '@mui/material/Grid2'
 import Dropzone, { useDropzone } from 'react-dropzone'
 import CustomAvatar from '@/@core/components/mui/Avatar'
 
 // Helper to generate Cartesian product variations based on selected attribute values
-function generateVariations(selectedAttributeValues) {
+function generateVariations(selectedAttributeValues, existingVariations = []) {
   const arrays = Object.values(selectedAttributeValues)
   if (arrays.length === 0 || arrays.some(arr => arr.length === 0)) {
     return []
   }
+
   const cartesian = arr => arr.reduce((a, b) => a.flatMap(d => b.map(e => [...d, e])), [[]])
   const combinations = cartesian(arrays)
+
   return combinations.map(combo => {
     const variation = {}
     Object.keys(selectedAttributeValues).forEach((attr, index) => {
       variation[attr] = combo[index]
     })
-    // Add default fields to each variation
+
+    // Try to find a matching existing variation to retain the id
+    const matchedExisting = existingVariations.find(existing => {
+      return Object.keys(variation).every(
+        key => existing[key] === variation[key]
+      )
+    })
+
     return {
       ...variation,
-      description: '',
-      stockStatus: 'in_stock',
-      stockQuantity: 0,
-      allowBackorders: false,
-      weight: 0,
-      dimensions: { length: 0, width: 0, height: 0 },
-      regularPrice: 0,
-      salePrice: 0,
-      purchasedPrice: 0,
-      customImageUrl: '',
-      image: ''
-      // shippingClass: '',
-      // taxClass: ''
+      _id: matchedExisting?._id || undefined, // Retain ID if available
+      description: matchedExisting?.description || '',
+      stockStatus: matchedExisting?.stockStatus || 'in_stock',
+      stockQuantity: matchedExisting?.stockQuantity || 0,
+      allowBackorders: matchedExisting?.allowBackorders || false,
+      weight: matchedExisting?.weight || 0,
+      dimensions: matchedExisting?.dimensions || { length: 0, width: 0, height: 0 },
+      regularPrice: matchedExisting?.regularPrice || 0,
+      salePrice: matchedExisting?.salePrice || 0,
+      purchasedPrice: matchedExisting?.purchasedPrice || 0,
+      customImageUrl: matchedExisting?.customImageUrl || ''
     }
   })
 }
+
 
 export default function ProductVariants({ productAttributes, defaultAttributeVariations, defaultProductVariations }) {
   const hasAttributes = productAttributes && productAttributes.length > 0
@@ -68,7 +76,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
   const [selectedAttributes, setSelectedAttributes] = useState([])
   const [selectedAttributeValues, setSelectedAttributeValues] = useState({})
   const [allAttributes, setAllAttributes] = useState({})
-  const { control, watch, reset, setValue } = useFormContext()
+  const { control, watch, reset, setValue, getValues } = useFormContext()
 
   useEffect(() => {
     // Step 0: Guard clause — only run when all required data is available
@@ -81,13 +89,6 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
       defaultProductVariations.length > 0
 
     if (!isReady || !hasAttributes) return
-
-    // Debug
-    console.log('All data ready:', {
-      productAttributes,
-      defaultAttributeVariations,
-      defaultProductVariations
-    })
 
     // Step 1: Build attribute selection map based on defaultAttributeVariations
     const attributeValueMap = {}
@@ -127,6 +128,53 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
     setValue('productVariations', defaultProductVariations, { shouldValidate: true })
   }, [hasAttributes, productAttributes, defaultAttributeVariations, defaultProductVariations, setValue])
 
+  const initialProductVariationsRef = useRef([])
+
+  // State to track removed variations for submission
+  const [removedProductVariations, setRemovedProductVariations] = useState([])
+  console.log(removedProductVariations,'removedProductVariationsremovedProductVariations');
+
+
+  // Watch current variations and selected attributes
+  const productVariations = useWatch({ control, name: 'productVariations' }) || []
+  const watchedSelectedAttributeValues = useWatch({ control, name: 'selectedAttributeValues' }) || []
+
+  // On first render, capture initial variations for comparison
+  useEffect(() => {
+    if (defaultProductVariations.length && initialProductVariationsRef.current.length === 0) {
+      initialProductVariationsRef.current = [...defaultProductVariations]
+    }
+  }, [defaultProductVariations])
+
+  // Detect removed variations and update selected attributes accordingly
+  useEffect(() => {
+    const currentVariationKeys = productVariations?.map(variation =>
+      variation?.attributes
+        ?.map(attr => attr.metaValue)
+        .sort()
+        .join('-')
+    )
+
+    const removed = initialProductVariationsRef?.current?.filter(initialVariation => {
+      const key = initialVariation?.attributes
+        ?.map(attr => attr.metaValue)
+        .sort()
+        .join('-')
+      return !currentVariationKeys.includes(key)
+    })
+
+    if (removed.length) {
+      setRemovedProductVariations(removed)
+
+      // Remove attribute values associated with removed variations
+      const removedValues = new Set(removed?.flatMap(variation => variation?.attributes?.map(attr => attr.metaValue)))
+
+      const filteredAttributeValues = watchedSelectedAttributeValues?.filter(value => !removedValues.has(value))
+
+      setValue('selectedAttributeValues', filteredAttributeValues)
+    }
+  }, [productVariations])
+
   useEffect(() => {
     if (productAttributes && productAttributes.length > 0) {
       const attributesMap = {}
@@ -158,11 +206,13 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
   }, [selectedAttributes])
 
   // When selectedAttributeValues changes, generate new variations and update form
-  useEffect(() => {
-    const newVariations = generateVariations(selectedAttributeValues)
-    // Update variations in form context
-    setValue('productVariations', newVariations, { shouldValidate: true })
-  }, [selectedAttributeValues, setValue])
+useEffect(() => {
+  console.log(defaultProductVariations,'defaultProductVariationsdefaultProductVariations')
+  const newVariations = generateVariations(selectedAttributeValues, defaultProductVariations)
+  console.log(newVariations,'newVariationsnewVariations')
+  setValue('productVariations', newVariations, { shouldValidate: true })
+}, [selectedAttributeValues, setValue])
+
 
   useEffect(() => {
     // Collect matched variation IDs based on selected attribute values
@@ -209,6 +259,23 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
       [attributeName]: values
     }))
   }
+
+  const [removedVariationIds, setRemovedVariationIds] = useState([])
+
+  const handleRemoveVariation = removeIndex => {
+    const currentVariations = getValues('productVariations')
+    const variationToRemove = currentVariations[removeIndex]
+
+    // Save removed ID only if it exists (edit mode)
+    if (variationToRemove.id) {
+      setRemovedVariationIds(prev => [...prev, variationToRemove.id])
+    }
+
+    const updatedVariations = currentVariations.filter((_, i) => i !== removeIndex)
+    setValue('productVariations', updatedVariations)
+  }
+
+  console.log(variations,'variationsvariations')
 
   return (
     <Card>
@@ -305,6 +372,11 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
 
               {variations.map((variation, index) => (
                 <Box key={index} sx={{ mb: 4, border: '1px solid #ddd', borderRadius: 1, p: 2 }}>
+                  <Box sx={{}}>
+                    <IconButton onClick={() => handleRemoveVariation(index)}>
+                      <i className='ri-delete-bin-line text-xl text-red-600' />
+                    </IconButton>
+                  </Box>
                   <Typography variant='subtitle1' gutterBottom>
                     {selectedAttributes
                       .map(attr => `${attr.charAt(0).toUpperCase() + attr.slice(1)}: ${variation[attr]}`)

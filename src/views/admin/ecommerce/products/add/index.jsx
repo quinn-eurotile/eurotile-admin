@@ -50,6 +50,7 @@ const AddProduct = () => {
   const fetchProductDetails = async () => {
     try {
       const response = await getProductDetails(productId)
+      console.log(response,'responseresponsedfdfdfdfd')
 
       if (response?.success && response?.data) {
         const product = response.data
@@ -68,6 +69,7 @@ const AddProduct = () => {
         // Map productVariations array (assuming you want full objects)
         const productVariations = Array.isArray(product.productVariations)
           ? product.productVariations.map(variation => ({
+              _id:variation?._id,
               description: variation.description || '',
               stockStatus: variation.stockStatus || '',
               stockQuantity: variation.stockQuantity || 0,
@@ -214,9 +216,9 @@ const AddProduct = () => {
                   defaultProductVariations={productVariations}
                 />
               </Grid>
-              <Grid size={{ xs: 12 }}>
+              {/* <Grid size={{ xs: 12 }}>
                 <ProductImage />
-              </Grid>
+              </Grid> */}
 
               {/* <Grid size={{ xs: 12 }}>
                 <ProductInventory />
