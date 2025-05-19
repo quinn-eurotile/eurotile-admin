@@ -68,6 +68,9 @@ function generateVariations(selectedAttributeValues, existingVariations = []) {
 }
 
 export default function ProductVariants({ productAttributes, defaultAttributeVariations, defaultProductVariations }) {
+
+  console.log(defaultProductVariations,'defaultProductVariationsdefaultProductVariations')
+
   const hasAttributes = productAttributes && productAttributes.length > 0
   const [tabIndex, setTabIndex] = useState(0)
   const [selectedAttributes, setSelectedAttributes] = useState([])
@@ -129,7 +132,6 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
 
   // State to track removed variations for submission
   const [removedProductVariations, setRemovedProductVariations] = useState([])
-  console.log(removedProductVariations, 'removedProductVariationsremovedProductVariations')
 
   // Watch current variations and selected attributes
   const productVariations = useWatch({ control, name: 'productVariations' }) || []
@@ -159,10 +161,8 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
       return !currentVariationKeys.includes(key)
     })
 
-    console.log(removed, 'removedremovedremoved')
 
     if (removed.length) {
-      console.log('removed', removed, removed?._id)
       const ids = removed.map(ele => ele?._id)
       setRemovedProductVariations(ids)
 
@@ -207,9 +207,8 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
 
   // When selectedAttributeValues changes, generate new variations and update form
   useEffect(() => {
-    console.log(defaultProductVariations, 'defaultProductVariationsdefaultProductVariations')
     const newVariations = generateVariations(selectedAttributeValues, defaultProductVariations)
-    console.log(newVariations, 'newVariationsnewVariations')
+    console.log(newVariations,'newVariations')
     setValue('productVariations', newVariations, { shouldValidate: true })
   }, [selectedAttributeValues, setValue])
 
@@ -273,8 +272,6 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
     const updatedVariations = currentVariations.filter((_, i) => i !== removeIndex)
     setValue('productVariations', updatedVariations)
   }
-
-  console.log(variations, 'variationsvariations')
 
   return (
     <Card>
@@ -482,7 +479,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       </Card>
                     </Grid>
 
-                    <Grid xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <Controller
                         name={`productVariations.${index}.stockStatus`}
                         control={control}
