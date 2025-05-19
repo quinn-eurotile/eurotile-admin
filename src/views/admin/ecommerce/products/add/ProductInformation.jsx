@@ -31,7 +31,7 @@ const EditorToolbar = ({ editor }) => {
 }
 
 const ProductInformation = () => {
- const { control } = useFormContext()
+  const { control } = useFormContext()
 
   const editor = useEditor({
     extensions: [
@@ -52,12 +52,15 @@ const ProductInformation = () => {
               name='name'
               control={control}
               defaultValue='' // default value needed to avoid uncontrolled warnings
-              render={({ field }) => (
+              rules={{ required: 'Product name is required' }}
+              render={({ field, fieldState: { error } }) => (
                 <TextField
                   {...field}
                   fullWidth
                   label='Product Name'
                   placeholder='Product Name'
+                  error={!!error}
+                  helperText={error?.message}
                 />
               )}
             />
@@ -70,12 +73,13 @@ const ProductInformation = () => {
           </Grid> */}
         </Grid>
         <Typography className='mbe-1'>Description (Optional)</Typography>
-          <CardContent className='p-0'>
-            <Controller
+        <CardContent className='p-0'>
+          <Controller
             name='productDescription'
             control={control}
             defaultValue=''
-            render={({ field }) => (
+            rules={{ required: 'Product Description is required' }}
+            render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
                 fullWidth
@@ -84,13 +88,15 @@ const ProductInformation = () => {
                 multiline
                 rows={4}
                 sx={{ mt: 2 }}
+                error={!!error}
+                helperText={error?.message}
               />
             )}
           />
-            {/* <EditorToolbar editor={editor} />
+          {/* <EditorToolbar editor={editor} />
             <Divider className='mli-5' />
             <EditorContent editor={editor} className='bs-[135px] overflow-y-auto flex' /> */}
-          </CardContent>
+        </CardContent>
       </CardContent>
     </Card>
   )

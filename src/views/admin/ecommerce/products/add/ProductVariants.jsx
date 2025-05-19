@@ -47,9 +47,7 @@ function generateVariations(selectedAttributeValues, existingVariations = []) {
 
     // Try to find a matching existing variation to retain the id
     const matchedExisting = existingVariations.find(existing => {
-      return Object.keys(variation).every(
-        key => existing[key] === variation[key]
-      )
+      return Object.keys(variation).every(key => existing[key] === variation[key])
     })
 
     return {
@@ -69,14 +67,13 @@ function generateVariations(selectedAttributeValues, existingVariations = []) {
   })
 }
 
-
 export default function ProductVariants({ productAttributes, defaultAttributeVariations, defaultProductVariations }) {
   const hasAttributes = productAttributes && productAttributes.length > 0
   const [tabIndex, setTabIndex] = useState(0)
   const [selectedAttributes, setSelectedAttributes] = useState([])
   const [selectedAttributeValues, setSelectedAttributeValues] = useState({})
   const [allAttributes, setAllAttributes] = useState({})
-  const { control, watch, reset, setValue, getValues } = useFormContext()
+  const { control, watch, reset, setValue, getValues, isSubmitted } = useFormContext()
 
   useEffect(() => {
     // Step 0: Guard clause — only run when all required data is available
@@ -132,8 +129,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
 
   // State to track removed variations for submission
   const [removedProductVariations, setRemovedProductVariations] = useState([])
-  console.log(removedProductVariations,'removedProductVariationsremovedProductVariations');
-
+  console.log(removedProductVariations, 'removedProductVariationsremovedProductVariations')
 
   // Watch current variations and selected attributes
   const productVariations = useWatch({ control, name: 'productVariations' }) || []
@@ -163,8 +159,12 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
       return !currentVariationKeys.includes(key)
     })
 
+    console.log(removed, 'removedremovedremoved')
+
     if (removed.length) {
-      setRemovedProductVariations(removed)
+      console.log('removed', removed, removed?._id)
+      const ids = removed.map(ele => ele?._id)
+      setRemovedProductVariations(ids)
 
       // Remove attribute values associated with removed variations
       const removedValues = new Set(removed?.flatMap(variation => variation?.attributes?.map(attr => attr.metaValue)))
@@ -206,13 +206,12 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
   }, [selectedAttributes])
 
   // When selectedAttributeValues changes, generate new variations and update form
-useEffect(() => {
-  console.log(defaultProductVariations,'defaultProductVariationsdefaultProductVariations')
-  const newVariations = generateVariations(selectedAttributeValues, defaultProductVariations)
-  console.log(newVariations,'newVariationsnewVariations')
-  setValue('productVariations', newVariations, { shouldValidate: true })
-}, [selectedAttributeValues, setValue])
-
+  useEffect(() => {
+    console.log(defaultProductVariations, 'defaultProductVariationsdefaultProductVariations')
+    const newVariations = generateVariations(selectedAttributeValues, defaultProductVariations)
+    console.log(newVariations, 'newVariationsnewVariations')
+    setValue('productVariations', newVariations, { shouldValidate: true })
+  }, [selectedAttributeValues, setValue])
 
   useEffect(() => {
     // Collect matched variation IDs based on selected attribute values
@@ -275,7 +274,7 @@ useEffect(() => {
     setValue('productVariations', updatedVariations)
   }
 
-  console.log(variations,'variationsvariations')
+  console.log(variations, 'variationsvariations')
 
   return (
     <Card>
@@ -333,31 +332,42 @@ useEffect(() => {
                     Select Attribute Values
                   </Typography>
                   <Grid container spacing={2}>
-                    {selectedAttributes.map(attributeName => (
-                      <Grid item xs={12} md={6} key={attributeName}>
-                        <FormControl sx={{ mb: 3, minWidth: 300 }} fullWidth>
-                          <InputLabel id={`${attributeName}-label`}>
-                            {attributeName.charAt(0).toUpperCase() + attributeName.slice(1)}
-                          </InputLabel>
-                          <Select
-                            fullWidth
-                            labelId={`${attributeName}-label`}
-                            multiple
-                            value={selectedAttributeValues[attributeName] || []}
-                            onChange={e => handleAttributeValuesChange(attributeName, e.target.value)}
-                            input={<OutlinedInput label={attributeName} />}
-                            renderValue={selected => selected.join(', ')}
-                          >
-                            {allAttributes[attributeName]?.map(value => (
-                              <MenuItem key={value} value={value}>
-                                <Checkbox checked={selectedAttributeValues[attributeName]?.includes(value) || false} />
-                                <ListItemText primary={value} />
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                    ))}
+                    {selectedAttributes.map(attributeName => {
+                      const valuesSelected = selectedAttributeValues[attributeName]?.length > 0
+                      // Show error only if form has been submitted and no values selected
+                      const showError = isSubmitted && !valuesSelected
+
+                      return (
+                        <Grid item xs={12} md={6} key={attributeName}>
+                          <FormControl sx={{ mb: 3, minWidth: 300 }} fullWidth error={showError} required>
+                            <InputLabel id={`${attributeName}-label`}>
+                              {attributeName.charAt(0).toUpperCase() + attributeName.slice(1)}
+                            </InputLabel>
+                            <Select
+                              fullWidth
+                              labelId={`${attributeName}-label`}
+                              multiple
+                              value={selectedAttributeValues[attributeName] || []}
+                              onChange={e => handleAttributeValuesChange(attributeName, e.target.value)}
+                              input={<OutlinedInput label={attributeName} />}
+                              renderValue={selected => selected.join(', ')}
+                            >
+                              {allAttributes[attributeName]?.map(value => (
+                                <MenuItem key={value} value={value}>
+                                  <Checkbox
+                                    checked={selectedAttributeValues[attributeName]?.includes(value) || false}
+                                  />
+                                  <ListItemText primary={value} />
+                                </MenuItem>
+                              ))}
+                            </Select>
+                            {showError && (
+                              <FormHelperText>Please select at least one value for {attributeName}.</FormHelperText>
+                            )}
+                          </FormControl>
+                        </Grid>
+                      )
+                    })}
                   </Grid>
                 </>
               )}
@@ -472,19 +482,25 @@ useEffect(() => {
                       </Card>
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 6 }}>
+                    <Grid xs={12} md={6}>
                       <Controller
                         name={`productVariations.${index}.stockStatus`}
                         control={control}
                         defaultValue={variation.stockStatus}
-                        render={({ field }) => (
-                          <FormControl fullWidth>
+                        rules={{ required: 'Stock status is required' }} // Required validation rule
+                        render={({ field, fieldState: { error } }) => (
+                          <FormControl fullWidth error={!!error}>
                             <InputLabel id={`stock-status-label-${index}`}>Stock Status</InputLabel>
                             <Select {...field} labelId={`stock-status-label-${index}`} label='Stock Status'>
                               <MenuItem value='in_stock'>In Stock</MenuItem>
                               <MenuItem value='out_of_stock'>Out of Stock</MenuItem>
                               <MenuItem value='on_backorder'>On Backorder</MenuItem>
                             </Select>
+                            {error && (
+                              <Typography variant='caption' color='error' mt={0.5}>
+                                {error.message}
+                              </Typography>
+                            )}
                           </FormControl>
                         )}
                       />
@@ -495,15 +511,20 @@ useEffect(() => {
                         name={`productVariations.${index}.stockQuantity`}
                         control={control}
                         defaultValue={variation.stockQuantity}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label='Stock Quantity'
-                            type='number'
-                            inputProps={{ min: 0 }}
-                            fullWidth
-                            variant='outlined'
-                          />
+                        rules={{ required: 'Stock Quantity is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Stock Quantity'
+                              type='number'
+                              inputProps={{ min: 0 }}
+                              fullWidth
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
                         )}
                       />
                     </Grid>
@@ -513,15 +534,20 @@ useEffect(() => {
                         name={`productVariations.${index}.regularPrice`}
                         control={control}
                         defaultValue={variation.regularPrice}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label='Regular Price'
-                            type='number'
-                            inputProps={{ step: 0.01, min: 0 }}
-                            fullWidth
-                            variant='outlined'
-                          />
+                        rules={{ required: 'Regular Price is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Regular Price'
+                              type='number'
+                              inputProps={{ step: 0.01, min: 0 }}
+                              fullWidth
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
                         )}
                       />
                     </Grid>
@@ -531,15 +557,20 @@ useEffect(() => {
                         name={`productVariations.${index}.salePrice`}
                         control={control}
                         defaultValue={variation.salePrice}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label='Sale Price'
-                            type='number'
-                            inputProps={{ step: 0.01, min: 0 }}
-                            fullWidth
-                            variant='outlined'
-                          />
+                        rules={{ required: 'Sale Price is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Sale Price'
+                              type='number'
+                              inputProps={{ step: 0.01, min: 0 }}
+                              fullWidth
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
                         )}
                       />
                     </Grid>
@@ -549,24 +580,31 @@ useEffect(() => {
                         name={`productVariations.${index}.purchasedPrice`}
                         control={control}
                         defaultValue={variation.purchasedPrice}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label='Purchased Price'
-                            type='number'
-                            inputProps={{ step: 0.01, min: 0 }}
-                            fullWidth
-                            variant='outlined'
-                          />
+                        rules={{ required: 'Purchased Price is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Purchased Price'
+                              type='number'
+                              inputProps={{ step: 0.01, min: 0 }}
+                              fullWidth
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
                         )}
                       />
                     </Grid>
+
                     <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
                       <Controller
                         name={`productVariations.${index}.allowBackorders`}
                         control={control}
                         defaultValue={variation.allowBackorders}
-                        render={({ field }) => (
+                        rules={{ required: 'Allow Backorders selection is required' }}
+                        render={({ field, fieldState: { error } }) => (
                           <>
                             <Typography>Allow Backorders</Typography>
                             <Switch
@@ -575,6 +613,11 @@ useEffect(() => {
                               onChange={e => field.onChange(e.target.checked)}
                               sx={{ ml: 1 }}
                             />
+                            {error && (
+                              <Typography variant='caption' color='error' sx={{ ml: 2 }}>
+                                {error.message}
+                              </Typography>
+                            )}
                           </>
                         )}
                       />
@@ -585,34 +628,45 @@ useEffect(() => {
                         name={`productVariations.${index}.weight`}
                         control={control}
                         defaultValue={variation.weight}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label='Weight (kg)'
-                            type='number'
-                            inputProps={{ step: 0.01, min: 0 }}
-                            fullWidth
-                            variant='outlined'
-                          />
+                        rules={{ required: 'Weight is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Weight (kg)'
+                              type='number'
+                              inputProps={{ step: 0.01, min: 0 }}
+                              fullWidth
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
                         )}
                       />
                     </Grid>
 
                     {/* Dimensions */}
+
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
                         name={`productVariations.${index}.dimensions.length`}
                         control={control}
                         defaultValue={variation.dimensions.length}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label='Length'
-                            type='number'
-                            inputProps={{ step: 0.01, min: 0 }}
-                            fullWidth
-                            variant='outlined'
-                          />
+                        rules={{ required: 'Length is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Length'
+                              type='number'
+                              inputProps={{ step: 0.01, min: 0 }}
+                              fullWidth
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
                         )}
                       />
                     </Grid>
@@ -622,15 +676,20 @@ useEffect(() => {
                         name={`productVariations.${index}.dimensions.width`}
                         control={control}
                         defaultValue={variation.dimensions.width}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label='Width'
-                            type='number'
-                            inputProps={{ step: 0.01, min: 0 }}
-                            fullWidth
-                            variant='outlined'
-                          />
+                        rules={{ required: 'Width is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Width'
+                              type='number'
+                              inputProps={{ step: 0.01, min: 0 }}
+                              fullWidth
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
                         )}
                       />
                     </Grid>
@@ -640,15 +699,20 @@ useEffect(() => {
                         name={`productVariations.${index}.dimensions.height`}
                         control={control}
                         defaultValue={variation.dimensions.height}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label='Height'
-                            type='number'
-                            inputProps={{ step: 0.01, min: 0 }}
-                            fullWidth
-                            variant='outlined'
-                          />
+                        rules={{ required: 'Height is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Height'
+                              type='number'
+                              inputProps={{ step: 0.01, min: 0 }}
+                              fullWidth
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
                         )}
                       />
                     </Grid>
@@ -658,8 +722,18 @@ useEffect(() => {
                         name={`productVariations.${index}.NumberOfTiles`}
                         control={control}
                         defaultValue={variation.NumberOfTiles}
-                        render={({ field }) => (
-                          <TextField {...field} label='Number of tiles per box' fullWidth variant='outlined' />
+                        rules={{ required: 'Number of tiles per box is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Number of tiles per box'
+                              fullWidth
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
                         )}
                       />
                     </Grid>
@@ -669,8 +743,18 @@ useEffect(() => {
                         name={`productVariations.${index}.BoxSize`}
                         control={control}
                         defaultValue={variation.BoxSize}
-                        render={({ field }) => (
-                          <TextField {...field} label='Box sizes (sqm/kg)' fullWidth variant='outlined' />
+                        rules={{ required: 'Box sizes are required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Box sizes (sqm/kg)'
+                              fullWidth
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
                         )}
                       />
                     </Grid>
@@ -680,8 +764,18 @@ useEffect(() => {
                         name={`productVariations.${index}.PalletSize`}
                         control={control}
                         defaultValue={variation.PalletSize}
-                        render={({ field }) => (
-                          <TextField {...field} label='Pallet Size (sqm/kg)' fullWidth variant='outlined' />
+                        rules={{ required: 'Pallet Size is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Pallet Size (sqm/kg)'
+                              fullWidth
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
                         )}
                       />
                     </Grid>
@@ -691,8 +785,18 @@ useEffect(() => {
                         name={`productVariations.${index}.customImageUrl`}
                         control={control}
                         defaultValue={variation.customImageUrl}
-                        render={({ field }) => (
-                          <TextField {...field} label='Custom Image URL' fullWidth variant='outlined' />
+                        rules={{ required: 'Custom Image URL is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Custom Image URL'
+                              fullWidth
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
                         )}
                       />
                     </Grid>
@@ -702,8 +806,20 @@ useEffect(() => {
                         name={`productVariations.${index}.description`}
                         control={control}
                         defaultValue={variation.description}
-                        render={({ field }) => (
-                          <TextField {...field} label='Description' multiline rows={2} fullWidth variant='outlined' />
+                        rules={{ required: 'Description is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Description'
+                              multiline
+                              rows={2}
+                              fullWidth
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
                         )}
                       />
                     </Grid>

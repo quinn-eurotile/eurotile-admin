@@ -16,7 +16,7 @@ import TextField from '@mui/material/TextField'
 // React Hook Form Imports
 import { useFormContext, Controller } from 'react-hook-form'
 
-import { Autocomplete } from '@mui/material'
+import { Autocomplete, FormHelperText } from '@mui/material'
 
 const ProductOrganize = ({ rawProductData }) => {
   // Access RHF context methods and form control
@@ -60,18 +60,28 @@ const ProductOrganize = ({ rawProductData }) => {
             name='supplier'
             control={control}
             defaultValue=''
-            render={({ field }) => (
-              <Select {...field} labelId='vendor-label' label='Select Vendor' fullWidth>
-                {vendorList.length > 0 ? (
-                  vendorList.map(vendor => (
-                    <MenuItem key={vendor._id} value={vendor._id}>
-                      {vendor.companyName}
-                    </MenuItem>
-                  ))
-                ) : (
-                  <MenuItem disabled>No vendors available</MenuItem>
-                )}
-              </Select>
+            rules={{ required: 'Supplier is required' }}
+            render={({ field, fieldState }) => (
+              <>
+                <Select
+                  {...field}
+                  labelId='vendor-label'
+                  label='Select Vendor'
+                  fullWidth
+                  error={!!fieldState.error} // Highlight error state
+                >
+                  {vendorList.length > 0 ? (
+                    vendorList.map(vendor => (
+                      <MenuItem key={vendor._id} value={vendor._id}>
+                        {vendor.companyName}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem disabled>No vendors available</MenuItem>
+                  )}
+                </Select>
+                {fieldState.error && <FormHelperText error>{fieldState.error.message}</FormHelperText>}
+              </>
             )}
           />
         </FormControl>
@@ -94,19 +104,25 @@ const ProductOrganize = ({ rawProductData }) => {
               name='categories'
               control={control}
               defaultValue={[]} // Will store: ["681221f4...", "6813576d..."]
-              render={({ field }) => (
+              rules={{ required: 'At least one category is required' }}
+              render={({ field, fieldState }) => (
                 <Autocomplete
                   multiple
                   options={flatOptions}
                   getOptionLabel={option => option.fullPath}
                   groupBy={option => option.fullPath.split(' > ')[0]}
-                  // Convert full objects to just IDs when selecting
                   onChange={(_, selectedOptions) => {
                     field.onChange(selectedOptions.map(opt => opt.id))
                   }}
-                  // Convert current ID array back to option objects for display
                   value={flatOptions.filter(opt => field.value.includes(opt.id))}
-                  renderInput={params => <TextField {...params} label='Select Category' />}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label='Select Category'
+                      error={!!fieldState.error} // MUI error state
+                      helperText={fieldState.error?.message} // Show validation message
+                    />
+                  )}
                   sx={{ width: 400 }}
                 />
               )}
