@@ -24,13 +24,10 @@ export const createApiService = (baseEndpoint, customMethods = {}) => {
       return api.get(`${baseEndpoint}`, data, false);
     },
 
-    // Create a new item
     create: async (data) => {
-      return api.post(baseEndpoint, data, {
-        'Content-Type': 'multipart/form-data',
-      },
-      );
+      return api.post(baseEndpoint, data);
     },
+
 
     // Update an item
     update: async (id, data) => {

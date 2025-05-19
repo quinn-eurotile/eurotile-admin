@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
 // React Imports
-import { useForm, FormProvider } from 'react-hook-form'
+import { useForm, FormProvider } from 'react-hook-form';
 
 // MUI Imports
-import Grid from '@mui/material/Grid2'
-import Button from '@mui/material/Button'
+import Grid from '@mui/material/Grid2';
+import Button from '@mui/material/Button';
 
 // Component Imports
 
@@ -21,77 +21,81 @@ import ProductInformation from './ProductInformation';
 import ProductImage from './ProductImage';
 
 const AddProduct = () => {
-  const formMethods = useForm()
-  const router = useRouter()
-  const { lang: locale } = useParams()
+  const formMethods = useForm();
+  const router = useRouter();
+  const { lang: locale } = useParams();
 
-  const { handleSubmit } = formMethods
-   const [rawProduct, setRawProduct] = useState([])
-   const [productSuppliers, setProductSuppliers] = useState([])
+  const { handleSubmit } = formMethods;
+  const [rawProduct, setRawProduct] = useState([]);
+  const [productSuppliers, setProductSuppliers] = useState([]);
 
   const getRawData = async () => {
     try {
-      const response = await getProductRawData()
+      const response = await getProductRawData();
       if (response?.data) {
-        setRawProduct(response?.data)
+        setRawProduct(response?.data);
       }
     } catch (error) {
-      console.error('Failed to fetch raw data:', error)
+      console.error('Failed to fetch raw data:', error);
     }
-  }
+  };
 
   useEffect(() => {
-    getRawData()
-  }, [])
+    getRawData();
+  }, []);
 
-const onSubmit = async (data) => {
-  console.log(data,'.........................')
-  // Generate slug and SKU
-  const slug = generateSlug(data?.name);
-  const sku = generateSku();
 
-  // Create a new FormData instance
-  const formData = new FormData();
 
-  // Append slug and sku as strings
-  formData.append('slug', slug);
-  formData.append('sku', sku);
+  const onSubmit = async (data) => {
+    // Generate slug and SKU
+    const slug = generateSlug(data?.name);
+    const sku = generateSku();
 
-  // Append all fields except files first
-  for (const key in data) {
-    if (!['productFeaturedImage', 'productImages'].includes(key)) {
-      // Handle arrays or objects by stringifying
-      if (Array.isArray(data[key]) || typeof data[key] === 'object') {
-        formData.append(key, JSON.stringify(data[key]));
-      } else {
-        formData.append(key, data[key]);
+    // Create a new FormData instance
+    const formData = new FormData();
+
+    // Append slug and sku as strings
+    formData.append('slug', slug);
+    formData.append('sku', sku);
+
+    // Append all fields except files first
+    for (const key in data) {
+      if (!['productFeaturedImage', 'productImages'].includes(key)) {
+        // Handle arrays or objects by stringifying
+        if (Array.isArray(data[key]) || typeof data[key] === 'object') {
+          formData.append(key, JSON.stringify(data[key]));
+        } else {
+          formData.append(key, data[key]);
+        }
       }
     }
-  }
 
-  // Append productFeaturedImage file if exists
-  if (data.productFeaturedImage && data.productFeaturedImage.file) {
-    // Assuming your file object is in productFeaturedImage.file
-    formData.append('productFeaturedImage', data.productFeaturedImage.file);
-  }
+    // Append productFeaturedImage file if exists
+    if (data.productFeaturedImage) {
+      formData.append('productFeaturedImage', data.productFeaturedImage);
+    } else {
+      formData.append('productFeaturedImage', []);
+    }
 
-  // Append multiple productImages files if exist
-  if (Array.isArray(data.productImages)) {
-    data.productImages.forEach((img, index) => {
-      if (img.file) {
-        formData.append('productImages[]', img.file); // name as array
-      }
-    });
-  }
+    // Append multiple productImages files if they exist
+    if (Array.isArray(data.productImages)) {
+      data.productImages.forEach((img) => {
+        if (img) {
+          formData.append('productImages', img); // name must be exactly 'productImages'
+        }
+      });
+    } else {
+      formData.append('productImages', []);
+    }
 
-  // Call the API with FormData (make sure API accepts multipart/form-data)
-  const response = await createProduct(formData);
-  if(response.success){
-     router.push(`/${locale}/admin/ecommerce/products/list`)
-  }
+    // Call the API with FormData (make sure API accepts multipart/form-data)
+    const response = await createProduct(formData);
+    if (response.success) {
+      //router.push(`/${locale}/admin/ecommerce/products/list`)
+    }
 
-  console.log(response, 'response from createProduct');
-};
+    console.log(response, 'response from createProduct');
+  };
 
   return (
     <FormProvider {...formMethods}>
@@ -105,8 +109,8 @@ const onSubmit = async (data) => {
               <Grid size={{ xs: 12 }}>
                 <ProductInformation />
               </Grid>
-               <Grid size={{ xs: 12 }}>
-                <ProductVariants productAttributes={rawProduct?.productAttributes}/>
+              <Grid size={{ xs: 12 }}>
+                <ProductVariants productAttributes={rawProduct?.productAttributes} />
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <ProductImage />
@@ -123,7 +127,7 @@ const onSubmit = async (data) => {
                 <ProductPricing />
               </Grid> */}
               <Grid size={{ xs: 12 }}>
-                <ProductOrganize rawProductData={rawProduct}/>
+                <ProductOrganize rawProductData={rawProduct} />
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <ProductFeaturedImage />
@@ -138,7 +142,7 @@ const onSubmit = async (data) => {
         </Grid>
       </form>
     </FormProvider>
-  )
-}
+  );
+};
 
-export default AddProduct
+export default AddProduct;

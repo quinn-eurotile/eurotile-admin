@@ -1,31 +1,31 @@
-'use client'
+'use client';
 
 // React Imports
-import React from 'react'
+import React from 'react';
 
 // MUI Imports
-import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
-import CardContent from '@mui/material/CardContent'
-import Button from '@mui/material/Button'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import { styled } from '@mui/material/styles'
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import { styled } from '@mui/material/styles';
 
 // Third-party Imports
-import { useDropzone } from 'react-dropzone'
+import { useDropzone } from 'react-dropzone';
 
 // React Hook Form Imports
-import { useFormContext } from 'react-hook-form'
+import { useFormContext } from 'react-hook-form';
 
 // Component Imports
-import Link from '@components/Link'
-import CustomAvatar from '@core/components/mui/Avatar'
+import Link from '@components/Link';
+import CustomAvatar from '@core/components/mui/Avatar';
 
 // Styled Component Imports
-import AppReactDropzone from '@/libs/styles/AppReactDropzone'
+import AppReactDropzone from '@/libs/styles/AppReactDropzone';
 
 // Styled Dropzone Wrapper
 const Dropzone = styled(AppReactDropzone)(({ theme }) => ({
@@ -39,14 +39,14 @@ const Dropzone = styled(AppReactDropzone)(({ theme }) => ({
       fontWeight: theme.typography.body1.fontWeight,
     },
   },
-}))
+}));
 
 const ProductFeaturedImage = () => {
   // React Hook Form context
-  const { setValue, watch } = useFormContext()
+  const { setValue, watch } = useFormContext();
 
   // Watch featured image file
-  const featuredImage = watch('productFeaturedImage') || null
+  const featuredImage = watch('productFeaturedImage') || null;
 
   // Handle drop
   const { getRootProps, getInputProps } = useDropzone({
@@ -54,23 +54,23 @@ const ProductFeaturedImage = () => {
     multiple: false,
     onDrop: acceptedFiles => {
       if (acceptedFiles.length > 0) {
-        const file = acceptedFiles[0]
-        setValue('productFeaturedImage', file, { shouldValidate: true, shouldDirty: true })
+        const file = acceptedFiles[0];
+        setValue('productFeaturedImage', file, { shouldValidate: true, shouldDirty: true });
       }
     }
-  })
+  });
 
   const handleRemoveFile = () => {
-    setValue('productFeaturedImage', null, { shouldValidate: true, shouldDirty: true })
-  }
+    setValue('productFeaturedImage', null, { shouldValidate: true, shouldDirty: true });
+  };
 
   const renderFilePreview = file => {
     if (file?.type?.startsWith('image')) {
-      return <img width={38} height={38} alt={file.name} src={URL.createObjectURL(file)} />
+      return <img width={38} height={38} alt={file.name} src={URL.createObjectURL(file)} />;
     } else {
-      return <i className='ri-file-text-line' />
+      return <i className='ri-file-text-line' />;
     }
-  }
+  };
 
   return (
     <Dropzone>
@@ -132,7 +132,7 @@ const ProductFeaturedImage = () => {
         </CardContent>
       </Card>
     </Dropzone>
-  )
-}
+  );
+};
 
-export default ProductFeaturedImage
+export default ProductFeaturedImage;
