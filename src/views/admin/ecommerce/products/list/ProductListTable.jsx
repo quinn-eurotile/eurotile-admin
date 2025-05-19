@@ -236,7 +236,6 @@ const ProductListTable = () => {
         header: 'Name',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
-            {console.log('NEXT_PUBLIC_BACKEND_DOMAIN', `${NEXT_PUBLIC_BACKEND_DOMAIN}${row.original.avatar}`)}
             <Image src={`${NEXT_PUBLIC_BACKEND_DOMAIN}${row?.original?.avatar}`} width={38} height={38} alt="Picture of the author" />
             <div className='flex flex-col'>
               <Typography className='font-medium' color='text.primary'>

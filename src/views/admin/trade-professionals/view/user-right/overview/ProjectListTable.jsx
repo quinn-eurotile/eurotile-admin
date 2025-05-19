@@ -1,16 +1,14 @@
-'use client'
+'use client';
 
 // React Imports
-import { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react';
 
 // MUI Imports
-import Typography from '@mui/material/Typography'
-import Button from '@mui/material/Button'
-import Card from '@mui/material/Card'
-import CustomAvatar from '@core/components/mui/Avatar'
-
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
 // Table Imports
-import classnames from 'classnames'
+import classnames from 'classnames';
 import {
   createColumnHelper,
   flexRender,
@@ -19,36 +17,36 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel
-} from '@tanstack/react-table'
+} from '@tanstack/react-table';
 
 // Style Imports
-import tableStyles from '@core/styles/table.module.css'
-import FileTypeIcon from '@/components/common/fileTypeIcon'
+import tableStyles from '@core/styles/table.module.css';
+import FileTypeIcon from '@/components/common/fileTypeIcon';
 
 // Document Status Label Mapping
 const getStatusLabel = status => {
   switch (status) {
     case 1:
-      return 'Verified'
+      return 'Verified';
     case 0:
-      return 'Unverified'
+      return 'Unverified';
     case 2:
     default:
-      return 'Pending'
+      return 'Pending';
   }
-}
+};
 
 // Column helper for typed columns
-const columnHelper = createColumnHelper()
+const columnHelper = createColumnHelper();
 
 // Main Component
 const ProjectListTable = ({ documentData }) => {
   // States
-  const [data, setData] = useState(documentData?.documents ?? [])
-  const [rowSelection, setRowSelection] = useState({})
-  const [globalFilter, setGlobalFilter] = useState('')
+  const [data, setData] = useState(documentData?.documents ?? []);
+  const [rowSelection, setRowSelection] = useState({});
+  const [globalFilter, setGlobalFilter] = useState('');
 
-  const BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN || 'http://localhost:3001'
+  const BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN || 'http://localhost:3001';
 
   // Columns definition
   const columns = useMemo(
@@ -71,7 +69,7 @@ const ProjectListTable = ({ documentData }) => {
       columnHelper.accessor('createdAt', {
         header: 'Date',
         cell: ({ row }) => {
-          const createdAt = row.original.createdAt
+          const createdAt = row.original.createdAt;
           const formattedDate = new Date(createdAt).toLocaleString('en-US', {
             year: 'numeric',
             month: 'short',
@@ -79,47 +77,47 @@ const ProjectListTable = ({ documentData }) => {
             hour: '2-digit',
             minute: '2-digit',
             hour12: true
-          })
+          });
 
-          return <Typography>{formattedDate}</Typography>
+          return <Typography>{formattedDate}</Typography>;
         }
       }),
 
       columnHelper.accessor('filePath', {
         header: 'Action',
         cell: ({ row }) => {
-          const filePath = row.original.filePath
-          const downloadUrl = `${BACKEND_DOMAIN}/${filePath}`
+          const filePath = row.original.filePath;
+          const downloadUrl = `${BACKEND_DOMAIN}/${filePath}`;
 
           // Function to handle file download with target blank
           const handleDownload = () => {
             // Create a temporary anchor element
-            const link = document.createElement('a')
-            link.href = downloadUrl
+            const link = document.createElement('a');
+            link.href = downloadUrl;
 
             // Set the download attribute with the filename
-            const fileName = filePath.split('/').pop()
-            link.setAttribute('download', fileName) // Trigger download with file name
+            const fileName = filePath.split('/').pop();
+            link.setAttribute('download', fileName); // Trigger download with file name
 
             // Open the link in a new tab (it will still download the file)
-            link.setAttribute('target', '_blank')
+            link.setAttribute('target', '_blank');
 
             // Append the link to the body, trigger the click, then remove it
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
-          }
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          };
 
           return (
             <Button size='small' variant='outlined' onClick={handleDownload}>
               View
             </Button>
-          )
+          );
         }
       })
     ],
     []
-  )
+  );
 
   // Table instance
   const table = useReactTable({
@@ -139,7 +137,7 @@ const ProjectListTable = ({ documentData }) => {
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel()
-  })
+  });
 
   return (
     <Card>
@@ -191,7 +189,7 @@ const ProjectListTable = ({ documentData }) => {
         </table>
       </div>
     </Card>
-  )
-}
+  );
+};
 
-export default ProjectListTable
+export default ProjectListTable;
