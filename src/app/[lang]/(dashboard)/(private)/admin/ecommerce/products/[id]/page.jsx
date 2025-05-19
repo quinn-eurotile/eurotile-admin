@@ -1,11 +1,11 @@
+import AddProduct from "@/views/admin/ecommerce/products/add";
 
-import AddProduct from "@/views/apps/ecommerce/products/add";
 
-const SuplierForm = async () => {
+const EditProduct = async () => {
 
   return (
       <AddProduct/>
   )
 }
 
-export default SuplierForm
+export default EditProduct

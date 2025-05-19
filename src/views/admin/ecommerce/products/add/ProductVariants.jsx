@@ -62,13 +62,77 @@ function generateVariations(selectedAttributeValues) {
   })
 }
 
-export default function ProductVariants({ productAttributes }) {
-  console.log(productAttributes, 'productAttributes')
+export default function ProductVariants({ productAttributes, defaultAttributeVariations, defaultProductVariations }) {
+
   const hasAttributes = productAttributes && productAttributes.length > 0
   const [tabIndex, setTabIndex] = useState(0)
   const [selectedAttributes, setSelectedAttributes] = useState([])
   const [selectedAttributeValues, setSelectedAttributeValues] = useState({})
   const [allAttributes, setAllAttributes] = useState({})
+   const { control, watch, reset, setValue } = useFormContext()
+
+  useEffect(() => {
+  // Step 0: Guard clause — only run when all required data is available
+  const isReady =
+    Array.isArray(productAttributes) && productAttributes.length > 0 &&
+    Array.isArray(defaultAttributeVariations) && defaultAttributeVariations.length > 0 &&
+    Array.isArray(defaultProductVariations) && defaultProductVariations.length > 0
+
+  if (!isReady || !hasAttributes) return
+
+  // Debug
+  console.log("All data ready:", {
+    productAttributes,
+    defaultAttributeVariations,
+    defaultProductVariations
+  })
+
+  // Step 1: Build attribute selection map based on defaultAttributeVariations
+  const attributeValueMap = {}
+  const selectedAttributeNames = new Set()
+
+  productAttributes.forEach(attribute => {
+    const attributeName = attribute.name.toLowerCase()
+
+    attribute.variations.forEach(variation => {
+      const variationId = variation._id
+
+      if (defaultAttributeVariations.includes(variationId)) {
+        // Format value with measurement unit if available
+        const formattedValue = variation.measurementUnit
+          ? `${variation.metaValue} ${variation.measurementUnit.name}`
+          : variation.metaValue
+
+        if (!attributeValueMap[attributeName]) {
+          attributeValueMap[attributeName] = []
+        }
+
+        if (!attributeValueMap[attributeName].includes(formattedValue)) {
+          attributeValueMap[attributeName].push(formattedValue)
+        }
+
+        selectedAttributeNames.add(attributeName)
+      }
+    })
+  })
+
+  // Step 2: Update local UI state
+  setSelectedAttributes(Array.from(selectedAttributeNames))
+  setSelectedAttributeValues(attributeValueMap)
+
+  // Step 3: Set form values using React Hook Form
+  setValue('attributeVariations', defaultAttributeVariations, { shouldValidate: true })
+  setValue('productVariations', defaultProductVariations, { shouldValidate: true })
+
+}, [
+  hasAttributes,
+  productAttributes,
+  defaultAttributeVariations,
+  defaultProductVariations,
+  setValue
+])
+
+
 
   useEffect(() => {
     if (productAttributes && productAttributes.length > 0) {
@@ -87,7 +151,7 @@ export default function ProductVariants({ productAttributes }) {
   }, [productAttributes])
 
   // Get RHF methods from context (parent form)
-  const { control, watch, reset, setValue } = useFormContext()
+
 
   // Watch variations from form context
   const variations = watch('productVariations') || []
@@ -136,6 +200,7 @@ export default function ProductVariants({ productAttributes }) {
     // Update attributeVariations in form context with array of variation IDs
     setValue('attributeVariations', matchedVariationIds, { shouldValidate: true })
   }, [selectedAttributes, selectedAttributeValues, productAttributes, setValue])
+
 
   // Disable variations tab if no attributes or any attribute has no values selected
   const isVariationsDisabled =

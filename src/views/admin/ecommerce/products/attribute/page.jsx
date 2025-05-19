@@ -233,7 +233,6 @@ const AttributeList = () => {
     try {
       dispatch(callCommonAction({ loading: true }))
       const response = await getAttributesData(currentPage, rowsPerPage, searchTerm, filteredData)
-      console.log(response, '4545454')
       dispatch(callCommonAction({ loading: false }))
       if (response.statusCode === 200 && response.data) {
         const formatted = response?.data?.docs?.map(attribute => ({

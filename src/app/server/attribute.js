@@ -1,10 +1,10 @@
 'use server'
 
 import { measurementUnit } from "@/services/measurment-units";
-import { productAttribute } from "@/services/productAttribute";
+import { productAttribute, productAttributeList } from "@/services/productAttribute";
 
 export const getAttributesData = async (currentPage, rowsPerPage, searchTerm, filteredData) => {
-     return await productAttribute.get(currentPage, rowsPerPage, searchTerm, filteredData);
+     return await productAttributeList.get(currentPage, rowsPerPage, searchTerm, filteredData);
 }
 
 export const addAttributesData = async (data) => {

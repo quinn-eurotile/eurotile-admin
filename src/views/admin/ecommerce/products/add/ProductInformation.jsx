@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
 
 // TipTap and RHF Imports
-import { useFormContext } from 'react-hook-form'
+import { Controller, useFormContext } from 'react-hook-form'
 import { useEditor, EditorContent } from '@tiptap/react'
 import { StarterKit } from '@tiptap/starter-kit'
 import { Underline } from '@tiptap/extension-underline'
@@ -31,7 +31,7 @@ const EditorToolbar = ({ editor }) => {
 }
 
 const ProductInformation = () => {
-  const { register } = useFormContext()
+ const { control } = useFormContext()
 
   const editor = useEditor({
     extensions: [
@@ -48,7 +48,19 @@ const ProductInformation = () => {
       <CardContent>
         <Grid container spacing={5} className='mbe-5'>
           <Grid size={{ xs: 12 }}>
-            <TextField fullWidth label='Product Name' placeholder='Product Name' {...register('name')} />
+            <Controller
+              name='name'
+              control={control}
+              defaultValue='' // default value needed to avoid uncontrolled warnings
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label='Product Name'
+                  placeholder='Product Name'
+                />
+              )}
+            />
           </Grid>
           {/* <Grid size={{ xs: 12, sm: 6 }}>
             <TextField fullWidth label='SKU' placeholder='FXSK123U' {...register('sku')} />
@@ -59,16 +71,22 @@ const ProductInformation = () => {
         </Grid>
         <Typography className='mbe-1'>Description (Optional)</Typography>
           <CardContent className='p-0'>
-            <TextField
-              fullWidth
-              label='Product Description'
-              placeholder='Enter product description'
-              multiline // enable multiple lines
-              rows={4} // show 4 rows by default
-              // register under the camelCase key 'productDescription'
-              {...register('productDescription')}
-              sx={{ mt: 2 }} // add top margin for spacing
-            />
+            <Controller
+            name='productDescription'
+            control={control}
+            defaultValue=''
+            render={({ field }) => (
+              <TextField
+                {...field}
+                fullWidth
+                label='Product Description'
+                placeholder='Enter product description'
+                multiline
+                rows={4}
+                sx={{ mt: 2 }}
+              />
+            )}
+          />
             {/* <EditorToolbar editor={editor} />
             <Divider className='mli-5' />
             <EditorContent editor={editor} className='bs-[135px] overflow-y-auto flex' /> */}
