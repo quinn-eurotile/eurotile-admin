@@ -405,6 +405,14 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             <MenuItem disabled>{dictionary['navigation'].disabledMenu}</MenuItem>
           </SubMenu>
         </MenuSection> */}
+        <MenuItem
+          href={`/${locale}/admin/support-tickets/list`}
+          exactMatch={false}
+          activeUrl='/admin/support-tickets/list'
+          icon={<i className="ri-store-3-line"></i>}
+        >
+          Support tickets
+        </MenuItem>
       </Menu>
       {/* <Menu
           popoutMenuOffset={{ mainAxis: 10 }}
