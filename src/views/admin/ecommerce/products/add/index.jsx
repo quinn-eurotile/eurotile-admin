@@ -1,103 +1,102 @@
-'use client'
+'use client';
 
 // React Imports
-import { useForm, FormProvider } from 'react-hook-form'
+import { useForm, FormProvider } from 'react-hook-form';
 
 // MUI Imports
-import Grid from '@mui/material/Grid2'
-import Button from '@mui/material/Button'
+import Grid from '@mui/material/Grid2';
+import Button from '@mui/material/Button';
 
 // Component Imports
 
-import ProductFeaturedImage from './ProductFeaturedImage'
-import { useEffect, useState } from 'react'
-import { createProduct, getProductDetails, getProductRawData } from '@/app/server/actions'
-import { generateSku, generateSlug } from '@/components/common/helper'
-import { useParams, useRouter } from 'next/navigation'
-import ProductVariants from './ProductVariants'
-import ProductOrganize from './ProductOrganize'
-import ProductAddHeader from './ProductAddHeader'
-import ProductInformation from './ProductInformation'
-import ProductImage from './ProductImage'
+import ProductFeaturedImage from './ProductFeaturedImage';
+import { useEffect, useState } from 'react';
+import { createProduct, getProductDetails, getProductRawData } from '@/app/server/actions';
+import { generateSku, generateSlug } from '@/components/common/helper';
+import { useParams, useRouter } from 'next/navigation';
+import ProductVariants from './ProductVariants';
+import ProductOrganize from './ProductOrganize';
+import ProductAddHeader from './ProductAddHeader';
+import ProductInformation from './ProductInformation';
 
 const AddProduct = () => {
-  const formMethods = useForm({ defaultValues: {} })
-  const router = useRouter()
-  const { lang: locale, id: productId } = useParams()
+  const formMethods = useForm({ defaultValues: {} });
+  const router = useRouter();
+  const { lang: locale, id: productId } = useParams();
 
-  const { handleSubmit, reset } = formMethods
-  const [rawProduct, setRawProduct] = useState([])
-  const [productSuppliers, setProductSuppliers] = useState([])
-  const [attributeVariations, setAttributeVariations] = useState([])
-  const [productVariations, setProductVariations] = useState([])
-  console.log(productVariations, 'productVariationsproductVariations')
+  const { handleSubmit, reset } = formMethods;
+  const [rawProduct, setRawProduct] = useState([]);
+  const [productSuppliers, setProductSuppliers] = useState([]);
+  const [attributeVariations, setAttributeVariations] = useState([]);
+  const [productVariations, setProductVariations] = useState([]);
+  console.log(productVariations, 'productVariationsproductVariations');
 
   useEffect(() => {
-    getRawData()
-  }, [])
+    getRawData();
+  }, []);
 
   const getRawData = async () => {
     try {
-      const response = await getProductRawData()
+      const response = await getProductRawData();
       if (response?.data) {
-        setRawProduct(response?.data)
+        setRawProduct(response?.data);
       }
     } catch (error) {
-      console.error('Failed to fetch raw data:', error)
+      console.error('Failed to fetch raw data:', error);
     }
-  }
+  };
 
   const fetchProductDetails = async () => {
     try {
-      const response = await getProductDetails(productId)
-      console.log(response,'responseresponsedfdfdfdfd')
+      const response = await getProductDetails(productId);
+      console.log(response, 'responseresponsedfdfdfdfd');
 
       if (response?.success && response?.data) {
-        const product = response.data
+        const product = response.data;
 
         // Map supplier object to supplier ID string (or empty string)
-        const supplierId = product.supplier?._id || ''
+        const supplierId = product.supplier?._id || '';
 
         // Map categories array of objects to array of IDs
-        const categoryIds = Array.isArray(product.categories) ? product.categories.map(category => category._id) : []
+        const categoryIds = Array.isArray(product.categories) ? product.categories.map(category => category._id) : [];
 
         // Map attributeVariations array of objects to array of IDs
         const attributeVariationIds = Array.isArray(product.attributeVariations)
           ? product.attributeVariations.map(attr => attr._id)
-          : []
+          : [];
 
         // Map productVariations array (assuming you want full objects)
         const productVariations = Array.isArray(product.productVariations)
           ? product.productVariations.map(variation => ({
-              _id:variation?._id,
-              description: variation.description || '',
-              stockStatus: variation.stockStatus || '',
-              stockQuantity: variation.stockQuantity || 0,
-              allowBackorders: variation.allowBackorders || false,
-              weight: variation.weight || 0,
-              dimensions: {
-                length: variation.dimensions?.length || 0,
-                width: variation.dimensions?.width || 0,
-                height: variation.dimensions?.height || 0
-              },
-              regularPrice: variation.regularPrice || 0,
-              salePrice: variation.salePrice || 0,
-              purchasedPrice: variation.purchasedPrice || 0,
-              customImageUrl: variation.customImageUrl || '',
-              image: variation.image || '',
-              shippingClass: variation.shippingClass || '',
-              taxClass: variation.taxClass || ''
-            }))
-          : []
+            _id: variation?._id,
+            description: variation.description || '',
+            stockStatus: variation.stockStatus || '',
+            stockQuantity: variation.stockQuantity || 0,
+            allowBackorders: variation.allowBackorders || false,
+            weight: variation.weight || 0,
+            dimensions: {
+              length: variation.dimensions?.length || 0,
+              width: variation.dimensions?.width || 0,
+              height: variation.dimensions?.height || 0
+            },
+            regularPrice: variation.regularPrice || 0,
+            salePrice: variation.salePrice || 0,
+            purchasedPrice: variation.purchasedPrice || 0,
+            customImageUrl: variation.customImageUrl || '',
+            image: variation.image || '',
+            shippingClass: variation.shippingClass || '',
+            taxClass: variation.taxClass || ''
+          }))
+          : [];
 
         // Map productImages array if needed, example:
         const productImages = Array.isArray(product.productImages)
           ? product.productImages.map(image => ({
-              // Map as per your form expects
-              id: image._id || '',
-              url: image.url || '' // Assuming your image object has url property
-            }))
-          : []
+            // Map as per your form expects
+            id: image._id || '',
+            url: image.url || '' // Assuming your image object has url property
+          }))
+          : [];
 
         // Prepare full form values object
         const formValues = {
@@ -122,57 +121,55 @@ const AddProduct = () => {
           updatedBy: product.updatedBy || null,
           createdAt: product.createdAt || null,
           updatedAt: product.updatedAt || null
-        }
+        };
 
-        console.log(formValues, 'formValuesformValues')
 
-        setAttributeVariations(attributeVariationIds)
-        setProductVariations(productVariations)
+        setAttributeVariations(attributeVariationIds);
+        setProductVariations(productVariations);
 
         // Reset the form with fetched and mapped values
-        reset(formValues)
+        reset(formValues);
       }
     } catch (error) {
-      console.error('Failed to fetch product details:', error)
+      console.error('Failed to fetch product details:', error);
     }
-  }
+  };
 
   useEffect(() => {
     if (productId) {
-      fetchProductDetails()
+      fetchProductDetails();
     }
-  }, [productId])
+  }, [productId]);
 
   const onSubmit = async data => {
-    console.log(data, '0000000000000000000000000000000000')
     // Generate slug and SKU
-    const slug = generateSlug(data?.name)
-    const sku = generateSku()
+    const slug = generateSlug(data?.name);
+    const sku = generateSku();
 
     // Create a new FormData instance
-    const formData = new FormData()
+    const formData = new FormData();
 
     // Append slug and sku as strings
-    formData.append('slug', slug)
-    formData.append('sku', sku)
+    formData.append('slug', slug);
+    formData.append('sku', sku);
 
     // Append all fields except files first
     for (const key in data) {
       if (!['productFeaturedImage'].includes(key)) {
         // Handle arrays or objects by stringifying
         if (Array.isArray(data[key]) || typeof data[key] === 'object') {
-          formData.append(key, JSON.stringify(data[key]))
+          formData.append(key, JSON.stringify(data[key]));
         } else {
-          formData.append(key, data[key])
+          formData.append(key, data[key]);
         }
       }
     }
 
     // Append productFeaturedImage file if exists
     if (data.productFeaturedImage instanceof File) {
-      formData.append('productFeaturedImage', data.productFeaturedImage)
+      formData.append('productFeaturedImage', data.productFeaturedImage);
     } else {
-      formData.append('productFeaturedImage', [])
+      formData.append('productFeaturedImage', []);
     }
 
     data?.productVariations?.forEach((variation, index) => {
@@ -180,22 +177,22 @@ const AddProduct = () => {
       if (Array.isArray(variation.variationImages)) {
         variation.variationImages.forEach((imageFile) => {
           if (imageFile instanceof File) {
-            formData.append(`variationImages`, imageFile)
+            formData.append(`variationImages`, imageFile);
           }
-        })
+        });
       } else {
-        formData.append('variationImages', [])
+        formData.append('variationImages', []);
       }
-    })
+    });
 
     // Call the API with FormData (make sure API accepts multipart/form-data)
-    const response = await createProduct(formData)
+    const response = await createProduct(formData);
     if (response.success) {
-      router.push(`/${locale}/admin/ecommerce/products/list`)
+      router.push(`/${locale}/admin/ecommerce/products/list`);
     }
 
-    console.log(response, 'response from createProduct')
-  }
+    console.log(response, 'response from createProduct');
+  };
 
   return (
     <FormProvider {...formMethods}>
@@ -246,7 +243,7 @@ const AddProduct = () => {
         </Grid>
       </form>
     </FormProvider>
-  )
-}
+  );
+};
 
-export default AddProduct
+export default AddProduct;
