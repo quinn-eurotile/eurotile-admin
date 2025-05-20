@@ -41,6 +41,9 @@ import Button from '@mui/material/Button';
 import tableStyles from '@core/styles/table.module.css';
 import { deleteProductVariation } from '@/app/server/productVariation';
 import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { toast } from 'react-toastify';
+import ProductVariationView from './ProductVariationView';
+
 export const paymentStatus = {
   1: { text: 'Paid', color: 'success' },
   2: { text: 'Pending', color: 'warning' },
@@ -92,11 +95,13 @@ const columnHelper = createColumnHelper();
 const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) => {
   const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
   const [rowSelection, setRowSelection] = useState({});
-  const [data, setData] = useState(...[productData?.productVariations]);
+  const [data, setData] = useState(productData?.productVariations || []);
   const [globalFilter, setGlobalFilter] = useState('');
   const { lang: locale } = useParams();
   const [selectedId, setSelectedId] = useState(null);
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false); // State for dialog
+  const [openVariationDialog, setOpenVariationDialog] = useState(false);
+  const [selectedVariation, setSelectedVariation] = useState(null);
 
 
   const handleDeleteConfirmation = id => {
@@ -129,13 +134,13 @@ const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) =
             <Image src={`${NEXT_PUBLIC_BACKEND_DOMAIN}${row?.original?.variationImages[0].filePath}`} width={38} height={38} alt="Picture of the author" />
             <div className='flex flex-col'>
               <Typography className='font-medium' color='text.primary'>
-                {row?.original?.product?.name} {row?.original?.id}
+                {row?.original?.product?.name}
               </Typography>
               <Typography variant='body2'>{row.original?.description}</Typography>
             </div>
           </div>
         )
-      }), ,
+      }),
       columnHelper.accessor('regularPrice', {
         header: 'Price',
         cell: ({ row }) => <Typography>${parseFloat(row.original?.regularPrice).toFixed(2)}</Typography>
@@ -166,14 +171,20 @@ const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) =
                 {
                   text: 'View',
                   icon: 'ri-eye-line',
-                  href: getLocalizedUrl(`/apps/ecommerce/orders/details/${row.original.order}`, locale),
-                  linkProps: { className: 'flex items-center gap-2 is-full plb-1.5 pli-4' }
+                  menuItemProps: {
+                    onClick: () => {
+                      setSelectedVariation(row.original);
+                      setOpenVariationDialog(true);
+                    },
+                    className: 'gap-2'
+                  }
                 },
+
                 {
                   text: 'Delete',
                   icon: 'ri-delete-bin-7-line text-[22px]',
                   menuItemProps: {
-                    onClick: () => handleDeleteConfirmation(row.original._id),
+                    onClick: () => handleDeleteConfirmation(row.original.id),
                     className: 'gap-2'
                   }
                 }
@@ -307,6 +318,23 @@ const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) =
           <Button onClick={handleDelete} color='secondary'>
             Confirm
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openVariationDialog}
+        onClose={() => setOpenVariationDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Product Variation View</DialogTitle>
+        <DialogContent dividers>
+          {selectedVariation && (
+            <ProductVariationView variation={selectedVariation} />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenVariationDialog(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </Card>

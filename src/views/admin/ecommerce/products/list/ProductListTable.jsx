@@ -38,8 +38,6 @@ import {
 
 // Component Imports
 import TableFilters from './TableFilters';
-import CustomAvatar from '@core/components/mui/Avatar';
-import OptionMenu from '@core/components/option-menu';
 
 // Util Imports
 import { getLocalizedUrl } from '@/utils/i18n';
