@@ -86,6 +86,10 @@ export const createProduct = async (data) => {
      return await productServices.create(data);
 }
 
+export const updateProduct = async (id, data) => {
+     return await productServices.update(id ,data);
+}
+
 export const deleteProduct = async (id) => {
      return await productServices.delete(id);
 }

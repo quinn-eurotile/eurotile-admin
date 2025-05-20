@@ -106,6 +106,7 @@ const columnHelper = createColumnHelper();
 
 const ProductListTable = () => {
   const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
+  console.log(NEXT_PUBLIC_BACKEND_DOMAIN,'NEXT_PUBLIC_BACKEND_DOMAIN')
   const router = useRouter();
   // States
   const [rowSelection, setRowSelection] = useState({});
@@ -236,7 +237,7 @@ const ProductListTable = () => {
         header: 'Name',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
-            <Image src={`${NEXT_PUBLIC_BACKEND_DOMAIN}${row?.original?.avatar}`} width={38} height={38} alt="Picture of the author" />
+            {/* <Image src={`${NEXT_PUBLIC_BACKEND_DOMAIN}${row?.original?.avatar}`} width={38} height={38} alt="Picture of the author" /> */}
             <div className='flex flex-col'>
               <Typography className='font-medium' color='text.primary'>
                 {row.original.name}

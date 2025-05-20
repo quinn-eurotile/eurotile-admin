@@ -1,102 +1,128 @@
-'use client';
+'use client'
 
 // React Imports
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form'
 
 // MUI Imports
-import Grid from '@mui/material/Grid2';
-import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid2'
 
 // Component Imports
 
-import ProductFeaturedImage from './ProductFeaturedImage';
-import { useEffect, useState } from 'react';
-import { createProduct, getProductDetails, getProductRawData } from '@/app/server/actions';
-import { generateSku, generateSlug } from '@/components/common/helper';
-import { useParams, useRouter } from 'next/navigation';
-import ProductVariants from './ProductVariants';
-import ProductOrganize from './ProductOrganize';
-import ProductAddHeader from './ProductAddHeader';
-import ProductInformation from './ProductInformation';
+import ProductFeaturedImage from './ProductFeaturedImage'
+import { useEffect, useState } from 'react'
+import { createProduct, getProductDetails, getProductRawData, updateProduct } from '@/app/server/actions'
+import { generateSku, generateSlug } from '@/components/common/helper'
+import { useParams, useRouter } from 'next/navigation'
+import ProductVariants from './ProductVariants'
+import ProductOrganize from './ProductOrganize'
+import ProductAddHeader from './ProductAddHeader'
+import ProductInformation from './ProductInformation'
 
 const AddProduct = () => {
-  const formMethods = useForm({ defaultValues: {} });
-  const router = useRouter();
-  const { lang: locale, id: productId } = useParams();
+  const router = useRouter()
+  const { lang: locale, id: productId } = useParams()
 
-  const { handleSubmit, reset } = formMethods;
-  const [rawProduct, setRawProduct] = useState([]);
-  const [productSuppliers, setProductSuppliers] = useState([]);
-  const [attributeVariations, setAttributeVariations] = useState([]);
-  const [productVariations, setProductVariations] = useState([]);
-  console.log(productVariations, 'productVariationsproductVariations');
+  const [rawProduct, setRawProduct] = useState([])
+  const [productSuppliers, setProductSuppliers] = useState([])
+  const [attributeVariations, setAttributeVariations] = useState([])
+  const [productVariations, setProductVariations] = useState([])
+
+  const defaultValues = {
+    productVariations: productVariations || []
+  }
+  const formMethods = useForm({ defaultValues })
+  const { handleSubmit, reset } = formMethods
 
   useEffect(() => {
-    getRawData();
-  }, []);
+    getRawData()
+  }, [])
 
   const getRawData = async () => {
     try {
-      const response = await getProductRawData();
+      const response = await getProductRawData()
       if (response?.data) {
-        setRawProduct(response?.data);
+        setRawProduct(response?.data)
       }
     } catch (error) {
-      console.error('Failed to fetch raw data:', error);
+      console.error('Failed to fetch raw data:', error)
     }
-  };
+  }
 
   const fetchProductDetails = async () => {
     try {
-      const response = await getProductDetails(productId);
-      console.log(response, 'responseresponsedfdfdfdfd');
+      const response = await getProductDetails(productId)
 
       if (response?.success && response?.data) {
-        const product = response.data;
+        const product = response.data
 
         // Map supplier object to supplier ID string (or empty string)
-        const supplierId = product.supplier?._id || '';
+        const supplierId = product.supplier?._id || ''
 
         // Map categories array of objects to array of IDs
-        const categoryIds = Array.isArray(product.categories) ? product.categories.map(category => category._id) : [];
+        const categoryIds = Array.isArray(product.categories) ? product.categories.map(category => category._id) : []
 
         // Map attributeVariations array of objects to array of IDs
         const attributeVariationIds = Array.isArray(product.attributeVariations)
           ? product.attributeVariations.map(attr => attr._id)
-          : [];
+          : []
 
-        // Map productVariations array (assuming you want full objects)
+        // Map productVariations array with complete data structure
         const productVariations = Array.isArray(product.productVariations)
-          ? product.productVariations.map(variation => ({
-            _id: variation?._id,
-            description: variation.description || '',
-            stockStatus: variation.stockStatus || '',
-            stockQuantity: variation.stockQuantity || 0,
-            allowBackorders: variation.allowBackorders || false,
-            weight: variation.weight || 0,
-            dimensions: {
-              length: variation.dimensions?.length || 0,
-              width: variation.dimensions?.width || 0,
-              height: variation.dimensions?.height || 0
-            },
-            regularPrice: variation.regularPrice || 0,
-            salePrice: variation.salePrice || 0,
-            purchasedPrice: variation.purchasedPrice || 0,
-            customImageUrl: variation.customImageUrl || '',
-            image: variation.image || '',
-            shippingClass: variation.shippingClass || '',
-            taxClass: variation.taxClass || ''
-          }))
-          : [];
+          ? product.productVariations.map(variation => {
+              // Extract attribute information from the product's attributeVariations
+              const attributes = product.attributeVariations.map(attr => ({
+                _id: attr._id,
+                productAttribute: attr.productAttribute,
+                metaKey: attr.metaKey,
+                metaValue: attr.metaValue,
+                measurementUnit: attr.productMeasurementUnit
+                  ? {
+                      _id: attr.productMeasurementUnit,
+                      name: '' // This will be filled if available
+                    }
+                  : null
+              }))
+
+              return {
+                _id: variation?._id,
+                description: variation.description || '',
+                stockStatus: variation.stockStatus || '',
+                stockQuantity: variation.stockQuantity || 0,
+                allowBackorders: variation.allowBackorders || false,
+                weight: variation.weight || 0,
+                dimensions: {
+                  length: variation.dimensions?.length || 0,
+                  width: variation.dimensions?.width || 0,
+                  height: variation.dimensions?.height || 0
+                },
+                regularPrice: variation.regularPrice || 0,
+                salePrice: variation.salePrice || 0,
+                purchasedPrice: variation.purchasedPrice || 0,
+                customImageUrl: variation.customImageUrl || '',
+                variationImages: variation.variationImages || [],
+                image: variation.image || '',
+                shippingClass: variation.shippingClass || '',
+                taxClass: variation.taxClass || '',
+                attributes: attributes, // Add the attributes array
+                // Add attribute key-value pairs for the UI display
+                ...product.attributeVariations.reduce((acc, attr) => {
+                  const key = attr.metaKey.toLowerCase()
+                  const value = attr.metaValue
+                  acc[key] = value
+                  return acc
+                }, {})
+              }
+            })
+          : []
 
         // Map productImages array if needed, example:
-        const productImages = Array.isArray(product.productImages)
-          ? product.productImages.map(image => ({
-            // Map as per your form expects
-            id: image._id || '',
-            url: image.url || '' // Assuming your image object has url property
-          }))
-          : [];
+        // const productImages = Array.isArray(product.productImages)
+        //   ? product.productImages.map(image => ({
+        //       // Map as per your form expects
+        //       id: image._id || '',
+        //       url: image.url || '' // Assuming your image object has url property
+        //     }))
+        //   : []
 
         // Prepare full form values object
         const formValues = {
@@ -115,84 +141,122 @@ const AddProduct = () => {
           categories: categoryIds,
           attributeVariations: attributeVariationIds,
           productVariations: productVariations,
-          productImages: productImages,
+          // productImages: productImages,
           productFeaturedImage: product.productFeaturedImage || null,
           createdBy: product.createdBy || null,
           updatedBy: product.updatedBy || null,
           createdAt: product.createdAt || null,
           updatedAt: product.updatedAt || null
-        };
+        }
 
-
-        setAttributeVariations(attributeVariationIds);
-        setProductVariations(productVariations);
+        setAttributeVariations(attributeVariationIds)
+        setProductVariations(productVariations)
 
         // Reset the form with fetched and mapped values
-        reset(formValues);
+        reset(formValues)
+        console.log('Form values set:', formValues)
+        console.log('Product variations:', productVariations)
       }
     } catch (error) {
-      console.error('Failed to fetch product details:', error);
+      console.error('Failed to fetch product details:', error)
     }
-  };
+  }
 
   useEffect(() => {
     if (productId) {
-      fetchProductDetails();
+      fetchProductDetails()
     }
-  }, [productId]);
+  }, [productId])
 
-  const onSubmit = async data => {
-    // Generate slug and SKU
-    const slug = generateSlug(data?.name);
-    const sku = generateSku();
+  const onSubmit = async formDataValues => {
+  // Check if the product featured image is an existing (non-File) image
+  const isExistingFeaturedImage =
+    formDataValues.productFeaturedImage &&
+    typeof formDataValues.productFeaturedImage === 'object' &&
+    formDataValues.productFeaturedImage._id &&
+    !(formDataValues.productFeaturedImage instanceof File)
 
-    // Create a new FormData instance
-    const formData = new FormData();
+  // If it's an existing image, set to empty so we don't re-upload it
+  if (isExistingFeaturedImage) {
+    formDataValues.productFeaturedImage = []
+  }
 
-    // Append slug and sku as strings
-    formData.append('slug', slug);
-    formData.append('sku', sku);
+  // Create a new FormData instance
+  const formData = new FormData()
 
-    // Append all fields except files first
-    for (const key in data) {
-      if (!['productFeaturedImage'].includes(key)) {
-        // Handle arrays or objects by stringifying
-        if (Array.isArray(data[key]) || typeof data[key] === 'object') {
-          formData.append(key, JSON.stringify(data[key]));
-        } else {
-          formData.append(key, data[key]);
-        }
-      }
+  // If updating an existing product, remove slug and SKU
+  if (productId) {
+    delete formDataValues.slug
+    delete formDataValues.sku
+  } else {
+    // For new products, generate slug and SKU
+    formDataValues.slug = generateSlug(formDataValues?.name)
+    formDataValues.sku = generateSku()
+  }
+
+  // Clean the product variations to remove previously saved images
+  const cleanedProductVariations = formDataValues.productVariations?.map(variation => {
+    return {
+      ...variation,
+      variationImages: variation.variationImages?.filter(image => image instanceof File)
     }
+  }) || []
 
-    // Append productFeaturedImage file if exists
-    if (data.productFeaturedImage instanceof File) {
-      formData.append('productFeaturedImage', data.productFeaturedImage);
-    } else {
-      formData.append('productFeaturedImage', []);
-    }
+  // Overwrite with cleaned variations to avoid serializing saved images
+  formDataValues.productVariations = cleanedProductVariations
 
-    data?.productVariations?.forEach((variation, index) => {
-      // Append variation images
-      if (Array.isArray(variation.variationImages)) {
-        variation.variationImages.forEach((imageFile) => {
-          if (imageFile instanceof File) {
-            formData.append(`variationImages`, imageFile);
-          }
-        });
+  // Append all fields to FormData (except productFeaturedImage, handled separately)
+  for (const fieldKey in formDataValues) {
+    if (fieldKey !== 'productFeaturedImage') {
+      const fieldValue = formDataValues[fieldKey]
+
+      // Serialize arrays and objects
+      if (Array.isArray(fieldValue) || typeof fieldValue === 'object') {
+        formData.append(fieldKey, JSON.stringify(fieldValue))
       } else {
-        formData.append('variationImages', []);
+        formData.append(fieldKey, fieldValue)
       }
-    });
-
-    // Call the API with FormData (make sure API accepts multipart/form-data)
-    const response = await createProduct(formData);
-    if (response.success) {
-      router.push(`/${locale}/admin/ecommerce/products/list`);
     }
+  }
 
-    console.log(response, 'response from createProduct');
-  };
+  // Append featured image file if new
+  if (formDataValues.productFeaturedImage instanceof File) {
+    formData.append('productFeaturedImage', formDataValues.productFeaturedImage)
+  } else {
+    formData.append('productFeaturedImage', [])
+  }
+
+  // Append each new variation image file
+  cleanedProductVariations.forEach(variation => {
+    variation.variationImages?.forEach(imageFile => {
+      if (imageFile instanceof File) {
+        formData.append('variationImages', imageFile)
+      }
+    })
+  })
+
+  // Debug output of form data
+  console.log('FormData Entries:')
+  for (const entry of formData.entries()) {
+    console.log(entry[0], entry[1])
+  }
+
+  // Call API to either update or create product
+  let response
+  if (productId) {
+    response = await updateProduct(productId, formData)
+  } else {
+    response = await createProduct(formData)
+  }
+
+  // Navigate to product list on success
+  if (response.success) {
+    router.push(`/${locale}/admin/ecommerce/products/list`)
+  }
+
+  console.log(response, 'response from createProduct')
+}
+
 
   return (
     <FormProvider {...formMethods}>
@@ -243,7 +307,7 @@ const AddProduct = () => {
         </Grid>
       </form>
     </FormProvider>
-  );
-};
+  )
+}
 
-export default AddProduct;
+export default AddProduct

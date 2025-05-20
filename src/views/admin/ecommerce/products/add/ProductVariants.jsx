@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Box,
   Tabs,
@@ -26,10 +26,10 @@ import {
 } from '@mui/material'
 import { useFormContext, Controller, useWatch } from 'react-hook-form'
 import Grid from '@mui/material/Grid2'
-import Dropzone, { useDropzone } from 'react-dropzone'
+import { useDropzone } from 'react-dropzone'
 import CustomAvatar from '@/@core/components/mui/Avatar'
+import Image from 'next/image'
 
-// Helper to generate Cartesian product variations based on selected attribute values
 function generateVariations(selectedAttributeValues, existingVariations = []) {
   const arrays = Object.values(selectedAttributeValues)
   if (arrays.length === 0 || arrays.some(arr => arr.length === 0)) {
@@ -40,19 +40,30 @@ function generateVariations(selectedAttributeValues, existingVariations = []) {
   const combinations = cartesian(arrays)
 
   return combinations.map(combo => {
-    const variation = {}
+    const variationAttributes = {}
+    const formattedAttributes = []
+
     Object.keys(selectedAttributeValues).forEach((attr, index) => {
-      variation[attr] = combo[index]
+      const formattedValue = combo[index]
+      variationAttributes[attr] = formattedValue
+      formattedAttributes.push(formattedValue)
     })
 
-    // Try to find a matching existing variation to retain the id
+    // Try to find a matching existing variation
     const matchedExisting = existingVariations.find(existing => {
-      return Object.keys(variation).every(key => existing[key] === variation[key])
+      const existingAttributes = existing.attributes || []
+      const existingFormatted = existingAttributes
+        .map(attr => {
+          return attr.measurementUnit ? `${attr.metaValue} ${attr.measurementUnit.name}` : attr.metaValue
+        })
+        .sort()
+
+      return formattedAttributes.slice().sort().join(',') === existingFormatted.join(',')
     })
 
     return {
-      ...variation,
-      _id: matchedExisting?._id || undefined, // Retain ID if available
+      ...variationAttributes,
+      _id: matchedExisting?._id || undefined,
       description: matchedExisting?.description || '',
       stockStatus: matchedExisting?.stockStatus || 'in_stock',
       stockQuantity: matchedExisting?.stockQuantity || 0,
@@ -62,21 +73,26 @@ function generateVariations(selectedAttributeValues, existingVariations = []) {
       regularPrice: matchedExisting?.regularPrice || 0,
       salePrice: matchedExisting?.salePrice || 0,
       purchasedPrice: matchedExisting?.purchasedPrice || 0,
-      customImageUrl: matchedExisting?.customImageUrl || ''
+      image: matchedExisting?.image || '',
+      // shippingClass: matchedExisting?.shippingClass || '',
+      // taxClass: matchedExisting?.taxClass || '',
+      // Keep full attribute data if needed
+      attributes: matchedExisting?.attributes || []
     }
   })
 }
 
 export default function ProductVariants({ productAttributes, defaultAttributeVariations, defaultProductVariations }) {
-
   console.log(defaultProductVariations,'defaultProductVariationsdefaultProductVariations')
-
   const hasAttributes = productAttributes && productAttributes.length > 0
   const [tabIndex, setTabIndex] = useState(0)
   const [selectedAttributes, setSelectedAttributes] = useState([])
   const [selectedAttributeValues, setSelectedAttributeValues] = useState({})
   const [allAttributes, setAllAttributes] = useState({})
   const { control, watch, reset, setValue, getValues, isSubmitted } = useFormContext()
+  const [removedImageIds, setRemovedImageIds] = useState([])
+
+  console.log(removedImageIds,'removedImageIdsremovedImageIds')
 
   useEffect(() => {
     // Step 0: Guard clause — only run when all required data is available
@@ -126,6 +142,8 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
     // Step 3: Set form values using React Hook Form
     setValue('attributeVariations', defaultAttributeVariations, { shouldValidate: true })
     setValue('productVariations', defaultProductVariations, { shouldValidate: true })
+
+    // Debug
   }, [hasAttributes, productAttributes, defaultAttributeVariations, defaultProductVariations, setValue])
 
   const initialProductVariationsRef = useRef([])
@@ -133,47 +151,12 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
   // State to track removed variations for submission
   const [removedProductVariations, setRemovedProductVariations] = useState([])
 
-  // Watch current variations and selected attributes
-  const productVariations = useWatch({ control, name: 'productVariations' }) || []
-  const watchedSelectedAttributeValues = useWatch({ control, name: 'selectedAttributeValues' }) || []
-
   // On first render, capture initial variations for comparison
   useEffect(() => {
     if (defaultProductVariations.length && initialProductVariationsRef.current.length === 0) {
       initialProductVariationsRef.current = [...defaultProductVariations]
     }
   }, [defaultProductVariations])
-
-  // Detect removed variations and update selected attributes accordingly
-  useEffect(() => {
-    const currentVariationKeys = productVariations?.map(variation =>
-      variation?.attributes
-        ?.map(attr => attr.metaValue)
-        .sort()
-        .join('-')
-    )
-
-    const removed = initialProductVariationsRef?.current?.filter(initialVariation => {
-      const key = initialVariation?.attributes
-        ?.map(attr => attr.metaValue)
-        .sort()
-        .join('-')
-      return !currentVariationKeys.includes(key)
-    })
-
-
-    if (removed.length) {
-      const ids = removed.map(ele => ele?._id)
-      setRemovedProductVariations(ids)
-
-      // Remove attribute values associated with removed variations
-      const removedValues = new Set(removed?.flatMap(variation => variation?.attributes?.map(attr => attr.metaValue)))
-
-      const filteredAttributeValues = watchedSelectedAttributeValues?.filter(value => !removedValues.has(value))
-
-      setValue('selectedAttributeValues', filteredAttributeValues)
-    }
-  }, [productVariations])
 
   useEffect(() => {
     if (productAttributes && productAttributes.length > 0) {
@@ -191,8 +174,6 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
     }
   }, [productAttributes])
 
-  // Get RHF methods from context (parent form)
-
   // Watch variations from form context
   const variations = watch('productVariations') || []
 
@@ -206,11 +187,18 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
   }, [selectedAttributes])
 
   // When selectedAttributeValues changes, generate new variations and update form
+  const isEmptyArray = arr => !Array.isArray(arr) || arr.length === 0
   useEffect(() => {
-    const newVariations = generateVariations(selectedAttributeValues, defaultProductVariations)
-    console.log(newVariations,'newVariations')
-    setValue('productVariations', newVariations, { shouldValidate: true })
+    if (isEmptyArray(defaultAttributeVariations) && isEmptyArray(defaultProductVariations)) {
+      const newVariations = generateVariations(selectedAttributeValues, defaultProductVariations)
+      setValue('productVariations', newVariations, { shouldValidate: true })
+    }
   }, [selectedAttributeValues, setValue])
+
+    useEffect(()=>{
+    setValue('variationsImagesToRemove',removedImageIds)
+  },[removedImageIds])
+
 
   useEffect(() => {
     // Collect matched variation IDs based on selected attribute values
@@ -258,19 +246,25 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
     }))
   }
 
-  const [removedVariationIds, setRemovedVariationIds] = useState([])
-
   const handleRemoveVariation = removeIndex => {
     const currentVariations = getValues('productVariations')
     const variationToRemove = currentVariations[removeIndex]
 
-    // Save removed ID only if it exists (edit mode)
-    if (variationToRemove.id) {
-      setRemovedVariationIds(prev => [...prev, variationToRemove.id])
+    if (variationToRemove?._id) {
+      // Update local state
+      setRemovedProductVariations(prev => {
+        const updated = prev.includes(variationToRemove._id) ? prev : [...prev, variationToRemove._id]
+
+        // Sync with form state
+        setValue('removedProductVariations', updated, { shouldValidate: true })
+
+        return updated
+      })
     }
 
+    // Remove the variation from the form state
     const updatedVariations = currentVariations.filter((_, i) => i !== removeIndex)
-    setValue('productVariations', updatedVariations)
+    setValue('productVariations', updatedVariations, { shouldValidate: true })
   }
 
   return (
@@ -377,6 +371,21 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                 Manage Variations
               </Typography>
 
+              {/* Debug information */}
+              {variations.length === 0 && defaultProductVariations.length > 0 && (
+                <Box sx={{ mb: 4, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                  <Typography color='error'>No variations loaded. Using default variations directly.</Typography>
+                  <Button
+                    variant='contained'
+                    color='primary'
+                    onClick={() => setValue('productVariations', defaultProductVariations)}
+                    sx={{ mt: 2 }}
+                  >
+                    Load Default Variations
+                  </Button>
+                </Box>
+              )}
+
               {variations.map((variation, index) => (
                 <Box key={index} sx={{ mb: 4, border: '1px solid #ddd', borderRadius: 1, p: 2 }}>
                   <Box sx={{}}>
@@ -416,9 +425,21 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                 accept: { 'image/*': [] }
                               })
 
+                              // const handleRemoveImage = removeIndex => {
+                              //   const updated = value.filter((_, i) => i !== removeIndex)
+                              //   onChange(updated)
+                              // }
                               const handleRemoveImage = removeIndex => {
-                                const updated = value.filter((_, i) => i !== removeIndex)
-                                onChange(updated)
+                                const removedImage = value[removeIndex]
+
+                                // If the removed image is from backend (has an id), add its id to removedImageIds array
+                                if (removedImage && !(removedImage instanceof File) && removedImage.id) {
+                                  setRemovedImageIds(prevIds => [...prevIds, removedImage.id])
+                                }
+
+                                // Remove the image from current list
+                                const updatedImages = value.filter((_, i) => i !== removeIndex)
+                                onChange(updatedImages)
                               }
 
                               return (
@@ -439,36 +460,50 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
 
                                   {value.length > 0 && (
                                     <List>
-                                      {value.map((file, i) => (
-                                        <ListItem
-                                          key={i}
-                                          secondaryAction={
-                                            <IconButton onClick={() => handleRemoveImage(i)}>
-                                              <i className='ri-close-line text-xl' />
-                                            </IconButton>
-                                          }
-                                        >
-                                          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                            <img
-                                              src={typeof file === 'string' ? file : URL.createObjectURL(file)}
-                                              alt={`variation-image-${i}`}
-                                              style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4 }}
-                                            />
-                                            <div>
-                                              <Typography className='file-name font-medium' color='text.primary'>
-                                                {file.name || `Image ${i + 1}`}
-                                              </Typography>
-                                              {file.size && (
-                                                <Typography variant='body2'>
-                                                  {file.size > 1000000
-                                                    ? `${(file.size / 1024 / 1024).toFixed(1)} MB`
-                                                    : `${(file.size / 1024).toFixed(1)} KB`}
+                                      {value.map((file, index) => {
+                                        const isLocalFile = file instanceof File
+
+                                        const imageUrl = isLocalFile
+                                          ? URL.createObjectURL(file)
+                                          : `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${file.filePath}`
+
+                                        const fileName = isLocalFile ? file.name : file.fileName
+                                        const fileSize = isLocalFile ? file.size : null
+
+                                        return (
+                                          <ListItem
+                                            key={index}
+                                            secondaryAction={
+                                              <IconButton onClick={() => handleRemoveImage(index)}>
+                                                <i className='ri-close-line text-xl' />
+                                              </IconButton>
+                                            }
+                                          >
+                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                              <div style={{ position: 'relative', width: 60, height: 60 }}>
+                                                <Image
+                                                  src={imageUrl}
+                                                  alt={`variation-image-${index}`}
+                                                  fill
+                                                  style={{ objectFit: 'cover', borderRadius: 4 }}
+                                                />
+                                              </div>
+                                              <div>
+                                                <Typography className='file-name font-medium' color='text.primary'>
+                                                  {fileName || `Image ${index + 1}`}
                                                 </Typography>
-                                              )}
+                                                {fileSize && (
+                                                  <Typography variant='body2'>
+                                                    {fileSize > 1000000
+                                                      ? `${(fileSize / 1024 / 1024).toFixed(1)} MB`
+                                                      : `${(fileSize / 1024).toFixed(1)} KB`}
+                                                  </Typography>
+                                                )}
+                                              </div>
                                             </div>
-                                          </div>
-                                        </ListItem>
-                                      ))}
+                                          </ListItem>
+                                        )
+                                      })}
                                     </List>
                                   )}
                                 </Box>
@@ -483,11 +518,11 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.stockStatus`}
                         control={control}
-                        defaultValue={variation.stockStatus}
+                        defaultValue={variation.stockStatus ?? 'in_stock'}
                         rules={{ required: 'Stock status is required' }} // Required validation rule
                         render={({ field, fieldState: { error } }) => (
                           <FormControl fullWidth error={!!error}>
-                            <InputLabel id={`stock-status-label-${index}`}>Stock Status</InputLabel>
+                            <InputLabel id={`stock-status-label-${index}`}>Stock {variation.stockStatus}</InputLabel>
                             <Select {...field} labelId={`stock-status-label-${index}`} label='Stock Status'>
                               <MenuItem value='in_stock'>In Stock</MenuItem>
                               <MenuItem value='out_of_stock'>Out of Stock</MenuItem>
@@ -507,7 +542,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.stockQuantity`}
                         control={control}
-                        defaultValue={variation.stockQuantity}
+                        defaultValue={variation.stockQuantity ?? 0}
                         rules={{ required: 'Stock Quantity is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -530,7 +565,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.regularPrice`}
                         control={control}
-                        defaultValue={variation.regularPrice}
+                        defaultValue={variation.regularPrice || 0}
                         rules={{ required: 'Regular Price is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -553,7 +588,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.salePrice`}
                         control={control}
-                        defaultValue={variation.salePrice}
+                        defaultValue={variation.salePrice ?? 0}
                         rules={{ required: 'Sale Price is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -576,7 +611,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.purchasedPrice`}
                         control={control}
-                        defaultValue={variation.purchasedPrice}
+                        defaultValue={variation.purchasedPrice ?? 0}
                         rules={{ required: 'Purchased Price is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -600,7 +635,6 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                         name={`productVariations.${index}.allowBackorders`}
                         control={control}
                         defaultValue={variation.allowBackorders}
-                        rules={{ required: 'Allow Backorders selection is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <Typography>Allow Backorders</Typography>
@@ -610,11 +644,6 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                               onChange={e => field.onChange(e.target.checked)}
                               sx={{ ml: 1 }}
                             />
-                            {error && (
-                              <Typography variant='caption' color='error' sx={{ ml: 2 }}>
-                                {error.message}
-                              </Typography>
-                            )}
                           </>
                         )}
                       />
@@ -624,7 +653,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.weight`}
                         control={control}
-                        defaultValue={variation.weight}
+                        defaultValue={variation.weight ?? 0}
                         rules={{ required: 'Weight is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -649,7 +678,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.dimensions.length`}
                         control={control}
-                        defaultValue={variation.dimensions.length}
+                        defaultValue={variation.dimensions.length ?? 0}
                         rules={{ required: 'Length is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -672,7 +701,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.dimensions.width`}
                         control={control}
-                        defaultValue={variation.dimensions.width}
+                        defaultValue={variation.dimensions.width ?? 0}
                         rules={{ required: 'Width is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -695,7 +724,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.dimensions.height`}
                         control={control}
-                        defaultValue={variation.dimensions.height}
+                        defaultValue={variation.dimensions.height ?? 0}
                         rules={{ required: 'Height is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -718,7 +747,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.NumberOfTiles`}
                         control={control}
-                        defaultValue={variation.NumberOfTiles}
+                        defaultValue={variation.NumberOfTiles ?? 0}
                         rules={{ required: 'Number of tiles per box is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -739,7 +768,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.BoxSize`}
                         control={control}
-                        defaultValue={variation.BoxSize}
+                        defaultValue={variation.BoxSize ?? 0}
                         rules={{ required: 'Box sizes are required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -760,7 +789,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.PalletSize`}
                         control={control}
-                        defaultValue={variation.PalletSize}
+                        defaultValue={variation.PalletSize ?? 0}
                         rules={{ required: 'Pallet Size is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -778,7 +807,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 12 }}>
-                      <Controller
+                      {/* <Controller
                         name={`productVariations.${index}.customImageUrl`}
                         control={control}
                         defaultValue={variation.customImageUrl}
@@ -795,14 +824,14 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                             />
                           </>
                         )}
-                      />
+                      /> */}
                     </Grid>
 
                     <Grid size={{ xs: 12 }}>
                       <Controller
                         name={`productVariations.${index}.description`}
                         control={control}
-                        defaultValue={variation.description}
+                        defaultValue={variation.description ?? 0}
                         rules={{ required: 'Description is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
