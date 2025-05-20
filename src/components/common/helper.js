@@ -11,7 +11,7 @@ export const generateSlug = (productName) => {
 
 /** Capitalize First Letter of Each Word */
 export const toTitleCase = (str) => {
-  return str.replace(/\w\S*/g, (txt) => {
-    return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
+  return str?.replace(/\w\S*/g, (txt) => {
+    return txt?.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
   });
 };

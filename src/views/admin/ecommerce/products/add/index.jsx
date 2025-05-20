@@ -169,94 +169,91 @@ const AddProduct = () => {
   }, [productId])
 
   const onSubmit = async formDataValues => {
-  // Check if the product featured image is an existing (non-File) image
-  const isExistingFeaturedImage =
-    formDataValues.productFeaturedImage &&
-    typeof formDataValues.productFeaturedImage === 'object' &&
-    formDataValues.productFeaturedImage._id &&
-    !(formDataValues.productFeaturedImage instanceof File)
+    console.log(formDataValues, 'formDataValues')
 
-  // If it's an existing image, set to empty so we don't re-upload it
-  if (isExistingFeaturedImage) {
-    formDataValues.productFeaturedImage = []
-  }
+    const formData = new FormData()
 
-  // Create a new FormData instance
-  const formData = new FormData()
+    // Handle existing featured image
+    const isExistingFeaturedImage =
+      formDataValues.productFeaturedImage &&
+      typeof formDataValues.productFeaturedImage === 'object' &&
+      formDataValues.productFeaturedImage._id &&
+      !(formDataValues.productFeaturedImage instanceof File)
 
-  // If updating an existing product, remove slug and SKU
-  if (productId) {
-    delete formDataValues.slug
-    delete formDataValues.sku
-  } else {
-    // For new products, generate slug and SKU
-    formDataValues.slug = generateSlug(formDataValues?.name)
-    formDataValues.sku = generateSku()
-  }
-
-  // Clean the product variations to remove previously saved images
-  const cleanedProductVariations = formDataValues.productVariations?.map(variation => {
-    return {
-      ...variation,
-      variationImages: variation.variationImages?.filter(image => image instanceof File)
+    if (isExistingFeaturedImage) {
+      formDataValues.productFeaturedImage = []
     }
-  }) || []
 
-  // Overwrite with cleaned variations to avoid serializing saved images
-  formDataValues.productVariations = cleanedProductVariations
+    // Set slug and SKU for creation
+    if (!productId) {
+      formDataValues.slug = generateSlug(formDataValues.name)
+      formDataValues.sku = generateSku()
+    } else {
+      delete formDataValues.slug
+      delete formDataValues.sku
+    }
 
-  // Append all fields to FormData (except productFeaturedImage, handled separately)
-  for (const fieldKey in formDataValues) {
-    if (fieldKey !== 'productFeaturedImage') {
-      const fieldValue = formDataValues[fieldKey]
+    // Inject image keys into variationImages and append files separately
+    const updatedProductVariations =
+      formDataValues.productVariations?.map((variation, variationIndex) => {
+        const updatedVariation = { ...variation }
 
-      // Serialize arrays and objects
-      if (Array.isArray(fieldValue) || typeof fieldValue === 'object') {
-        formData.append(fieldKey, JSON.stringify(fieldValue))
-      } else {
-        formData.append(fieldKey, fieldValue)
+        if (Array.isArray(updatedVariation.variationImages)) {
+          updatedVariation.variationImages = updatedVariation.variationImages.map((file, imageIndex) => {
+            const formDataKey = `productVariations[${variationIndex}].variationImages[${imageIndex}]`
+
+            if (file instanceof File) {
+              formData.append(formDataKey, file)
+            }
+
+            // Replace file object with reference key string (whether file or existing string)
+            return formDataKey
+          })
+        }
+
+        return updatedVariation
+      }) || []
+
+    // Assign back to formDataValues before serializing
+    formDataValues.productVariations = updatedProductVariations
+
+    // Append all form values except productFeaturedImage
+    for (const fieldKey in formDataValues) {
+      if (fieldKey !== 'productFeaturedImage') {
+        const fieldValue = formDataValues[fieldKey]
+
+        if (Array.isArray(fieldValue) || typeof fieldValue === 'object') {
+          formData.append(fieldKey, JSON.stringify(fieldValue))
+        } else {
+          formData.append(fieldKey, fieldValue)
+        }
       }
     }
+
+    // Append featured image if new
+    if (formDataValues.productFeaturedImage instanceof File) {
+      formData.append('productFeaturedImage', formDataValues.productFeaturedImage)
+    }
+
+    // Debug FormData
+    console.log('FormData Entries:')
+    for (const entry of formData.entries()) {
+      console.log(entry[0], entry[1])
+    }
+
+    // API call
+    let response
+    if (productId) {
+      response = await updateProduct(productId, formData)
+    } else {
+      response = await createProduct(formData)
+    }
+
+    if (response.success) {
+      router.push(`/${locale}/admin/ecommerce/products/list`)
+    }
+
   }
-
-  // Append featured image file if new
-  if (formDataValues.productFeaturedImage instanceof File) {
-    formData.append('productFeaturedImage', formDataValues.productFeaturedImage)
-  } else {
-    formData.append('productFeaturedImage', [])
-  }
-
-  // Append each new variation image file
-  cleanedProductVariations.forEach(variation => {
-    variation.variationImages?.forEach(imageFile => {
-      if (imageFile instanceof File) {
-        formData.append('variationImages', imageFile)
-      }
-    })
-  })
-
-  // Debug output of form data
-  console.log('FormData Entries:')
-  for (const entry of formData.entries()) {
-    console.log(entry[0], entry[1])
-  }
-
-  // Call API to either update or create product
-  let response
-  if (productId) {
-    response = await updateProduct(productId, formData)
-  } else {
-    response = await createProduct(formData)
-  }
-
-  // Navigate to product list on success
-  if (response.success) {
-    router.push(`/${locale}/admin/ecommerce/products/list`)
-  }
-
-  console.log(response, 'response from createProduct')
-}
-
 
   return (
     <FormProvider {...formMethods}>

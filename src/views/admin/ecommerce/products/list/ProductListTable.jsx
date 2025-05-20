@@ -437,7 +437,7 @@ const ProductListTable = () => {
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    No data available {table.getFilteredRowModel().rows.length}
+                    No data available
                   </td>
                 </tr>
               </tbody>

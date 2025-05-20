@@ -78,7 +78,6 @@ const ProductInformation = () => {
             name='productDescription'
             control={control}
             defaultValue=''
-            rules={{ required: 'Product Description is required' }}
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
@@ -88,8 +87,6 @@ const ProductInformation = () => {
                 multiline
                 rows={4}
                 sx={{ mt: 2 }}
-                error={!!error}
-                helperText={error?.message}
               />
             )}
           />

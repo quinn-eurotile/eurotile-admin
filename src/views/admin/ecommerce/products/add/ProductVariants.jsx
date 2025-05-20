@@ -256,7 +256,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
         const updated = prev.includes(variationToRemove._id) ? prev : [...prev, variationToRemove._id]
 
         // Sync with form state
-        setValue('removedProductVariations', updated, { shouldValidate: true })
+        setValue('variationsToRemove', updated, { shouldValidate: true })
 
         return updated
       })
