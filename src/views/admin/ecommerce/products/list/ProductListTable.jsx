@@ -235,7 +235,7 @@ const ProductListTable = () => {
       columnHelper.accessor('name', {
         header: 'Name',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
+          <div className='flex items-center gap-4' onClick={() => router.push(`/${locale}/admin/ecommerce/products/details/${row?.original?.id}`)}>
             <Image src={`${NEXT_PUBLIC_BACKEND_DOMAIN}${row?.original?.avatar}`} width={38} height={38} alt="Picture of the author" />
             <div className='flex flex-col'>
               <Typography className='font-medium' color='text.primary'>
