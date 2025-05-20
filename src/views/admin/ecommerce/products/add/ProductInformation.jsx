@@ -1,37 +1,37 @@
-'use client'
+'use client';
 
 // MUI Imports
-import Grid from '@mui/material/Grid2'
-import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
-import CardContent from '@mui/material/CardContent'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import Divider from '@mui/material/Divider'
+import Grid from '@mui/material/Grid2';
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
 
 // TipTap and RHF Imports
-import { Controller, useFormContext } from 'react-hook-form'
-import { useEditor, EditorContent } from '@tiptap/react'
-import { StarterKit } from '@tiptap/starter-kit'
-import { Underline } from '@tiptap/extension-underline'
-import { Placeholder } from '@tiptap/extension-placeholder'
-import { TextAlign } from '@tiptap/extension-text-align'
+import { Controller, useFormContext } from 'react-hook-form';
+import { useEditor, EditorContent } from '@tiptap/react';
+import { StarterKit } from '@tiptap/starter-kit';
+import { Underline } from '@tiptap/extension-underline';
+import { Placeholder } from '@tiptap/extension-placeholder';
+import { TextAlign } from '@tiptap/extension-text-align';
 
 // Components
-import CustomIconButton from '@core/components/mui/IconButton'
-import '@/libs/styles/tiptapEditor.css'
-import { TextareaAutosize } from '@mui/material'
+import CustomIconButton from '@core/components/mui/IconButton';
+import '@/libs/styles/tiptapEditor.css';
+import { TextareaAutosize } from '@mui/material';
 
 const EditorToolbar = ({ editor }) => {
-  if (!editor) return null
+  if (!editor) return null;
 
   return (
     <div className='flex flex-wrap gap-x-3 gap-y-1 pbs-5 pbe-4 pli-5'>{/* ...Toolbar Buttons Same As Before... */}</div>
-  )
-}
+  );
+};
 
 const ProductInformation = () => {
-  const { control } = useFormContext()
+  const { control } = useFormContext();
 
   const editor = useEditor({
     extensions: [
@@ -40,7 +40,7 @@ const ProductInformation = () => {
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Placeholder.configure({ placeholder: 'Write something here...' })
     ]
-  })
+  });
 
   return (
     <Card>
@@ -99,7 +99,7 @@ const ProductInformation = () => {
         </CardContent>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default ProductInformation
+export default ProductInformation;
