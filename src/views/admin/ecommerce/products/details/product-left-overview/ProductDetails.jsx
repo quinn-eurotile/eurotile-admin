@@ -68,6 +68,20 @@ const ProductDetails = ({ productData, statusMap, stockStatusMap }) => {
           <div className='flex flex-col gap-2'>
             <div className='flex items-center gap-1'>
               <Typography color='text.primary' className='font-medium'>
+                Factory Name:
+              </Typography>
+              <Typography>{toTitleCase(productData?.supplier?.companyName)}</Typography>
+            </div>
+            <div className='flex items-center gap-1'>
+              <Typography color='text.primary' className='font-medium'>
+                Collection Name:
+              </Typography>
+              <Typography>
+                {toTitleCase(productData?.categories?.map(item => item?.name).join(', '))}
+              </Typography>
+            </div>
+            <div className='flex items-center gap-1'>
+              <Typography color='text.primary' className='font-medium'>
                 Created By:
               </Typography>
               <Typography>{toTitleCase(productData?.createdBy?.name)}</Typography>
