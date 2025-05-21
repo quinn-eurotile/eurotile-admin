@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Badge from '@mui/material/Badge';
 import classnames from 'classnames';
 import { useKeenSlider } from 'keen-slider/react';
+import { calculateTierValue } from '@/components/common/helper';
 
 const ProductVariationView = ({ variation }) => {
     if (!variation) return null;
@@ -150,27 +151,27 @@ const ProductVariationView = ({ variation }) => {
                                             <tr>
                                                 <td className="py-1 px-2 border-b">Tier 5</td>
                                                 <td className="py-1 px-2 border-b">Under 30</td>
-                                                <td className="py-1 px-2 border-b">£39.77</td>
+                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierAddOn, variation?.tierMultiplyBy)}</td>
                                             </tr>
                                             <tr>
                                                 <td className="py-1 px-2 border-b">Tier 4</td>
                                                 <td className="py-1 px-2 border-b">30 - 51</td>
-                                                <td className="py-1 px-2 border-b">£33.49</td>
+                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierAddOn, variation?.tierMultiplyBy)}</td>
                                             </tr>
                                             <tr>
                                                 <td className="py-1 px-2 border-b">Tier 3</td>
                                                 <td className="py-1 px-2 border-b">51 - 153</td>
-                                                <td className="py-1 px-2 border-b">£30.69</td>
+                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierAddOn, variation?.tierMultiplyBy)}</td>
                                             </tr>
                                             <tr>
                                                 <td className="py-1 px-2 border-b">Tier 2</td>
                                                 <td className="py-1 px-2 border-b">153 - 1300</td>
-                                                <td className="py-1 px-2 border-b">£26.51</td>
+                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierAddOn, variation?.tierMultiplyBy)}</td>
                                             </tr>
                                             <tr>
                                                 <td className="py-1 px-2">Tier 1</td>
                                                 <td className="py-1 px-2">Over 1300</td>
-                                                <td className="py-1 px-2">£22.57</td>
+                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierAddOn, variation?.tierMultiplyBy)}</td>
                                             </tr>
                                         </tbody>
                                     </table>
