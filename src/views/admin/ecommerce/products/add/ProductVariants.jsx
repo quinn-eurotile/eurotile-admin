@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Tabs,
@@ -24,43 +24,44 @@ import {
   ListItem,
   IconButton,
   Divider
-} from '@mui/material'
-import { useFormContext, Controller, useWatch } from 'react-hook-form'
-import Grid from '@mui/material/Grid2'
-import { useDropzone } from 'react-dropzone'
-import CustomAvatar from '@/@core/components/mui/Avatar'
-import Image from 'next/image'
+} from '@mui/material';
+import { useFormContext, Controller, useWatch } from 'react-hook-form';
+import Grid from '@mui/material/Grid2';
+import { useDropzone } from 'react-dropzone';
+import CustomAvatar from '@/@core/components/mui/Avatar';
+import Image from 'next/image';
+import { calculateTierValue } from '@/components/common/helper';
 
 function generateVariations(selectedAttributeValues, existingVariations = []) {
-  const arrays = Object.values(selectedAttributeValues)
+  const arrays = Object.values(selectedAttributeValues);
   if (arrays.length === 0 || arrays.some(arr => arr.length === 0)) {
-    return []
+    return [];
   }
 
-  const cartesian = arr => arr.reduce((a, b) => a.flatMap(d => b.map(e => [...d, e])), [[]])
-  const combinations = cartesian(arrays)
+  const cartesian = arr => arr.reduce((a, b) => a.flatMap(d => b.map(e => [...d, e])), [[]]);
+  const combinations = cartesian(arrays);
 
   return combinations.map(combo => {
-    const variationAttributes = {}
-    const formattedAttributes = []
+    const variationAttributes = {};
+    const formattedAttributes = [];
 
     Object.keys(selectedAttributeValues).forEach((attr, index) => {
-      const formattedValue = combo[index]
-      variationAttributes[attr] = formattedValue
-      formattedAttributes.push(formattedValue)
-    })
+      const formattedValue = combo[index];
+      variationAttributes[attr] = formattedValue;
+      formattedAttributes.push(formattedValue);
+    });
 
     // Try to find a matching existing variation
     const matchedExisting = existingVariations.find(existing => {
-      const existingAttributes = existing.attributes || []
+      const existingAttributes = existing.attributes || [];
       const existingFormatted = existingAttributes
         .map(attr => {
-          return attr.measurementUnit ? `${attr.metaValue} ${attr.measurementUnit.name}` : attr.metaValue
+          return attr.measurementUnit ? `${attr.metaValue} ${attr.measurementUnit.name}` : attr.metaValue;
         })
-        .sort()
+        .sort();
 
-      return formattedAttributes.slice().sort().join(',') === existingFormatted.join(',')
-    })
+      return formattedAttributes.slice().sort().join(',') === existingFormatted.join(',');
+    });
 
     return {
       ...variationAttributes,
@@ -83,18 +84,18 @@ function generateVariations(selectedAttributeValues, existingVariations = []) {
       // taxClass: matchedExisting?.taxClass || '',
       // Keep full attribute data if needed
       attributes: matchedExisting?.attributes || []
-    }
-  })
+    };
+  });
 }
 
 export default function ProductVariants({ productAttributes, defaultAttributeVariations, defaultProductVariations }) {
-  const hasAttributes = productAttributes && productAttributes.length > 0
-  const [tabIndex, setTabIndex] = useState(0)
-  const [selectedAttributes, setSelectedAttributes] = useState([])
-  const [selectedAttributeValues, setSelectedAttributeValues] = useState({})
-  const [allAttributes, setAllAttributes] = useState({})
-  const { control, watch, reset, setValue, getValues, isSubmitted } = useFormContext()
-  const [removedImageIds, setRemovedImageIds] = useState([])
+  const hasAttributes = productAttributes && productAttributes.length > 0;
+  const [tabIndex, setTabIndex] = useState(0);
+  const [selectedAttributes, setSelectedAttributes] = useState([]);
+  const [selectedAttributeValues, setSelectedAttributeValues] = useState({});
+  const [allAttributes, setAllAttributes] = useState({});
+  const { control, watch, reset, setValue, getValues, isSubmitted } = useFormContext();
+  const [removedImageIds, setRemovedImageIds] = useState([]);
 
   useEffect(() => {
     // Step 0: Guard clause — only run when all required data is available
@@ -104,169 +105,169 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
       Array.isArray(defaultAttributeVariations) &&
       defaultAttributeVariations.length > 0 &&
       Array.isArray(defaultProductVariations) &&
-      defaultProductVariations.length > 0
+      defaultProductVariations.length > 0;
 
-    if (!isReady || !hasAttributes) return
+    if (!isReady || !hasAttributes) return;
 
     // Step 1: Build attribute selection map based on defaultAttributeVariations
-    const attributeValueMap = {}
-    const selectedAttributeNames = new Set()
+    const attributeValueMap = {};
+    const selectedAttributeNames = new Set();
 
     productAttributes.forEach(attribute => {
-      const attributeName = attribute.name.toLowerCase()
+      const attributeName = attribute.name.toLowerCase();
 
       attribute.variations.forEach(variation => {
-        const variationId = variation._id
+        const variationId = variation._id;
 
         if (defaultAttributeVariations.includes(variationId)) {
           // Format value with measurement unit if available
           const formattedValue = variation.measurementUnit
             ? `${variation.metaValue} ${variation.measurementUnit.name}`
-            : variation.metaValue
+            : variation.metaValue;
 
           if (!attributeValueMap[attributeName]) {
-            attributeValueMap[attributeName] = []
+            attributeValueMap[attributeName] = [];
           }
 
           if (!attributeValueMap[attributeName].includes(formattedValue)) {
-            attributeValueMap[attributeName].push(formattedValue)
+            attributeValueMap[attributeName].push(formattedValue);
           }
 
-          selectedAttributeNames.add(attributeName)
+          selectedAttributeNames.add(attributeName);
         }
-      })
-    })
+      });
+    });
 
     // Step 2: Update local UI state
-    setSelectedAttributes(Array.from(selectedAttributeNames))
-    setSelectedAttributeValues(attributeValueMap)
+    setSelectedAttributes(Array.from(selectedAttributeNames));
+    setSelectedAttributeValues(attributeValueMap);
 
     // Step 3: Set form values using React Hook Form
-    setValue('attributeVariations', defaultAttributeVariations, { shouldValidate: true })
-    setValue('productVariations', defaultProductVariations, { shouldValidate: true })
+    setValue('attributeVariations', defaultAttributeVariations, { shouldValidate: true });
+    setValue('productVariations', defaultProductVariations, { shouldValidate: true });
 
     // Debug
-  }, [hasAttributes, productAttributes, defaultAttributeVariations, defaultProductVariations, setValue])
+  }, [hasAttributes, productAttributes, defaultAttributeVariations, defaultProductVariations, setValue]);
 
-  const initialProductVariationsRef = useRef([])
+  const initialProductVariationsRef = useRef([]);
 
   // State to track removed variations for submission
-  const [removedProductVariations, setRemovedProductVariations] = useState([])
+  const [removedProductVariations, setRemovedProductVariations] = useState([]);
 
   // On first render, capture initial variations for comparison
   useEffect(() => {
     if (defaultProductVariations.length && initialProductVariationsRef.current.length === 0) {
-      initialProductVariationsRef.current = [...defaultProductVariations]
+      initialProductVariationsRef.current = [...defaultProductVariations];
     }
-  }, [defaultProductVariations])
+  }, [defaultProductVariations]);
 
   useEffect(() => {
     if (productAttributes && productAttributes.length > 0) {
-      const attributesMap = {}
+      const attributesMap = {};
 
       productAttributes.forEach(attribute => {
-        const name = attribute.name.toLowerCase()
+        const name = attribute.name.toLowerCase();
         const values = attribute.variations.map(variation =>
           variation.measurementUnit ? `${variation.metaValue} ${variation.measurementUnit.name}` : variation.metaValue
-        )
-        attributesMap[name] = values
-      })
+        );
+        attributesMap[name] = values;
+      });
 
-      setAllAttributes(attributesMap)
+      setAllAttributes(attributesMap);
     }
-  }, [productAttributes])
+  }, [productAttributes]);
 
   // Watch variations from form context
-  const variations = watch('productVariations') || []
+  const variations = watch('productVariations') || [];
 
   // When selectedAttributes changes, initialize attribute values if not set
   useEffect(() => {
-    const initSelectedValues = {}
+    const initSelectedValues = {};
     selectedAttributes.forEach(attr => {
-      initSelectedValues[attr] = selectedAttributeValues[attr] || []
-    })
-    setSelectedAttributeValues(initSelectedValues)
-  }, [selectedAttributes])
+      initSelectedValues[attr] = selectedAttributeValues[attr] || [];
+    });
+    setSelectedAttributeValues(initSelectedValues);
+  }, [selectedAttributes]);
 
   // When selectedAttributeValues changes, generate new variations and update form
-  const isEmptyArray = arr => !Array.isArray(arr) || arr.length === 0
+  const isEmptyArray = arr => !Array.isArray(arr) || arr.length === 0;
   useEffect(() => {
     if (isEmptyArray(defaultAttributeVariations) && isEmptyArray(defaultProductVariations)) {
-      const newVariations = generateVariations(selectedAttributeValues, defaultProductVariations)
-      setValue('productVariations', newVariations, { shouldValidate: true })
+      const newVariations = generateVariations(selectedAttributeValues, defaultProductVariations);
+      setValue('productVariations', newVariations, { shouldValidate: true });
     }
-  }, [selectedAttributeValues, setValue])
+  }, [selectedAttributeValues, setValue]);
 
   useEffect(() => {
-    setValue('variationsImagesToRemove', removedImageIds)
-  }, [removedImageIds])
+    setValue('variationsImagesToRemove', removedImageIds);
+  }, [removedImageIds]);
 
   useEffect(() => {
     // Collect matched variation IDs based on selected attribute values
-    const matchedVariationIds = []
+    const matchedVariationIds = [];
 
     selectedAttributes.forEach(selectedAttributeName => {
-      const lowerCaseName = selectedAttributeName.toLowerCase()
+      const lowerCaseName = selectedAttributeName.toLowerCase();
 
       // Find the corresponding attribute object from productAttributes
-      const matchedAttribute = productAttributes.find(attr => attr.name.toLowerCase() === lowerCaseName)
+      const matchedAttribute = productAttributes.find(attr => attr.name.toLowerCase() === lowerCaseName);
 
       if (matchedAttribute) {
-        const selectedValues = selectedAttributeValues[lowerCaseName] || []
+        const selectedValues = selectedAttributeValues[lowerCaseName] || [];
 
         matchedAttribute.variations.forEach(variation => {
           const formattedValue = variation.measurementUnit
             ? `${variation.metaValue} ${variation.measurementUnit.name}`
-            : variation.metaValue
+            : variation.metaValue;
 
           if (selectedValues.includes(formattedValue)) {
-            matchedVariationIds.push(variation._id)
+            matchedVariationIds.push(variation._id);
           }
-        })
+        });
       }
-    })
+    });
 
     // Update attributeVariations in form context with array of variation IDs
-    setValue('attributeVariations', matchedVariationIds, { shouldValidate: true })
-  }, [selectedAttributes, selectedAttributeValues, productAttributes, setValue])
+    setValue('attributeVariations', matchedVariationIds, { shouldValidate: true });
+  }, [selectedAttributes, selectedAttributeValues, productAttributes, setValue]);
 
   // Disable variations tab if no attributes or any attribute has no values selected
   const isVariationsDisabled =
-    selectedAttributes.length === 0 || Object.values(selectedAttributeValues).some(vals => vals.length === 0)
+    selectedAttributes.length === 0 || Object.values(selectedAttributeValues).some(vals => vals.length === 0);
 
   // Handle attribute selection change
   const handleAttributesChange = event => {
-    setSelectedAttributes(event.target.value)
-  }
+    setSelectedAttributes(event.target.value);
+  };
 
   // Handle selected values for each attribute
   const handleAttributeValuesChange = (attributeName, values) => {
     setSelectedAttributeValues(prev => ({
       ...prev,
       [attributeName]: values
-    }))
-  }
+    }));
+  };
 
   const handleRemoveVariation = removeIndex => {
-    const currentVariations = getValues('productVariations')
-    const variationToRemove = currentVariations[removeIndex]
+    const currentVariations = getValues('productVariations');
+    const variationToRemove = currentVariations[removeIndex];
 
     if (variationToRemove?._id) {
       // Update local state
       setRemovedProductVariations(prev => {
-        const updated = prev.includes(variationToRemove._id) ? prev : [...prev, variationToRemove._id]
+        const updated = prev.includes(variationToRemove._id) ? prev : [...prev, variationToRemove._id];
 
         // Sync with form state
-        setValue('variationsToRemove', updated, { shouldValidate: true })
+        setValue('variationsToRemove', updated, { shouldValidate: true });
 
-        return updated
-      })
+        return updated;
+      });
     }
 
     // Remove the variation from the form state
-    const updatedVariations = currentVariations.filter((_, i) => i !== removeIndex)
-    setValue('productVariations', updatedVariations, { shouldValidate: true })
-  }
+    const updatedVariations = currentVariations.filter((_, i) => i !== removeIndex);
+    setValue('productVariations', updatedVariations, { shouldValidate: true });
+  };
 
   return (
     <Card>
@@ -331,9 +332,9 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                   </Typography>
                   <Grid container spacing={2}>
                     {selectedAttributes.map(attributeName => {
-                      const valuesSelected = selectedAttributeValues[attributeName]?.length > 0
+                      const valuesSelected = selectedAttributeValues[attributeName]?.length > 0;
                       // Show error only if form has been submitted and no values selected
-                      const showError = isSubmitted && !valuesSelected
+                      const showError = isSubmitted && !valuesSelected;
 
                       return (
                         <Grid item xs={12} md={6} key={attributeName}>
@@ -364,7 +365,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                             )}
                           </FormControl>
                         </Grid>
-                      )
+                      );
                     })}
                   </Grid>
                 </>
@@ -422,32 +423,32 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                               const onDrop = acceptedFiles => {
                                 if (acceptedFiles?.length > 0) {
                                   // Append newly selected images to the current list
-                                  onChange([...value, ...acceptedFiles])
+                                  onChange([...value, ...acceptedFiles]);
                                 }
-                              }
+                              };
 
                               const { getRootProps, getInputProps } = useDropzone({
                                 onDrop,
                                 multiple: true,
                                 accept: { 'image/*': [] }
-                              })
+                              });
 
                               // const handleRemoveImage = removeIndex => {
                               //   const updated = value.filter((_, i) => i !== removeIndex)
                               //   onChange(updated)
                               // }
                               const handleRemoveImage = removeIndex => {
-                                const removedImage = value[removeIndex]
+                                const removedImage = value[removeIndex];
 
                                 // If the removed image is from backend (has an id), add its id to removedImageIds array
                                 if (removedImage && !(removedImage instanceof File) && removedImage.id) {
-                                  setRemovedImageIds(prevIds => [...prevIds, removedImage.id])
+                                  setRemovedImageIds(prevIds => [...prevIds, removedImage.id]);
                                 }
 
                                 // Remove the image from current list
-                                const updatedImages = value.filter((_, i) => i !== removeIndex)
-                                onChange(updatedImages)
-                              }
+                                const updatedImages = value.filter((_, i) => i !== removeIndex);
+                                onChange(updatedImages);
+                              };
 
                               return (
                                 <Box>
@@ -468,14 +469,14 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                   {value.length > 0 && (
                                     <List>
                                       {value.map((file, index) => {
-                                        const isLocalFile = file instanceof File
+                                        const isLocalFile = file instanceof File;
 
                                         const imageUrl = isLocalFile
                                           ? URL.createObjectURL(file)
-                                          : `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${file.filePath}`
+                                          : `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${file.filePath}`;
 
-                                        const fileName = isLocalFile ? file.name : file.fileName
-                                        const fileSize = isLocalFile ? file.size : null
+                                        const fileName = isLocalFile ? file.name : file.fileName;
+                                        const fileSize = isLocalFile ? file.size : null;
 
                                         return (
                                           <ListItem
@@ -509,12 +510,12 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                               </div>
                                             </div>
                                           </ListItem>
-                                        )
+                                        );
                                       })}
                                     </List>
                                   )}
                                 </Box>
-                              )
+                              );
                             }}
                           />
                         </CardContent>
@@ -829,9 +830,9 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierAddOn`}
+                            name={`productVariations.${index}.tierDiscount.tierFirst.tierAddOn`}
                             control={control}
-                            defaultValue={variation.tierAddOn}
+                            defaultValue={variation.tierDiscount?.tierFirst?.tierAddOn}
                             rules={{ required: 'Tier Add On is required' }}
                             render={({ field, fieldState: { error } }) => (
                               <>
@@ -851,9 +852,9 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierMultiplyBy`}
+                            name={`productVariations.${index}.tierDiscount.tierFirst.tierMultiplyBy`}
                             control={control}
-                            defaultValue={variation.tierMultiplyBy}
+                            defaultValue={variation?.tierDiscount?.tierFirst?.tierMultiplyBy}
                             rules={{ required: 'Tier Multiply By is required' }}
                             render={({ field, fieldState: { error } }) => (
                               <>
@@ -869,6 +870,14 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                 />
                               </>
                             )}
+                          />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <TextField
+                            disabled
+                            id="outlined-disabled"
+                            label="Disabled"
+                            defaultValue={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierFirst?.tierAddOn, variation.tierDiscount?.tierFirst?.tierMultiplyBy)}
                           />
                         </Grid>
                       </Grid>
@@ -878,7 +887,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierAddOn`}
+                            name={`productVariations.${index}.tierDiscount.tierSecond.tierAddOn`}
                             control={control}
                             defaultValue={variation.tierAddOn}
                             rules={{ required: 'Tier Add On is required' }}
@@ -900,7 +909,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierMultiplyBy`}
+                            name={`productVariations.${index}.tierDiscount.tierSecond.tierMultiplyBy`}
                             control={control}
                             defaultValue={variation.tierMultiplyBy}
                             rules={{ required: 'Tier Multiply By is required' }}
@@ -918,6 +927,14 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                 />
                               </>
                             )}
+                          />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <TextField
+                            disabled
+                            id="outlined-disabled"
+                            label="Disabled"
+                            defaultValue={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierSecond?.tierAddOn, variation.tierDiscount?.tierSecond?.tierMultiplyBy)}
                           />
                         </Grid>
                       </Grid>
@@ -927,7 +944,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierAddOn`}
+                            name={`productVariations.${index}.tierDiscount.tierThird.tierAddOn`}
                             control={control}
                             defaultValue={variation.tierAddOn}
                             rules={{ required: 'Tier Add On is required' }}
@@ -949,7 +966,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierMultiplyBy`}
+                            name={`productVariations.${index}.tierDiscount.tierThird.tierMultiplyBy`}
                             control={control}
                             defaultValue={variation.tierMultiplyBy}
                             rules={{ required: 'Tier Multiply By is required' }}
@@ -967,6 +984,14 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                 />
                               </>
                             )}
+                          />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <TextField
+                            disabled
+                            id="outlined-disabled"
+                            label="Disabled"
+                            defaultValue={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierThird?.tierAddOn, variation.tierDiscount?.tierThird?.tierMultiplyBy)}
                           />
                         </Grid>
                       </Grid>
@@ -976,7 +1001,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierAddOn`}
+                            name={`productVariations.${index}.tierDiscount.tierFourth.tierAddOn`}
                             control={control}
                             defaultValue={variation.tierAddOn}
                             rules={{ required: 'Tier Add On is required' }}
@@ -998,7 +1023,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierMultiplyBy`}
+                            name={`productVariations.${index}.tierDiscount.tierFourth.tierMultiplyBy`}
                             control={control}
                             defaultValue={variation.tierMultiplyBy}
                             rules={{ required: 'Tier Multiply By is required' }}
@@ -1016,6 +1041,14 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                 />
                               </>
                             )}
+                          />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <TextField
+                            disabled
+                            id="outlined-disabled"
+                            label="Disabled"
+                            defaultValue={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierFourth?.tierAddOn, variation.tierDiscount?.tierFourth?.tierMultiplyBy)}
                           />
                         </Grid>
                       </Grid>
@@ -1023,9 +1056,9 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                         <Grid size={{ xs: 12 }}>
                           <Typography variant='h6'>Tier 1 - Price (inc.VAT) - Over 1300 sq.m</Typography>
                         </Grid>
-                        <Grid size={{ xs: 12, md: 4}}>
+                        <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierAddOn`}
+                            name={`productVariations.${index}.tierDiscount.tierFifth.tierAddOn`}
                             control={control}
                             defaultValue={variation.tierAddOn}
                             rules={{ required: 'Tier Add On is required' }}
@@ -1047,7 +1080,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierMultiplyBy`}
+                            name={`productVariations.${index}.tierDiscount.tierFifth.tierMultiplyBy`}
                             control={control}
                             defaultValue={variation.tierMultiplyBy}
                             rules={{ required: 'Tier Multiply By is required' }}
@@ -1065,6 +1098,14 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                 />
                               </>
                             )}
+                          />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <TextField
+                            disabled
+                            id="outlined-disabled"
+                            label="Disabled"
+                            defaultValue={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierFifth?.tierAddOn, variation.tierDiscount?.tierFifth?.tierMultiplyBy)}
                           />
                         </Grid>
                       </Grid>
@@ -1150,5 +1191,5 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
         </Box>
       </CardContent>
     </Card>
-  )
+  );
 }
