@@ -17,6 +17,7 @@ import ProductVariants from './ProductVariants'
 import ProductOrganize from './ProductOrganize'
 import ProductAddHeader from './ProductAddHeader'
 import ProductInformation from './ProductInformation'
+import { toast } from 'react-toastify';
 
 const AddProduct = () => {
   const router = useRouter()
@@ -98,6 +99,9 @@ const AddProduct = () => {
                 regularPrice: variation.regularPrice || 0,
                 salePrice: variation.salePrice || 0,
                 purchasedPrice: variation.purchasedPrice || 0,
+                NumberOfTiles: variation?.NumberOfTiles || 0,
+                BoxSize: variation?.BoxSize || 0,
+                PalletSize: variation?.PalletSize || 0,
                 customImageUrl: variation.customImageUrl || '',
                 variationImages: variation.variationImages || [],
                 image: variation.image || '',
@@ -154,8 +158,6 @@ const AddProduct = () => {
 
         // Reset the form with fetched and mapped values
         reset(formValues)
-        console.log('Form values set:', formValues)
-        console.log('Product variations:', productVariations)
       }
     } catch (error) {
       console.error('Failed to fetch product details:', error)
@@ -169,7 +171,33 @@ const AddProduct = () => {
   }, [productId])
 
   const onSubmit = async formDataValues => {
-    console.log(formDataValues, 'formDataValues')
+    const missingFieldsSummary = []
+
+    formDataValues.productVariations?.forEach((variation, index) => {
+      const missingFields = []
+
+      if (!variation.regularPrice) missingFields.push('Regular Price')
+      if (!variation.salePrice) missingFields.push('Sale Price')
+      if (!variation.purchasedPrice) missingFields.push('Purchased Price')
+      if (!variation.weight) missingFields.push('Weight')
+      if (!variation.NumberOfTiles) missingFields.push('Number of Tiles')
+      if (!variation.BoxSize) missingFields.push('Box Size')
+      if (!variation.PalletSize) missingFields.push('Pallet Size')
+
+      if (missingFields.length > 0) {
+        missingFieldsSummary.push(`Variation ${index + 1}: ${missingFields.join(', ')}`)
+      }
+    })
+
+    if (missingFieldsSummary.length > 0) {
+      toast.error(`Please fill the following fields:\n\n${missingFieldsSummary.join('\n')}`, {
+        duration: 8000,
+        style: {
+          whiteSpace: 'pre-line'
+        }
+      })
+      return
+    }
 
     const formData = new FormData()
 
@@ -234,13 +262,6 @@ const AddProduct = () => {
     if (formDataValues.productFeaturedImage instanceof File) {
       formData.append('productFeaturedImage', formDataValues.productFeaturedImage)
     }
-
-    // Debug FormData
-    console.log('FormData Entries:')
-    for (const entry of formData.entries()) {
-      console.log(entry[0], entry[1])
-    }
-
     // API call
     let response
     if (productId) {
@@ -252,7 +273,6 @@ const AddProduct = () => {
     if (response.success) {
       router.push(`/${locale}/admin/ecommerce/products/list`)
     }
-
   }
 
   return (

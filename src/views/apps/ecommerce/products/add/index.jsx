@@ -43,7 +43,6 @@ const AddProduct = () => {
   }, [])
 
 const onSubmit = async (data) => {
-  console.log(data,'datadatadata')
   // Generate slug and SKU
   const slug = generateSlug(data.name);
   const sku = generateSku();
@@ -85,7 +84,6 @@ const onSubmit = async (data) => {
   // Call the API with FormData (make sure API accepts multipart/form-data)
   const response = await createProduct(formData);
 
-  console.log(response, 'response from createProduct');
 };
 
   return (

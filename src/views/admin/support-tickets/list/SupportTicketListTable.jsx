@@ -174,8 +174,6 @@ const SupportTicketListTable = () => {
     getRawData()
   }, [])
 
-  console.log(data, 'form data')
-
   const refreshList = async () => {
     await fetchProducts()
   }

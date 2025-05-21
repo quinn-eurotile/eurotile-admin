@@ -3,17 +3,19 @@
 // MUI Imports
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import { useFormContext } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form'
+import CircularProgress from '@mui/material/CircularProgress'
 
 const ProductAddHeader = () => {
-  const { getValues } = useFormContext();
-  const formValues = getValues();
+  const { getValues, formState } = useFormContext()
+  const formValues = getValues()
   const isEditMode = !!formValues?._id || !!formValues?.title
+  const { isSubmitting } = formState
   return (
     <div className='flex flex-wrap sm:items-center justify-between max-sm:flex-col gap-6'>
       <div>
         <Typography variant='h4' className='mbe-1'>
-           {isEditMode ? 'Edit product' : 'Add a new product'}
+          {isEditMode ? 'Edit product' : 'Add a new product'}
         </Typography>
         <Typography>Orders placed across your store</Typography>
       </div>
@@ -22,8 +24,13 @@ const ProductAddHeader = () => {
           Discard
         </Button> */}
         {/* <Button variant='outlined'>Save Draft</Button> */}
-        <Button variant='contained' type='submit'>
-           {isEditMode ? 'Update Product' : 'Publish Product'}
+        <Button
+          variant='contained'
+          type='submit'
+          disabled={isSubmitting} // disable during submission
+          startIcon={isSubmitting && <CircularProgress size={20} color='inherit' />}
+        >
+          {isEditMode ? 'Update Product' : 'Publish Product'}
         </Button>
       </div>
     </div>

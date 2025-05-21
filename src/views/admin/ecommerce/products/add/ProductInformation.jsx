@@ -75,7 +75,7 @@ const ProductInformation = () => {
         <Typography className='mbe-1'>Description (Optional)</Typography>
         <CardContent className='p-0'>
           <Controller
-            name='productDescription'
+            name='description'
             control={control}
             defaultValue=''
             render={({ field, fieldState: { error } }) => (

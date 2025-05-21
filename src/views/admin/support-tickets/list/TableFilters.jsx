@@ -37,8 +37,6 @@ const TableFilters = ({ setFilters, rawProductData }) => {
     }
   }, [rawProductData])
 
-  console.log(categoryList, 'categoryListcategoryList')
-
   function flattenCategories(categories, parent = '', level = 0) {
     return categories.flatMap(cat => {
       const current = {
