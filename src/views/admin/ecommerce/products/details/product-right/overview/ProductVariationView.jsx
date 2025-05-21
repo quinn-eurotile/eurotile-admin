@@ -151,27 +151,27 @@ const ProductVariationView = ({ variation }) => {
                                             <tr>
                                                 <td className="py-1 px-2 border-b">Tier 5</td>
                                                 <td className="py-1 px-2 border-b">Under 30</td>
-                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierAddOn, variation?.tierMultiplyBy)}</td>
+                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierDiscount?.tierFifth?.tierAddOn, variation?.tierDiscount?.tierFifth?.tierMultiplyBy)}</td>
                                             </tr>
                                             <tr>
                                                 <td className="py-1 px-2 border-b">Tier 4</td>
                                                 <td className="py-1 px-2 border-b">30 - 51</td>
-                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierAddOn, variation?.tierMultiplyBy)}</td>
+                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierDiscount?.tierFourth?.tierAddOn, variation?.tierDiscount?.tierFourth?.tierMultiplyBy)}</td>
                                             </tr>
                                             <tr>
                                                 <td className="py-1 px-2 border-b">Tier 3</td>
                                                 <td className="py-1 px-2 border-b">51 - 153</td>
-                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierAddOn, variation?.tierMultiplyBy)}</td>
+                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierDiscount?.tierThird.tierAddOn, variation?.tierDiscount?.tierThird.tierMultiplyBy)}</td>
                                             </tr>
                                             <tr>
                                                 <td className="py-1 px-2 border-b">Tier 2</td>
                                                 <td className="py-1 px-2 border-b">153 - 1300</td>
-                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierAddOn, variation?.tierMultiplyBy)}</td>
+                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierDiscount?.tierSecond?.tierAddOn, variation?.tierDiscount?.tierSecond?.tierMultiplyBy)}</td>
                                             </tr>
                                             <tr>
                                                 <td className="py-1 px-2">Tier 1</td>
                                                 <td className="py-1 px-2">Over 1300</td>
-                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierAddOn, variation?.tierMultiplyBy)}</td>
+                                                <td className="py-1 px-2 border-b">£{calculateTierValue(variation?.purchasedPrice, 1.17, variation?.tierDiscount?.tierFirst?.tierAddOn, variation?.tierDiscount?.tierFirst?.tierMultiplyBy)}</td>
                                             </tr>
                                         </tbody>
                                     </table>

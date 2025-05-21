@@ -1,125 +1,125 @@
-'use client'
+'use client';
 
 // React Imports
-import { useForm, FormProvider } from 'react-hook-form'
+import { useForm, FormProvider } from 'react-hook-form';
 
 // MUI Imports
-import Grid from '@mui/material/Grid2'
+import Grid from '@mui/material/Grid2';
 
 // Component Imports
 
-import ProductFeaturedImage from './ProductFeaturedImage'
-import { useEffect, useState } from 'react'
-import { createProduct, getProductDetails, getProductRawData, updateProduct } from '@/app/server/actions'
-import { generateSku, generateSlug } from '@/components/common/helper'
-import { useParams, useRouter } from 'next/navigation'
-import ProductVariants from './ProductVariants'
-import ProductOrganize from './ProductOrganize'
-import ProductAddHeader from './ProductAddHeader'
-import ProductInformation from './ProductInformation'
+import ProductFeaturedImage from './ProductFeaturedImage';
+import { useEffect, useState } from 'react';
+import { createProduct, getProductDetails, getProductRawData, updateProduct } from '@/app/server/actions';
+import { generateSku, generateSlug } from '@/components/common/helper';
+import { useParams, useRouter } from 'next/navigation';
+import ProductVariants from './ProductVariants';
+import ProductOrganize from './ProductOrganize';
+import ProductAddHeader from './ProductAddHeader';
+import ProductInformation from './ProductInformation';
 import { toast } from 'react-toastify';
 
 const AddProduct = () => {
-  const router = useRouter()
-  const { lang: locale, id: productId } = useParams()
+  const router = useRouter();
+  const { lang: locale, id: productId } = useParams();
 
-  const [rawProduct, setRawProduct] = useState([])
-  const [productSuppliers, setProductSuppliers] = useState([])
-  const [attributeVariations, setAttributeVariations] = useState([])
-  const [productVariations, setProductVariations] = useState([])
+  const [rawProduct, setRawProduct] = useState([]);
+  const [productSuppliers, setProductSuppliers] = useState([]);
+  const [attributeVariations, setAttributeVariations] = useState([]);
+  const [productVariations, setProductVariations] = useState([]);
 
   const defaultValues = {
     productVariations: productVariations || []
-  }
-  const formMethods = useForm({ defaultValues })
-  const { handleSubmit, reset } = formMethods
+  };
+  const formMethods = useForm({ defaultValues });
+  const { handleSubmit, reset } = formMethods;
 
   useEffect(() => {
-    getRawData()
-  }, [])
+    getRawData();
+  }, []);
 
   const getRawData = async () => {
     try {
-      const response = await getProductRawData()
+      const response = await getProductRawData();
       if (response?.data) {
-        setRawProduct(response?.data)
+        setRawProduct(response?.data);
       }
     } catch (error) {
-      console.error('Failed to fetch raw data:', error)
+      console.error('Failed to fetch raw data:', error);
     }
-  }
+  };
 
   const fetchProductDetails = async () => {
     try {
-      const response = await getProductDetails(productId)
+      const response = await getProductDetails(productId);
 
       if (response?.success && response?.data) {
-        const product = response.data
+        const product = response.data;
 
         // Map supplier object to supplier ID string (or empty string)
-        const supplierId = product.supplier?._id || ''
+        const supplierId = product.supplier?._id || '';
 
         // Map categories array of objects to array of IDs
-        const categoryIds = Array.isArray(product.categories) ? product.categories.map(category => category._id) : []
+        const categoryIds = Array.isArray(product.categories) ? product.categories.map(category => category._id) : [];
 
         // Map attributeVariations array of objects to array of IDs
         const attributeVariationIds = Array.isArray(product.attributeVariations)
           ? product.attributeVariations.map(attr => attr._id)
-          : []
+          : [];
 
         // Map productVariations array with complete data structure
         const productVariations = Array.isArray(product.productVariations)
           ? product.productVariations.map(variation => {
-              // Extract attribute information from the product's attributeVariations
-              const attributes = product.attributeVariations.map(attr => ({
-                _id: attr._id,
-                productAttribute: attr.productAttribute,
-                metaKey: attr.metaKey,
-                metaValue: attr.metaValue,
-                measurementUnit: attr.productMeasurementUnit
-                  ? {
-                      _id: attr.productMeasurementUnit,
-                      name: '' // This will be filled if available
-                    }
-                  : null
-              }))
+            // Extract attribute information from the product's attributeVariations
+            const attributes = product.attributeVariations.map(attr => ({
+              _id: attr._id,
+              productAttribute: attr.productAttribute,
+              metaKey: attr.metaKey,
+              metaValue: attr.metaValue,
+              measurementUnit: attr.productMeasurementUnit
+                ? {
+                  _id: attr.productMeasurementUnit,
+                  name: '' // This will be filled if available
+                }
+                : null
+            }));
 
-              return {
-                _id: variation?._id,
-                description: variation.description || '',
-                stockStatus: variation.stockStatus || '',
-                stockQuantity: variation.stockQuantity || 0,
-                allowBackorders: variation.allowBackorders || false,
-                weight: variation.weight || 0,
-                dimensions: {
-                  length: variation.dimensions?.length || 0,
-                  width: variation.dimensions?.width || 0,
-                  height: variation.dimensions?.height || 0
-                },
-                regularPrice: variation.regularPrice || 0,
-                tierAddOn: variation.tierAddOn || 0,
-                tierMultiplyBy: variation.tierMultiplyBy || 0,
-                salePrice: variation.salePrice || 0,
-                purchasedPrice: variation.purchasedPrice || 0,
-                numberOfTiles: variation?.numberOfTiles || 0,
-                boxSize: variation?.boxSize || 0,
-                palletSize: variation?.palletSize || 0,
-                customImageUrl: variation.customImageUrl || '',
-                variationImages: variation.variationImages || [],
-                image: variation.image || '',
-                shippingClass: variation.shippingClass || '',
-                taxClass: variation.taxClass || '',
-                attributes: attributes, // Add the attributes array
-                // Add attribute key-value pairs for the UI display
-                ...product.attributeVariations.reduce((acc, attr) => {
-                  const key = attr.metaKey.toLowerCase()
-                  const value = attr.metaValue
-                  acc[key] = value
-                  return acc
-                }, {})
-              }
-            })
-          : []
+            return {
+              _id: variation?._id,
+              description: variation.description || '',
+              stockStatus: variation.stockStatus || '',
+              stockQuantity: variation.stockQuantity || 0,
+              allowBackorders: variation.allowBackorders || false,
+              weight: variation.weight || 0,
+              dimensions: {
+                length: variation.dimensions?.length || 0,
+                width: variation.dimensions?.width || 0,
+                height: variation.dimensions?.height || 0
+              },
+              regularPrice: variation.regularPrice || 0,
+              tierAddOn: variation.tierAddOn || 0,
+              tierMultiplyBy: variation.tierMultiplyBy || 0,
+              salePrice: variation.salePrice || 0,
+              purchasedPrice: variation.purchasedPrice || 0,
+              numberOfTiles: variation?.numberOfTiles || 0,
+              boxSize: variation?.boxSize || 0,
+              palletSize: variation?.palletSize || 0,
+              customImageUrl: variation.customImageUrl || '',
+              variationImages: variation.variationImages || [],
+              image: variation.image || '',
+              shippingClass: variation.shippingClass || '',
+              taxClass: variation.taxClass || '',
+              attributes: attributes, // Add the attributes array
+              // Add attribute key-value pairs for the UI display
+              ...product.attributeVariations.reduce((acc, attr) => {
+                const key = attr.metaKey.toLowerCase();
+                const value = attr.metaValue;
+                acc[key] = value;
+                return acc;
+              }, {})
+            };
+          })
+          : [];
 
         // Map productImages array if needed, example:
         // const productImages = Array.isArray(product.productImages)
@@ -153,131 +153,119 @@ const AddProduct = () => {
           updatedBy: product.updatedBy || null,
           createdAt: product.createdAt || null,
           updatedAt: product.updatedAt || null
-        }
+        };
 
-        setAttributeVariations(attributeVariationIds)
-        setProductVariations(productVariations)
+        setAttributeVariations(attributeVariationIds);
+        setProductVariations(productVariations);
 
         // Reset the form with fetched and mapped values
-        reset(formValues)
+        reset(formValues);
       }
     } catch (error) {
-      console.error('Failed to fetch product details:', error)
+      console.error('Failed to fetch product details:', error);
     }
-  }
+  };
 
   useEffect(() => {
     if (productId) {
-      fetchProductDetails()
+      fetchProductDetails();
     }
-  }, [productId])
+  }, [productId]);
 
   const onSubmit = async formDataValues => {
-    const missingFieldsSummary = []
+    const missingFieldsSummary = [];
 
     formDataValues.productVariations?.forEach((variation, index) => {
-      const missingFields = []
+      const missingFields = [];
 
-      if (!variation.regularPrice) missingFields.push('Regular Price')
-      if (!variation.salePrice) missingFields.push('Sale Price')
-      if (!variation.purchasedPrice) missingFields.push('Purchased Price')
-      if (!variation.weight) missingFields.push('Weight')
-      if (!variation.numberOfTiles) missingFields.push('Number of Tiles')
-      if (!variation.boxSize) missingFields.push('Box Size')
-      if (!variation.palletSize) missingFields.push('Pallet Size')
-      if (!variation.tierAddOn) missingFields.push('Tier AddOn')
-      if (!variation.tierMultiplyBy) missingFields.push('Tier Multiply By')
+      if (!variation.regularPrice) missingFields.push('Regular Price');
+      if (!variation.salePrice) missingFields.push('Sale Price');
+      if (!variation.purchasedPrice) missingFields.push('Purchased Price');
+      if (!variation.weight) missingFields.push('Weight');
+      if (!variation.numberOfTiles) missingFields.push('Number of Tiles');
+      if (!variation.boxSize) missingFields.push('Box Size');
+      if (!variation.palletSize) missingFields.push('Pallet Size');
 
       if (missingFields.length > 0) {
-        missingFieldsSummary.push(`Variation ${index + 1}: ${missingFields.join(', ')}`)
+        toast.error(`Please fill the variation fields`);
       }
-    })
+    });
 
-    if (missingFieldsSummary.length > 0) {
-      toast.error(`Please fill the following fields:\n\n${missingFieldsSummary.join('\n')}`, {
-        duration: 8000,
-        style: {
-          whiteSpace: 'pre-line'
-        }
-      })
-      return
-    }
-
-    const formData = new FormData()
+    const formData = new FormData();
 
     // Handle existing featured image
     const isExistingFeaturedImage =
       formDataValues.productFeaturedImage &&
       typeof formDataValues.productFeaturedImage === 'object' &&
       formDataValues.productFeaturedImage._id &&
-      !(formDataValues.productFeaturedImage instanceof File)
+      !(formDataValues.productFeaturedImage instanceof File);
 
     if (isExistingFeaturedImage) {
-      formDataValues.productFeaturedImage = []
+      formDataValues.productFeaturedImage = [];
     }
 
     // Set slug and SKU for creation
     if (!productId) {
-      formDataValues.slug = generateSlug(formDataValues.name)
-      formDataValues.sku = generateSku()
+      formDataValues.slug = generateSlug(formDataValues.name);
+      formDataValues.sku = generateSku();
     } else {
-      delete formDataValues.slug
-      delete formDataValues.sku
+      delete formDataValues.slug;
+      delete formDataValues.sku;
     }
 
     // Inject image keys into variationImages and append files separately
     const updatedProductVariations =
       formDataValues.productVariations?.map((variation, variationIndex) => {
-        const updatedVariation = { ...variation }
+        const updatedVariation = { ...variation };
 
         if (Array.isArray(updatedVariation.variationImages)) {
           updatedVariation.variationImages = updatedVariation.variationImages.map((file, imageIndex) => {
-            const formDataKey = `productVariations[${variationIndex}].variationImages[${imageIndex}]`
+            const formDataKey = `productVariations[${variationIndex}].variationImages[${imageIndex}]`;
 
             if (file instanceof File) {
-              formData.append(formDataKey, file)
+              formData.append(formDataKey, file);
             }
 
             // Replace file object with reference key string (whether file or existing string)
-            return formDataKey
-          })
+            return formDataKey;
+          });
         }
 
-        return updatedVariation
-      }) || []
+        return updatedVariation;
+      }) || [];
 
     // Assign back to formDataValues before serializing
-    formDataValues.productVariations = updatedProductVariations
+    formDataValues.productVariations = updatedProductVariations;
 
     // Append all form values except productFeaturedImage
     for (const fieldKey in formDataValues) {
       if (fieldKey !== 'productFeaturedImage') {
-        const fieldValue = formDataValues[fieldKey]
+        const fieldValue = formDataValues[fieldKey];
 
         if (Array.isArray(fieldValue) || typeof fieldValue === 'object') {
-          formData.append(fieldKey, JSON.stringify(fieldValue))
+          formData.append(fieldKey, JSON.stringify(fieldValue));
         } else {
-          formData.append(fieldKey, fieldValue)
+          formData.append(fieldKey, fieldValue);
         }
       }
     }
 
     // Append featured image if new
     if (formDataValues.productFeaturedImage instanceof File) {
-      formData.append('productFeaturedImage', formDataValues.productFeaturedImage)
+      formData.append('productFeaturedImage', formDataValues.productFeaturedImage);
     }
     // API call
-    let response
+    let response;
     if (productId) {
-      response = await updateProduct(productId, formData)
+      response = await updateProduct(productId, formData);
     } else {
-      response = await createProduct(formData)
+      response = await createProduct(formData);
     }
 
     if (response.success) {
-      router.push(`/${locale}/admin/ecommerce/products/list`)
+      router.push(`/${locale}/admin/ecommerce/products/list`);
     }
-  }
+  };
 
   return (
     <FormProvider {...formMethods}>
@@ -328,7 +316,7 @@ const AddProduct = () => {
         </Grid>
       </form>
     </FormProvider>
-  )
-}
+  );
+};
 
-export default AddProduct
+export default AddProduct;
