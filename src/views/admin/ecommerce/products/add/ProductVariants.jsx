@@ -76,6 +76,8 @@ function generateVariations(selectedAttributeValues, existingVariations = []) {
       NumberOfTiles: matchedExisting?.NumberOfTiles,
       BoxSize: matchedExisting?.BoxSize,
       PalletSize: matchedExisting?.PalletSize,
+      TierAddOn: matchedExisting?.TierAddOn,
+      TierMultiplyBy: matchedExisting?.TierMultiplyBy,
       // shippingClass: matchedExisting?.shippingClass || '',
       // taxClass: matchedExisting?.taxClass || '',
       // Keep full attribute data if needed
@@ -294,7 +296,13 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                 Choose Attributes to Combine
               </Typography>
 
-              <FormControl sx={{ mb: 4, minWidth: 300 }} variant='outlined' margin='normal' required error={!hasAttributes}>
+              <FormControl
+                sx={{ mb: 4, minWidth: 300 }}
+                variant='outlined'
+                margin='normal'
+                required
+                error={!hasAttributes}
+              >
                 <InputLabel id='select-attributes-label'>Attributes</InputLabel>
                 <Select
                   labelId='select-attributes-label'
@@ -520,7 +528,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                         rules={{ required: 'Stock status is required' }} // Required validation rule
                         render={({ field, fieldState: { error } }) => (
                           <FormControl fullWidth error={!!error}>
-                            <InputLabel id={`stock-status-label-${index}`}>Stock {variation.stockStatus}</InputLabel>
+                            <InputLabel id={`stock-status-label-${index}`}>Stock Status</InputLabel>
                             <Select {...field} labelId={`stock-status-label-${index}`} label='Stock Status'>
                               <MenuItem value='in_stock'>In Stock</MenuItem>
                               <MenuItem value='out_of_stock'>Out of Stock</MenuItem>
@@ -798,6 +806,52 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                             <TextField
                               {...field}
                               label='Pallet Size (sqm/kg)'
+                              fullWidth
+                              type='number'
+                              inputProps={{ step: 0.01, min: 0 }}
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
+                        )}
+                      />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <Controller
+                        name={`productVariations.${index}.TierAddOn`}
+                        control={control}
+                        defaultValue={variation.TierAddOn}
+                        rules={{ required: 'Tier Add On is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Tier Add On'
+                              fullWidth
+                              type='number'
+                              inputProps={{ step: 0.01, min: 0 }}
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
+                        )}
+                      />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <Controller
+                        name={`productVariations.${index}.TierMultiplyBy`}
+                        control={control}
+                        defaultValue={variation.TierMultiplyBy}
+                        rules={{ required: 'Tier Multiply By is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Tier Multiply By'
                               fullWidth
                               type='number'
                               inputProps={{ step: 0.01, min: 0 }}

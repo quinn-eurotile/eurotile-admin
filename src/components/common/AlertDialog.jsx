@@ -1,52 +1,70 @@
-import React from 'react';
 import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogContentText,
   DialogActions,
   Button,
-  Typography,
-  CircularProgress
-} from '@mui/material';
+  CircularProgress,
+  TextField
+} from '@mui/material'
 
-function AlertDialog({
+const AlertDialog = ({
   open,
   title,
   description,
-  confirmText = 'Yes',
-  cancelText = 'No',
-  confirmColor = 'success',
-  cancelColor = 'inherit',
+  confirmText,
+  cancelText,
+  confirmColor,
+  cancelColor,
   onConfirm,
   onCancel,
-  isLoading = false // Add isLoading prop
-}) {
+  isLoading,
+  showInput,
+  rejectionReasonText,
+  setRejectionReasonText
+}) => {
+  const handleConfirmClick = () => {
+    if (onConfirm) {
+      onConfirm(rejectionReasonText) // Pass current value back
+    }
+  }
+
   return (
-    <Dialog open={open} onClose={onCancel} maxWidth='xs' fullWidth>
+    <Dialog open={open} onClose={onCancel} fullWidth maxWidth='xs'>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        {description && (
-          <Typography variant='body2' color='text.secondary'>
-            {description}
-          </Typography>
+        <DialogContentText>{description}</DialogContentText>
+
+        {showInput && (
+          <TextField
+            autoFocus
+            fullWidth
+            margin='dense'
+            label='Rejection Reason'
+            value={rejectionReasonText}
+            onChange={event => setRejectionReasonText(event.target.value)}
+            multiline
+            rows={3}
+          />
         )}
       </DialogContent>
+
       <DialogActions>
-        <Button onClick={onCancel} color={cancelColor} disabled={isLoading}>
-          {cancelText}
+        <Button onClick={onCancel} color={cancelColor || 'inherit'}>
+          {cancelText || 'Cancel'}
         </Button>
         <Button
-          onClick={onConfirm}
-          color={confirmColor}
+          onClick={handleConfirmClick}
+          color={confirmColor || 'primary'}
           variant='contained'
           disabled={isLoading}
-          startIcon={isLoading && <CircularProgress size={16} color='inherit' />}
         >
-          {isLoading ? `${confirmText}...` : confirmText}
+          {isLoading ? <CircularProgress size={20} /> : confirmText || 'Confirm'}
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
 
-export default AlertDialog;
+export default AlertDialog
