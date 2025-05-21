@@ -66,14 +66,16 @@ function generateVariations(selectedAttributeValues, existingVariations = []) {
       _id: matchedExisting?._id || undefined,
       description: matchedExisting?.description || '',
       stockStatus: matchedExisting?.stockStatus || 'in_stock',
-      stockQuantity: matchedExisting?.stockQuantity || 0,
+      stockQuantity: matchedExisting?.stockQuantity,
       allowBackorders: matchedExisting?.allowBackorders || false,
-      weight: matchedExisting?.weight || 0,
+      weight: matchedExisting?.weight,
       dimensions: matchedExisting?.dimensions || { length: 0, width: 0, height: 0 },
-      regularPrice: matchedExisting?.regularPrice || 0,
-      salePrice: matchedExisting?.salePrice || 0,
-      purchasedPrice: matchedExisting?.purchasedPrice || 0,
-      image: matchedExisting?.image || '',
+      regularPrice: matchedExisting?.regularPrice,
+      salePrice: matchedExisting?.salePrice,
+      purchasedPrice: matchedExisting?.purchasedPrice,
+      NumberOfTiles: matchedExisting?.NumberOfTiles,
+      BoxSize: matchedExisting?.BoxSize,
+      PalletSize: matchedExisting?.PalletSize,
       // shippingClass: matchedExisting?.shippingClass || '',
       // taxClass: matchedExisting?.taxClass || '',
       // Keep full attribute data if needed
@@ -83,7 +85,6 @@ function generateVariations(selectedAttributeValues, existingVariations = []) {
 }
 
 export default function ProductVariants({ productAttributes, defaultAttributeVariations, defaultProductVariations }) {
-  console.log(defaultProductVariations,'defaultProductVariationsdefaultProductVariations')
   const hasAttributes = productAttributes && productAttributes.length > 0
   const [tabIndex, setTabIndex] = useState(0)
   const [selectedAttributes, setSelectedAttributes] = useState([])
@@ -91,8 +92,6 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
   const [allAttributes, setAllAttributes] = useState({})
   const { control, watch, reset, setValue, getValues, isSubmitted } = useFormContext()
   const [removedImageIds, setRemovedImageIds] = useState([])
-
-  console.log(removedImageIds,'removedImageIdsremovedImageIds')
 
   useEffect(() => {
     // Step 0: Guard clause — only run when all required data is available
@@ -195,10 +194,9 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
     }
   }, [selectedAttributeValues, setValue])
 
-    useEffect(()=>{
-    setValue('variationsImagesToRemove',removedImageIds)
-  },[removedImageIds])
-
+  useEffect(() => {
+    setValue('variationsImagesToRemove', removedImageIds)
+  }, [removedImageIds])
 
   useEffect(() => {
     // Collect matched variation IDs based on selected attribute values
@@ -296,7 +294,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                 Choose Attributes to Combine
               </Typography>
 
-              <FormControl sx={{ mb: 4, minWidth: 300 }} variant='outlined' margin='normal' error={!hasAttributes}>
+              <FormControl sx={{ mb: 4, minWidth: 300 }} variant='outlined' margin='normal' required error={!hasAttributes}>
                 <InputLabel id='select-attributes-label'>Attributes</InputLabel>
                 <Select
                   labelId='select-attributes-label'
@@ -542,7 +540,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.stockQuantity`}
                         control={control}
-                        defaultValue={variation.stockQuantity ?? 0}
+                        defaultValue={variation.stockQuantity}
                         rules={{ required: 'Stock Quantity is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -565,7 +563,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.regularPrice`}
                         control={control}
-                        defaultValue={variation.regularPrice || 0}
+                        defaultValue={variation.regularPrice}
                         rules={{ required: 'Regular Price is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -588,7 +586,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.salePrice`}
                         control={control}
-                        defaultValue={variation.salePrice ?? 0}
+                        defaultValue={variation.salePrice}
                         rules={{ required: 'Sale Price is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -611,7 +609,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.purchasedPrice`}
                         control={control}
-                        defaultValue={variation.purchasedPrice ?? 0}
+                        defaultValue={variation.purchasedPrice}
                         rules={{ required: 'Purchased Price is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -653,7 +651,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.weight`}
                         control={control}
-                        defaultValue={variation.weight ?? 0}
+                        defaultValue={variation.weight}
                         rules={{ required: 'Weight is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -678,7 +676,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.dimensions.length`}
                         control={control}
-                        defaultValue={variation.dimensions.length ?? 0}
+                        defaultValue={variation.dimensions.length}
                         rules={{ required: 'Length is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -701,7 +699,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.dimensions.width`}
                         control={control}
-                        defaultValue={variation.dimensions.width ?? 0}
+                        defaultValue={variation.dimensions.width}
                         rules={{ required: 'Width is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -724,7 +722,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.dimensions.height`}
                         control={control}
-                        defaultValue={variation.dimensions.height ?? 0}
+                        defaultValue={variation.dimensions.height}
                         rules={{ required: 'Height is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -747,13 +745,15 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.NumberOfTiles`}
                         control={control}
-                        defaultValue={variation.NumberOfTiles ?? 0}
+                        defaultValue={variation.NumberOfTiles}
                         rules={{ required: 'Number of tiles per box is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
                               label='Number of tiles per box'
+                              type='number'
+                              inputProps={{ step: 0.01, min: 0 }}
                               fullWidth
                               variant='outlined'
                               error={!!error}
@@ -768,13 +768,15 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.BoxSize`}
                         control={control}
-                        defaultValue={variation.BoxSize ?? 0}
+                        defaultValue={variation.BoxSize}
                         rules={{ required: 'Box sizes are required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
                               label='Box sizes (sqm/kg)'
+                              type='number'
+                              inputProps={{ step: 0.01, min: 0 }}
                               fullWidth
                               variant='outlined'
                               error={!!error}
@@ -789,7 +791,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.PalletSize`}
                         control={control}
-                        defaultValue={variation.PalletSize ?? 0}
+                        defaultValue={variation.PalletSize}
                         rules={{ required: 'Pallet Size is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -797,6 +799,8 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                               {...field}
                               label='Pallet Size (sqm/kg)'
                               fullWidth
+                              type='number'
+                              inputProps={{ step: 0.01, min: 0 }}
                               variant='outlined'
                               error={!!error}
                               helperText={error?.message}
@@ -831,7 +835,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       <Controller
                         name={`productVariations.${index}.description`}
                         control={control}
-                        defaultValue={variation.description ?? 0}
+                        defaultValue={variation.description}
                         rules={{ required: 'Description is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>

@@ -140,7 +140,6 @@ const TradeProfessionalsList = ({ fetchList, deleteTeamMember, updateStatus }) =
         header: 'Status',
         cell: ({ row }) => {
           const userStatus = row.original.status
-          console.log(userStatus,'userStatususerStatus')
 
           // If status is 4 (Rejected), show plain text instead of switch
           if (userStatus === 2) {
@@ -231,7 +230,6 @@ const TradeProfessionalsList = ({ fetchList, deleteTeamMember, updateStatus }) =
       if (search || filteredData) {
         try {
           const data = await fetchList(page + 1, rowsPerPage, search, filteredData)
-          console.log(data, 'datadatadata')
           // Update your state with the fetched data
           setData(data?.data?.docs ?? [])
           setTotalRecords(data?.data?.totalDocs)

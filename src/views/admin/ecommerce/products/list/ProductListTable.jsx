@@ -104,7 +104,6 @@ const columnHelper = createColumnHelper();
 
 const ProductListTable = () => {
   const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
-  console.log(NEXT_PUBLIC_BACKEND_DOMAIN, 'NEXT_PUBLIC_BACKEND_DOMAIN');
   const router = useRouter();
   // States
   const [rowSelection, setRowSelection] = useState({});
@@ -127,7 +126,6 @@ const ProductListTable = () => {
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await getProductList(currentPage, rowsPerPage, searchTerm, filteredData);
-      console.log('response data', response);
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
         const formatted = response?.data?.docs?.map(product => ({
@@ -175,7 +173,6 @@ const ProductListTable = () => {
     getRawData();
   }, []);
 
-  console.log(data, 'form data');
 
   const refreshList = async () => {
     await fetchProducts();

@@ -58,7 +58,6 @@ function generateVariations(selectedAttributeValues) {
 }
 
 export default function ProductVariants({ productAttributes }) {
-  console.log(productAttributes, 'productAttributes')
   const hasAttributes = productAttributes && productAttributes.length > 0
   const [tabIndex, setTabIndex] = useState(0)
   const [selectedAttributes, setSelectedAttributes] = useState([])
@@ -152,10 +151,6 @@ export default function ProductVariants({ productAttributes }) {
     }))
   }
 
-  // Submit handler for variations form inside tab 2
-  const onSubmitVariations = data => {
-    console.log('Submitted variations:', data.variations)
-  }
 
   return (
     <Card>
