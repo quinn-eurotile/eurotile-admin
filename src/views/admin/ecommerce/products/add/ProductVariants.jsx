@@ -22,7 +22,8 @@ import {
   Button,
   List,
   ListItem,
-  IconButton
+  IconButton,
+  Divider
 } from '@mui/material'
 import { useFormContext, Controller, useWatch } from 'react-hook-form'
 import Grid from '@mui/material/Grid2'
@@ -73,11 +74,11 @@ function generateVariations(selectedAttributeValues, existingVariations = []) {
       regularPrice: matchedExisting?.regularPrice,
       salePrice: matchedExisting?.salePrice,
       purchasedPrice: matchedExisting?.purchasedPrice,
-      NumberOfTiles: matchedExisting?.NumberOfTiles,
-      BoxSize: matchedExisting?.BoxSize,
-      PalletSize: matchedExisting?.PalletSize,
-      TierAddOn: matchedExisting?.TierAddOn,
-      TierMultiplyBy: matchedExisting?.TierMultiplyBy,
+      numberOfTiles: matchedExisting?.numberOfTiles,
+      boxSize: matchedExisting?.boxSize,
+      palletSize: matchedExisting?.palletSize,
+      tierAddOn: matchedExisting?.tierAddOn,
+      tierMultiplyBy: matchedExisting?.tierMultiplyBy,
       // shippingClass: matchedExisting?.shippingClass || '',
       // taxClass: matchedExisting?.taxClass || '',
       // Keep full attribute data if needed
@@ -751,9 +752,9 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`productVariations.${index}.NumberOfTiles`}
+                        name={`productVariations.${index}.numberOfTiles`}
                         control={control}
-                        defaultValue={variation.NumberOfTiles}
+                        defaultValue={variation.numberOfTiles}
                         rules={{ required: 'Number of tiles per box is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -774,9 +775,9 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`productVariations.${index}.BoxSize`}
+                        name={`productVariations.${index}.boxSize`}
                         control={control}
-                        defaultValue={variation.BoxSize}
+                        defaultValue={variation.boxSize}
                         rules={{ required: 'Box sizes are required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -797,9 +798,9 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
-                        name={`productVariations.${index}.PalletSize`}
+                        name={`productVariations.${index}.palletSize`}
                         control={control}
-                        defaultValue={variation.PalletSize}
+                        defaultValue={variation.palletSize}
                         rules={{ required: 'Pallet Size is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -818,50 +819,255 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       />
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 4 }}>
-                      <Controller
-                        name={`productVariations.${index}.TierAddOn`}
-                        control={control}
-                        defaultValue={variation.TierAddOn}
-                        rules={{ required: 'Tier Add On is required' }}
-                        render={({ field, fieldState: { error } }) => (
-                          <>
-                            <TextField
-                              {...field}
-                              label='Tier Add On'
-                              fullWidth
-                              type='number'
-                              inputProps={{ step: 0.01, min: 0 }}
-                              variant='outlined'
-                              error={!!error}
-                              helperText={error?.message}
-                            />
-                          </>
-                        )}
-                      />
+                    <Grid size={{ xs: 12 }}>
+                      <Divider style={{ marginTop: '20px', marginBottom: '20px' }} />
                     </Grid>
-
-                    <Grid size={{ xs: 12, md: 4 }}>
-                      <Controller
-                        name={`productVariations.${index}.TierMultiplyBy`}
-                        control={control}
-                        defaultValue={variation.TierMultiplyBy}
-                        rules={{ required: 'Tier Multiply By is required' }}
-                        render={({ field, fieldState: { error } }) => (
-                          <>
-                            <TextField
-                              {...field}
-                              label='Tier Multiply By'
-                              fullWidth
-                              type='number'
-                              inputProps={{ step: 0.01, min: 0 }}
-                              variant='outlined'
-                              error={!!error}
-                              helperText={error?.message}
-                            />
-                          </>
-                        )}
-                      />
+                    <Grid size={{ xs: 12 }}>
+                      <Grid container spacing={2} mb={3}>
+                        <Grid size={{ xs: 12 }}>
+                          <Typography variant='h6'>Tier 5 - Price (inc.VAT) - Under 30 sq.m</Typography>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <Controller
+                            name={`productVariations.${index}.tierAddOn`}
+                            control={control}
+                            defaultValue={variation.tierAddOn}
+                            rules={{ required: 'Tier Add On is required' }}
+                            render={({ field, fieldState: { error } }) => (
+                              <>
+                                <TextField
+                                  {...field}
+                                  label='Tier Add On'
+                                  fullWidth
+                                  type='number'
+                                  inputProps={{ step: 0.01, min: 0 }}
+                                  variant='outlined'
+                                  error={!!error}
+                                  helperText={error?.message}
+                                />
+                              </>
+                            )}
+                          />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <Controller
+                            name={`productVariations.${index}.tierMultiplyBy`}
+                            control={control}
+                            defaultValue={variation.tierMultiplyBy}
+                            rules={{ required: 'Tier Multiply By is required' }}
+                            render={({ field, fieldState: { error } }) => (
+                              <>
+                                <TextField
+                                  {...field}
+                                  label='Tier Multiply By'
+                                  fullWidth
+                                  type='number'
+                                  inputProps={{ step: 0.01, min: 0 }}
+                                  variant='outlined'
+                                  error={!!error}
+                                  helperText={error?.message}
+                                />
+                              </>
+                            )}
+                          />
+                        </Grid>
+                      </Grid>
+                      <Grid container spacing={2} mb={3}>
+                        <Grid size={{ xs: 12 }}>
+                          <Typography variant='h6'>Tier 4 - Price (inc.VAT) - 30 - 51 sq.m</Typography>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <Controller
+                            name={`productVariations.${index}.tierAddOn`}
+                            control={control}
+                            defaultValue={variation.tierAddOn}
+                            rules={{ required: 'Tier Add On is required' }}
+                            render={({ field, fieldState: { error } }) => (
+                              <>
+                                <TextField
+                                  {...field}
+                                  label='Tier Add On'
+                                  fullWidth
+                                  type='number'
+                                  inputProps={{ step: 0.01, min: 0 }}
+                                  variant='outlined'
+                                  error={!!error}
+                                  helperText={error?.message}
+                                />
+                              </>
+                            )}
+                          />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <Controller
+                            name={`productVariations.${index}.tierMultiplyBy`}
+                            control={control}
+                            defaultValue={variation.tierMultiplyBy}
+                            rules={{ required: 'Tier Multiply By is required' }}
+                            render={({ field, fieldState: { error } }) => (
+                              <>
+                                <TextField
+                                  {...field}
+                                  label='Tier Multiply By'
+                                  fullWidth
+                                  type='number'
+                                  inputProps={{ step: 0.01, min: 0 }}
+                                  variant='outlined'
+                                  error={!!error}
+                                  helperText={error?.message}
+                                />
+                              </>
+                            )}
+                          />
+                        </Grid>
+                      </Grid>
+                      <Grid container spacing={2} mb={3}>
+                        <Grid size={{ xs: 12 }}>
+                          <Typography variant='h6'>Tier 3 - Price (inc.VAT) - 51 - 153 sq.m</Typography>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <Controller
+                            name={`productVariations.${index}.tierAddOn`}
+                            control={control}
+                            defaultValue={variation.tierAddOn}
+                            rules={{ required: 'Tier Add On is required' }}
+                            render={({ field, fieldState: { error } }) => (
+                              <>
+                                <TextField
+                                  {...field}
+                                  label='Tier Add On'
+                                  fullWidth
+                                  type='number'
+                                  inputProps={{ step: 0.01, min: 0 }}
+                                  variant='outlined'
+                                  error={!!error}
+                                  helperText={error?.message}
+                                />
+                              </>
+                            )}
+                          />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <Controller
+                            name={`productVariations.${index}.tierMultiplyBy`}
+                            control={control}
+                            defaultValue={variation.tierMultiplyBy}
+                            rules={{ required: 'Tier Multiply By is required' }}
+                            render={({ field, fieldState: { error } }) => (
+                              <>
+                                <TextField
+                                  {...field}
+                                  label='Tier Multiply By'
+                                  fullWidth
+                                  type='number'
+                                  inputProps={{ step: 0.01, min: 0 }}
+                                  variant='outlined'
+                                  error={!!error}
+                                  helperText={error?.message}
+                                />
+                              </>
+                            )}
+                          />
+                        </Grid>
+                      </Grid>
+                      <Grid container spacing={2} mb={3}>
+                        <Grid size={{ xs: 12 }}>
+                          <Typography variant='h6'>Tier 2 - Price (inc. VAT) - 153 - 1300 sq.m</Typography>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <Controller
+                            name={`productVariations.${index}.tierAddOn`}
+                            control={control}
+                            defaultValue={variation.tierAddOn}
+                            rules={{ required: 'Tier Add On is required' }}
+                            render={({ field, fieldState: { error } }) => (
+                              <>
+                                <TextField
+                                  {...field}
+                                  label='Tier Add On'
+                                  fullWidth
+                                  type='number'
+                                  inputProps={{ step: 0.01, min: 0 }}
+                                  variant='outlined'
+                                  error={!!error}
+                                  helperText={error?.message}
+                                />
+                              </>
+                            )}
+                          />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <Controller
+                            name={`productVariations.${index}.tierMultiplyBy`}
+                            control={control}
+                            defaultValue={variation.tierMultiplyBy}
+                            rules={{ required: 'Tier Multiply By is required' }}
+                            render={({ field, fieldState: { error } }) => (
+                              <>
+                                <TextField
+                                  {...field}
+                                  label='Tier Multiply By'
+                                  fullWidth
+                                  type='number'
+                                  inputProps={{ step: 0.01, min: 0 }}
+                                  variant='outlined'
+                                  error={!!error}
+                                  helperText={error?.message}
+                                />
+                              </>
+                            )}
+                          />
+                        </Grid>
+                      </Grid>
+                      <Grid container spacing={2} mb={3}>
+                        <Grid size={{ xs: 12 }}>
+                          <Typography variant='h6'>Tier 1 - Price (inc.VAT) - Over 1300 sq.m</Typography>
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4}}>
+                          <Controller
+                            name={`productVariations.${index}.tierAddOn`}
+                            control={control}
+                            defaultValue={variation.tierAddOn}
+                            rules={{ required: 'Tier Add On is required' }}
+                            render={({ field, fieldState: { error } }) => (
+                              <>
+                                <TextField
+                                  {...field}
+                                  label='Tier Add On'
+                                  fullWidth
+                                  type='number'
+                                  inputProps={{ step: 0.01, min: 0 }}
+                                  variant='outlined'
+                                  error={!!error}
+                                  helperText={error?.message}
+                                />
+                              </>
+                            )}
+                          />
+                        </Grid>
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <Controller
+                            name={`productVariations.${index}.tierMultiplyBy`}
+                            control={control}
+                            defaultValue={variation.tierMultiplyBy}
+                            rules={{ required: 'Tier Multiply By is required' }}
+                            render={({ field, fieldState: { error } }) => (
+                              <>
+                                <TextField
+                                  {...field}
+                                  label='Tier Multiply By'
+                                  fullWidth
+                                  type='number'
+                                  inputProps={{ step: 0.01, min: 0 }}
+                                  variant='outlined'
+                                  error={!!error}
+                                  helperText={error?.message}
+                                />
+                              </>
+                            )}
+                          />
+                        </Grid>
+                      </Grid>
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 12 }}>

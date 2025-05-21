@@ -97,13 +97,13 @@ const AddProduct = () => {
                   height: variation.dimensions?.height || 0
                 },
                 regularPrice: variation.regularPrice || 0,
-                TierAddOn: variation.TierAddOn || 0,
-                TierMultiplyBy: variation.TierMultiplyBy || 0,
+                tierAddOn: variation.tierAddOn || 0,
+                tierMultiplyBy: variation.tierMultiplyBy || 0,
                 salePrice: variation.salePrice || 0,
                 purchasedPrice: variation.purchasedPrice || 0,
-                NumberOfTiles: variation?.NumberOfTiles || 0,
-                BoxSize: variation?.BoxSize || 0,
-                PalletSize: variation?.PalletSize || 0,
+                numberOfTiles: variation?.numberOfTiles || 0,
+                boxSize: variation?.boxSize || 0,
+                palletSize: variation?.palletSize || 0,
                 customImageUrl: variation.customImageUrl || '',
                 variationImages: variation.variationImages || [],
                 image: variation.image || '',
@@ -182,11 +182,11 @@ const AddProduct = () => {
       if (!variation.salePrice) missingFields.push('Sale Price')
       if (!variation.purchasedPrice) missingFields.push('Purchased Price')
       if (!variation.weight) missingFields.push('Weight')
-      if (!variation.NumberOfTiles) missingFields.push('Number of Tiles')
-      if (!variation.BoxSize) missingFields.push('Box Size')
-      if (!variation.PalletSize) missingFields.push('Pallet Size')
-      if (!variation.TierAddOn) missingFields.push('Tier AddOn')
-      if (!variation.TierMultiplyBy) missingFields.push('Tier Multiply By')
+      if (!variation.numberOfTiles) missingFields.push('Number of Tiles')
+      if (!variation.boxSize) missingFields.push('Box Size')
+      if (!variation.palletSize) missingFields.push('Pallet Size')
+      if (!variation.tierAddOn) missingFields.push('Tier AddOn')
+      if (!variation.tierMultiplyBy) missingFields.push('Tier Multiply By')
 
       if (missingFields.length > 0) {
         missingFieldsSummary.push(`Variation ${index + 1}: ${missingFields.join(', ')}`)

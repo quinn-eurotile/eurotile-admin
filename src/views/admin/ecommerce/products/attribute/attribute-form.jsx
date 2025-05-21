@@ -103,32 +103,35 @@ export default function AttributeForm({ attributeId, onClose, refreshList }) {
     fetchUnits()
   }, [])
 
-  // Submit handler for both add and update
-  const onSubmit = async data => {
+  const onSubmit = async formData => {
     setIsLoading(true)
 
-    const slug = data.name.trim().toLowerCase().replace(/\s+/g, '-')
+    const showMeasurementBox = formData.showMeasurementBox
+    const slug = formData.name.trim().toLowerCase().replace(/\s+/g, '-')
 
-    const variations = data.values.map((value, index) => {
-      const selectedSymbol = data.measurements[index]
-      const selectedUnit = measurementUnits.find(unit => unit.symbol === selectedSymbol)
-
+    const variations = formData.values.map((value, index) => {
       const variation = {
         metaKey: slug,
-        metaValue: value,
-        productMeasurementUnit: selectedUnit?._id || '000000000000000000000002' // fallback ID
+        metaValue: value
       }
 
-      // Only add `_id` if in edit mode and variationId exists
-      if (attributeId && data.variationIds?.[index]) {
-        variation._id = data.variationIds[index]
+      // Only include measurement if showMeasurementBox is checked
+      if (showMeasurementBox) {
+        const selectedSymbol = formData.measurements[index]
+        const selectedUnit = measurementUnits.find(unit => unit.symbol === selectedSymbol)
+        variation.productMeasurementUnit = selectedUnit?._id || '000000000000000000000002' // fallback ID
+      }
+
+      // Include variation ID if in edit mode
+      if (attributeId && formData.variationIds?.[index]) {
+        variation._id = formData.variationIds[index]
       }
 
       return variation
     })
 
     const formattedAttribute = {
-      name: data.name,
+      name: formData.name,
       slug,
       variations,
       variationsToRemove
@@ -137,12 +140,11 @@ export default function AttributeForm({ attributeId, onClose, refreshList }) {
     try {
       let response
       if (attributeId) {
-        // Edit mode: call update API with attributeId and data
         response = await updateAttributesData(attributeId, formattedAttribute)
       } else {
-        // Create mode: call add API
         response = await addAttributesData(formattedAttribute)
       }
+
       if (response?.success) {
         toast.success(`Attribute ${attributeId ? 'updated' : 'saved'} successfully`)
         onClose()
@@ -263,7 +265,7 @@ export default function AttributeForm({ attributeId, onClose, refreshList }) {
                       setValue('measurements', updatedMeasurements)
                     }}
                   >
-                    <i class="ri-subtract-fill text-xl"></i>
+                    <i className='ri-subtract-fill text-xl'></i>
                   </IconButton>
                 )}
               </Box>
@@ -278,7 +280,7 @@ export default function AttributeForm({ attributeId, onClose, refreshList }) {
                   setValue('measurements', [...attributeMeasurements, 'cm'])
                 }}
               >
-                <i className="ri-add-line text-xl"></i>
+                <i className='ri-add-line text-xl'></i>
               </IconButton>
             </Box>
           </Box>

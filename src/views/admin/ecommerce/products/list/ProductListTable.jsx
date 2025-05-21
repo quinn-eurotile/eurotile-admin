@@ -469,7 +469,7 @@ const ProductListTable = () => {
       <Dialog open={openConfirmDialog} onClose={() => setOpenConfirmDialog(false)}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
-          <Typography>Are you sure you want to delete this team member?</Typography>
+          <Typography>Are you sure you want to delete this Product?</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenConfirmDialog(false)} color='primary'>
