@@ -103,67 +103,71 @@ export default function AttributeForm({ attributeId, onClose, refreshList }) {
     fetchUnits()
   }, [])
 
-  const onSubmit = async formData => {
-    setIsLoading(true)
+const onSubmit = async formData => {
+  setIsLoading(true)
 
-    const showMeasurementBox = formData.showMeasurementBox
-    const slug = formData.name.trim().toLowerCase().replace(/\s+/g, '-')
+  const showMeasurementBox = formData.showMeasurementBox
+  const slug = formData.name.trim().toLowerCase().replace(/\s+/g, '-')
 
-    const variations = formData.values.map((value, index) => {
-      const variation = {
-        metaKey: slug,
-        metaValue: value
-      }
-
-      // Only include measurement if showMeasurementBox is checked
-      if (showMeasurementBox) {
-        const selectedSymbol = formData.measurements[index]
-        const selectedUnit = measurementUnits.find(unit => unit.symbol === selectedSymbol)
-        variation.productMeasurementUnit = selectedUnit?._id || '000000000000000000000002' // fallback ID
-      }
-
-      // Include variation ID if in edit mode
-      if (attributeId && formData.variationIds?.[index]) {
-        variation._id = formData.variationIds[index]
-      }
-
-      return variation
-    })
-
-    const formattedAttribute = {
-      name: formData.name,
-      slug,
-      variations,
-      variationsToRemove
+  const variations = formData.values.map((value, index) => {
+    const variation = {
+      metaKey: slug,
+      metaValue: value
     }
 
-    try {
-      let response
-      if (attributeId) {
-        response = await updateAttributesData(attributeId, formattedAttribute)
-      } else {
-        response = await addAttributesData(formattedAttribute)
-      }
-
-      if (response?.success) {
-        toast.success(`Attribute ${attributeId ? 'updated' : 'saved'} successfully`)
-        onClose()
-        await refreshList()
-      } else if (response?.statusCode === 422 && response?.data) {
-        Object.entries(response.data).forEach(([field, message]) => {
-          setError(field, { message: message || 'Invalid input' })
-        })
-      } else {
-        toast.warning('Unexpected response. Please check.')
-        onClose()
-      }
-    } catch (error) {
-      console.error('Submission error:', error)
-      toast.error(`Failed to ${attributeId ? 'update' : 'save'} attribute. Please try again.`)
-    } finally {
-      setIsLoading(false)
+    // Handle productMeasurementUnit based on showMeasurementBox state
+    if (showMeasurementBox) {
+      const selectedSymbol = formData.measurements[index]
+      const selectedUnit = measurementUnits.find(unit => unit.symbol === selectedSymbol)
+      variation.productMeasurementUnit = selectedUnit?._id || '000000000000000000000002' // fallback ID
+    } else if (attributeId) {
+      // Explicitly set to null in edit mode if unchecked
+      variation.productMeasurementUnit = null
     }
+
+    // Include variation ID if in edit mode
+    if (attributeId && formData.variationIds?.[index]) {
+      variation._id = formData.variationIds[index]
+    }
+
+    return variation
+  })
+
+  const formattedAttribute = {
+    name: formData.name,
+    slug,
+    variations,
+    variationsToRemove
   }
+
+  try {
+    let response
+    if (attributeId) {
+      response = await updateAttributesData(attributeId, formattedAttribute)
+    } else {
+      response = await addAttributesData(formattedAttribute)
+    }
+
+    if (response?.success) {
+      toast.success(`Attribute ${attributeId ? 'updated' : 'saved'} successfully`)
+      onClose()
+      await refreshList()
+    } else if (response?.statusCode === 422 && response?.data) {
+      Object.entries(response.data).forEach(([field, message]) => {
+        setError(field, { message: message || 'Invalid input' })
+      })
+    } else {
+      toast.warning('Unexpected response. Please check.')
+      onClose()
+    }
+  } catch (error) {
+    console.error('Submission error:', error)
+    toast.error(`Failed to ${attributeId ? 'update' : 'save'} attribute. Please try again.`)
+  } finally {
+    setIsLoading(false)
+  }
+}
+
 
   const variationIds = watch('variationIds')
 
@@ -234,6 +238,7 @@ export default function AttributeForm({ attributeId, onClose, refreshList }) {
                         label='Measurement'
                         fullWidth
                         {...field}
+                        value={field.value || ''}
                         error={!!errors?.measurements?.[index]}
                         helperText={errors?.measurements?.[index]?.message}
                       >

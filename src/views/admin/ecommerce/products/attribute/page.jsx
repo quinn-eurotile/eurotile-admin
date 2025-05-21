@@ -252,7 +252,7 @@ const AttributeList = () => {
       }
     } catch (error) {
       dispatch(callCommonAction({ loading: false }))
-      console.error('Failed to fetch team members', error)
+      console.error('Failed to fetch product attribute', error)
     }
   }
 
@@ -295,7 +295,7 @@ const AttributeList = () => {
       }
       setOpenConfirmDialog(false) // Close the dialog after deletion
     } catch (error) {
-      console.error('Error deleting team member:', error)
+      console.error('Error deleting product attribute:', error)
       setOpenConfirmDialog(false) // Close the dialog on error as well
     }
   }
@@ -431,7 +431,7 @@ const AttributeList = () => {
           <Dialog open={openConfirmDialog} onClose={() => setOpenConfirmDialog(false)}>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogContent>
-              <Typography>Are you sure you want to delete this team member?</Typography>
+              <Typography>Are you sure you want to delete this product attribute?</Typography>
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setOpenConfirmDialog(false)} color='primary'>
