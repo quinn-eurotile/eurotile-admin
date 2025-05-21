@@ -231,7 +231,7 @@ const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) =
   return (
     <Card>
       <CardContent className='flex justify-between flex-col items-start sm:flex-row sm:items-center gap-y-4'>
-        <Typography variant='h5'>Orders Placed</Typography>
+        <Typography variant='h5'>Product Variation List</Typography>
         <DebouncedInput
           value={globalFilter ?? ''}
           onChange={value => setGlobalFilter(String(value))}

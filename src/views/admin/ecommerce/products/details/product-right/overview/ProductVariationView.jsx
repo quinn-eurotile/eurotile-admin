@@ -126,10 +126,6 @@ const ProductVariationView = ({ variation }) => {
                                 <td className="py-2 text-sm">${variation?.purchasedPrice}</td>
                             </tr>
                             <tr className="border-b">
-                                <td className="font-normal text-sm pr-4 py-2">Custom Image URL:</td>
-                                <td className="py-2 text-sm">{variation?.customImageUrl}</td>
-                            </tr>
-                            <tr className="border-b">
                                 <td className="font-normal text-sm pr-4 py-2">Shipping Class:</td>
                                 <td className="py-2 text-sm">{variation?.shippingClass ?? 'N/A'}</td>
                             </tr>
@@ -137,17 +133,48 @@ const ProductVariationView = ({ variation }) => {
                                 <td className="font-normal text-sm pr-4 py-2">Tax Class:</td>
                                 <td className="py-2 text-sm">{variation?.taxClass}</td>
                             </tr>
-                            <tr className="border-b">
-                                <td className="font-normal text-sm pr-4 py-2">Created At:</td>
-                                <td className="py-2 text-sm">{new Date(variation?.createdAt).toLocaleString()}</td>
-                            </tr>
-                            <tr className="border-b">
-                                <td className="font-normal text-sm pr-4 py-2">Updated At:</td>
-                                <td className="py-2 text-sm">{new Date(variation?.updatedAt).toLocaleString()}</td>
+                            <tr>
+                                <td colSpan={2} className="font-bold pr-4 py-4 align-top text-center">Tier Pricing:</td>
                             </tr>
                             <tr>
-                                <td className="font-normal text-sm pr-4 py-2">Variation Images:</td>
-                                <td className="py-2 text-sm">{variation?.variationImages.join(', ')}</td>
+                                <td colSpan={2} className=" text-sm">
+                                    <table className="w-full text-sm border border-gray-300 rounded">
+                                        <thead>
+                                            <tr className="bg-gray-100">
+                                                <th className="text-left py-1 px-2 border-b">Tier</th>
+                                                <th className="text-left py-1 px-2 border-b">Range (sq.m)</th>
+                                                <th className="text-left py-1 px-2 border-b">Price (inc. VAT)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td className="py-1 px-2 border-b">Tier 5</td>
+                                                <td className="py-1 px-2 border-b">Under 30</td>
+                                                <td className="py-1 px-2 border-b">£39.77</td>
+                                            </tr>
+                                            <tr>
+                                                <td className="py-1 px-2 border-b">Tier 4</td>
+                                                <td className="py-1 px-2 border-b">30 - 51</td>
+                                                <td className="py-1 px-2 border-b">£33.49</td>
+                                            </tr>
+                                            <tr>
+                                                <td className="py-1 px-2 border-b">Tier 3</td>
+                                                <td className="py-1 px-2 border-b">51 - 153</td>
+                                                <td className="py-1 px-2 border-b">£30.69</td>
+                                            </tr>
+                                            <tr>
+                                                <td className="py-1 px-2 border-b">Tier 2</td>
+                                                <td className="py-1 px-2 border-b">153 - 1300</td>
+                                                <td className="py-1 px-2 border-b">£26.51</td>
+                                            </tr>
+                                            <tr>
+                                                <td className="py-1 px-2">Tier 1</td>
+                                                <td className="py-1 px-2">Over 1300</td>
+                                                <td className="py-1 px-2">£22.57</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
