@@ -166,26 +166,26 @@ const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) =
           <div className='flex items-center'>
             <OptionMenu
               iconButtonProps={{ size: 'medium' }}
-              iconClassName='text-textSecondary text-[22px]'
+              iconClassName='text-textSecondary'
               options={[
                 {
                   text: 'View',
-                  icon: 'ri-eye-line',
+                  icon: 'ri-eye-line text-[16px]',
                   menuItemProps: {
                     onClick: () => {
                       setSelectedVariation(row.original);
                       setOpenVariationDialog(true);
                     },
-                    className: 'gap-2'
+                    className: 'gap-2 action-btn-comp'
                   }
                 },
 
                 {
                   text: 'Delete',
-                  icon: 'ri-delete-bin-7-line text-[22px]',
+                  icon: 'ri-delete-bin-7-line text-[16px]',
                   menuItemProps: {
                     onClick: () => handleDeleteConfirmation(row.original.id),
-                    className: 'gap-2'
+                    className: 'gap-2 action-btn-comp'
                   }
                 }
               ]}

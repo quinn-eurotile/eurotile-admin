@@ -81,73 +81,73 @@ const ProductVariationView = ({ variation }) => {
                     key={variation._id}
                     className="p-4 border rounded-md shadow-sm bg-white"
                 >
-                    <h2 className="text-xl font-medium mb-4 px-5 py-2 rounded-[3px] text-white" style={{ background: 'var(--mui-palette-primary-dark)' }}>
+                    <h2 className="text-lg font-medium mb-4 px-5 py-2 rounded-[3px] text-white" style={{ background: 'var(--mui-palette-primary-dark)' }}>
                         Product Name: {variation.product?.name}
                     </h2>
 
                     <table className="w-full table-auto border-collapse">
                         <tbody>
                             <tr className="border-b">
-                                <td className="font-semibold pr-4 py-2">Description:</td>
-                                <td className="py-2">{variation?.description}</td>
+                                <td className="font-normal text-sm pr-4 py-2 ">Description:</td>
+                                <td className="py-2 text-sm">{variation?.description}</td>
                             </tr>
                             <tr className="border-b">
-                                <td className="font-semibold pr-4 py-2">Stock Status:</td>
-                                <td className="py-2">{variation?.stockStatus}</td>
+                                <td className="font-normal text-sm pr-4 py-2">Stock Status:</td>
+                                <td className="py-2 text-sm">{variation?.stockStatus}</td>
                             </tr>
                             <tr className="border-b">
-                                <td className="font-semibold pr-4 py-2">Stock Quantity:</td>
-                                <td className="py-2">{variation?.stockQuantity}</td>
+                                <td className="font-normal text-sm pr-4 py-2">Stock Quantity:</td>
+                                <td className="py-2 text-sm">{variation?.stockQuantity}</td>
                             </tr>
                             <tr className="border-b">
-                                <td className="font-semibold pr-4 py-2">Allow Backorders:</td>
-                                <td className="py-2">{variation?.allowBackorders ? 'Yes' : 'No'}</td>
+                                <td className="font-normal text-sm pr-4 py-2">Allow Backorders:</td>
+                                <td className="py-2 text-sm">{variation?.allowBackorders ? 'Yes' : 'No'}</td>
                             </tr>
                             <tr className="border-b">
-                                <td className="font-semibold pr-4 py-2">Weight:</td>
-                                <td className="py-2">{variation?.weight}g</td>
+                                <td className="font-normal text-sm pr-4 py-2">Weight:</td>
+                                <td className="py-2 text-sm">{variation?.weight}g</td>
                             </tr>
                             <tr className="border-b">
-                                <td className="font-semibold pr-4 py-2">Dimensions:</td>
-                                <td className="py-2">
+                                <td className="font-normal text-sm pr-4 py-2">Dimensions:</td>
+                                <td className="py-2 text-sm">
                                     {variation?.dimensions.length} x {variation?.dimensions.width} x {variation?.dimensions.height}
                                 </td>
                             </tr>
                             <tr className="border-b">
-                                <td className="font-semibold pr-4 py-2">Regular Price:</td>
-                                <td className="py-2">${variation?.regularPrice}</td>
+                                <td className="font-normal text-sm pr-4 py-2">Regular Price:</td>
+                                <td className="py-2 text-sm">${variation?.regularPrice}</td>
                             </tr>
                             <tr className="border-b">
-                                <td className="font-semibold pr-4 py-2">Sale Price:</td>
-                                <td className="py-2">${variation?.salePrice}</td>
+                                <td className="font-normal text-sm pr-4 py-2">Sale Price:</td>
+                                <td className="py-2 text-sm">${variation?.salePrice}</td>
                             </tr>
                             <tr className="border-b">
-                                <td className="font-semibold pr-4 py-2">Purchased Price:</td>
-                                <td className="py-2">${variation?.purchasedPrice}</td>
+                                <td className="font-normal text-sm pr-4 py-2">Purchased Price:</td>
+                                <td className="py-2 text-sm">${variation?.purchasedPrice}</td>
                             </tr>
                             <tr className="border-b">
-                                <td className="font-semibold pr-4 py-2">Custom Image URL:</td>
-                                <td className="py-2">{variation?.customImageUrl}</td>
+                                <td className="font-normal text-sm pr-4 py-2">Custom Image URL:</td>
+                                <td className="py-2 text-sm">{variation?.customImageUrl}</td>
                             </tr>
                             <tr className="border-b">
-                                <td className="font-semibold pr-4 py-2">Shipping Class:</td>
-                                <td className="py-2">{variation?.shippingClass ?? 'N/A'}</td>
+                                <td className="font-normal text-sm pr-4 py-2">Shipping Class:</td>
+                                <td className="py-2 text-sm">{variation?.shippingClass ?? 'N/A'}</td>
                             </tr>
                             <tr className="border-b">
-                                <td className="font-semibold pr-4 py-2">Tax Class:</td>
-                                <td className="py-2">{variation?.taxClass}</td>
+                                <td className="font-normal text-sm pr-4 py-2">Tax Class:</td>
+                                <td className="py-2 text-sm">{variation?.taxClass}</td>
                             </tr>
                             <tr className="border-b">
-                                <td className="font-semibold pr-4 py-2">Created At:</td>
-                                <td className="py-2">{new Date(variation?.createdAt).toLocaleString()}</td>
+                                <td className="font-normal text-sm pr-4 py-2">Created At:</td>
+                                <td className="py-2 text-sm">{new Date(variation?.createdAt).toLocaleString()}</td>
                             </tr>
                             <tr className="border-b">
-                                <td className="font-semibold pr-4 py-2">Updated At:</td>
-                                <td className="py-2">{new Date(variation?.updatedAt).toLocaleString()}</td>
+                                <td className="font-normal text-sm pr-4 py-2">Updated At:</td>
+                                <td className="py-2 text-sm">{new Date(variation?.updatedAt).toLocaleString()}</td>
                             </tr>
                             <tr>
-                                <td className="font-semibold pr-4 py-2">Variation Images:</td>
-                                <td className="py-2">{variation?.variationImages.join(', ')}</td>
+                                <td className="font-normal text-sm pr-4 py-2">Variation Images:</td>
+                                <td className="py-2 text-sm">{variation?.variationImages.join(', ')}</td>
                             </tr>
                         </tbody>
                     </table>
