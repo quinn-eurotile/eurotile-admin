@@ -3,8 +3,11 @@ import { api } from "@/utils/api";
 
 export const createApiService = (baseEndpoint, customMethods = {}) => {
   const defaultService = {
+
+
     // Get all items with pagination, search string and filters
     get: async (page = 1, limit = 10, searchString = "", filter = {}) => {
+      console.log('createApiService filter', filter);
       const queryParams = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),

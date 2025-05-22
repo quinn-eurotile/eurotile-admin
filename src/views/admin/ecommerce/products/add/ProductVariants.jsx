@@ -97,8 +97,6 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
   const { control, watch, reset, setValue, getValues, isSubmitted } = useFormContext();
   const [removedImageIds, setRemovedImageIds] = useState([]);
 
-  console.log(allAttributes,'allAttributesallAttributes')
-
   useEffect(() => {
     // Step 0: Guard clause — only run when all required data is available
     const isReady =
@@ -169,15 +167,19 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
 
       productAttributes.forEach(attribute => {
         const name = attribute.name.toLowerCase();
-        const values = attribute.variations.map(variation =>
-          variation.measurementUnit ? `${variation.metaValue} ${variation.measurementUnit.name}` : variation.metaValue
-        );
+        const values = attribute.variations.map(variation => {
+          const unitName = variation.measurementUnit?.name || '';
+          return unitName
+            ? `${variation.metaValue} ${unitName}`
+            : variation.metaValue;
+        });
         attributesMap[name] = values;
       });
 
       setAllAttributes(attributesMap);
     }
   }, [productAttributes]);
+
 
   // Watch variations from form context
   const variations = watch('productVariations') || [];
@@ -335,6 +337,8 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                   </Typography>
                   <Grid container spacing={2}>
                     {selectedAttributes.map(attributeName => {
+                      console.log('attributeName', attributeName);
+                      console.log('selectedAttributeValues', selectedAttributeValues);
                       const valuesSelected = selectedAttributeValues[attributeName]?.length > 0;
                       // Show error only if form has been submitted and no values selected
                       const showError = isSubmitted && !valuesSelected;
@@ -355,7 +359,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                               renderValue={selected => selected.join(', ')}
                             >
                               {allAttributes[attributeName]?.map(value => (
-                                <MenuItem key={value} value={value}>
+                                <MenuItem key={value} value={value} >
                                   <Checkbox
                                     checked={selectedAttributeValues[attributeName]?.includes(value) || false}
                                   />

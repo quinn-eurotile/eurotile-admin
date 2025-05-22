@@ -173,9 +173,6 @@ const AddProduct = () => {
   }, [productId]);
 
   const onSubmit = async formDataValues => {
-    console.log(formDataValues,'formDataValuesformDataValues')
-    const missingFieldsSummary = [];
-
     formDataValues.productVariations?.forEach((variation, index) => {
       const missingFields = [];
 
@@ -189,6 +186,7 @@ const AddProduct = () => {
 
       if (missingFields.length > 0) {
         toast.error(`Please fill the variation fields`);
+        return false;
       }
     });
 
