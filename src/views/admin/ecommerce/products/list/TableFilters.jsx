@@ -1,41 +1,41 @@
 // React Imports
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 
 // MUI Imports
-import Grid from '@mui/material/Grid2'
-import CardContent from '@mui/material/CardContent'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
-import { Controller, useForm } from 'react-hook-form'
-import { Autocomplete, TextField } from '@mui/material'
+import Grid from '@mui/material/Grid2';
+import CardContent from '@mui/material/CardContent';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import { Controller, useForm } from 'react-hook-form';
+import { Autocomplete, TextField } from '@mui/material';
 
 // Vars
 const productStockObj = {
   'In Stock': true,
   'Out of Stock': false
-}
+};
 
 const TableFilters = ({ setFilters, rawProductData }) => {
-  const [stock, setStock] = useState('')
-  const [status, setStatus] = useState('')
-  const [categories, setCategories] = useState([])
-  const [categoryList, setCategoryList] = useState([])
+  const [stock, setStock] = useState('');
+  const [status, setStatus] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [categoryList, setCategoryList] = useState([]);
 
   useEffect(() => {
     setFilters({
       status: status,
-      categories: categories,
+      categories: JSON.stringify(categories),
       stockStatus: stock
-    })
-  }, [categories, stock, status, setFilters])
+    });
+  }, [categories, stock, status, setFilters]);
 
   useEffect(() => {
     if (rawProductData?.nestedCategories && Array.isArray(rawProductData.nestedCategories)) {
-      setCategoryList(rawProductData.nestedCategories)
+      setCategoryList(rawProductData.nestedCategories);
     }
-  }, [rawProductData])
+  }, [rawProductData]);
 
   function flattenCategories(categories, parent = '', level = 0) {
     return categories.flatMap(cat => {
@@ -44,14 +44,14 @@ const TableFilters = ({ setFilters, rawProductData }) => {
         title: cat.name,
         fullPath: parent ? `${parent} > ${cat.name}` : cat.name,
         level
-      }
-      const children = cat.children ? flattenCategories(cat.children, current.fullPath, level + 1) : []
-      return [current, ...children]
-    })
+      };
+      const children = cat.children ? flattenCategories(cat.children, current.fullPath, level + 1) : [];
+      return [current, ...children];
+    });
   }
 
-  const flatOptions = flattenCategories(categoryList)
-  const selectedOptions = flatOptions.filter(opt => categories.includes(opt.id))
+  const flatOptions = flattenCategories(categoryList);
+  const selectedOptions = flatOptions.filter(opt => categories.includes(opt.id));
 
   return (
     <CardContent>
@@ -102,8 +102,8 @@ const TableFilters = ({ setFilters, rawProductData }) => {
               groupBy={option => option.fullPath.split(' > ')[0]}
               value={selectedOptions}
               onChange={(_, selectedOptions) => {
-                const selectedIds = selectedOptions.map(opt => opt.id)
-                setCategories(selectedIds)
+                const selectedIds = selectedOptions.map(opt => opt.id);
+                setCategories(selectedIds);
               }}
               renderInput={params => <TextField {...params} label='Select Category' />}
               sx={{ width: 400 }}
@@ -129,7 +129,7 @@ const TableFilters = ({ setFilters, rawProductData }) => {
         </Grid>
       </Grid>
     </CardContent>
-  )
-}
+  );
+};
 
-export default TableFilters
+export default TableFilters;
