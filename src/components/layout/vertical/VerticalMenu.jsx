@@ -1,43 +1,43 @@
 // Next Imports
-import { useParams } from 'next/navigation'
+import { useParams } from 'next/navigation';
 
 // MUI Imports
-import Chip from '@mui/material/Chip'
-import { useTheme } from '@mui/material/styles'
+import Chip from '@mui/material/Chip';
+import { useTheme } from '@mui/material/styles';
 
 // Third-party Imports
-import PerfectScrollbar from 'react-perfect-scrollbar'
+import PerfectScrollbar from 'react-perfect-scrollbar';
 
 // Component Imports
-import { Menu, SubMenu, MenuItem, MenuSection } from '@menu/vertical-menu'
+import { Menu, SubMenu, MenuItem, MenuSection } from '@menu/vertical-menu';
 
 // import { GenerateVerticalMenu } from '@components/GenerateMenu'
 // Hook Imports
-import useVerticalNav from '@menu/hooks/useVerticalNav'
+import useVerticalNav from '@menu/hooks/useVerticalNav';
 
 // Styled Component Imports
-import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNavExpandIcon'
+import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNavExpandIcon';
 
 // Style Imports
-import menuItemStyles from '@core/styles/vertical/menuItemStyles'
-import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
+import menuItemStyles from '@core/styles/vertical/menuItemStyles';
+import menuSectionStyles from '@core/styles/vertical/menuSectionStyles';
 
 const RenderExpandIcon = ({ open, transitionDuration }) => (
   <StyledVerticalNavExpandIcon open={open} transitionDuration={transitionDuration}>
     <i className='ri-arrow-right-s-line' />
   </StyledVerticalNavExpandIcon>
-)
+);
 
 const VerticalMenu = ({ dictionary, scrollMenu }) => {
   // Hooks
-  const theme = useTheme()
-  const verticalNavOptions = useVerticalNav()
-  const params = useParams()
+  const theme = useTheme();
+  const verticalNavOptions = useVerticalNav();
+  const params = useParams();
 
   // Vars
-  const { isBreakpointReached, transitionDuration } = verticalNavOptions
-  const { lang: locale } = params
-  const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar
+  const { isBreakpointReached, transitionDuration } = verticalNavOptions;
+  const { lang: locale } = params;
+  const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar;
 
   return (
     // eslint-disable-next-line lines-around-comment
@@ -45,13 +45,13 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
     <ScrollWrapper
       {...(isBreakpointReached
         ? {
-            className: 'bs-full overflow-y-auto overflow-x-hidden',
-            onScroll: container => scrollMenu(container, false)
-          }
+          className: 'bs-full overflow-y-auto overflow-x-hidden',
+          onScroll: container => scrollMenu(container, false)
+        }
         : {
-            options: { wheelPropagation: false, suppressScrollX: true },
-            onScrollY: container => scrollMenu(container, true)
-          })}
+          options: { wheelPropagation: false, suppressScrollX: true },
+          onScrollY: container => scrollMenu(container, true)
+        })}
     >
       {/* Incase you also want to scroll NavHeader to scroll with Vertical Menu, remove NavHeader from above and paste it below this comment */}
       {/* Vertical Menu */}
@@ -91,13 +91,13 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
           </MenuItem>
         </SubMenu> */}
         <MenuSection label={'Pages'}>
-        <MenuItem
+          <MenuItem
             href={`/${locale}/admin/team-members/list`}
             exactMatch={false}
             activeUrl='/admin/team-members/list'
             icon={<i className='ri-team-fill' />}
           >
-            Team Members
+            Team Management
           </MenuItem>
           <MenuItem
             href={`/${locale}/admin/supplier/list`}
@@ -105,7 +105,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             activeUrl='/admin/supplier/list'
             icon={<i className="ri-store-3-line"></i>}
           >
-            Supplier
+            Supplier Management
           </MenuItem>
           {/* <MenuItem
             href={`/${locale}/admin/category/list`}
@@ -131,15 +131,14 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
           >
             Trade Professionals
           </MenuItem>
-           <SubMenu label={dictionary['navigation'].eCommerce} icon={<i className='ri-shopping-bag-3-line' />}>
+          <SubMenu label={dictionary['navigation'].eCommerce} icon={<i className='ri-shopping-bag-3-line' />}>
             {/* <MenuItem href={`/${locale}/apps/ecommerce/dashboard`}>{dictionary['navigation'].dashboard}</MenuItem> */}
             <SubMenu label={dictionary['navigation'].products}>
-              <MenuItem href={`/${locale}/admin/ecommerce/products/list`}>{dictionary['navigation'].list}</MenuItem>
-              <MenuItem href={`/${locale}/admin/ecommerce/products/add`}>{dictionary['navigation'].add}</MenuItem>
+              <MenuItem href={`/${locale}/admin/ecommerce/products/list`}>Product Management</MenuItem>
               <MenuItem href={`/${locale}/admin/ecommerce/products/category/list`}>
-                {dictionary['navigation'].category}
+                Category Management
               </MenuItem>
-               <MenuItem href={`/${locale}/admin/ecommerce/products/attribute`}>Attributes</MenuItem>
+              <MenuItem href={`/${locale}/admin/ecommerce/products/attribute`}>Attribute Management</MenuItem>
             </SubMenu>
             {/* <SubMenu label={dictionary['navigation'].orders}>
               <MenuItem href={`/${locale}/apps/ecommerce/orders/list`}>{dictionary['navigation'].list}</MenuItem>
@@ -424,7 +423,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
           <GenerateVerticalMenu menuData={menuData(dictionary)} />
         </Menu> */}
     </ScrollWrapper>
-  )
-}
+  );
+};
 
-export default VerticalMenu
+export default VerticalMenu;

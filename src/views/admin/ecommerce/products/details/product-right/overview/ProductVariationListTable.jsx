@@ -235,7 +235,7 @@ const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) =
         <DebouncedInput
           value={globalFilter ?? ''}
           onChange={value => setGlobalFilter(String(value))}
-          placeholder='Search Order'
+          placeholder='Search Product Variation...'
           className='max-sm:is-full'
         />
       </CardContent>
