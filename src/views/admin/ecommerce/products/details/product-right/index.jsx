@@ -27,8 +27,8 @@ const ProductRight = ({ tabContentList, statusMap, stockStatusMap }) => {
           <Grid size={{ xs: 12 }}>
             <ProductTabList onChange={handleChange} variant='scrollable' pill='true'>
               <Tab icon={<i className='ri-user-3-line' />} value='overview' label='Overview' iconPosition='start' />
-              <Tab icon={<i className='ri-lock-line' />} value='security' label='Security' iconPosition='start' />
-              <Tab
+              <Tab icon={<i className='ri-lock-line' />} value='orders' label='Orders' iconPosition='start' />
+              {/* <Tab
                 icon={<i className='ri-map-pin-line' />}
                 value='addressBilling'
                 label='Address & Billing'
@@ -39,7 +39,7 @@ const ProductRight = ({ tabContentList, statusMap, stockStatusMap }) => {
                 value='notifications'
                 label='Notifications'
                 iconPosition='start'
-              />
+              /> */}
             </ProductTabList>
           </Grid>
           <Grid size={{ xs: 12 }}>
