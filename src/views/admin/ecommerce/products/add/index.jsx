@@ -52,6 +52,7 @@ const AddProduct = () => {
   const fetchProductDetails = async () => {
     try {
       const response = await getProductDetails(productId);
+      console.log('response',response)
 
       if (response?.success && response?.data) {
         const product = response.data;
@@ -97,8 +98,7 @@ const AddProduct = () => {
                 height: variation.dimensions?.height || 0
               },
               regularPrice: variation.regularPrice || 0,
-              tierAddOn: variation.tierAddOn || 0,
-              tierMultiplyBy: variation.tierMultiplyBy || 0,
+              tierDiscount: variation.tierDiscount || {},
               salePrice: variation.salePrice || 0,
               purchasedPrice: variation.purchasedPrice || 0,
               numberOfTiles: variation?.numberOfTiles || 0,
@@ -173,6 +173,7 @@ const AddProduct = () => {
   }, [productId]);
 
   const onSubmit = async formDataValues => {
+    console.log(formDataValues,'formDataValuesformDataValues')
     const missingFieldsSummary = [];
 
     formDataValues.productVariations?.forEach((variation, index) => {

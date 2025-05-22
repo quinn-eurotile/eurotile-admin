@@ -1,7 +1,7 @@
 'use server'
 
 import { categoryService } from '@/services/category';
-import CategoryList from '@/views/admin/category/list';
+import CategoryList from '@/views/admin/ecommerce/products/category/list';
 
 export async function fetchCategoryList (currentPage = 1,rowsPerPage = 10, searchTerm = '', filteredData=null) {
   try {

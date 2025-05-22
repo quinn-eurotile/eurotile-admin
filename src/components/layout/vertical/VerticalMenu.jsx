@@ -107,14 +107,14 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
           >
             Supplier
           </MenuItem>
-          <MenuItem
+          {/* <MenuItem
             href={`/${locale}/admin/category/list`}
             exactMatch={false}
             activeUrl='/admin/category/list'
             icon={<i className="ri-list-indefinite"></i>}
           >
             Category
-          </MenuItem>
+          </MenuItem> */}
           <MenuItem
             href={`/${locale}/admin/tax/list`}
             exactMatch={false}
@@ -136,7 +136,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             <SubMenu label={dictionary['navigation'].products}>
               <MenuItem href={`/${locale}/admin/ecommerce/products/list`}>{dictionary['navigation'].list}</MenuItem>
               <MenuItem href={`/${locale}/admin/ecommerce/products/add`}>{dictionary['navigation'].add}</MenuItem>
-              <MenuItem href={`/${locale}/admin/ecommerce/products/category`}>
+              <MenuItem href={`/${locale}/admin/ecommerce/products/category/list`}>
                 {dictionary['navigation'].category}
               </MenuItem>
                <MenuItem href={`/${locale}/admin/ecommerce/products/attribute`}>Attributes</MenuItem>
