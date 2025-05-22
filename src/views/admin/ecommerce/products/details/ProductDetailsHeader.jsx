@@ -21,12 +21,12 @@ const CustomerDetailHeader = ({ productData, customerId }) => {
         <Typography variant='h4'>{`Product ID #${productData?.sku}`}</Typography>
         <Typography>{moment(productData?.updatedAt).format('MMMM Do YYYY, h:mm:ss a')}</Typography>
       </div>
-      <OpenDialogOnElementClick
+      {/* <OpenDialogOnElementClick
         element={Button}
         elementProps={buttonProps('Delete Customer', 'error', 'outlined')}
         dialog={ConfirmationDialog}
         dialogProps={{ type: 'delete-customer' }}
-      />
+      /> */}
     </div>
   );
 };
