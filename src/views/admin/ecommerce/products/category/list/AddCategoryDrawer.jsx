@@ -18,7 +18,7 @@ import { useForm, Controller  } from 'react-hook-form';
 
 // Services
 import { categoryService } from '@/services/category';
-import { createCategory, getAllCategory, updateCategory } from '@/app/[lang]/(dashboard)/(private)/admin/category/list/page';
+import { createCategory, getAllCategory, updateCategory } from '@/app/[lang]/(dashboard)/(private)/admin/ecommerce/products/category/list/page';
 
 const AddCategoryDrawer = ({ open, handleClose, editData }) => {
   const [parentOptions, setParentOptions] = useState([]);

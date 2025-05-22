@@ -78,8 +78,7 @@ function generateVariations(selectedAttributeValues, existingVariations = []) {
       numberOfTiles: matchedExisting?.numberOfTiles,
       boxSize: matchedExisting?.boxSize,
       palletSize: matchedExisting?.palletSize,
-      tierAddOn: matchedExisting?.tierAddOn,
-      tierMultiplyBy: matchedExisting?.tierMultiplyBy,
+      tierDiscount: matchedExisting?.tierDiscount,
       // shippingClass: matchedExisting?.shippingClass || '',
       // taxClass: matchedExisting?.taxClass || '',
       // Keep full attribute data if needed
@@ -93,11 +92,10 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
   const [tabIndex, setTabIndex] = useState(0);
   const [selectedAttributes, setSelectedAttributes] = useState([]);
   const [selectedAttributeValues, setSelectedAttributeValues] = useState({});
+  const [selectedAttributeIds, setSelectedAttributeIds] = useState([]);
   const [allAttributes, setAllAttributes] = useState({});
   const { control, watch, reset, setValue, getValues, isSubmitted } = useFormContext();
   const [removedImageIds, setRemovedImageIds] = useState([]);
-
-  console.log(allAttributes, 'allAttributesallAttributes');
 
   useEffect(() => {
     // Step 0: Guard clause — only run when all required data is available
@@ -243,6 +241,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
 
   // Handle attribute selection change
   const handleAttributesChange = event => {
+    console.log(event.target.value,'event4454544')
     setSelectedAttributes(event.target.value);
   };
 
@@ -646,7 +645,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                       />
                     </Grid>
 
-                    <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                    {/* <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
                       <Controller
                         name={`productVariations.${index}.allowBackorders`}
                         control={control}
@@ -663,7 +662,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                           </>
                         )}
                       />
-                    </Grid>
+                    </Grid> */}
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
@@ -884,8 +883,8 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                           <TextField
                             disabled
                             id="outlined-disabled"
-                            label="Disabled"
-                            defaultValue={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierFirst?.tierAddOn, variation.tierDiscount?.tierFirst?.tierMultiplyBy)}
+                            label="Tier Price"
+                            value={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierFirst?.tierAddOn, variation.tierDiscount?.tierFirst?.tierMultiplyBy)}
                           />
                         </Grid>
                       </Grid>
@@ -941,8 +940,8 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                           <TextField
                             disabled
                             id="outlined-disabled"
-                            label="Disabled"
-                            defaultValue={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierSecond?.tierAddOn, variation.tierDiscount?.tierSecond?.tierMultiplyBy)}
+                            label="Tier Price"
+                            value={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierSecond?.tierAddOn, variation.tierDiscount?.tierSecond?.tierMultiplyBy)}
                           />
                         </Grid>
                       </Grid>
@@ -998,8 +997,8 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                           <TextField
                             disabled
                             id="outlined-disabled"
-                            label="Disabled"
-                            defaultValue={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierThird?.tierAddOn, variation.tierDiscount?.tierThird?.tierMultiplyBy)}
+                            label="Tier Price"
+                            value={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierThird?.tierAddOn, variation.tierDiscount?.tierThird?.tierMultiplyBy)}
                           />
                         </Grid>
                       </Grid>
@@ -1055,8 +1054,8 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                           <TextField
                             disabled
                             id="outlined-disabled"
-                            label="Disabled"
-                            defaultValue={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierFourth?.tierAddOn, variation.tierDiscount?.tierFourth?.tierMultiplyBy)}
+                            label="Tier Price"
+                            value={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierFourth?.tierAddOn, variation.tierDiscount?.tierFourth?.tierMultiplyBy)}
                           />
                         </Grid>
                       </Grid>
@@ -1112,8 +1111,8 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                           <TextField
                             disabled
                             id="outlined-disabled"
-                            label="Disabled"
-                            defaultValue={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierFifth?.tierAddOn, variation.tierDiscount?.tierFifth?.tierMultiplyBy)}
+                            label="Tier Price"
+                            value={calculateTierValue(variation?.purchasedPrice, 1.17, variation.tierDiscount?.tierFifth?.tierAddOn, variation.tierDiscount?.tierFifth?.tierMultiplyBy)}
                           />
                         </Grid>
                       </Grid>
