@@ -565,7 +565,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                               {...field}
                               label='Stock Quantity'
                               type='number'
-                              inputProps={{ min: 0 }}
+                              inputProps={{ min: 1 }}
                               fullWidth
                               variant='outlined'
                               error={!!error}
@@ -588,7 +588,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                               {...field}
                               label='Regular Price'
                               type='number'
-                              inputProps={{ step: 0.01, min: 0 }}
+                              inputProps={{ step: 1, min: 1 }}
                               fullWidth
                               variant='outlined'
                               error={!!error}
@@ -611,7 +611,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                               {...field}
                               label='Sale Price'
                               type='number'
-                              inputProps={{ step: 0.01, min: 0 }}
+                              inputProps={{ step: 1, min: 1 }}
                               fullWidth
                               variant='outlined'
                               error={!!error}
@@ -634,7 +634,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                               {...field}
                               label='Purchased Price'
                               type='number'
-                              inputProps={{ step: 0.01, min: 0 }}
+                              inputProps={{ step: 1, min: 1 }}
                               fullWidth
                               variant='outlined'
                               error={!!error}
@@ -674,9 +674,9 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                           <>
                             <TextField
                               {...field}
-                              label='Weight (kg)'
+                              label='Tile Weight (kg)'
                               type='number'
-                              inputProps={{ step: 0.01, min: 0 }}
+                              inputProps={{ step: 1, min: 1 }}
                               fullWidth
                               variant='outlined'
                               error={!!error}
@@ -699,9 +699,9 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                           <>
                             <TextField
                               {...field}
-                              label='Length'
+                              label='Tile Length (cm)'
                               type='number'
-                              inputProps={{ step: 0.01, min: 0 }}
+                              inputProps={{ step: 1, min: 1 }}
                               fullWidth
                               variant='outlined'
                               error={!!error}
@@ -722,9 +722,9 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                           <>
                             <TextField
                               {...field}
-                              label='Width'
+                              label='Tile Width (cm)'
                               type='number'
-                              inputProps={{ step: 0.01, min: 0 }}
+                              inputProps={{ step: 1, min: 1 }}
                               fullWidth
                               variant='outlined'
                               error={!!error}
@@ -745,9 +745,9 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                           <>
                             <TextField
                               {...field}
-                              label='Height'
+                              label='Tile Height (cm)'
                               type='number'
-                              inputProps={{ step: 0.01, min: 0 }}
+                              inputProps={{ step: 1, min: 1 }}
                               fullWidth
                               variant='outlined'
                               error={!!error}
@@ -770,7 +770,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                               {...field}
                               label='Number of tiles per box'
                               type='number'
-                              inputProps={{ step: 0.01, min: 0 }}
+                              inputProps={{ step: 1, min: 1 }}
                               fullWidth
                               variant='outlined'
                               error={!!error}
@@ -793,7 +793,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                               {...field}
                               label='Box sizes (sqm/kg)'
                               type='number'
-                              inputProps={{ step: 0.01, min: 0 }}
+                              inputProps={{ step: 1, min: 1 }}
                               fullWidth
                               variant='outlined'
                               error={!!error}
@@ -817,7 +817,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                               label='Pallet Size (sqm/kg)'
                               fullWidth
                               type='number'
-                              inputProps={{ step: 0.01, min: 0 }}
+                              inputProps={{ step: 1, min: 1 }}
                               variant='outlined'
                               error={!!error}
                               helperText={error?.message}
@@ -848,7 +848,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                   label='Tier Add On'
                                   fullWidth
                                   type='number'
-                                  inputProps={{ step: 0.01, min: 0 }}
+                                  inputProps={{ step: 1, min: 1 }}
                                   variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
@@ -870,7 +870,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                   label='Tier Multiply By'
                                   fullWidth
                                   type='number'
-                                  inputProps={{ step: 0.01, min: 0 }}
+                                  inputProps={{ step: 1, min: 1 }}
                                   variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
@@ -905,7 +905,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                   label='Tier Add On'
                                   fullWidth
                                   type='number'
-                                  inputProps={{ step: 0.01, min: 0 }}
+                                  inputProps={{ step: 1, min: 1 }}
                                   variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
@@ -927,7 +927,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                   label='Tier Multiply By'
                                   fullWidth
                                   type='number'
-                                  inputProps={{ step: 0.01, min: 0 }}
+                                  inputProps={{ step: 1, min: 1 }}
                                   variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
@@ -962,7 +962,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                   label='Tier Add On'
                                   fullWidth
                                   type='number'
-                                  inputProps={{ step: 0.01, min: 0 }}
+                                  inputProps={{ step: 1, min: 1 }}
                                   variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
@@ -984,7 +984,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                   label='Tier Multiply By'
                                   fullWidth
                                   type='number'
-                                  inputProps={{ step: 0.01, min: 0 }}
+                                  inputProps={{ step: 1, min: 1 }}
                                   variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
@@ -1019,7 +1019,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                   label='Tier Add On'
                                   fullWidth
                                   type='number'
-                                  inputProps={{ step: 0.01, min: 0 }}
+                                  inputProps={{ step: 1, min: 1 }}
                                   variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
@@ -1041,7 +1041,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                   label='Tier Multiply By'
                                   fullWidth
                                   type='number'
-                                  inputProps={{ step: 0.01, min: 0 }}
+                                  inputProps={{ step: 1, min: 1 }}
                                   variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
@@ -1076,7 +1076,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                   label='Tier Add On'
                                   fullWidth
                                   type='number'
-                                  inputProps={{ step: 0.01, min: 0 }}
+                                  inputProps={{ step: 1, min: 1 }}
                                   variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
@@ -1098,7 +1098,7 @@ export default function ProductVariants({ productAttributes, defaultAttributeVar
                                   label='Tier Multiply By'
                                   fullWidth
                                   type='number'
-                                  inputProps={{ step: 0.01, min: 0 }}
+                                  inputProps={{ step: 1, min: 1 }}
                                   variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}

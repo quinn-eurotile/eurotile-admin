@@ -36,7 +36,7 @@ const ProductAddHeader = () => {
           disabled={isSubmitting} // disable during submission
           startIcon={isSubmitting && <CircularProgress size={20} color='inherit' />}
         >
-          {isEditMode ? 'Update Product' : 'Publish Product'}
+          {isEditMode ? 'Update' : 'Save'}
         </Button>
       </div>
     </div>
