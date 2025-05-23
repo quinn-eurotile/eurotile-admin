@@ -26,6 +26,7 @@ const AddProduct = () => {
   const [rawProduct, setRawProduct] = useState([]);
   const [productSuppliers, setProductSuppliers] = useState([]);
   const [attributeVariations, setAttributeVariations] = useState([]);
+  const [defaultAttribute, setDefaultAttribute] = useState([]);
   const [productVariations, setProductVariations] = useState([]);
 
   const defaultValues = {
@@ -68,6 +69,8 @@ const AddProduct = () => {
           ? product.attributeVariations.map(attr => attr._id)
           : [];
 
+        const attributeIds = Array.isArray(product.attributes) ? product.attributes : [];
+
         // Map productVariations array with complete data structure
         const productVariations = Array.isArray(product.productVariations)
           ? product.productVariations.map(variation => {
@@ -97,7 +100,8 @@ const AddProduct = () => {
                 width: variation.dimensions?.width || 0,
                 height: variation.dimensions?.height || 0
               },
-              regularPrice: variation.regularPrice || 0,
+              regularPriceB2B: variation.regularPriceB2B || 0,
+              regularPriceB2C: variation.regularPriceB2C || 0,
               tierDiscount: variation.tierDiscount || {},
               salePrice: variation.salePrice || 0,
               purchasedPrice: variation.purchasedPrice || 0,
@@ -109,6 +113,7 @@ const AddProduct = () => {
               image: variation.image || '',
               shippingClass: variation.shippingClass || '',
               taxClass: variation.taxClass || '',
+              status:variation.status || false,
               attributes: attributes, // Add the attributes array
               // Add attribute key-value pairs for the UI display
               ...product.attributeVariations.reduce((acc, attr) => {
@@ -145,6 +150,7 @@ const AddProduct = () => {
           status: product.status || 0,
           defaultPrice: product.defaultPrice || 0,
           categories: categoryIds,
+          attributes: attributeIds,
           attributeVariations: attributeVariationIds,
           productVariations: productVariations,
           // productImages: productImages,
@@ -155,6 +161,7 @@ const AddProduct = () => {
           updatedAt: product.updatedAt || null
         };
 
+        setDefaultAttribute(attributeIds);
         setAttributeVariations(attributeVariationIds);
         setProductVariations(productVariations);
 
@@ -173,10 +180,12 @@ const AddProduct = () => {
   }, [productId]);
 
   const onSubmit = async formDataValues => {
+    console.log(formDataValues,'formDataValuesformDataValues...........')
     formDataValues.productVariations?.forEach((variation, index) => {
       const missingFields = [];
 
-      if (!variation.regularPrice) missingFields.push('Regular Price');
+      if (!variation.regularPriceB2B) missingFields.push('Regular Price');
+      if (!variation.regularPriceB2C) missingFields.push('Regular Price');
       if (!variation.salePrice) missingFields.push('Sale Price');
       if (!variation.purchasedPrice) missingFields.push('Purchased Price');
       if (!variation.weight) missingFields.push('Weight');
@@ -281,6 +290,7 @@ const AddProduct = () => {
               <Grid size={{ xs: 12 }}>
                 <ProductVariants
                   productAttributes={rawProduct?.productAttributes}
+                  defaultAttribute={defaultAttribute}
                   defaultAttributeVariations={attributeVariations}
                   defaultProductVariations={productVariations}
                 />

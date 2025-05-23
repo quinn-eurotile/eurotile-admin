@@ -99,47 +99,90 @@ export default function ProductVariants({
       return []
     }
 
-    // Create a map of existing variations for quick lookup
-    const existingVariationsMap = new Map()
-    existingVariations.forEach(variation => {
-      // Create a unique key based on attributes
-      const key = Object.entries(selectedAttributeValues)
-        .map(([attrId, values]) => {
-          const value = variation[attrId]
-          return value ? `${attrId}:${value}` : ''
-        })
-        .filter(Boolean)
-        .sort()
-        .join('|')
-
-      if (key) {
-        existingVariationsMap.set(key, variation)
-      }
-    })
-
-    // Generate all possible combinations
     const cartesian = arr => arr.reduce((a, b) => a.flatMap(d => b.map(e => [...d, e])), [[]])
     const combinations = cartesian(arrays)
-
-    // Create new variations array
     const newVariations = combinations.map(combo => {
       const variationAttributes = {}
       const formattedAttributes = []
 
-      // Build attribute key-value pairs
       Object.keys(selectedAttributeValues).forEach((attr, index) => {
         const formattedValue = combo[index]
         variationAttributes[attr] = formattedValue
         formattedAttributes.push(formattedValue)
       })
 
-      // If it exists, use the existing data, otherwise create a new variation
+      // Try to find a matching existing variation
+      const matchedExisting = existingVariations.find(existing => {
+        const existingAttributes = existing.attributes || []
+        const existingFormatted = existingAttributes
+          .map(attr => {
+            return attr.measurementUnit ? `${attr.metaValue} ${attr.measurementUnit.name}` : attr.metaValue
+          })
+          .sort()
+
+        return formattedAttributes.slice().sort().join(',') === existingFormatted.join(',')
+      })
+
+      console.log(variationAttributes, matchedExisting, 'variationAttributes')
+
       return {
-        ...variationAttributes
+        ...variationAttributes,
+        _id: matchedExisting?._id || undefined,
+        description: matchedExisting?.description || '',
+        stockStatus: matchedExisting?.stockStatus || 'in_stock',
+        stockQuantity: matchedExisting?.stockQuantity,
+        allowBackorders: matchedExisting?.allowBackorders || false,
+        weight: matchedExisting?.weight,
+        dimensions: matchedExisting?.dimensions || { length: 0, width: 0, height: 0 },
+        regularPriceB2B: matchedExisting?.regularPriceB2B,
+        regularPriceB2C: matchedExisting?.regularPriceB2C,
+        salePrice: matchedExisting?.salePrice,
+        purchasedPrice: matchedExisting?.purchasedPrice,
+        numberOfTiles: matchedExisting?.numberOfTiles,
+        boxSize: matchedExisting?.boxSize,
+        palletSize: matchedExisting?.palletSize,
+        tierDiscount: matchedExisting?.tierDiscount,
+        status: matchedExisting?.status,
+        attributes: matchedExisting?.attributes || []
       }
     })
 
-    return newVariations
+    // Combine existing variations that are still valid with new variations
+    const existingFormattedKeys = new Set(
+      newVariations.map(variation =>
+        selectedAttributes
+          .map(attr => variation[attr])
+          .sort()
+          .join(',')
+      )
+    )
+
+    const preservedVariations = existingVariations.filter(existing => {
+      const existingAttributes = existing.attributes || []
+      const existingFormatted = existingAttributes
+        .map(attr => {
+          return attr.measurementUnit ? `${attr.metaValue} ${attr.measurementUnit.name}` : attr.metaValue
+        })
+        .sort()
+        .join(',')
+
+      return existingFormattedKeys.has(existingFormatted)
+    })
+
+    // Merge preserved and new variations, avoiding duplicates
+    const mergedVariations = [...preservedVariations]
+
+    newVariations.forEach(newVar => {
+      const isDuplicate = mergedVariations.some(existingVar => {
+        return selectedAttributes.every(attr => existingVar[attr] === newVar[attr])
+      })
+
+      if (!isDuplicate) {
+        mergedVariations.push(newVar)
+      }
+    })
+
+    return mergedVariations
   }
 
   // On first render, capture initial variations for comparison
@@ -184,8 +227,6 @@ export default function ProductVariants({
   // Watch variations from form context
   const variations = watch('productVariations') || []
 
-  console.log(variations, 'variationsvariations')
-
   // When selectedAttributeValues changes, generate new variations and update form
   const isEmptyArray = arr => !Array.isArray(arr) || arr.length === 0
   const hasMountedRef = useRef(false)
@@ -194,16 +235,11 @@ export default function ProductVariants({
       hasMountedRef.current = true
       return
     }
-
-    // Get current variations from form
-    const currentVariations = getValues('productVariations') || []
-
-    // Generate new variations while preserving existing data
-    const newVariations = generateVariations(selectedAttributeValues, currentVariations)
-
-    // Update form with merged variations
-    setValue('productVariations', newVariations, { shouldValidate: true })
-  }, [selectedAttributeValues, setValue, getValues])
+    if (isEmptyArray(defaultAttributeVariations) && isEmptyArray(defaultProductVariations)) {
+      const newVariations = generateVariations(selectedAttributeValues, defaultProductVariations)
+      setValue('productVariations', newVariations, { shouldValidate: true })
+    }
+  }, [selectedAttributeValues, setValue])
 
   useEffect(() => {
     setValue('variationsImagesToRemove', removedImageIds)
@@ -239,25 +275,20 @@ export default function ProductVariants({
   console.log(defaultAttribute, 'isAttributeExistisAttributeExist')
 
   const handleAttributesChange = event => {
-    const newSelectedAttributes = event.target.value // Newly selected attribute IDs
-    const previousSelectedAttributes = selectedAttributes // Previously selected attribute IDs
+    const newSelectedAttributes = event.target.value // New selected array
+    const previousSelectedAttributes = selectedAttributes // Previous selected array
 
-    // Identify which attributes are being removed
     const removedAttributes = previousSelectedAttributes.filter(id => !newSelectedAttributes.includes(id))
 
-    // Check if any removed attribute has selected values
-    const hasValuesUnderRemovedAttributes = removedAttributes.some(attributeId => {
-      return selectedAttributeValues[attributeId] && selectedAttributeValues[attributeId].length > 0
-    })
+    // Check if any of the removed attributes exist in defaultAttribute
+    const isExist = removedAttributes.some(attrId => defaultAttribute.includes(attrId))
 
-    if (hasValuesUnderRemovedAttributes) {
-      alert(
-        'One or more attributes have selected values. Please remove their values from "Select Attribute Values" before unchecking the attribute.'
-      )
-      return // Prevent deselection
+    if (isExist) {
+      alert('This attribute is already used in existing variations. Please remove the related variants first.')
+      return // Prevent update
     }
 
-    // Safe to update attributes
+    // Safe to update
     setValue('attributes', newSelectedAttributes, { shouldValidate: true })
     setSelectedAttributes(newSelectedAttributes)
   }
@@ -803,7 +834,7 @@ export default function ProductVariants({
                       <Controller
                         name={`productVariations.${index}.dimensions.length`}
                         control={control}
-                        defaultValue={variation.dimensions?.length}
+                        defaultValue={variation.dimensions.length}
                         rules={{ required: 'Length is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -826,7 +857,7 @@ export default function ProductVariants({
                       <Controller
                         name={`productVariations.${index}.dimensions.width`}
                         control={control}
-                        defaultValue={variation.dimensions?.width}
+                        defaultValue={variation.dimensions.width}
                         rules={{ required: 'Width is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
@@ -849,7 +880,7 @@ export default function ProductVariants({
                       <Controller
                         name={`productVariations.${index}.dimensions.height`}
                         control={control}
-                        defaultValue={variation.dimensions?.height}
+                        defaultValue={variation.dimensions.height}
                         rules={{ required: 'Height is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
