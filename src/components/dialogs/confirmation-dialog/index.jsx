@@ -1,36 +1,38 @@
-'use client'
+'use client';
 
 // React Imports
-import { Fragment, useState } from 'react'
+import { Fragment, useState } from 'react';
 
 // MUI Imports
-import Dialog from '@mui/material/Dialog'
-import DialogContent from '@mui/material/DialogContent'
-import DialogActions from '@mui/material/DialogActions'
-import Typography from '@mui/material/Typography'
-import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
 
 // Third-party Imports
-import classnames from 'classnames'
+import classnames from 'classnames';
 
-const ConfirmationDialog = ({ open, setOpen, type }) => {
+const ConfirmationDialog = ({ open, setOpen, type, callbackMethod = () => { } }) => {
   // States
-  const [secondDialog, setSecondDialog] = useState(false)
-  const [userInput, setUserInput] = useState(false)
+  const [secondDialog, setSecondDialog] = useState(false);
+  const [userInput, setUserInput] = useState(false);
 
   // Vars
-  const Wrapper = type === 'suspend-account' ? 'div' : Fragment
+  const Wrapper = type === 'suspend-account' ? 'div' : Fragment;
 
-  const handleSecondDialogClose = () => {
-    setSecondDialog(false)
-    setOpen(false)
-  }
+  const handleSecondDialogClose = async () => {
+    callbackMethod(false);
+    setSecondDialog(false);
+    setOpen(false);
+  };
 
-  const handleConfirmation = value => {
-    setUserInput(value)
-    setSecondDialog(true)
-    setOpen(false)
-  }
+  const handleConfirmation = async (value) => {
+    callbackMethod(true);
+    setUserInput(value);
+    //setSecondDialog(true);
+    setOpen(false);
+  };
 
   return (
     <>
@@ -48,10 +50,20 @@ const ConfirmationDialog = ({ open, setOpen, type }) => {
               {type === 'suspend-account' && 'Are you sure?'}
               {type === 'delete-order' && 'Are you sure?'}
               {type === 'delete-customer' && 'Are you sure?'}
+              {type === 'delete-record' && 'Are you sure?'}
             </Typography>
             {type === 'suspend-account' && (
               <Typography color='text.primary'>You won&#39;t be able to revert user!</Typography>
             )}
+
+            {type === 'suspend-account' && (
+              <Typography color='text.primary'>You won&#39;t be able to revert user!</Typography>
+            )}
+
+            {type === 'delete-record' && (
+              <Typography color='text.primary'>You won&#39;t be able to revert this record!</Typography>
+            )}
+
             {type === 'delete-order' && (
               <Typography color='text.primary'>You won&#39;t be able to revert order!</Typography>
             )}
@@ -74,7 +86,7 @@ const ConfirmationDialog = ({ open, setOpen, type }) => {
             variant='outlined'
             color='secondary'
             onClick={() => {
-              handleConfirmation(false)
+              handleConfirmation(false);
             }}
           >
             Cancel
@@ -106,6 +118,7 @@ const ConfirmationDialog = ({ open, setOpen, type }) => {
                 {type === 'suspend-account' && 'User has been suspended.'}
                 {type === 'delete-order' && 'Your order deleted successfully.'}
                 {type === 'delete-customer' && 'Your customer removed successfully.'}
+                {type === 'delete-record' && 'Your record removed successfully.'}
               </>
             ) : (
               <>
@@ -114,6 +127,7 @@ const ConfirmationDialog = ({ open, setOpen, type }) => {
                 {type === 'suspend-account' && 'Cancelled Suspension :)'}
                 {type === 'delete-order' && 'Order Deletion Cancelled'}
                 {type === 'delete-customer' && 'Customer Deletion Cancelled'}
+                {type === 'delete-record' && 'Your record removed successfully.'}
               </>
             )}
           </Typography>
@@ -125,7 +139,7 @@ const ConfirmationDialog = ({ open, setOpen, type }) => {
         </DialogActions>
       </Dialog>
     </>
-  )
-}
+  );
+};
 
-export default ConfirmationDialog
+export default ConfirmationDialog;

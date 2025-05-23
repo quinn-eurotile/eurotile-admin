@@ -1,28 +1,28 @@
-'use client'
+'use client';
 
 // React Imports
-import { useEffect, useMemo, useState } from 'react'
-
+import { useEffect, useState, useMemo } from 'react';
+import Grid from '@mui/material/Grid2';
 // Next Imports
-import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 // MUI Imports
-import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
-import Button from '@mui/material/Button'
-import Chip from '@mui/material/Chip'
-import Checkbox from '@mui/material/Checkbox'
-import Divider from '@mui/material/Divider'
-import IconButton from '@mui/material/IconButton'
-import Switch from '@mui/material/Switch'
-import TablePagination from '@mui/material/TablePagination'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import Divider from '@mui/material/Divider';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import Chip from '@mui/material/Chip';
+import Checkbox from '@mui/material/Checkbox';
+import IconButton from '@mui/material/IconButton';
+import { styled } from '@mui/material/styles';
+import TablePagination from '@mui/material/TablePagination';
 
 // Third-party Imports
-import classnames from 'classnames'
-import { rankItem } from '@tanstack/match-sorter-utils'
+import classnames from 'classnames';
+import { rankItem } from '@tanstack/match-sorter-utils';
 import {
   createColumnHelper,
   flexRender,
@@ -34,435 +34,436 @@ import {
   getFacetedMinMaxValues,
   getPaginationRowModel,
   getSortedRowModel
-} from '@tanstack/react-table'
+} from '@tanstack/react-table';
 
 // Component Imports
-import TableFilters from './TableFilters'
-import CustomAvatar from '@core/components/mui/Avatar'
-import OptionMenu from '@core/components/option-menu'
+import TableFilters from './TableFilters';
+import AddSupportTicketDrawer from './AddSupportTicketDrawer';
+import OptionMenu from '@core/components/option-menu';
+import CustomAvatar from '@core/components/mui/Avatar';
 
 // Util Imports
-import { getLocalizedUrl } from '@/utils/i18n'
+import { getInitials } from '@/utils/getInitials';
+import { getLocalizedUrl } from '@/utils/i18n';
 
 // Style Imports
-import tableStyles from '@core/styles/table.module.css'
-import { deleteProduct, getProductList, getProductRawData, updateStatus } from '@/app/server/actions'
-import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
-import { useDispatch } from 'react-redux'
-import { callCommonAction } from '@/redux-store/slices/common'
-import { toast } from 'react-toastify'
-import { Router } from 'next/router'
+import tableStyles from '@core/styles/table.module.css';
+
+import { deleteSupportTicket, createSupportTicket, getSupportTicketList } from '@/app/server/support-ticket';
+import { callCommonAction } from '@/redux-store/slices/common';
+import ConfirmationDialog from '@/components/dialogs/confirmation-dialog';
+import { useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
+import SupportTicketListCards from './SupportTicketListCards';
+
+// Styled Components
+const Icon = styled('i')({});
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value)
+  const itemRank = rankItem(row.getValue(columnId), value);
 
   // Store the itemRank info
   addMeta({
     itemRank
-  })
+  });
 
   // Return if the item should be filtered in/out
-  return itemRank.passed
-}
+  return itemRank.passed;
+};
 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
   // States
-  const [value, setValue] = useState(initialValue)
+  const [value, setValue] = useState(initialValue);
 
   useEffect(() => {
-    setValue(initialValue)
-  }, [initialValue])
+    setValue(initialValue);
+  }, [initialValue]);
   useEffect(() => {
     const timeout = setTimeout(() => {
-      onChange(value)
-    }, debounce)
+      onChange(value);
+    }, debounce);
 
-    return () => clearTimeout(timeout)
+    return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
+  }, [value]);
 
-  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
-}
+  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />;
+};
 
-// Vars
-const productCategoryObj = {
-  Accessories: { icon: 'ri-headphone-line', color: 'error' },
-  'Home Decor': { icon: 'ri-home-6-line', color: 'info' },
-  Electronics: { icon: 'ri-computer-line', color: 'primary' },
-  Shoes: { icon: 'ri-footprint-line', color: 'success' },
-  Office: { icon: 'ri-briefcase-line', color: 'warning' },
-  Games: { icon: 'ri-gamepad-line', color: 'secondary' }
-}
+const ticketStatusLabel = { 1: 'Open', 2: 'Closed', 3: 'Pending', 4: 'In Progress', 5: 'Resolved', 6: 'Rejected', 7: 'Cancelled' };
 
-const productStatusObj = {
-  Scheduled: { title: 'Scheduled', color: 'warning' },
-  Published: { title: 'Publish', color: 'success' },
-  Inactive: { title: 'Inactive', color: 'error' }
-}
+const ticketStatusObj = { 1: 'secondary', 2: 'default', 3: 'info', 4: 'primary', 5: 'success', 6: 'warning', 7: 'error' };
 
 // Column Definitions
-const columnHelper = createColumnHelper()
+const columnHelper = createColumnHelper();
 
 const SupportTicketListTable = () => {
-  const router = useRouter()
-  // States
-  const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState([])
-  const [filteredData, setFilteredData] = useState({})
-  const [globalFilter, setGlobalFilter] = useState(null)
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [totalRecords, setTotalRecords] = useState(0)
-  const [selectedCatId, setSelectedCatId] = useState(null)
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false) // State for dialog
-  const [search, setSearch] = useState('')
-  const [rawProduct, setRawProduct] = useState([])
+  const dispatch = useDispatch();
+  const [addSupportTicketOpen, setAddSupportTicketOpen] = useState(false);
+  const [rowSelection, setRowSelection] = useState({});
+  const [data, setData] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState({ 'status': '' });
+  const [globalFilter, setGlobalFilter] = useState('');
+  const [openConfirmation, setOpenConfirmation] = useState(false); // State for dialog
+  const [selectedId, setSelectedId] = useState(null);
+  const [statsData, setStatsData] = useState(null);
 
   // Hooks
-  const { lang: locale } = useParams()
-  const dispatch = useDispatch()
-
-  const fetchProducts = async (currentPage = 1, searchTerm = '') => {
-    try {
-      dispatch(callCommonAction({ loading: true }))
-      const response = await getProductList(currentPage, rowsPerPage, searchTerm, filteredData)
-      dispatch(callCommonAction({ loading: false }))
-      if (response.statusCode === 200 && response.data) {
-        const formatted = response?.data?.docs?.map(product => ({
-          id: product?._id,
-          name: product?.name,
-          categories: product?.categories,
-          supplier: product?.supplier,
-          totalQuantity: product?.totalQuantity,
-          sku: product?.sku,
-          status: product?.status,
-          avatar: '',
-          username: product?.name.split(' ')[0]
-        }))
-
-        setPage(page)
-        setData(formatted)
-        setTotalRecords(response.data.totalDocs || 0)
-      }
-    } catch (error) {
-      dispatch(callCommonAction({ loading: false }))
-      console.error('Failed to fetch team members', error)
-    }
-  }
-
-    useEffect(() => {
-      if (!filteredData || filteredData.length === 0) return
-      fetchProducts(page + 1, search, filteredData);
-    }, [page, rowsPerPage, search, filteredData]);
-
-
-
-  const getRawData = async () => {
-    try {
-      const response = await getProductRawData()
-      if (response?.data) {
-        setRawProduct(response?.data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch raw data:', error)
-    }
-  }
+  const { lang: locale } = useParams();
 
   useEffect(() => {
-    fetchProducts()
-    getRawData()
-  }, [])
+    fetchSupportTickets();
+  }, []);
+
+  // Fetch support tickets from the server
+  useEffect(() => {
+    fetchSupportTickets();
+  }, [page, rowsPerPage, search, filter]);
+
+  const fetchSupportTickets = async (currentPage = 1) => {
+    console.log('fetchSupportTickets', currentPage, rowsPerPage, search, filter);
+    try {
+      dispatch(callCommonAction({ loading: true }));
+      const response = await getSupportTicketList(currentPage, rowsPerPage, search, filter);
+      dispatch(callCommonAction({ loading: false }));
+      if (response.statusCode === 200 && response.data) {
+
+
+        // Define mappings
+        const ticketStatusObj = {
+          open: 'secondary',
+          in_progress: 'default',
+          resolved: 'success',
+          pending: 'warning',
+          rejected: 'error'
+        };
+
+        const statusTitles = {
+          open: 'Open Tickets',
+          in_progress: 'In Progress Tickets',
+          resolved: 'Resolved Tickets',
+          pending: 'Pending Tickets',
+          rejected: 'Rejected Tickets'
+        };
+
+        const statusIcons = {
+          open: 'ri-user-follow-line',
+          in_progress: 'ri-loader-4-line',
+          resolved: 'ri-checkbox-circle-line',
+          pending: 'ri-time-line',
+          rejected: 'ri-close-line'
+        };
+
+        // Get response data
+        const totalDocs = response?.data?.totalDocs || 0;
+        const statusSummary = response?.data?.statusSummary || {};
+
+        // Get percentage trend
+        const getTrend = (count) => {
+          const percentage = totalDocs ? ((count / totalDocs) * 100).toFixed(2) : 0;
+          return {
+            trendNumber: `${percentage}%`,
+            trend: percentage >= 50 ? 'positive' : 'negative'
+          };
+        };
+
+        // Build stats array dynamically
+        const stats = [
+          {
+            title: 'All Tickets',
+            stats: totalDocs.toString(),
+            avatarIcon: 'ri-archive-line',
+            avatarColor: 'info',
+            trend: 'neutral',
+            trendNumber: '100%',
+          },
+          ...Object.keys(ticketStatusObj).map((key) => {
+            const count = statusSummary[key] || 0;
+            return {
+              title: statusTitles[key],
+              stats: count.toString(),
+              avatarIcon: statusIcons[key],
+              avatarColor: ticketStatusObj[key],
+              ...getTrend(count)
+            };
+          })
+        ];
+
+        setStatsData(stats);
+
+        const formatted = response?.data?.docs?.map(ticket => ({
+          id: ticket?._id,
+          ticketNumber: ticket?.ticketNumber,
+          subject: ticket?.subject,
+          message: ticket?.message,
+          status: ticket?.status,
+          sender: ticket?.sender,
+          order: ticket?.order,
+          createdAt: ticket?.createdAt,
+          updatedAt: ticket?.updatedAt,
+          avatar: '',
+          username: ticket?.subject,
+        }));
+
+
+        setPage(page);
+        setData(formatted);
+        setTotalRecords(response.data.totalDocs || 0);
+      }
+    } catch (error) {
+      dispatch(callCommonAction({ loading: false }));
+      console.error('Failed to fetch team members', error);
+    }
+  };
 
   const refreshList = async () => {
-    await fetchProducts()
-  }
+    await fetchSupportTickets();
+  };
+
+  const deleteMethod = async (valueInBoolean) => {
+    if (valueInBoolean) {
+      try {
+        const response = await deleteSupportTicket(selectedId);
+        if (response?.statusCode === 200) {
+          toast.success(response?.message);
+          refreshList();
+        }
+      } catch (error) {
+        setOpenConfirmation(false); // Close the dialog on error as well
+      }
+    }
+  };
+
+  const handleChangePage = (event, newPage) => setPage(newPage);
+
+  const handleChangeRowsPerPage = event => {
+    table.setPageSize(parseInt(event.target.value));
+    setRowsPerPage(parseInt(event.target.value));
+    setPage(0);
+  };
 
   const handleDeleteConfirmation = id => {
-    setSelectedCatId(id)
-    setOpenConfirmDialog(true)
-  }
-
-  const handleDelete = async () => {
-    try {
-      const response = await deleteProduct(selectedCatId)
-
-      if (response.success) {
-        // Remove the deleted user from the table
-        refreshList()
-      } else {
-        toast.error(response.message || 'Failed to delete.')
-      }
-      setOpenConfirmDialog(false) // Close the dialog after deletion
-    } catch (error) {
-      console.error('Error deleting team member:', error)
-      setOpenConfirmDialog(false) // Close the dialog on error as well
-    }
-  }
-
-  const handleEdit = id => {
-    router.push(`/${locale}/admin/ecommerce/products/${id}`) // Adjust the path as per your routing
-  }
+    setSelectedId(id);
+    setOpenConfirmation(true);
+  };
 
   const columns = useMemo(
     () => [
-      // {
-      //   id: 'select',
-      //   header: ({ table }) => (
-      //     <Checkbox
-      //       {...{
-      //         checked: table.getIsAllRowsSelected(),
-      //         indeterminate: table.getIsSomeRowsSelected(),
-      //         onChange: table.getToggleAllRowsSelectedHandler()
-      //       }}
-      //     />
-      //   ),
-      //   cell: ({ row }) => (
-      //     <Checkbox
-      //       {...{
-      //         checked: row.getIsSelected(),
-      //         disabled: !row.getCanSelect(),
-      //         indeterminate: row.getIsSomeSelected(),
-      //         onChange: row.getToggleSelectedHandler()
-      //       }}
-      //     />
-      //   )
-      // },
-      columnHelper.accessor('name', {
-        header: 'Name',
+      columnHelper.accessor('subject', {
+        header: 'Subject',
         cell: ({ row }) => (
           <div className='flex items-center gap-4'>
-            <img src={row.original.image} width={38} height={38} className='rounded bg-actionHover' />
+            {getAvatar({ avatar: row?.original?.avatar, subject: row?.original?.subject })}
             <div className='flex flex-col'>
               <Typography className='font-medium' color='text.primary'>
-                {row.original.name}
+                {row.original.subject}
               </Typography>
-              <Typography variant='body2'>{'Short description goes here'}</Typography>
+              <Typography variant='body2'>#{row?.original?.ticketNumber}</Typography>
             </div>
           </div>
         )
       }),
-      columnHelper.accessor('supplier', {
-        header: 'Supplier',
+      columnHelper.accessor('message', {
+        header: 'Description',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            {/* <CustomAvatar skin='light' color={productCategoryObj[row.original.category]?.color} size={30}>
-              <i className={classnames(productCategoryObj[row.original.category]?.icon, 'text-lg')} />
-            </CustomAvatar> */}
-            <Typography color='text.primary'>{row.original?.supplier?.companyName}</Typography>
-          </div>
+          <Typography className='capitalize' color='text.primary'>
+            {row.original?.message}
+          </Typography>
         )
-      }),
-      columnHelper.accessor('categories', {
-        header: 'Category',
-        cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
-            {/* <CustomAvatar skin='light' color={productCategoryObj[row.original.category]?.color} size={30}>
-              <i className={classnames(productCategoryObj[row.original.category]?.icon, 'text-lg')} />
-            </CustomAvatar> */}
-            <Typography color='text.primary'>{row.original?.categories?.map(ele => ele?.name).join(', ')}</Typography>
-          </div>
-        )
-      }),
-      columnHelper.accessor('sku', {
-        header: 'SKU',
-        cell: ({ row }) => <Typography>{row.original?.sku}</Typography>
-      }),
-      // columnHelper.accessor('price', {
-      //   header: 'Price',
-      //   cell: ({ row }) => <Typography>{row.original?.defaultPrice}</Typography>
-      // }),
-      columnHelper.accessor('totalQuantity', {
-        header: 'QTY',
-        cell: ({ row }) => <Typography>{row.original.totalQuantity}</Typography>
       }),
       columnHelper.accessor('status', {
         header: 'Status',
-        cell: ({ row }) => {
-          const status = row.original.status
-          const isPublished = status === 1
-
-          return (
+        cell: ({ row }) => (
+          <div className='flex items-center gap-3'>
             <Chip
-              label={isPublished ? 'Publish' : 'Draft'}
-              color={isPublished ? 'success' : 'default'}
               variant='tonal'
+              label={ticketStatusLabel[row.original?.status]}
               size='small'
+              color={ticketStatusObj[row.original?.status]}
+              className='capitalize'
             />
-          )
-        }
+          </div>
+        )
       }),
-
-      columnHelper.accessor('actions', {
-        header: 'Actions',
-        cell: ({ row }) => {
-          const currentStatus = row.original.status
-
-          const handleStatusToggle = async () => {
-            const newStatus = currentStatus === 1 ? 0 : 1
-            const response = await updateStatus(row.original.id, 'status', { status: newStatus })
-            refreshList()
-          }
-
-          return (
-            <div className='flex items-center'>
-              {/* Edit button */}
-              <IconButton size='small' onClick={() => router.push(`/admin/support-tickets/view/${row.original.id}`)}>
-                <i className='ri-eye-line text-[22px] text-textSecondary' />
-              </IconButton>
-
-              {/* Delete button */}
-              <IconButton size='small' onClick={() => handleDeleteConfirmation(row.original.id)}>
-                <i className='ri-delete-bin-line text-[22px] text-red-500' />
-              </IconButton>
-
-              {/* Status toggle button */}
-              <IconButton onClick={handleStatusToggle}>
-                {currentStatus === 1 ? (
-                  <i className='ri-eye-line text-textSecondary' title='Set Inactive' />
-                ) : (
-                  <i className='ri-eye-off-line text-textSecondary' title='Set Active' />
-                )}
-              </IconButton>
-            </div>
-          )
-        },
-
+      columnHelper.accessor('action', {
+        header: 'Action',
+        cell: ({ row }) => (
+          <div className='flex items-center'>
+            <IconButton onClick={() => handleDeleteConfirmation(row.original.id)}>
+              <i className='ri-delete-bin-7-line text-textSecondary' />
+            </IconButton>
+            <IconButton>
+              <Link href={getLocalizedUrl('/apps/user/view', locale)} className='flex'>
+                <i className='ri-eye-line text-textSecondary' />
+              </Link>
+            </IconButton>
+          </div>
+        ),
         enableSorting: false
       })
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data, filteredData]
-  )
+    [data]
+  );
 
   const table = useReactTable({
-      data,
-      columns,
-      state: {
-        rowSelection,
-        globalFilter
-      },
-      filterFns: {
-        fuzzy: fuzzyFilter
-      },
-      getCoreRowModel: getCoreRowModel(),
-      onGlobalFilterChange: setGlobalFilter,
-      globalFilterFn: fuzzyFilter,
-      getFilteredRowModel: getFilteredRowModel(),
-      getSortedRowModel: getSortedRowModel(),
-      getPaginationRowModel: getPaginationRowModel(),
-      getFacetedRowModel: getFacetedRowModel(),
-      getFacetedUniqueValues: getFacetedUniqueValues(),
-      getFacetedMinMaxValues: getFacetedMinMaxValues(),
-      onRowSelectionChange: setRowSelection
-    });
+    data: data,
+    columns,
+    filterFns: {
+      fuzzy: fuzzyFilter
+    },
+    state: {
+      rowSelection,
+      globalFilter
+    },
+    initialState: {
+      pagination: {
+        pageSize: 10
+      }
+    },
+    enableRowSelection: true, //enable row selection for all rows
+    // enableRowSelection: row => row.original.age > 18, // or enable row selection conditionally per row
+    globalFilterFn: fuzzyFilter,
+    onRowSelectionChange: setRowSelection,
+    getCoreRowModel: getCoreRowModel(),
+    onGlobalFilterChange: setGlobalFilter,
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getFacetedMinMaxValues: getFacetedMinMaxValues()
+  });
 
+  const getAvatar = params => {
+    const { avatar, fullName } = params;
 
-  const handleChangePage = (event, newPage) => setPage(newPage);
-  const handleChangeRowsPerPage = event => {
-    table.setPageSize(parseInt(event.target.value))
-		setRowsPerPage(parseInt(event.target.value, 10));
-		setPage(0);
-	};
+    if (avatar) {
+      return <CustomAvatar src={avatar} skin='light' size={34} />;
+    } else {
+      return (
+        <CustomAvatar skin='light' size={34}>
+          {getInitials(fullName)}
+        </CustomAvatar>
+      );
+    }
+  };
+
 
 
   return (
-    <>
-      <Card>
-        <CardHeader title='Filters' className='pbe-4' />
-        <TableFilters setFilters={setFilteredData} rawProductData={rawProduct} />
-        <Divider />
-        <div className='flex justify-between flex-col items-start sm:flex-row sm:items-center gap-y-4 p-5'>
-          <DebouncedInput
-            value={globalFilter ?? ''}
-            onChange={value => setGlobalFilter(String(value))}
-            placeholder='Search Ticket'
-            className='max-sm:is-full'
+    <Grid container spacing={6}>
+      <Grid size={{ xs: 12 }}>
+        <SupportTicketListCards data={statsData} />
+      </Grid>
+      <Grid size={{ xs: 12 }}>
+        <Card>
+          <CardHeader title='Filters' />
+          <TableFilters setFilter={setFilter} filter={filter} />
+          <Divider />
+          <div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
+            <Button
+              color='secondary'
+              variant='outlined'
+              startIcon={<i className='ri-upload-2-line text-xl' />}
+              className='max-sm:is-full'
+            >
+              Export
+            </Button>
+            <div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
+              <DebouncedInput
+                value={search ?? ''}
+                onChange={value => setSearch(String(value))}
+                placeholder='Search User'
+                className='max-sm:is-full'
+              />
+              <Button variant='contained' onClick={() => setAddSupportTicketOpen(!addSupportTicketOpen)} className='max-sm:is-full'>
+                Add New User
+              </Button>
+            </div>
+          </div>
+          <div className='overflow-x-auto'>
+            <table className={tableStyles.table}>
+              <thead>
+                {table.getHeaderGroups().map(headerGroup => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map(header => (
+                      <th key={header.id}>
+                        {header.isPlaceholder ? null : (
+                          <>
+                            <div
+                              className={classnames({
+                                'flex items-center': header.column.getIsSorted(),
+                                'cursor-pointer select-none': header.column.getCanSort()
+                              })}
+                              onClick={header.column.getToggleSortingHandler()}
+                            >
+                              {flexRender(header.column.columnDef.header, header.getContext())}
+                              {{
+                                asc: <i className='ri-arrow-up-s-line text-xl' />,
+                                desc: <i className='ri-arrow-down-s-line text-xl' />
+                              }[header.column.getIsSorted()] ?? null}
+                            </div>
+                          </>
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+              {table.getFilteredRowModel().rows.length === 0 ? (
+                <tbody>
+                  <tr>
+                    <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
+                      No data available
+                    </td>
+                  </tr>
+                </tbody>
+              ) : (
+                <tbody>
+                  {table
+                    .getRowModel()
+                    .rows.slice(0, table.getState().pagination.pageSize)
+                    .map(row => {
+                      return (
+                        <tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
+                          {row.getVisibleCells().map(cell => (
+                            <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              )}
+            </table>
+          </div>
+          <TablePagination
+            component='div'
+            count={totalRecords}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[1, 10, 20, 50]}
           />
-        </div>
-        <div className='overflow-x-auto'>
-          <table className={tableStyles.table}>
-            <thead>
-              {table.getHeaderGroups().map(headerGroup => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
-                    <th key={header.id}>
-                      {header.isPlaceholder ? null : (
-                        <>
-                          <div
-                            className={classnames({
-                              'flex items-center': header.column.getIsSorted(),
-                              'cursor-pointer select-none': header.column.getCanSort()
-                            })}
-                            onClick={header.column.getToggleSortingHandler()}
-                          >
-                            {flexRender(header.column.columnDef.header, header.getContext())}
-                            {{
-                              asc: <i className='ri-arrow-up-s-line text-xl' />,
-                              desc: <i className='ri-arrow-down-s-line text-xl' />
-                            }[header.column.getIsSorted()] ?? null}
-                          </div>
-                        </>
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            {table.getFilteredRowModel().rows.length === 0 ? (
-              <tbody>
-                <tr>
-                  <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    No data available {table.getFilteredRowModel().rows.length}
-                  </td>
-                </tr>
-              </tbody>
-            ) : (
-              <tbody>
-                {table
-                  .getRowModel()
-                  .rows.slice(0, table.getState().pagination.pageSize)
-                  .map(row => {
-                    return (
-                      <tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
-                        {row.getVisibleCells().map(cell => (
-                          <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-                        ))}
-                      </tr>
-                    )
-                  })}
-              </tbody>
-            )}
-          </table>
-        </div>
-
-        <TablePagination
-          component='div'
-          count={totalRecords}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[1, 10, 20, 50]}
+        </Card>
+        <AddSupportTicketDrawer
+          open={addSupportTicketOpen}
+          handleClose={() => setAddSupportTicketOpen(!addSupportTicketOpen)}
+          userData={data}
+          setData={setData}
         />
-      </Card>
+        <ConfirmationDialog open={openConfirmation} setOpen={setOpenConfirmation} type='delete-record' callbackMethod={deleteMethod} />
+      </Grid>
+    </Grid>
 
-      <Dialog open={openConfirmDialog} onClose={() => setOpenConfirmDialog(false)}>
-        <DialogTitle>Confirm Deletion</DialogTitle>
-        <DialogContent>
-          <Typography>Are you sure you want to delete this team member?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenConfirmDialog(false)} color='primary'>
-            Cancel
-          </Button>
-          <Button onClick={handleDelete} color='secondary'>
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
-  )
-}
 
-export default SupportTicketListTable
+  );
+};
+
+export default SupportTicketListTable;
