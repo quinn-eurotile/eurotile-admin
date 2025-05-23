@@ -8,12 +8,14 @@ import Grid from '@mui/material/Grid2';
 import ProductDetailsHeader from './ProductDetailsHeader';
 import ProductLeftOverview from './product-left-overview';
 import ProductRight from './product-right';
+import OrderList from '@/views/admin/trade-professionals/view/user-right/orders/list';
 
 const OverViewTab = dynamic(() => import('@/views/admin/ecommerce/products/details/product-right/overview'));
 
 // Vars
 const tabContentList = (productData, statusMap, stockStatusMap) => ({
   overview: <OverViewTab productData={productData} statusMap={statusMap} stockStatusMap={stockStatusMap} />,
+   orders: <OrderList />,
 });
 
 const ProductDetails = ({ productData, productId }) => {
