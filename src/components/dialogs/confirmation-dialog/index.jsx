@@ -1,38 +1,38 @@
-'use client';
+'use client'
 
 // React Imports
-import { Fragment, useState } from 'react';
+import { Fragment, useState } from 'react'
 
 // MUI Imports
-import Dialog from '@mui/material/Dialog';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
 
 // Third-party Imports
-import classnames from 'classnames';
+import classnames from 'classnames'
 
-const ConfirmationDialog = ({ open, setOpen, type, callbackMethod = () => { } }) => {
+const ConfirmationDialog = ({ open, setOpen, type, callbackMethod = () => {} }) => {
   // States
-  const [secondDialog, setSecondDialog] = useState(false);
-  const [userInput, setUserInput] = useState(false);
+  const [secondDialog, setSecondDialog] = useState(false)
+  const [userInput, setUserInput] = useState(false)
 
   // Vars
-  const Wrapper = type === 'suspend-account' ? 'div' : Fragment;
+  const Wrapper = type === 'suspend-account' ? 'div' : Fragment
 
   const handleSecondDialogClose = async () => {
-    callbackMethod(false);
-    setSecondDialog(false);
-    setOpen(false);
-  };
+    callbackMethod(false)
+    setSecondDialog(false)
+    setOpen(false)
+  }
 
-  const handleConfirmation = async (value) => {
-    callbackMethod(true);
-    setUserInput(value);
+  const handleConfirmation = async value => {
+    callbackMethod(true)
+    setUserInput(value)
     //setSecondDialog(true);
-    setOpen(false);
-  };
+    setOpen(false)
+  }
 
   return (
     <>
@@ -51,6 +51,7 @@ const ConfirmationDialog = ({ open, setOpen, type, callbackMethod = () => { } })
               {type === 'delete-order' && 'Are you sure?'}
               {type === 'delete-customer' && 'Are you sure?'}
               {type === 'delete-record' && 'Are you sure?'}
+              {type === 'alert-message' && 'Alert'}
             </Typography>
             {type === 'suspend-account' && (
               <Typography color='text.primary'>You won&#39;t be able to revert user!</Typography>
@@ -70,10 +71,25 @@ const ConfirmationDialog = ({ open, setOpen, type, callbackMethod = () => { } })
             {type === 'delete-customer' && (
               <Typography color='text.primary'>You won&#39;t be able to revert customer!</Typography>
             )}
+            {type === 'alert-message' && (
+              <Typography color='text.primary'>Please deselect the Attribute Values first</Typography>
+            )}
           </Wrapper>
         </DialogContent>
         <DialogActions className='justify-center pbs-0 sm:pbe-16 sm:pli-16'>
-          <Button variant='contained' onClick={() => handleConfirmation(true)}>
+           {type === 'alert-message' ? (
+          <Button
+            variant='contained'
+            color='success'
+            onClick={() => {
+              handleConfirmation(true)
+            }}
+          >
+            Ok
+          </Button>
+           ): (
+            <>
+            <Button variant='contained' onClick={() => handleConfirmation(true)}>
             {type === 'suspend-account'
               ? 'Yes, Suspend User!'
               : type === 'delete-order'
@@ -86,11 +102,14 @@ const ConfirmationDialog = ({ open, setOpen, type, callbackMethod = () => { } })
             variant='outlined'
             color='secondary'
             onClick={() => {
-              handleConfirmation(false);
+              handleConfirmation(false)
             }}
           >
             Cancel
           </Button>
+          </>
+           )}
+
         </DialogActions>
       </Dialog>
 
@@ -139,7 +158,7 @@ const ConfirmationDialog = ({ open, setOpen, type, callbackMethod = () => { } })
         </DialogActions>
       </Dialog>
     </>
-  );
-};
+  )
+}
 
-export default ConfirmationDialog;
+export default ConfirmationDialog

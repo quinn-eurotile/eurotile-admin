@@ -383,7 +383,7 @@ const SupportTicketListTable = () => {
                 className='max-sm:is-full'
               />
               <Button variant='contained' onClick={() => setAddSupportTicketOpen(!addSupportTicketOpen)} className='max-sm:is-full'>
-                Add New User
+                Add Ticket
               </Button>
             </div>
           </div>
@@ -457,6 +457,7 @@ const SupportTicketListTable = () => {
           handleClose={() => setAddSupportTicketOpen(!addSupportTicketOpen)}
           userData={data}
           setData={setData}
+          refreshList={refreshList}
         />
         <ConfirmationDialog open={openConfirmation} setOpen={setOpenConfirmation} type='delete-record' callbackMethod={deleteMethod} />
       </Grid>

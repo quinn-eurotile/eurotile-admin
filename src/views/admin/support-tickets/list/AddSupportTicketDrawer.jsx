@@ -1,233 +1,121 @@
-// React Imports
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // MUI Imports
 import Button from '@mui/material/Button'
 import Drawer from '@mui/material/Drawer'
-import FormControl from '@mui/material/FormControl'
 import IconButton from '@mui/material/IconButton'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
-import FormHelperText from '@mui/material/FormHelperText'
 import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
 
-// Third-party Imports
-import { useForm, Controller } from 'react-hook-form'
+// React Hook Form
+import { useForm } from 'react-hook-form'
+import TicketFile from './TicketFile';
+import { createSupportTicket } from '@/app/server/support-ticket';
 
-// Vars
-const initialData = {
-  company: '',
-  country: '',
-  contact: ''
-}
+const AddSupportTicketDrawer = ({ open, handleClose, refreshList }) => {
+  const [parentOptions, setParentOptions] = useState([])
+  const [featuredImageFile, setFeaturedImageFile] = useState(null)
 
-const AddUserDrawer = props => {
-  // Props
-  const { open, handleClose, userData, setData } = props
-
-  // States
-  const [formData, setFormData] = useState(initialData)
-
-  // Hooks
   const {
     control,
-    reset: resetForm,
+    register,
+    reset,
     handleSubmit,
-    formState: { errors }
+    setError,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting }
   } = useForm({
     defaultValues: {
-      fullName: '',
-      username: '',
-      email: '',
-      role: '',
-      plan: '',
-      status: ''
+      subject: '',
+      message: '',
+      status: '1'
     }
   })
 
-  const onSubmit = data => {
-    const newUser = {
-      id: (userData?.length && userData?.length + 1) || 1,
-      avatar: `/images/avatars/${Math.floor(Math.random() * 8) + 1}.png`,
-      fullName: data.fullName,
-      username: data.username,
-      email: data.email,
-      role: data.role,
-      currentPlan: data.plan,
-      status: data.status,
-      company: formData.company,
-      country: formData.country,
-      contact: formData.contact
+  useEffect(() => {
+    register('status', { required: 'Status is required' })
+  }, [register])
+
+
+  const onSubmit = async formValues => {
+    try {
+      const formData = {
+        ...formValues,
+        productFeaturedImage: featuredImageFile
+      }
+
+      const response = await createSupportTicket(formData)
+      console.log(response,'here is the response')
+
+      const statusCode = response?.statusCode
+      if (statusCode === 200 || statusCode === 201) {
+        refreshList();
+        handleClose()
+        reset()
+        return
+      }
+
+      const apiErrors = response?.data?.errors || response?.data || {}
+      for (const [field, messages] of Object.entries(apiErrors)) {
+        setError(field, {
+          message: messages?.[0] || 'Invalid input'
+        })
+      }
+    } catch (error) {
+      console.error('Submission failed:', error)
     }
-
-    setData([...(userData ?? []), newUser])
-    handleClose()
-    setFormData(initialData)
-    resetForm({ fullName: '', username: '', email: '', role: '', plan: '', status: '' })
-  }
-
-  const handleReset = () => {
-    handleClose()
-    setFormData(initialData)
   }
 
   return (
     <Drawer
       open={open}
-      anchor='right'
-      variant='temporary'
-      onClose={handleReset}
+      anchor="right"
+      variant="temporary"
+      onClose={() => {
+        handleClose()
+        reset()
+      }}
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 400 } } }}
     >
-      <div className='flex items-center justify-between pli-5 plb-4'>
-        <Typography variant='h5'>Add New User</Typography>
-        <IconButton size='small' onClick={handleReset}>
-          <i className='ri-close-line text-2xl' />
+      <div className="flex items-center justify-between p-5 pb-4">
+        <Typography variant="h5">Add Ticket</Typography>
+        <IconButton size="small" onClick={handleClose}>
+          <i className="ri-close-line text-2xl" />
         </IconButton>
       </div>
       <Divider />
-      <div className='p-5'>
-        <form onSubmit={handleSubmit(data => onSubmit(data))} className='flex flex-col gap-5'>
-          <Controller
-            name='fullName'
-            control={control}
-            rules={{ required: true }}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                fullWidth
-                label='Full Name'
-                placeholder='John Doe'
-                {...(errors.fullName && { error: true, helperText: 'This field is required.' })}
-              />
-            )}
-          />
-          <Controller
-            name='username'
-            control={control}
-            rules={{ required: true }}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                fullWidth
-                label='Username'
-                placeholder='johndoe'
-                {...(errors.username && { error: true, helperText: 'This field is required.' })}
-              />
-            )}
-          />
-          <Controller
-            name='email'
-            control={control}
-            rules={{ required: true }}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                fullWidth
-                type='email'
-                label='Email'
-                placeholder='johndoe@gmail.com'
-                {...(errors.email && { error: true, helperText: 'This field is required.' })}
-              />
-            )}
-          />
-          <FormControl fullWidth>
-            <InputLabel id='country' error={Boolean(errors.role)}>
-              Select Role
-            </InputLabel>
-            <Controller
-              name='role'
-              control={control}
-              rules={{ required: true }}
-              render={({ field }) => (
-                <Select label='Select Role' {...field} error={Boolean(errors.role)}>
-                  <MenuItem value='admin'>Admin</MenuItem>
-                  <MenuItem value='author'>Author</MenuItem>
-                  <MenuItem value='editor'>Editor</MenuItem>
-                  <MenuItem value='maintainer'>Maintainer</MenuItem>
-                  <MenuItem value='subscriber'>Subscriber</MenuItem>
-                </Select>
-              )}
-            />
-            {errors.role && <FormHelperText error>This field is required.</FormHelperText>}
-          </FormControl>
-          <FormControl fullWidth>
-            <InputLabel id='country' error={Boolean(errors.plan)}>
-              Select Plan
-            </InputLabel>
-            <Controller
-              name='plan'
-              control={control}
-              rules={{ required: true }}
-              render={({ field }) => (
-                <Select label='Select Plan' {...field} error={Boolean(errors.plan)}>
-                  <MenuItem value='basic'>Basic</MenuItem>
-                  <MenuItem value='company'>Company</MenuItem>
-                  <MenuItem value='enterprise'>Enterprise</MenuItem>
-                  <MenuItem value='team'>Team</MenuItem>
-                </Select>
-              )}
-            />
-            {errors.plan && <FormHelperText error>This field is required.</FormHelperText>}
-          </FormControl>
-          <FormControl fullWidth>
-            <InputLabel id='country' error={Boolean(errors.status)}>
-              Select Status
-            </InputLabel>
-            <Controller
-              name='status'
-              control={control}
-              rules={{ required: true }}
-              render={({ field }) => (
-                <Select label='Select Status' {...field} error={Boolean(errors.status)}>
-                  <MenuItem value='pending'>Pending</MenuItem>
-                  <MenuItem value='active'>Active</MenuItem>
-                  <MenuItem value='inactive'>Inactive</MenuItem>
-                </Select>
-              )}
-            />
-            {errors.status && <FormHelperText error>This field is required.</FormHelperText>}
-          </FormControl>
+      <div className="p-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
           <TextField
-            label='Company'
             fullWidth
-            placeholder='Company PVT LTD'
-            value={formData.company}
-            onChange={e => setFormData({ ...formData, company: e.target.value })}
+            label="Subject"
+            placeholder="Enter Subject"
+            {...register('subject', { required: 'Subject is required' })}
+            error={Boolean(errors.subject)}
+            helperText={errors.subject?.message}
           />
-          <FormControl fullWidth>
-            <InputLabel id='country'>Select Country</InputLabel>
-            <Select
-              fullWidth
-              id='country'
-              value={formData.country}
-              onChange={e => setFormData({ ...formData, country: e.target.value })}
-              label='Select Country'
-              labelId='country'
-            >
-              <MenuItem value='India'>India</MenuItem>
-              <MenuItem value='USA'>USA</MenuItem>
-              <MenuItem value='Australia'>Australia</MenuItem>
-              <MenuItem value='Germany'>Germany</MenuItem>
-            </Select>
-          </FormControl>
+
           <TextField
-            label='Contact'
-            type='number'
             fullWidth
-            placeholder='(397) 294-5153'
-            value={formData.contact}
-            onChange={e => setFormData({ ...formData, contact: e.target.value })}
+            label="Message"
+            multiline
+            rows={5}
+            placeholder="Enter message"
+            {...register('message', { required: 'Message is required' })}
+            error={Boolean(errors.message)}
+            helperText={errors.message?.message}
           />
-          <div className='flex items-center gap-4'>
-            <Button variant='contained' type='submit'>
-              Submit
+
+          <TicketFile onChangeImage={setFeaturedImageFile} />
+
+          <div className="flex items-center gap-4">
+            <Button variant="contained" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Save'}
             </Button>
-            <Button variant='outlined' color='error' type='reset' onClick={() => handleReset()}>
+            <Button variant="outlined" color="error" type="button" onClick={handleClose}>
               Cancel
             </Button>
           </div>
@@ -237,4 +125,4 @@ const AddUserDrawer = props => {
   )
 }
 
-export default AddUserDrawer
+export default AddSupportTicketDrawer;

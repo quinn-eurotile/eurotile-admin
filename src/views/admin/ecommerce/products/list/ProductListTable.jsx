@@ -44,7 +44,7 @@ import { getLocalizedUrl } from '@/utils/i18n';
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css';
-import { deleteProduct, getSupportTicketList, getProductRawData, updateStatus } from '@/app/server/actions';
+import { deleteProduct, getProductList, getProductRawData, updateStatus } from '@/app/server/actions';
 import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { useDispatch } from 'react-redux';
 import { callCommonAction } from '@/redux-store/slices/common';
@@ -125,7 +125,7 @@ const ProductListTable = () => {
   const fetchProducts = async (currentPage = 1, searchTerm = '') => {
     try {
       dispatch(callCommonAction({ loading: true }));
-      const response = await getSupportTicketList(currentPage, rowsPerPage, searchTerm, filteredData);
+      const response = await getProductList(currentPage, rowsPerPage, searchTerm, filteredData);
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
         const formatted = response?.data?.docs?.map(product => ({
