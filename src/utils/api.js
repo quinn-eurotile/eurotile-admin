@@ -45,9 +45,9 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {}, sho
       delete config.data;
     }
 
-    console.log('.......headers test', headers);
-    console.log(REQUEST_URL, 'REQUEST_URLREQUEST_URL');
-    console.log(data, 'data');
+    // console.log('.......headers test', headers);
+    // console.log(REQUEST_URL, 'REQUEST_URLREQUEST_URL');
+    // console.log(data, 'data');
 
     const response = await axios(config);
 

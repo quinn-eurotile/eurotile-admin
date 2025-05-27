@@ -17,3 +17,6 @@ export const createSupportTicket = async (data) => {
 export const getSupportTicketList = async (currentPage, rowsPerPage, searchTerm, filter) => {
     return await supportTicketServices.get(currentPage, rowsPerPage, searchTerm, filter);
 };
+
+
+

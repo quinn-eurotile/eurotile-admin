@@ -18,11 +18,24 @@ export const createApiService = (baseEndpoint, customMethods = {}) => {
       return api.get(`${baseEndpoint}?${queryParams}`, {}, false);
     },
 
+    getByParamsIfUrlHasId: async (id, page = 1, limit = 10, searchString = "", filter = {}) => {
+      console.log('getByParamsIfUrlHasId filter', filter);
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        ...filter,
+        ...(searchString ? { search_string: searchString } : {}),
+      }).toString();
+
+      return api.get(`${baseEndpoint}/${id}?${queryParams}`, {}, false);
+    },
+
     // Get item by ID
     getById: async (id) => {
       return api.get(`${baseEndpoint}/${id}`, {}, false);
     },
 
+    // Get raw data without pagination or filters
     getRawData: async (data = {}) => {
       return api.get(`${baseEndpoint}`, data, false);
     },

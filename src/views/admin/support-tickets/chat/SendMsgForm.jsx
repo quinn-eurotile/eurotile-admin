@@ -1,26 +1,26 @@
 // React Imports
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react';
 
 // MUI Imports
-import TextField from '@mui/material/TextField'
-import Button from '@mui/material/Button'
-import IconButton from '@mui/material/IconButton'
-import Popper from '@mui/material/Popper'
-import Fade from '@mui/material/Fade'
-import Paper from '@mui/material/Paper'
-import ClickAwayListener from '@mui/material/ClickAwayListener'
-import Menu from '@mui/material/Menu'
-import MenuItem from '@mui/material/MenuItem'
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Popper from '@mui/material/Popper';
+import Fade from '@mui/material/Fade';
+import Paper from '@mui/material/Paper';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 
 // Third-party Imports
-import Picker from '@emoji-mart/react'
-import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react';
+import data from '@emoji-mart/data';
 
 // Slice Imports
-import { sendMsg } from '@/redux-store/slices/chat'
+import { sendMsg } from '@/redux-store/slices/chat';
 
 // Component Imports
-import CustomIconButton from '@core/components/mui/IconButton'
+import CustomIconButton from '@core/components/mui/IconButton';
 
 // Emoji Picker Component for selecting emojis
 const EmojiPicker = ({ onChange, isBelowSmScreen, openEmojiPicker, setOpenEmojiPicker, anchorRef }) => {
@@ -45,8 +45,8 @@ const EmojiPicker = ({ onChange, isBelowSmScreen, openEmojiPicker, setOpenEmojiP
                     data={data}
                     maxFrequentRows={1}
                     onEmojiSelect={emoji => {
-                      onChange(emoji.native)
-                      setOpenEmojiPicker(false)
+                      onChange(emoji.native);
+                      setOpenEmojiPicker(false);
                     }}
                     {...(isBelowSmScreen && { perLine: 8 })}
                   />
@@ -57,39 +57,40 @@ const EmojiPicker = ({ onChange, isBelowSmScreen, openEmojiPicker, setOpenEmojiP
         )}
       </Popper>
     </>
-  )
-}
+  );
+};
 
-const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef }) => {
+const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, sendMessage }) => {
   // States
-  const [msg, setMsg] = useState('')
-  const [anchorEl, setAnchorEl] = useState(null)
-  const [openEmojiPicker, setOpenEmojiPicker] = useState(false)
+  const [msg, setMsg] = useState('');
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [openEmojiPicker, setOpenEmojiPicker] = useState(false);
 
   // Refs
-  const anchorRef = useRef(null)
-  const open = Boolean(anchorEl)
+  const anchorRef = useRef(null);
+  const open = Boolean(anchorEl);
 
   const handleToggle = () => {
-    setOpenEmojiPicker(prevOpen => !prevOpen)
-  }
+    setOpenEmojiPicker(prevOpen => !prevOpen);
+  };
 
   const handleClick = event => {
-    setAnchorEl(prev => (prev ? null : event.currentTarget))
-  }
+    setAnchorEl(prev => (prev ? null : event.currentTarget));
+  };
 
   const handleClose = () => {
-    setAnchorEl(null)
-  }
+    setAnchorEl(null);
+  };
 
-  const handleSendMsg = (event, msg) => {
-    event.preventDefault()
+  const handleSendMsg = async (event, msg) => {
+    event.preventDefault();
 
     if (msg.trim() !== '') {
-      dispatch(sendMsg({ msg }))
-      setMsg('')
+      // Save to backend
+      sendMessage(msg);
+      setMsg('');
     }
-  }
+  };
 
   const handleInputEndAdornment = () => {
     return (
@@ -109,8 +110,8 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef })
             <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
               <MenuItem
                 onClick={() => {
-                  handleToggle()
-                  handleClose()
+                  handleToggle();
+                  handleClose();
                 }}
                 className='justify-center'
               >
@@ -132,10 +133,10 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef })
               setOpenEmojiPicker={setOpenEmojiPicker}
               isBelowSmScreen={isBelowSmScreen}
               onChange={value => {
-                setMsg(msg + value)
+                setMsg(msg + value);
 
                 if (messageInputRef.current) {
-                  messageInputRef.current.focus()
+                  messageInputRef.current.focus();
                 }
               }}
             />
@@ -151,10 +152,10 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef })
               setOpenEmojiPicker={setOpenEmojiPicker}
               isBelowSmScreen={isBelowSmScreen}
               onChange={value => {
-                setMsg(msg + value)
+                setMsg(msg + value);
 
                 if (messageInputRef.current) {
-                  messageInputRef.current.focus()
+                  messageInputRef.current.focus();
                 }
               }}
             />
@@ -177,12 +178,12 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef })
           </Button>
         )}
       </div>
-    )
-  }
+    );
+  };
 
   useEffect(() => {
-    setMsg('')
-  }, [activeUser.id])
+    setMsg('');
+  }, [activeUser.id]);
 
   return (
     <form
@@ -207,7 +208,7 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef })
         }}
         onKeyDown={e => {
           if (e.key === 'Enter' && !e.shiftKey) {
-            handleSendMsg(e, msg)
+            handleSendMsg(e, msg);
           }
         }}
         size='small'
@@ -215,7 +216,7 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef })
         slotProps={{ input: { endAdornment: handleInputEndAdornment() } }}
       />
     </form>
-  )
-}
+  );
+};
 
-export default SendMsgForm
+export default SendMsgForm;

@@ -1,28 +1,30 @@
 // React Imports
-import { useEffect, useState } from 'react'
-
+import { useEffect, useState, useRef } from 'react';
+import io from 'socket.io-client';
 // MUI Imports
-import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
-import CardContent from '@mui/material/CardContent'
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import CardContent from '@mui/material/CardContent';
 
 // Component Imports
-import OptionMenu from '@core/components/option-menu'
-import AvatarWithBadge from './AvatarWithBadge'
-import { statusObj } from './SidebarLeft'
-import ChatLog from './ChatLog'
-import SendMsgForm from './SendMsgForm'
-import UserProfileRight from './UserProfileRight'
-import CustomAvatar from '@core/components/mui/Avatar'
+import OptionMenu from '@core/components/option-menu';
+import AvatarWithBadge from './AvatarWithBadge';
+import { statusObj } from './SidebarLeft';
+import ChatLog from './ChatLog';
+import SendMsgForm from './SendMsgForm';
+import UserProfileRight from './UserProfileRight';
+import CustomAvatar from '@core/components/mui/Avatar';
+// Slice Imports
+import { sendMsg } from '@/redux-store/slices/chat';
 
 // Renders the user avatar with badge and user information
 const UserAvatar = ({ activeUser, setUserProfileLeftOpen, setBackdropOpen }) => (
   <div
     className='flex items-center gap-4 cursor-pointer'
     onClick={() => {
-      setUserProfileLeftOpen(true)
-      setBackdropOpen(true)
+      setUserProfileLeftOpen(true);
+      setBackdropOpen(true);
     }}
   >
     <AvatarWithBadge
@@ -36,9 +38,10 @@ const UserAvatar = ({ activeUser, setUserProfileLeftOpen, setBackdropOpen }) => 
       <Typography variant='body2'>{activeUser?.role}</Typography>
     </div>
   </div>
-)
+);
 
 const ChatContent = props => {
+  const socket = useRef();
   // Props
   const {
     chatStore,
@@ -50,20 +53,56 @@ const ChatContent = props => {
     isBelowSmScreen,
     isBelowLgScreen,
     messageInputRef
-  } = props
+  } = props;
 
-  const { activeUser } = chatStore
+  const { activeUser } = chatStore;
 
   // States
-  const [userProfileRightOpen, setUserProfileRightOpen] = useState(false)
+  const [userProfileRightOpen, setUserProfileRightOpen] = useState(false);
+
+  useEffect(() => {
+    // Initialize socket connection
+    socket.current = io('http://localhost:3001', {
+      transports: ['websocket', 'polling']
+    });
+    // Listen for incoming messages
+    socket.current.on('receiveMessage', (data) => {
+      console.log('Received message:', JSON.parse(data));
+      const parseData = JSON.parse(data);
+      // Update your chat store with the new message
+      dispatch(sendMsg({ msg: parseData?.message }));
+    });
+
+    // Clean up on unmount
+    return () => {
+      if (socket.current) {
+        socket.current.disconnect();
+      }
+    };
+  }, []);
+
+  const sendMessage = (messageContent) => {
+    if (!socket.current) return;
+
+    const messageData = {
+      content: messageContent,
+      senderId: chatStore.profileUser?.id,
+      receiverId: chatStore.activeUser?.id,
+      timestamp: new Date(),
+      ticketId: props.ticketId
+    };
+
+    // Emit the message to the server
+    socket.current.emit('sendMessage', JSON.stringify(messageData));
+  };
 
   // Close user profile right drawer if backdrop is closed and user profile right drawer is open
   useEffect(() => {
     if (!backdropOpen && userProfileRightOpen) {
-      setUserProfileRightOpen(false)
+      setUserProfileRightOpen(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [backdropOpen])
+  }, [backdropOpen]);
 
   return !chatStore.activeUser ? (
     <CardContent className='flex flex-col flex-auto items-center justify-center bs-full gap-[18px] bg-[var(--mui-palette-customColors-chatBg)]'>
@@ -76,8 +115,8 @@ const ChatContent = props => {
           variant='contained'
           className='rounded-full'
           onClick={() => {
-            setSidebarOpen(true)
-            isBelowSmScreen ? setBackdropOpen(false) : setBackdropOpen(true)
+            setSidebarOpen(true);
+            isBelowSmScreen ? setBackdropOpen(false) : setBackdropOpen(true);
           }}
         >
           Select Contact
@@ -94,8 +133,8 @@ const ChatContent = props => {
                 <IconButton
                   size='small'
                   onClick={() => {
-                    setSidebarOpen(true)
-                    setBackdropOpen(true)
+                    setSidebarOpen(true);
+                    setBackdropOpen(true);
                   }}
                 >
                   <i className='ri-menu-line text-textSecondary' />
@@ -121,8 +160,8 @@ const ChatContent = props => {
                     text: 'View Contact',
                     menuItemProps: {
                       onClick: () => {
-                        setUserProfileRightOpen(true)
-                        setBackdropOpen(true)
+                        setUserProfileRightOpen(true);
+                        setBackdropOpen(true);
                       }
                     }
                   },
@@ -150,8 +189,8 @@ const ChatContent = props => {
                       text: 'View Contact',
                       menuItemProps: {
                         onClick: () => {
-                          setUserProfileRightOpen(true)
-                          setBackdropOpen(true)
+                          setUserProfileRightOpen(true);
+                          setBackdropOpen(true);
                         }
                       }
                     },
@@ -177,6 +216,7 @@ const ChatContent = props => {
             activeUser={activeUser}
             isBelowSmScreen={isBelowSmScreen}
             messageInputRef={messageInputRef}
+            sendMessage={sendMessage}
           />
         </div>
       )}
@@ -185,8 +225,8 @@ const ChatContent = props => {
         <UserProfileRight
           open={userProfileRightOpen}
           handleClose={() => {
-            setUserProfileRightOpen(false)
-            setBackdropOpen(false)
+            setUserProfileRightOpen(false);
+            setBackdropOpen(false);
           }}
           activeUser={activeUser}
           isBelowSmScreen={isBelowSmScreen}
@@ -194,7 +234,7 @@ const ChatContent = props => {
         />
       )}
     </>
-  )
-}
+  );
+};
 
-export default ChatContent
+export default ChatContent;
