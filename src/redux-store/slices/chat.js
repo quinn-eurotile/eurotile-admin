@@ -1,13 +1,30 @@
 // Third-party Imports
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 // Data Imports
-import { db } from '@/fake-db/apps/chat';
+// import { db } from '@/fake-db/apps/chat';
+
+const initialState = {
+  contacts: [],
+  chats: [],
+  activeUser: null,
+  profileUser: {},
+  loading: false,
+  error: null
+};
+
+
 
 export const chatSlice = createSlice({
   name: 'chat',
-  initialState: db,
+  //initialState: db,
+  initialState,
   reducers: {
+    setChatData: (state, action) => {
+      state.contacts = action.payload.contacts;
+      state.chats = action.payload.chats;
+      state.profileUser = action.payload.profileUser;
+    },
     getActiveUserData: (state, action) => {
       const activeUser = state.contacts.find(user => user.id === action.payload);
       const chat = state.chats.find(chat => chat.userId === action.payload);
@@ -65,5 +82,5 @@ export const chatSlice = createSlice({
     }
   }
 });
-export const { getActiveUserData, addNewChat, setUserStatus, sendMsg } = chatSlice.actions;
+export const { getActiveUserData, addNewChat, setUserStatus, sendMsg, setChatData } = chatSlice.actions;
 export default chatSlice.reducer;

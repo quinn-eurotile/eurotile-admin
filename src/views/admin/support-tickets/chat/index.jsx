@@ -12,7 +12,7 @@ import classNames from 'classnames';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Slice Imports
-import { getActiveUserData } from '@/redux-store/slices/chat';
+import { getActiveUserData, fetchChatData, setChatData } from '@/redux-store/slices/chat'; // Add fetchChatData
 
 // Component Imports
 import SidebarLeft from './SidebarLeft';
@@ -24,14 +24,17 @@ import { useSettings } from '@core/hooks/useSettings';
 // Util Imports
 import { commonLayoutClasses } from '@layouts/utils/layoutClasses';
 import { useParams } from 'next/navigation';
+import { getChatMessageForTicket } from '@/app/server/support-ticket-chat';
+import { callCommonAction } from '@/redux-store/slices/common';
 
 const ChatWrapper = () => {
   const { id: ticketId } = useParams();
-
   // States
   const [backdropOpen, setBackdropOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
   // Refs
   const messageInputRef = useRef(null);
 
@@ -43,9 +46,33 @@ const ChatWrapper = () => {
   const isBelowMdScreen = useMediaQuery(theme => theme.breakpoints.down('md'));
   const isBelowSmScreen = useMediaQuery(theme => theme.breakpoints.down('sm'));
 
+  const fetchChatData = async (currentPage = 1, searchTerm = '') => {
+    try {
+      dispatch(callCommonAction({ loading: true }));
+      const response = await getChatMessageForTicket(ticketId, currentPage, rowsPerPage, searchTerm, {});
+
+      dispatch(callCommonAction({ loading: false }));
+      if (response.statusCode === 200 && response.data) {
+        const formatted = {
+          contacts: response?.data?.contacts,
+          chats: response?.data?.chats,
+          profileUser: response?.data?.profileUser,
+        };
+        dispatch(setChatData(formatted));
+      }
+    } catch (error) {
+      dispatch(callCommonAction({ loading: false }));
+      console.error('Failed to fetch team members', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchChatData();
+  }, []);
+
+
   // Get active user’s data
   const activeUser = id => {
-    alert(id);
     dispatch(getActiveUserData(id));
   };
 
@@ -111,6 +138,7 @@ const ChatWrapper = () => {
         isBelowLgScreen={isBelowLgScreen}
         isBelowSmScreen={isBelowSmScreen}
         messageInputRef={messageInputRef}
+        ticketId={ticketId}
       />
 
       <Backdrop open={backdropOpen} onClick={() => setBackdropOpen(false)} className='absolute z-10' />
