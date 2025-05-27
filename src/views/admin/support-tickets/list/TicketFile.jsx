@@ -1,4 +1,4 @@
-// ProductFeaturedImage.jsx
+
 import { useDropzone } from 'react-dropzone'
 import { Controller, useForm } from 'react-hook-form'
 import { useEffect } from 'react'
@@ -19,11 +19,11 @@ const TicketFile = ({ onChangeImage }) => {
   // Separate form to manage file only
   const { control, setValue, watch } = useForm({
     defaultValues: {
-      productFeaturedImage: null
+      ticketFile: null
     }
   })
 
-  const imageValue = watch('productFeaturedImage')
+  const imageValue = watch('ticketFile')
 
   useEffect(() => {
     onChangeImage(imageValue)
@@ -51,7 +51,7 @@ const TicketFile = ({ onChangeImage }) => {
     <Card>
       <CardContent>
         <Controller
-          name="productFeaturedImage"
+          name="ticketFile"
           control={control}
           rules={{ required: 'Featured image is required' }}
           render={({ field: { onChange, value }, fieldState: { error } }) => {

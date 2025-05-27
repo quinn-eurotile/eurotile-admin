@@ -1,54 +1,107 @@
-'use client';
+'use client'
+// React Imports
+import { useFormContext } from 'react-hook-form'
+
 // MUI Imports
-import Grid from '@mui/material/Grid2';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import InputAdornment from '@mui/material/InputAdornment';
+import Grid from '@mui/material/Grid2'
+import Button from '@mui/material/Button'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
 
 // Component Imports
-import DirectionalIcon from '@components/DirectionalIcon';
+import DirectionalIcon from '@components/DirectionalIcon'
+import DropzoneImageUploader from '@/components/common/DropzoneImageUploader'
 
-const StepProfessionalInfo = ({
-  activeStep,
-  handleNext,
-  handlePrev,
-  countryList,
-  stateList,
-  cityList,
-  register,
-  handleSubmit,
-  errors,
-}) => {
+const StepProfessionalInfo = ({ activeStep, handlePrev }) => {
+  // Get form context
+  const {
+    register,
+    formState: { errors, isSubmitting }
+  } = useFormContext()
+
   return (
     <>
       <div className='mbe-5'>
-        <Typography variant='h4'>Personal Information</Typography>
-        <Typography>Enter Your Personal Information</Typography>
+        <Typography variant='h4'>Professional Information</Typography>
+        <Typography>Enter Your Professional Information</Typography>
       </div>
       <Grid container spacing={5}>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
-            {...register('business.name', { required: 'Business name is required' })}
-            error={Boolean(errors?.business?.name)}
-            helperText={errors?.business?.name?.message}
+            {...register('business_name', { required: 'Business name is required' })}
+            error={Boolean(errors?.business_name)}
+            helperText={errors?.business_name?.message}
             fullWidth
             label='Business Name'
-            placeholder='John' />
+            placeholder='Your Business Name'
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
-            {...register('business.email', { required: 'Email is required' })}
-            error={Boolean(errors?.business?.email)}
-            helperText={errors?.business?.email?.message}
+            {...register('business_email', {
+              required: 'Business email is required',
+              pattern: {
+                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                message: 'Invalid email address'
+              }
+            })}
+            error={Boolean(errors?.business_email)}
+            helperText={errors?.business_email?.message}
             fullWidth
             type='email'
             label='Business Email'
-            placeholder='johndoe@gmail.com'
+            placeholder='business@company.com'
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextField
+            {...register('business_phone', { required: 'Business phone is required' })}
+            error={Boolean(errors?.business_phone)}
+            helperText={errors?.business_phone?.message}
+            fullWidth
+            label='Business Phone'
+            placeholder='+1 (555) 123-4567'
+          />
+        </Grid>
+        <Grid size={{ xs: 12 }}>
+          <DropzoneImageUploader
+            fullWidth
+            fieldName='business_documents'
+            title='Business Documents'
+            multiple={true}
+            maxFiles={2}
+            requiredMessage='Business Documents is required'
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12 }}>
+          <DropzoneImageUploader
+            fullWidth
+            fieldName='registration_certificate'
+            title='Registration Certificate'
+            multiple={false}
+            maxFiles={1}
+            requiredMessage='Registration Certificate is required'
+          />
+        </Grid>
+        <Grid size={{ xs: 12 }}>
+          <DropzoneImageUploader
+            fullWidth
+            fieldName='trade_license'
+            title='Trade License'
+            multiple={false}
+            maxFiles={1}
+            requiredMessage='Trade License is required'
+          />
+        </Grid>
+        <Grid size={{ xs: 12 }}>
+          <DropzoneImageUploader
+            fullWidth
+            fieldName='proof_of_business'
+            title='Proof Of Business'
+            multiple={true}
+            maxFiles={2}
+            requiredMessage='Proof Of Business is required'
           />
         </Grid>
 
@@ -65,15 +118,16 @@ const StepProfessionalInfo = ({
           <Button
             variant='contained'
             color='success'
-            type={`submit`}
+            type='submit'
+            disabled={isSubmitting}
             endIcon={<i className='ri-check-line' />}
           >
-            Submit
+            {isSubmitting ? 'Submitting...' : 'Submit'} {/* Optional loading text */}
           </Button>
         </Grid>
       </Grid>
     </>
-  );
-};
+  )
+}
 
-export default StepProfessionalInfo;
+export default StepProfessionalInfo

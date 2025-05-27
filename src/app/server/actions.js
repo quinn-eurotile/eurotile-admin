@@ -70,9 +70,9 @@ export const getteamMemberList = async () => {
 return userData
 }
 
-export const getTradeProfessionalDetails = async (userId) => {
-     return await tradeProfessionalService.getById(userId);
-}
+// export const getTradeProfessionalDetails = async (userId) => {
+//      return await tradeProfessionalService.getById(userId);
+// }
 
 export const getProductRawData = async () => {
      return await productRawDataServices.getRawData();

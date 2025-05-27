@@ -10,12 +10,22 @@ import Divider from '@mui/material/Divider'
 
 // React Hook Form
 import { useForm } from 'react-hook-form'
-import TicketFile from './TicketFile';
-import { createSupportTicket } from '@/app/server/support-ticket';
+import TicketFile from './TicketFile'
+import { createSupportTicket, updateSupportTicketStatus } from '@/app/server/support-ticket'
+import { FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 
-const AddSupportTicketDrawer = ({ open, handleClose, refreshList }) => {
-  const [parentOptions, setParentOptions] = useState([])
+const AddSupportTicketDrawer = ({ open, handleClose, refreshList, editData, setEditData }) => {
   const [featuredImageFile, setFeaturedImageFile] = useState(null)
+
+  const statusOptions = [
+    { value: 1, label: 'Open' },
+    { value: 2, label: 'Closed' },
+    { value: 3, label: 'Pending' },
+    { value: 4, label: 'In Progress' },
+    { value: 5, label: 'Resolved' },
+    { value: 6, label: 'Rejected' },
+    { value: 7, label: 'Cancelled' }
+  ]
 
   const {
     control,
@@ -26,32 +36,67 @@ const AddSupportTicketDrawer = ({ open, handleClose, refreshList }) => {
     setValue,
     watch,
     formState: { errors, isSubmitting }
-  } = useForm({
-    defaultValues: {
-      subject: '',
-      message: '',
-      status: '1'
+  } = useForm()
+
+  useEffect(() => {
+    if (editData) {
+      // Reset form values based on editData
+      reset({
+        subject: editData.subject || '',
+        message: editData.message || '',
+        status: editData.status || 1
+      })
+    } else {
+      reset({
+        subject: '',
+        message: '',
+        status: 1
+      })
     }
-  })
+  }, [editData, reset])
 
   useEffect(() => {
     register('status', { required: 'Status is required' })
   }, [register])
 
-
   const onSubmit = async formValues => {
     try {
-      const formData = {
-        ...formValues,
-        productFeaturedImage: featuredImageFile
+      if (editData) {
+        // If edit mode, only update the status
+        const response = await updateSupportTicketStatus(editData.id, 'status', { status: formValues.status })
+
+        if (response?.statusCode === 200 || response?.statusCode === 201) {
+          refreshList()
+          handleClose()
+          setEditData(null)
+          reset()
+          return
+        }
+
+        const apiErrors = response?.data?.errors || response?.data || {}
+        for (const [field, messages] of Object.entries(apiErrors)) {
+          setError(field, {
+            message: messages?.[0] || 'Invalid input'
+          })
+        }
+
+        return
+      }
+
+      // If not editing, proceed with full ticket creation
+      const formData = new FormData()
+      formData.append('subject', formValues.subject)
+      formData.append('message', formValues.message)
+      formData.append('status', formValues.status)
+
+      if (featuredImageFile) {
+        formData.append('ticketFile', featuredImageFile)
       }
 
       const response = await createSupportTicket(formData)
-      console.log(response,'here is the response')
 
-      const statusCode = response?.statusCode
-      if (statusCode === 200 || statusCode === 201) {
-        refreshList();
+      if (response?.statusCode === 200 || response?.statusCode === 201) {
+        refreshList()
         handleClose()
         reset()
         return
@@ -71,51 +116,74 @@ const AddSupportTicketDrawer = ({ open, handleClose, refreshList }) => {
   return (
     <Drawer
       open={open}
-      anchor="right"
-      variant="temporary"
+      anchor='right'
+      variant='temporary'
       onClose={() => {
+        setEditData(null)
         handleClose()
         reset()
       }}
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 400 } } }}
     >
-      <div className="flex items-center justify-between p-5 pb-4">
-        <Typography variant="h5">Add Ticket</Typography>
-        <IconButton size="small" onClick={handleClose}>
-          <i className="ri-close-line text-2xl" />
+      <div className='flex items-center justify-between p-5 pb-4'>
+        <Typography variant='h5'>{editData ? 'Update Ticket' : 'Add Ticket'}</Typography>
+        <IconButton size='small' onClick={handleClose}>
+          <i className='ri-close-line text-2xl' />
         </IconButton>
       </div>
       <Divider />
-      <div className="p-5">
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <div className='p-5'>
+        <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-5'>
           <TextField
             fullWidth
-            label="Subject"
-            placeholder="Enter Subject"
+            label='Subject'
+            InputLabelProps={editData ? { shrink: true } : {}}
+            placeholder='Enter Subject'
             {...register('subject', { required: 'Subject is required' })}
+            disabled={!!editData}
             error={Boolean(errors.subject)}
             helperText={errors.subject?.message}
           />
 
           <TextField
             fullWidth
-            label="Message"
+            label='Message'
             multiline
             rows={5}
-            placeholder="Enter message"
+            InputLabelProps={editData ? { shrink: true } : {}}
+            placeholder='Enter message'
             {...register('message', { required: 'Message is required' })}
+            disabled={!!editData}
             error={Boolean(errors.message)}
             helperText={errors.message?.message}
           />
 
-          <TicketFile onChangeImage={setFeaturedImageFile} />
+          {/* Status */}
+          <FormControl fullWidth error={Boolean(errors.status)}>
+            <InputLabel id='status-label'>Status</InputLabel>
+            <Select
+              labelId='status-label'
+              label='Status'
+              defaultValue={1}
+              value={watch('status') ?? 1}
+              {...register('status', { required: 'Status is required' })}
+            >
+              {statusOptions.map(opt => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.status && <FormHelperText>{errors.status.message}</FormHelperText>}
+          </FormControl>
+          {!editData && <TicketFile onChangeImage={setFeaturedImageFile} />}
 
-          <div className="flex items-center gap-4">
-            <Button variant="contained" type="submit" disabled={isSubmitting}>
+          <div className='flex items-center gap-4'>
+            <Button variant='contained' type='submit' disabled={isSubmitting}>
               {isSubmitting ? 'Saving...' : 'Save'}
             </Button>
-            <Button variant="outlined" color="error" type="button" onClick={handleClose}>
+            <Button variant='outlined' color='error' type='button' onClick={handleClose}>
               Cancel
             </Button>
           </div>
@@ -125,4 +193,4 @@ const AddSupportTicketDrawer = ({ open, handleClose, refreshList }) => {
   )
 }
 
-export default AddSupportTicketDrawer;
+export default AddSupportTicketDrawer

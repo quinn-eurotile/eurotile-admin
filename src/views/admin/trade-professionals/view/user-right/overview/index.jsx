@@ -6,9 +6,8 @@ import Grid from '@mui/material/Grid2'
 import ProjectListTable from './ProjectListTable'
 import UserActivityTimeLine from './UserActivityTimeline'
 import InvoiceListTable from './InvoiceListTable'
+import { getTradeProfessionalDetails } from '@/app/server/trade-professional';
 
-// Data Imports
-import { getTradeProfessionalDetails } from '@/app/server/actions'
 
 /**
  * ! If you need data using an API call, uncomment the below API code, update the `process.env.API_URL` variable in the
