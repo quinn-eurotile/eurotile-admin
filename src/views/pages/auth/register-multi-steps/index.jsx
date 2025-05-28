@@ -150,17 +150,15 @@ const RegisterMultiSteps = () => {
       }
 
       const response = await createTradeProfessional(formData)
-
-
+      console.log('Success response:', response)
 
       if (response.success) {
         toast.success('Registration successful!')
         router.push(`/${locale}/login`)
       }
-
-      console.log('Success response:', response)
     } catch (error) {
       console.error('Error during form submission:', error)
+       toast.error('Something went wrong.');
 
       // if (error.response) {
       //   console.error('Server error response:', error.response.data)

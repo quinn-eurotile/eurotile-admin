@@ -2,76 +2,40 @@
 import Grid from '@mui/material/Grid2'
 
 // Components Imports
-import Award from '@views/dashboards/analytics/Award'
-import Transactions from '@views/dashboards/analytics/Transactions'
-import WeeklyOverview from '@views/dashboards/analytics/WeeklyOverview'
-import TotalEarning from '@views/dashboards/analytics/TotalEarning'
-import LineChart from '@views/dashboards/analytics/LineChart'
-import DistributedColumnChart from '@views/dashboards/analytics/DistributedColumnChart'
-import Performance from '@views/dashboards/analytics/Performance'
-import DepositWithdraw from '@views/dashboards/analytics/DepositWithdraw'
-import SalesByCountries from '@views/dashboards/analytics/SalesByCountries'
+import Award from '@/views/trade-professional/dashboard/Profile'
+import WeeklyOverview from '@views/trade-professional/dashboard/WeeklyOverview'
+import TotalEarning from '@views/trade-professional/dashboard/TotalEarning'
+import LineChart from '@views/trade-professional/dashboard/LineChart'
+import DistributedColumnChart from '@views/trade-professional/dashboard/DistributedColumnChart'
+import Performance from '@views/trade-professional/dashboard/Performance'
+import DepositWithdraw from '@views/trade-professional/dashboard/DepositWithdraw'
+import SalesByCountries from '@views/trade-professional/dashboard/SalesByCountries'
 import CardStatVertical from '@components/card-statistics/Vertical'
-import Table from '@views/dashboards/analytics/Table'
+import Orders from '@/views/trade-professional/dashboard/Orders';
+import Profile from '@/views/trade-professional/dashboard/Profile';
+import { fetchDashboardData } from '@/app/server/trade-professional';
+import { CircularProgress } from '@mui/material';
+import OrderListTable from '@/views/trade-professional/dashboard/OrderListTable';
+import { getEcommerceData } from '@/app/server/actions';
 
-const DashboardAnalytics = () => {
+export const getDashboardData = async() => {
+    const data = await fetchDashboardData();
+    return data;
+}
+
+const DashboardAnalytics = async() => {
+  const dashboardData = await getDashboardData();
+  const tableData = await getEcommerceData()
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, md: 4 }}>
-        <Award />
+        <Profile userData={dashboardData?.data?.user}/>
       </Grid>
       <Grid size={{ xs: 12, md: 8, lg: 8 }}>
-        <Transactions />
-      </Grid>
-      <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-        <WeeklyOverview />
-      </Grid>
-      <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-        <TotalEarning />
-      </Grid>
-      <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-        <Grid container spacing={6}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <LineChart />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <CardStatVertical
-              title='Total Profit'
-              stats='$25.6k'
-              avatarIcon='ri-pie-chart-2-line'
-              avatarColor='secondary'
-              subtitle='Weekly Profit'
-              trendNumber='42%'
-              trend='positive'
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <CardStatVertical
-              stats='862'
-              trend='negative'
-              trendNumber='18%'
-              title='New Project'
-              subtitle='Yearly Project'
-              avatarColor='primary'
-              avatarIcon='ri-file-word-2-line'
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <DistributedColumnChart />
-          </Grid>
-        </Grid>
-      </Grid>
-      <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-        <Performance />
-      </Grid>
-      <Grid size={{ xs: 12, lg: 8 }}>
-        <DepositWithdraw />
-      </Grid>
-      <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-        <SalesByCountries />
+        <Orders />
       </Grid>
       <Grid size={{ xs: 12, md: 6, lg: 8 }}>
-        <Table />
+      <OrderListTable orderData={tableData?.orderData} />
       </Grid>
     </Grid>
   )
