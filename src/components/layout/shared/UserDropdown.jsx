@@ -54,7 +54,6 @@ const UserDropdown = () => {
 
 
 
-
   const handleDropdownOpen = () => {
     !open ? setOpen(true) : setOpen(false);
   };
@@ -128,7 +127,13 @@ const UserDropdown = () => {
                     </div>
                   </div>
                   <Divider className='mlb-1' />
-                  <MenuItem className='gap-3' onClick={e => handleDropdownClose(e, '/pages/user-profile')}>
+                  <MenuItem className='gap-3' onClick={() => {
+                    const roleId = session?.user?.roles?.[0]?._id
+                    const route = roleId === '6819ce06bb8f30e6c73eba48'
+                      ? '/trade-professional/profile'
+                      : '/pages/user-profile'
+                    router.push(route)
+                  }}>
                     <i className='ri-user-3-line' />
                     <Typography color='text.primary'>My Profile</Typography>
                   </MenuItem>

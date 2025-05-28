@@ -1,43 +1,43 @@
 // Next Imports
-import { useParams } from 'next/navigation';
+import { useParams } from 'next/navigation'
 
 // MUI Imports
-import Chip from '@mui/material/Chip';
-import { useTheme } from '@mui/material/styles';
+import Chip from '@mui/material/Chip'
+import { useTheme } from '@mui/material/styles'
 
 // Third-party Imports
-import PerfectScrollbar from 'react-perfect-scrollbar';
+import PerfectScrollbar from 'react-perfect-scrollbar'
 
 // Component Imports
-import { Menu, SubMenu, MenuItem, MenuSection } from '@menu/vertical-menu';
+import { Menu, SubMenu, MenuItem, MenuSection } from '@menu/vertical-menu'
 
 // import { GenerateVerticalMenu } from '@components/GenerateMenu'
 // Hook Imports
-import useVerticalNav from '@menu/hooks/useVerticalNav';
+import useVerticalNav from '@menu/hooks/useVerticalNav'
 
 // Styled Component Imports
-import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNavExpandIcon';
+import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNavExpandIcon'
 
 // Style Imports
-import menuItemStyles from '@core/styles/vertical/menuItemStyles';
-import menuSectionStyles from '@core/styles/vertical/menuSectionStyles';
+import menuItemStyles from '@core/styles/vertical/menuItemStyles'
+import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
 
 const RenderExpandIcon = ({ open, transitionDuration }) => (
   <StyledVerticalNavExpandIcon open={open} transitionDuration={transitionDuration}>
     <i className='ri-arrow-right-s-line' />
   </StyledVerticalNavExpandIcon>
-);
+)
 
 const VerticalMenu = ({ dictionary, scrollMenu }) => {
   // Hooks
-  const theme = useTheme();
-  const verticalNavOptions = useVerticalNav();
-  const params = useParams();
+  const theme = useTheme()
+  const verticalNavOptions = useVerticalNav()
+  const params = useParams()
 
   // Vars
-  const { isBreakpointReached, transitionDuration } = verticalNavOptions;
-  const { lang: locale } = params;
-  const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar;
+  const { isBreakpointReached, transitionDuration } = verticalNavOptions
+  const { lang: locale } = params
+  const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar
 
   return (
     // eslint-disable-next-line lines-around-comment
@@ -45,13 +45,13 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
     <ScrollWrapper
       {...(isBreakpointReached
         ? {
-          className: 'bs-full overflow-y-auto overflow-x-hidden',
-          onScroll: container => scrollMenu(container, false)
-        }
+            className: 'bs-full overflow-y-auto overflow-x-hidden',
+            onScroll: container => scrollMenu(container, false)
+          }
         : {
-          options: { wheelPropagation: false, suppressScrollX: true },
-          onScrollY: container => scrollMenu(container, true)
-        })}
+            options: { wheelPropagation: false, suppressScrollX: true },
+            onScrollY: container => scrollMenu(container, true)
+          })}
     >
       {/* Incase you also want to scroll NavHeader to scroll with Vertical Menu, remove NavHeader from above and paste it below this comment */}
       {/* Vertical Menu */}
@@ -103,7 +103,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             href={`/${locale}/admin/supplier/list`}
             exactMatch={false}
             activeUrl='/admin/supplier/list'
-            icon={<i className="ri-store-3-line"></i>}
+            icon={<i className='ri-store-3-line'></i>}
           >
             Supplier Management
           </MenuItem>
@@ -119,7 +119,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             href={`/${locale}/admin/tax/list`}
             exactMatch={false}
             activeUrl='/admin/tax/list'
-            icon={<i className="ri-money-dollar-box-line"></i>}
+            icon={<i className='ri-money-dollar-box-line'></i>}
           >
             Tax Management
           </MenuItem>
@@ -135,9 +135,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             {/* <MenuItem href={`/${locale}/apps/ecommerce/dashboard`}>{dictionary['navigation'].dashboard}</MenuItem> */}
             <SubMenu label={dictionary['navigation'].products}>
               <MenuItem href={`/${locale}/admin/ecommerce/products/list`}>Product Management</MenuItem>
-              <MenuItem href={`/${locale}/admin/ecommerce/products/category/list`}>
-                Category Management
-              </MenuItem>
+              <MenuItem href={`/${locale}/admin/ecommerce/products/category/list`}>Category Management</MenuItem>
               <MenuItem href={`/${locale}/admin/ecommerce/products/attribute`}>Attribute Management</MenuItem>
             </SubMenu>
             {/* <SubMenu label={dictionary['navigation'].orders}>
@@ -166,6 +164,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
             <MenuItem href={`/${locale}/apps/ecommerce/referrals`}>{dictionary['navigation'].referrals}</MenuItem>
             <MenuItem href={`/${locale}/apps/ecommerce/settings`}>{dictionary['navigation'].settings}</MenuItem> */}
           </SubMenu>
+
           {/*
           <SubMenu label={dictionary['navigation'].academy} icon={<i className='ri-graduation-cap-line' />}>
             <MenuItem href={`/${locale}/apps/academy/dashboard`}>{dictionary['navigation'].dashboard}</MenuItem>
@@ -408,10 +407,23 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
           href={`/${locale}/admin/support-tickets/list`}
           exactMatch={false}
           activeUrl='/admin/support-tickets/list'
-          icon={<i className="ri-store-3-line"></i>}
+          icon={<i className='ri-store-3-line'></i>}
         >
           Support tickets
         </MenuItem>
+
+
+
+        {/* Start Trade Professional Menus */}
+        <MenuItem
+          href={`/${locale}/trade-professional/dashboard`}
+          exactMatch={false}
+          activeUrl='/trade-professional/dashboard'
+          icon={<i className='ri-home-smile-line' />}
+        >
+          Dashboard
+        </MenuItem>
+        {/* End Trade Professional Menus */}
       </Menu>
       {/* <Menu
           popoutMenuOffset={{ mainAxis: 10 }}
@@ -423,7 +435,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
           <GenerateVerticalMenu menuData={menuData(dictionary)} />
         </Menu> */}
     </ScrollWrapper>
-  );
-};
+  )
+}
 
-export default VerticalMenu;
+export default VerticalMenu
