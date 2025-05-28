@@ -7,6 +7,9 @@ import Grid from '@mui/material/Grid2'
 
 // Component Imports
 
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/libs/auth';
+
 // Data Imports
 import { getOrderHistory } from '@/app/server/actions'
 import UserLeftOverview from '@/views/admin/trade-professionals/view/user-left-overview'
@@ -16,9 +19,9 @@ import { tradeProfessionalService } from '@/services/trade-professionals'
 import OverViewTab from '@/views/admin/trade-professionals/view/user-right/overview'
 import OrderList from '@/views/admin/trade-professionals/view/user-right/orders/list';
 const SecurityTab = dynamic(() => import('@/views/admin/trade-professionals/view/user-right/security'))
-// const BillingPlans = dynamic(() => import('@views/apps/user/view/user-right/billing-plans'))
-// const NotificationsTab = dynamic(() => import('@views/apps/user/view/user-right/notifications'))
-// const ConnectionsTab = dynamic(() => import('@views/apps/user/view/user-right/connections'))
+const BillingPlans = dynamic(() => import('@views/apps/user/view/user-right/billing-plans'))
+const NotificationsTab = dynamic(() => import('@views/apps/user/view/user-right/notifications'))
+const ConnectionsTab = dynamic(() => import('@views/apps/user/view/user-right/connections'))
 
 /**
  * ! If you need data using an API call, uncomment the below API code, update the `process.env.API_URL` variable in the
@@ -61,9 +64,11 @@ export async function orderData() {
   }
 }
 
-const UserViewTab = async props => {
+const Profile = async props => {
+  const session = await getServerSession(authOptions);
+
   const params = await props.params // Ensure await if needed (based on error)
-  const userId = params?.id
+  const userId = session?.user?.id
 
   const response = await fetchById(userId)
   const data = response?.data
@@ -72,11 +77,12 @@ const UserViewTab = async props => {
 
   const tabContentList = {
     overview: overviewTab,
-    security: <SecurityTab />,
+    security: <SecurityTab userId={userId}/>,
     orders: <OrderList />,
   }
 
   return (
+
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, lg: 4, md: 5 }}>
         <UserLeftOverview data={data} />
@@ -88,4 +94,4 @@ const UserViewTab = async props => {
   )
 }
 
-export default UserViewTab
+export default Profile

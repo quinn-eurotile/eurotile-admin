@@ -53,7 +53,7 @@ const UserViewTab = async () => {
       </Grid>
       <Grid size={{ xs: 12, lg: 8, md: 7 }}>
         <UserRight tabContentList={tabContentList(data)} />
-      </Grid>
+      </Grid> 
     </Grid>
   )
 }

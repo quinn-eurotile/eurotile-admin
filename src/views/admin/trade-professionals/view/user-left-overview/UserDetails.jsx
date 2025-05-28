@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Card,
   CardContent,
@@ -12,7 +12,10 @@ import {
   Box,
   FormControlLabel,
   FormGroup,
-  Switch
+  Switch,
+  IconButton,
+  Menu,
+  MenuItem
 } from '@mui/material'
 
 import ConfirmationDialog from '@components/dialogs/confirmation-dialog'
@@ -21,7 +24,10 @@ import CustomAvatar from '@core/components/mui/Avatar'
 import { updateStatus } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/list/page'
 import { toast } from 'react-toastify'
 import AlertDialog from '@/components/common/AlertDialog'
+import EditUserInfo from '../user-left-overview/editUserInfo'
 import { fetchById } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/view/[id]/page'
+import { updateProfile } from '@/app/server/trade-professional'
+
 
 const UserDetails = ({ data }) => {
   const [userData, setUserData] = useState(data ?? [])
@@ -30,6 +36,14 @@ const UserDetails = ({ data }) => {
   const [userStatus, setUserStatus] = useState(userData.status == 1)
   const [rejectionReasonText, setRejectionReasonText] = useState('')
   const [showInput, setShowInput] = useState(false)
+  const [refresh, setRefresh] = useState(false)
+  const [anchorEl, setAnchorEl] = useState(null) // for edit menu anchor
+  const inputFileRef = useRef(null)
+  const buttonProps = (children, color, variant) => ({
+    children,
+    color,
+    variant
+  })
 
   const [dialogConfig, setDialogConfig] = useState({
     title: '',
@@ -62,7 +76,6 @@ const UserDetails = ({ data }) => {
 
     try {
       const response = await updateStatus(userData._id, 'status', requestData)
-      console.log(response,'responseresponse')
       toast.success(`User ${status === 3 ? 'approved' : 'rejected'} successfully.`)
       refreshUserDetails(userData._id)
       setDialogOpen(false) // ✅ Only close dialog here
@@ -98,10 +111,96 @@ const UserDetails = ({ data }) => {
     setDialogOpen(true)
   }
 
+  useEffect(() => {
+    if (refresh) {
+      refreshUserDetails(userData._id)
+    }
+  }, [refresh])
+
   const refreshUserDetails = async userId => {
     const updatedResult = await fetchById(userId)
     setUserData(updatedResult?.data ?? [])
+    setRefresh(false);
   }
+
+
+  // Handle clicking edit icon
+  const handleEditIconClick = (event) => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  // Close menu
+  const handleMenuClose = () => {
+    setAnchorEl(null)
+  }
+
+  // Remove image handler
+  const handleRemoveImage = async () => {
+    setIsLoading(true) // Show loading indicator
+
+    try {
+      // Create FormData without attaching a file
+      const formData = new FormData()
+      formData.append('userImage', '') // This assumes your backend will interpret this as a remove request
+
+      // Call the same updateProfile endpoint to clear the image
+      const response = await updateProfile(userData._id, formData)
+      console.log(response, 'removeImageResponse')
+
+      if (response.success) {
+        toast.success('Image removed successfully')
+        // Clear userImage from local state
+        setUserData(prevUserData => ({ ...prevUserData, userImage: '' }))
+      }
+    } catch (error) {
+      toast.error('Failed to remove image')
+      console.error(error)
+    } finally {
+      setIsLoading(false) // Hide loading indicator
+    }
+  }
+
+
+  // Trigger hidden file input on update image click
+  const handleUpdateImageClick = () => {
+    handleMenuClose()
+    if (inputFileRef.current) {
+      inputFileRef.current.click()
+    }
+  }
+
+  console.log(userData._id,'userData._iduserData._id')
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files?.[0] // Get the selected file
+    if (!file) return
+
+    setIsLoading(true) // Show loading indicator
+
+    try {
+      // Create FormData and append the file with key 'userImage'
+      const formData = new FormData()
+      formData.append('userImage', file)
+
+      // Upload the formData to backend, assuming uploadUserImage handles FormData correctly
+      const response = await updateProfile(userData._id, formData)
+      console.log(response,'responseresponse')
+
+      if (response.success) {
+        toast.success('Image updated successfully')
+        setUserData(prevUserData => ({ ...prevUserData, userImage: response.data.userImage }))
+      }
+
+    } catch (error) {
+      toast.error('Failed to update image')
+      console.error(error)
+    } finally {
+      setIsLoading(false) // Hide loading indicator
+      event.target.value = '' // Reset file input for future uploads
+    }
+  }
+
+  console.log(process.env.NEXT_PUBLIC_BACKEND_DOMAIN, userData, 'userDatauserDatauserData')
 
   return (
     <Card>
@@ -109,7 +208,95 @@ const UserDetails = ({ data }) => {
         {/* User info */}
         <div className='flex flex-col gap-6'>
           <div className='flex items-center justify-center flex-col gap-4'>
-            <CustomAvatar alt='user-profile' src='/images/avatars/1.png' variant='rounded' size={120} />
+            {/* <CustomAvatar alt='user-profile' src='/images/avatars/1.png' variant='rounded' size={120} /> */}
+            {/* Avatar with edit icon and loading */}
+            <Box
+              sx={{
+                position: 'relative',
+                width: 120,
+                height: 120,
+                margin: 'auto',
+                borderRadius: '8px',
+                overflow: 'hidden'
+              }}
+            >
+              {/* Avatar */}
+              <CustomAvatar
+                alt='user-profile'
+                src={
+                  userData.userImage
+                    ? `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/${userData.userImage}`
+                    : '/images/avatars/1.png'
+                }
+                variant='rounded'
+                size={120}
+              />
+
+              {/* Loading spinner overlay */}
+              {isLoading && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    bgcolor: 'rgba(255,255,255,0.6)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 10
+                  }}
+                >
+                  <CircularProgress />
+                </Box>
+              )}
+
+              {/* Edit Icon button */}
+              {!isLoading && (
+                <>
+                <IconButton
+                  aria-label='edit avatar'
+                  size='small'
+                  onClick={handleEditIconClick}
+                  sx={{
+                    position: 'absolute',
+                    bottom: 8,
+                    right: 8,
+                    bgcolor: 'background.paper',
+                    boxShadow: 1,
+                    '&:hover': {
+                      bgcolor: '#891815',
+                      '& i': {
+                        color: 'white'
+                      }
+                    }
+                  }}
+                >
+                  <i className="ri-add-line text-lg"></i>
+                </IconButton>
+                </>
+              )}
+            </Box>
+
+            {/* Hidden file input */}
+            <input
+              type='file'
+              accept='image/*'
+              ref={inputFileRef}
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
+
+            {/* Menu for Remove / Update */}
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+            >
+              <MenuItem onClick={handleRemoveImage}>Remove Image</MenuItem>
+              <MenuItem onClick={handleUpdateImageClick}>Update Image</MenuItem>
+            </Menu>
             <Typography variant='h5'>{userData.name}</Typography>
             <Chip label={roleName} color='error' size='small' variant='tonal' />
           </div>
@@ -135,6 +322,29 @@ const UserDetails = ({ data }) => {
             ))}
           </div>
         </div>
+
+        <div>
+          <Typography variant='h5'>Address</Typography>
+          <Divider className='mlb-4' />
+          <div className='flex flex-col gap-2'>
+            {[
+              ['Address', [userData.addresses?.addressLine1, userData.addresses?.addressLine2].filter(Boolean).join(', ')],
+              ['City', userData.addresses?.city],
+              ['State', userData.addresses?.state],
+              ['Postal Code', userData.addresses?.postalCode],
+              ['Country', userData.addresses?.country],
+            ].map(([label, value]) => (
+              <div key={label} className='flex items-center flex-wrap gap-x-1.5'>
+                <Typography className='font-medium' color='text.primary'>
+                  {label}:
+                </Typography>
+                <Typography>{value || 'N/A'}</Typography>
+              </div>
+            ))}
+          </div>
+        </div>
+
+
 
         {/* Business Info */}
         {userData.business && (
@@ -228,6 +438,13 @@ const UserDetails = ({ data }) => {
             </FormGroup>
           </Box>
         )}
+
+        <OpenDialogOnElementClick
+          element={Button}
+          elementProps={buttonProps('Edit', 'primary', 'contained')}
+          dialog={EditUserInfo}
+          dialogProps={{ data: userData, setRefresh: setRefresh }}
+        />
       </CardContent>
 
       <AlertDialog

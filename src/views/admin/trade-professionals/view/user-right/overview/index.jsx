@@ -25,8 +25,8 @@ import { getTradeProfessionalDetails } from '@/app/server/trade-professional';
   return res.json()
 } */
 const OverViewTab = async (props) => {
-  const params = await props.params;
-  const documentData = await getTradeProfessionalDetails(params?.id);
+
+  const documentData = await getTradeProfessionalDetails(props?.data?._id);
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
