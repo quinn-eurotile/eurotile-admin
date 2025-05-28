@@ -40,13 +40,13 @@ export async function updateStatus(id, subPath, data) {
   }
 }
 
-export async function createSupplier (finalPayload) {
-  try {
-    return await tradeProfessionalService.create(finalPayload);
-  } catch (error) {
-    console.error('Failed to create Supplier', error);
-  }
-};
+// export async function createSupplier (finalPayload) {
+//   try {
+//     return await tradeProfessionalService.create(finalPayload);
+//   } catch (error) {
+//     console.error('Failed to create Supplier', error);
+//   }
+// };
 
 export async function deleteRecord(id) {
   try {
