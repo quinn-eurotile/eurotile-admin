@@ -2,7 +2,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 // Data Imports
-// import { db } from '@/fake-db/apps/chat';
+import { db } from '@/fake-db/apps/chat';
 
 const initialState = {
   contacts: [],
@@ -21,13 +21,17 @@ export const chatSlice = createSlice({
   initialState,
   reducers: {
     setChatData: (state, action) => {
+      console.log(action.payload, 'action.payload');
       state.contacts = action.payload.contacts;
       state.chats = action.payload.chats;
       state.profileUser = action.payload.profileUser;
     },
     getActiveUserData: (state, action) => {
+
       const activeUser = state.contacts.find(user => user.id === action.payload);
       const chat = state.chats.find(chat => chat.userId === action.payload);
+      // console.log(action.payload, 'action.payload');
+      // console.log(state.chats, 'state.chats');
 
       if (chat && chat.unseenMsgs > 0) {
         chat.unseenMsgs = 0;
@@ -60,6 +64,9 @@ export const chatSlice = createSlice({
     sendMsg: (state, action) => {
       const { msg } = action.payload;
       const existingChat = state.chats.find(chat => chat.userId === state.activeUser?.id);
+      console.log(existingChat, 'existingChat');
+      console.log(state.profileUser, 'state.profileUser');
+      console.log(state.activeUser?.id, 'state.activeUser?.id');
 
       if (existingChat) {
         existingChat.chat.push({

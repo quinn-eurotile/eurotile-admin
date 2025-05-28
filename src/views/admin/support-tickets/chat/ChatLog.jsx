@@ -1,29 +1,29 @@
 // React Imports
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect } from 'react';
 
 // MUI Imports
-import Typography from '@mui/material/Typography'
-import Avatar from '@mui/material/Avatar'
-import CardContent from '@mui/material/CardContent'
+import Typography from '@mui/material/Typography';
+import Avatar from '@mui/material/Avatar';
+import CardContent from '@mui/material/CardContent';
 
 // Third-party Imports
-import classnames from 'classnames'
-import PerfectScrollbar from 'react-perfect-scrollbar'
+import classnames from 'classnames';
+import PerfectScrollbar from 'react-perfect-scrollbar';
 
 // Component Imports
-import CustomAvatar from '@core/components/mui/Avatar'
+import CustomAvatar from '@core/components/mui/Avatar';
 
 // Util Imports
-import { getInitials } from '@/utils/getInitials'
+import { getInitials } from '@/utils/getInitials';
 
 // Formats the chat data into a structured format for display.
 const formatedChatData = (chats, profileUser) => {
-  const formattedChatData = []
-  let chatMessageSenderId = chats[0] ? chats[0].senderId : profileUser.id
+  const formattedChatData = [];
+  let chatMessageSenderId = chats[0] ? chats[0].senderId : profileUser.id;
   let msgGroup = {
     senderId: chatMessageSenderId,
     messages: []
-  }
+  };
 
   chats.forEach((chat, index) => {
     if (chatMessageSenderId === chat.senderId) {
@@ -31,10 +31,10 @@ const formatedChatData = (chats, profileUser) => {
         time: chat.time,
         message: chat.message,
         msgStatus: chat.msgStatus
-      })
+      });
     } else {
-      chatMessageSenderId = chat.senderId
-      formattedChatData.push(msgGroup)
+      chatMessageSenderId = chat.senderId;
+      formattedChatData.push(msgGroup);
       msgGroup = {
         senderId: chat.senderId,
         messages: [
@@ -44,14 +44,14 @@ const formatedChatData = (chats, profileUser) => {
             msgStatus: chat.msgStatus
           }
         ]
-      }
+      };
     }
 
-    if (index === chats.length - 1) formattedChatData.push(msgGroup)
-  })
+    if (index === chats.length - 1) formattedChatData.push(msgGroup);
+  });
 
-  return formattedChatData
-}
+  return formattedChatData;
+};
 
 // Wrapper for the chat log to handle scrolling
 const ScrollWrapper = ({ children, isBelowLgScreen, scrollRef, className }) => {
@@ -60,46 +60,46 @@ const ScrollWrapper = ({ children, isBelowLgScreen, scrollRef, className }) => {
       <div ref={scrollRef} className={classnames('bs-full overflow-y-auto overflow-x-hidden', className)}>
         {children}
       </div>
-    )
+    );
   } else {
     return (
       <PerfectScrollbar ref={scrollRef} options={{ wheelPropagation: false }} className={className}>
         {children}
       </PerfectScrollbar>
-    )
+    );
   }
-}
+};
 
 const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen }) => {
   // Props
-  const { profileUser, contacts } = chatStore
+  const { profileUser, contacts } = chatStore;
 
   // Vars
-  const activeUserChat = chatStore.chats.find(chat => chat.userId === chatStore.activeUser?.id)
+  const activeUserChat = chatStore.chats.find(chat => chat.userId === chatStore.activeUser?.id);
 
   // Refs
-  const scrollRef = useRef(null)
+  const scrollRef = useRef(null);
 
   // Function to scroll to bottom when new message is sent
   const scrollToBottom = () => {
     if (scrollRef.current) {
       if (isBelowLgScreen) {
         // @ts-ignore
-        scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
       } else {
         // @ts-ignore
-        scrollRef.current._container.scrollTop = scrollRef.current._container.scrollHeight
+        scrollRef.current._container.scrollTop = scrollRef.current._container.scrollHeight;
       }
     }
-  }
+  };
 
   // Scroll to bottom on new message
   useEffect(() => {
     if (activeUserChat && activeUserChat.chat && activeUserChat.chat.length) {
-      scrollToBottom()
+      scrollToBottom();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatStore])
+  }, [chatStore]);
 
   return (
     <ScrollWrapper
@@ -107,10 +107,17 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
       scrollRef={scrollRef}
       className='bg-[var(--mui-palette-customColors-chatBg)]'
     >
+
+
       <CardContent className='p-0'>
+
+        {/*   <Box bgcolor={'#fff'} display={'flex'} justifyContent={'center'} position={'absolute'} top={'5px'}>
+          <Button variant='contained' size='small' style={{ fontSize: '11px', padding: '4px 10px' }}>Load More</Button>
+        </Box> */}
+
         {activeUserChat &&
           formatedChatData(activeUserChat.chat, profileUser).map((msgGroup, index) => {
-            const isSender = msgGroup.senderId === profileUser.id
+            const isSender = msgGroup.senderId === profileUser.id;
 
             return (
               <div key={index} className={classnames('flex gap-4 p-5', { 'flex-row-reverse': isSender })}>
@@ -197,11 +204,11 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
                   )}
                 </div>
               </div>
-            )
+            );
           })}
       </CardContent>
     </ScrollWrapper>
-  )
-}
+  );
+};
 
-export default ChatLog
+export default ChatLog;

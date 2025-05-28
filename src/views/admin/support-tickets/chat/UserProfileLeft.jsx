@@ -1,61 +1,61 @@
 // React Imports
-import { useState } from 'react'
+import { useState } from 'react';
 
 // MUI Import
-import Drawer from '@mui/material/Drawer'
-import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
-import TextField from '@mui/material/TextField'
-import Radio from '@mui/material/Radio'
-import RadioGroup from '@mui/material/RadioGroup'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import FormLabel from '@mui/material/FormLabel'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import ListItemButton from '@mui/material/ListItemButton'
-import ListItemText from '@mui/material/ListItemText'
-import ListItemIcon from '@mui/material/ListItemIcon'
-import Switch from '@mui/material/Switch'
-import Backdrop from '@mui/material/Backdrop'
-import Button from '@mui/material/Button'
+import Drawer from '@mui/material/Drawer';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import TextField from '@mui/material/TextField';
+import Radio from '@mui/material/Radio';
+import RadioGroup from '@mui/material/RadioGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormLabel from '@mui/material/FormLabel';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import Switch from '@mui/material/Switch';
+import Backdrop from '@mui/material/Backdrop';
+import Button from '@mui/material/Button';
 
 // Third Party Imports
-import PerfectScrollbar from 'react-perfect-scrollbar'
+import PerfectScrollbar from 'react-perfect-scrollbar';
 
 // Slice Imports
-import { setUserStatus } from '@/redux-store/slices/chat'
+import { setUserStatus } from '@/redux-store/slices/chat';
 
 // Component Imports
-import AvatarWithBadge from './AvatarWithBadge'
-import { statusObj } from '@views/apps/chat/SidebarLeft'
+import AvatarWithBadge from './AvatarWithBadge';
+import { statusObj } from '@views/apps/chat/SidebarLeft';
 
 const ScrollWrapper = ({ children, isBelowLgScreen }) => {
   if (isBelowLgScreen) {
-    return <div className='bs-full overflow-x-hidden overflow-y-auto'>{children}</div>
+    return <div className='bs-full overflow-x-hidden overflow-y-auto'>{children}</div>;
   } else {
-    return <PerfectScrollbar options={{ wheelPropagation: false }}>{children}</PerfectScrollbar>
+    return <PerfectScrollbar options={{ wheelPropagation: false }}>{children}</PerfectScrollbar>;
   }
-}
+};
 
 const UserProfileLeft = props => {
   // Props
-  const { userSidebar, setUserSidebar, profileUserData, dispatch, isBelowLgScreen, isBelowSmScreen } = props
+  const { userSidebar, setUserSidebar, profileUserData, dispatch, isBelowLgScreen, isBelowSmScreen } = props;
 
   // States
-  const [twoStepVerification, setTwoStepVerification] = useState(true)
-  const [notification, setNotification] = useState(false)
+  const [twoStepVerification, setTwoStepVerification] = useState(true);
+  const [notification, setNotification] = useState(false);
 
   const handleTwoStepVerification = () => {
-    setTwoStepVerification(!twoStepVerification)
-  }
+    setTwoStepVerification(!twoStepVerification);
+  };
 
   const handleNotification = () => {
-    setNotification(!notification)
-  }
+    setNotification(!notification);
+  };
 
   const handleUserStatus = e => {
-    dispatch(setUserStatus({ status: e.target.value }))
-  }
+    dispatch(setUserStatus({ status: e.target.value }));
+  };
 
   return profileUserData ? (
     <>
@@ -94,7 +94,7 @@ const UserProfileLeft = props => {
               </Typography>
               <TextField fullWidth rows={3} multiline id='about-textarea' defaultValue={profileUserData.about} />
             </div>
-            <div className='flex flex-col gap-1'>
+            {/* <div className='flex flex-col gap-1'>
               <FormLabel id='status-radio-buttons-group-label' className='uppercase text-textDisabled'>
                 Status
               </FormLabel>
@@ -157,13 +157,13 @@ const UserProfileLeft = props => {
             </div>
             <Button variant='contained' fullWidth className='mbs-auto' endIcon={<i className='ri-logout-box-r-line' />}>
               Logout
-            </Button>
+            </Button> */}
           </div>
         </ScrollWrapper>
       </Drawer>
       <Backdrop open={userSidebar} onClick={() => setUserSidebar(false)} className='absolute z-[12]' />
     </>
-  ) : null
-}
+  ) : null;
+};
 
-export default UserProfileLeft
+export default UserProfileLeft;

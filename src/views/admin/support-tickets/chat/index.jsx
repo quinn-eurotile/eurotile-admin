@@ -1,8 +1,7 @@
 'use client';
 
 // React Imports
-import { useEffect, useRef, useState } from 'react';
-
+import { useEffect, useRef, useState, useCallback } from 'react';
 // MUI Imports
 import Backdrop from '@mui/material/Backdrop';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -20,23 +19,30 @@ import ChatContent from './ChatContent';
 
 // Hook Imports
 import { useSettings } from '@core/hooks/useSettings';
-
+import io from 'socket.io-client';
 // Util Imports
 import { commonLayoutClasses } from '@layouts/utils/layoutClasses';
-import { useParams } from 'next/navigation';
-import { getChatMessageForTicket } from '@/app/server/support-ticket-chat';
+import { useParams, useRouter } from 'next/navigation';
+import { getChatMessageForTicket, getRawDataForChat } from '@/app/server/support-ticket-chat';
 import { callCommonAction } from '@/redux-store/slices/common';
+import { getLocalizedUrl } from '@/utils/i18n';
 
 const ChatWrapper = () => {
-  const { id: ticketId } = useParams();
+  let { id } = useParams();
+  const router = useRouter();
+  const [ticketId, setTicketId] = useState(id ? id[0] : null);
+  const socket = useRef();
   // States
   const [backdropOpen, setBackdropOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   // Refs
+  const chatBoxRef = useRef(null);
   const messageInputRef = useRef(null);
+  const { lang: locale } = useParams();
 
   // Hooks
   const { settings } = useSettings();
@@ -46,19 +52,29 @@ const ChatWrapper = () => {
   const isBelowMdScreen = useMediaQuery(theme => theme.breakpoints.down('md'));
   const isBelowSmScreen = useMediaQuery(theme => theme.breakpoints.down('sm'));
 
+  //console.log('ticketIdticketId', ticketId);
+
+
   const fetchChatData = async (currentPage = 1, searchTerm = '') => {
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await getChatMessageForTicket(ticketId, currentPage, rowsPerPage, searchTerm, {});
-
+      console.log('responsedddd', response);
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
         const formatted = {
-          contacts: response?.data?.contacts,
+          contacts: response?.data?.docs,
           chats: response?.data?.chats,
           profileUser: response?.data?.profileUser,
         };
+
+        console.log('formatted', formatted);
+        //dispatch(getActiveUserData(ticketId));
         dispatch(setChatData(formatted));
+        activeUser(ticketId);
+        if (chatStore.activeUser?.id !== null && messageInputRef.current) {
+          messageInputRef.current.focus();
+        }
       }
     } catch (error) {
       dispatch(callCommonAction({ loading: false }));
@@ -66,14 +82,46 @@ const ChatWrapper = () => {
     }
   };
 
+
   useEffect(() => {
     fetchChatData();
   }, []);
 
 
+
+  useEffect(() => {
+    // Initialize socket connection
+    socket.current = io('http://localhost:3001', {
+      transports: ['websocket', 'polling']
+    });
+
+    // Clean up on unmount
+    return () => {
+      if (socket.current) {
+        socket.current.disconnect();
+      }
+    };
+
+
+  }, []);
+
+  const handleLoadMore = () => {
+    alert('Call Me');
+    setPage(page + 1);
+    fetchChatData(page + 1);
+  };
+
   // Get active user’s data
-  const activeUser = id => {
-    dispatch(getActiveUserData(id));
+  const activeUser = ticketId => {
+    console.log('ticketId11', ticketId);
+    if (!socket.current) return;
+    router.push(getLocalizedUrl(`/admin/support-tickets/view/${ticketId}`, locale));
+
+    socket.current.emit("join", { ticketId });
+    setTicketId(ticketId);
+    dispatch(getActiveUserData(ticketId));
+
+    //
   };
 
   // Focus on message input when active user changes
@@ -126,6 +174,7 @@ const ChatWrapper = () => {
         isBelowMdScreen={isBelowMdScreen}
         isBelowSmScreen={isBelowSmScreen}
         messageInputRef={messageInputRef}
+        handleLoadMore={handleLoadMore}
       />
 
       <ChatContent
@@ -139,6 +188,8 @@ const ChatWrapper = () => {
         isBelowSmScreen={isBelowSmScreen}
         messageInputRef={messageInputRef}
         ticketId={ticketId}
+        socket={socket}
+
       />
 
       <Backdrop open={backdropOpen} onClick={() => setBackdropOpen(false)} className='absolute z-10' />

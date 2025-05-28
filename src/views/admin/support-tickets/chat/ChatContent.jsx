@@ -1,6 +1,6 @@
 // React Imports
 import { useEffect, useState, useRef } from 'react';
-import io from 'socket.io-client';
+
 // MUI Imports
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -17,6 +17,7 @@ import UserProfileRight from './UserProfileRight';
 import CustomAvatar from '@core/components/mui/Avatar';
 // Slice Imports
 import { sendMsg } from '@/redux-store/slices/chat';
+import { Box } from '@mui/material';
 
 // Renders the user avatar with badge and user information
 const UserAvatar = ({ activeUser, setUserProfileLeftOpen, setBackdropOpen }) => (
@@ -41,7 +42,7 @@ const UserAvatar = ({ activeUser, setUserProfileLeftOpen, setBackdropOpen }) => 
 );
 
 const ChatContent = props => {
-  const socket = useRef();
+
   // Props
   const {
     chatStore,
@@ -52,38 +53,71 @@ const ChatContent = props => {
     isBelowMdScreen,
     isBelowSmScreen,
     isBelowLgScreen,
-    messageInputRef
+    messageInputRef,
+    socket
   } = props;
 
   const { activeUser } = chatStore;
-
   // States
   const [userProfileRightOpen, setUserProfileRightOpen] = useState(false);
 
-  useEffect(() => {
-    // Initialize socket connection
-    socket.current = io('http://localhost:3001', {
-      transports: ['websocket', 'polling']
-    });
-    // Listen for incoming messages
-    socket.current.on('receiveMessage', (data) => {
-      console.log('Received message:', JSON.parse(data));
-      const parseData = JSON.parse(data);
-      // Update your chat store with the new message
-      dispatch(sendMsg({ msg: parseData?.message }));
-    });
+  // useEffect(() => {
+  //   if (!socket.current) return;
+  //   // Listen for incoming messages
+  //   socket.current.on('receiveMessage', (data) => {
+  //     console.log('Received message:', JSON.parse(data));
+  //     const parseData = JSON.parse(data);
+  //     // Update your chat store with the new message
+  //     dispatch(sendMsg({ msg: parseData?.message }));
+  //   });
 
-    // Clean up on unmount
-    return () => {
-      if (socket.current) {
-        socket.current.disconnect();
+
+  // }, [socket]);
+
+  useEffect(() => {
+    if (!socket.current) return;
+
+    const handleReceiveMessage = (data) => {
+      try {
+        const parseData = typeof data === 'string' ? JSON.parse(data) : data;
+        console.log('Received message:', parseData);
+        dispatch(sendMsg({ msg: parseData?.message }));
+      } catch (error) {
+        console.error('Failed to parse received message:', error);
       }
     };
-  }, []);
+
+    socket.current.on('receiveMessage', handleReceiveMessage);
+
+    return () => {
+      socket.current.off('receiveMessage', handleReceiveMessage);
+    };
+  }, [socket.current, dispatch]);
+
+  // useEffect(() => {
+  //   if (!socket.current) return;
+  //   console.log('saxxxx');
+  //   const handleReceiveMessage = (data) => {
+  //     try {
+  //       const parseData = typeof data === 'string' ? JSON.parse(data) : data;
+  //       console.log('Received message:', parseData);
+  //       dispatch(sendMsg({ msg: parseData?.message }));
+  //     } catch (error) {
+  //       console.error('Failed to parse received message:', error);
+  //     }
+  //   };
+
+  //   socket.current.on('receiveMessage', handleReceiveMessage);
+
+  //   // Cleanup to prevent duplicate listeners
+  //   return () => {
+  //     socket.current.off('receiveMessage', handleReceiveMessage);
+  //   };
+  // }, [socket, dispatch]);
 
   const sendMessage = (messageContent) => {
     if (!socket.current) return;
-
+    //let tId = props.ticketId;
     const messageData = {
       content: messageContent,
       senderId: chatStore.profileUser?.id,
@@ -91,7 +125,10 @@ const ChatContent = props => {
       timestamp: new Date(),
       ticketId: props.ticketId
     };
+    let ticketId = messageData.ticketId;
 
+
+    socket.current.emit("join", { ticketId });
     // Emit the message to the server
     socket.current.emit('sendMessage', JSON.stringify(messageData));
   };
@@ -152,7 +189,7 @@ const ChatContent = props => {
                 setUserProfileLeftOpen={setUserProfileRightOpen}
               />
             )}
-            {isBelowMdScreen ? (
+            {/* {isBelowMdScreen ? (
               <OptionMenu
                 iconClassName='text-textSecondary'
                 options={[
@@ -201,8 +238,10 @@ const ChatContent = props => {
                   ]}
                 />
               </div>
-            )}
+            )} */}
           </div>
+
+
 
           <ChatLog
             chatStore={chatStore}
