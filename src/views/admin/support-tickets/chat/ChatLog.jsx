@@ -77,6 +77,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
   // Vars
   const activeUserChat = chatStore.chats.find(chat => chat.userId === chatStore.activeUser?.id);
 
+
   // Refs
   const scrollRef = useRef(null);
 
