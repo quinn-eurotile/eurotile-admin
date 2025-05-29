@@ -140,7 +140,7 @@ const SupportTicketListTable = () => {
 
   useEffect(() => {
     fetchSupportTickets(page + 1, rowsPerPage);
-  }, [page, rowsPerPage, search]);
+  }, [page, rowsPerPage, search, filter]);
 
   const fetchSupportTickets = async (currentPage = 1, pageSize = rowsPerPage) => {
     console.log('fetchSupportTickets', currentPage, pageSize, search, filter);
