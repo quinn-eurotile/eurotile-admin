@@ -139,19 +139,14 @@ const SupportTicketListTable = () => {
   const { lang: locale } = useParams();
 
   useEffect(() => {
-    fetchSupportTickets();
-  }, []);
+    fetchSupportTickets(page + 1, rowsPerPage);
+  }, [page, rowsPerPage, search]);
 
-  // Fetch support tickets from the server
-  useEffect(() => {
-    fetchSupportTickets();
-  }, [page, rowsPerPage, search, filter]);
-
-  const fetchSupportTickets = async (currentPage = 1) => {
-    console.log('fetchSupportTickets', currentPage, rowsPerPage, search, filter);
+  const fetchSupportTickets = async (currentPage = 1, pageSize = rowsPerPage) => {
+    console.log('fetchSupportTickets', currentPage, pageSize, search, filter);
     try {
       dispatch(callCommonAction({ loading: true }));
-      const response = await getSupportTicketList(currentPage, rowsPerPage, search, filter);
+      const response = await getSupportTicketList(currentPage, pageSize, search, filter);
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
         // Define mappings
@@ -261,11 +256,13 @@ const SupportTicketListTable = () => {
     }
   };
 
-  const handleChangePage = (event, newPage) => setPage(newPage);
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
   const handleChangeRowsPerPage = event => {
-    table.setPageSize(parseInt(event.target.value));
-    setRowsPerPage(parseInt(event.target.value));
+    const newSize = parseInt(event.target.value, 10);
+    setRowsPerPage(newSize);
     setPage(0);
   };
 
@@ -373,32 +370,14 @@ const SupportTicketListTable = () => {
   );
 
   const table = useReactTable({
-    data: data,
+    data,
     columns,
-    filterFns: {
-      fuzzy: fuzzyFilter
-    },
-    state: {
-      rowSelection,
-      globalFilter
-    },
-    initialState: {
-      pagination: {
-        pageSize: 10
-      }
-    },
-    enableRowSelection: true, //enable row selection for all rows
-    // enableRowSelection: row => row.original.age > 18, // or enable row selection conditionally per row
-    globalFilterFn: fuzzyFilter,
-    onRowSelectionChange: setRowSelection,
+    state: { rowSelection },
     getCoreRowModel: getCoreRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues()
+    onRowSelectionChange: setRowSelection
   });
 
   const getAvatar = params => {
@@ -498,6 +477,7 @@ const SupportTicketListTable = () => {
               )}
             </table>
           </div>
+
           <TablePagination
             component='div'
             count={totalRecords}
