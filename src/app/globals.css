@@ -106,7 +106,7 @@ body {
   --mui-mainColorChannels-shadow: var(--mui-mainColorChannels-darkShadow);
 }
 
-/* *,
+*,
 ::before,
 ::after {
   box-sizing: border-box;
@@ -114,7 +114,7 @@ body {
   margin: 0;
   border-width: 0;
   border-style: solid;
-} */
+}
 
 html {
   display: flex;
