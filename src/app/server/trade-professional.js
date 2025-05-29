@@ -1,7 +1,6 @@
 'use server'
 
 import { tradeProfessionalServices } from "@/services/trade-professional-services/trade-professional-endpoint";
-import { tradeProfessionalService, userTradeProfessionalService } from "@/services/trade-professionals";
 import { tradeProfessionalService, userTradeProfessionalPassword, userTradeProfessionalProfile, userTradeProfessionalService } from "@/services/trade-professionals";
 
 export const getTradeProfessionalDetails = async (userId) => {

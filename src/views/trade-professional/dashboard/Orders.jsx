@@ -1,3 +1,4 @@
+
 //MUI Imports
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
@@ -9,50 +10,65 @@ import Grid from '@mui/material/Grid2'
 import OptionMenu from '@core/components/option-menu'
 import CustomAvatar from '@core/components/mui/Avatar'
 
-// Vars
-const data = [
-  {
-    stats: '245k',
-    title: 'Sales',
-    color: 'primary',
-    icon: 'ri-pie-chart-2-line'
-  },
-  {
-    stats: '12.5k',
-    title: 'Users',
-    color: 'success',
-    icon: 'ri-group-line'
-  },
-  {
-    stats: '1.54k',
-    color: 'warning',
-    title: 'Products',
-    icon: 'ri-macbook-line'
-  },
-  {
-    stats: '$88k',
-    color: 'info',
-    title: 'Revenue',
-    icon: 'ri-money-dollar-circle-line'
-  }
-]
 
-const Orders = () => {
+
+const Orders = ({statusSummary}) => {
+
+  console.log('statusSummary',statusSummary)
+  // Define label metadata
+const statusArray = [
+  {
+    key: 'pending',
+    title: 'Pending',
+    color: 'warning',
+    icon: 'ri-time-line'
+  },
+  {
+    key: 'processing',
+    title: 'Processing',
+    color: 'info',
+    icon: 'ri-settings-3-line'
+  },
+  {
+    key: 'shipped',
+    title: 'Shipped',
+    color: 'primary',
+    icon: 'ri-truck-line'
+  },
+  {
+    key: 'delivered',
+    title: 'Delivered',
+    color: 'success',
+    icon: 'ri-check-double-line'
+  },
+  {
+    key: 'cancelled',
+    title: 'Cancelled',
+    color: 'error',
+    icon: 'ri-close-circle-line'
+  }
+];
+
+
+const formattedStatusArray = statusArray?.map(item => ({
+  stats: `${(statusSummary?.[item.key] ?? 0)}`,
+  title: item.title,
+  color: item.color,
+  icon: item.icon
+}));
+
+// Merge status count into metadata
+
   return (
     <Card className='bs-full'>
       <CardHeader
-        title='Orders'
-        action={<OptionMenu iconClassName='text-textPrimary' options={['Refresh', 'Share', 'Update']} />}
-        subheader={
-          <p className='mbs-3'>
-            <span className='font-medium text-textPrimary'>Total 48.5% Growth 😎</span>
-            <span className='text-textSecondary'>this month</span>
-          </p>
-        }
+        title='Order Stats'
+        action={<OptionMenu iconClassName='text-textPrimary' options={[]} />}
+
       />
       <CardContent className='!pbs-5'>
         <Grid container spacing={2}>
-          {data.map((item, index) => (
+          {formattedStatusArray?.map((item, index) => (
             <Grid size={{ xs: 6, md: 3 }} key={index}>
               <div className='flex items-center gap-3'>
                 <CustomAvatar variant='rounded' color={item.color} className='shadow-xs'>

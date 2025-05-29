@@ -25,9 +25,6 @@ import {
   getCoreRowModel,
   useReactTable,
   getFilteredRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFacetedMinMaxValues,
   getPaginationRowModel,
   getSortedRowModel
 } from '@tanstack/react-table'
@@ -47,16 +44,14 @@ import { callCommonAction } from '@/redux-store/slices/common'
 import { getOrderList } from '@/app/server/order'
 import moment from 'moment'
 
-export const paymentStatus = {
-  // 1 = 'pending', 2 = 'paid', 3 = 'failed', 4 = 'refunded'
+const paymentStatus = {
   2: { text: 'Paid', color: 'success', colorClassName: 'text-success' },
   1: { text: 'Pending', color: 'warning', colorClassName: 'text-warning' },
   4: { text: 'Refunded', color: 'secondary', colorClassName: 'text-secondary' },
   3: { text: 'Failed', color: 'error', colorClassName: 'text-error' }
 }
 
-export const statusChipColor = {
-  // 1 = 'pending', 2 = 'processing', 3 = 'shipped', 4 = 'delivered', 5 = 'cancelled'
+const statusChipColor = {
   2: { text: 'Paid', color: 'success', colorClassName: 'text-success' },
   1: { text: 'Pending', color: 'warning', colorClassName: 'text-warning' },
   4: { text: 'Refunded', color: 'secondary', colorClassName: 'text-secondary' },
@@ -64,69 +59,45 @@ export const statusChipColor = {
 }
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
-  // Rank the item
   const itemRank = rankItem(row.getValue(columnId), value)
-
-  // Store the itemRank info
-  addMeta({
-    itemRank
-  })
-
-  // Return if the item should be filtered in/out
+  addMeta({ itemRank })
   return itemRank.passed
 }
 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
-  // States
   const [value, setValue] = useState(initialValue)
 
-  useEffect(() => {
-    setValue(initialValue)
-  }, [initialValue])
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      onChange(value)
-    }, debounce)
+  useEffect(() => setValue(initialValue), [initialValue])
 
+  useEffect(() => {
+    const timeout = setTimeout(() => onChange(value), debounce)
     return () => clearTimeout(timeout)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
   return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
 }
 
-// Column Definitions
 const columnHelper = createColumnHelper()
 
 const OrderListTable = ({ orderData }) => {
   const dispatch = useDispatch()
-  const [addSupportTicketOpen, setAddSupportTicketOpen] = useState(false)
+  const { lang: locale } = useParams()
   const [rowSelection, setRowSelection] = useState({})
   const [data, setData] = useState([])
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [totalRecords, setTotalRecords] = useState(0)
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState({ status: '' })
-  const [globalFilter, setGlobalFilter] = useState('')
   const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN
 
-  // Hooks
-  const { lang: locale } = useParams()
-
   useEffect(() => {
-    fetchOrderList()
-  }, [])
-
-  // Fetch support tickets from the server
-  useEffect(() => {
-    fetchOrderList(page)
-  }, [page, rowsPerPage, search, filter])
+    fetchOrderList(page + 1, rowsPerPage)
+  }, [page, rowsPerPage, search])
 
   const fetchOrderList = async (currentPage = 1, pageSize = rowsPerPage) => {
     try {
       dispatch(callCommonAction({ loading: true }))
-      const response = await getOrderList(currentPage, pageSize, search, filter)
+      const response = await getOrderList(currentPage, pageSize, search, {})
       dispatch(callCommonAction({ loading: false }))
 
       if (response.statusCode === 200 && response.data) {
@@ -145,7 +116,6 @@ const OrderListTable = ({ orderData }) => {
           supportticketmsgs: order.supportticketmsgs
         }))
         setData(formatted)
-        setPage(currentPage) // ✅ Correct page setting
         setTotalRecords(response.data.totalDocs || 0)
       }
     } catch (error) {
@@ -155,46 +125,17 @@ const OrderListTable = ({ orderData }) => {
   }
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage) // Material UI uses zero-based page index
-    fetchOrderList(newPage, rowsPerPage)
+    setPage(newPage)
   }
 
   const handleChangeRowsPerPage = event => {
-    const newPageSize = parseInt(event.target.value, 10)
-    table.setPageSize(parseInt(event.target.value))
-    setRowsPerPage(newPageSize)
-    setPage(1)
-    fetchOrderList(1, newPageSize)
+    const newSize = parseInt(event.target.value, 10)
+    setRowsPerPage(newSize)
+    setPage(0)
   }
-
-  // Vars
-  const paypal = '/images/apps/ecommerce/paypal.png'
-  const mastercard = '/images/apps/ecommerce/mastercard.png'
 
   const columns = useMemo(
     () => [
-      // {
-      //   id: 'select',
-      //   header: ({ table }) => (
-      //     <Checkbox
-      //       {...{
-      //         checked: table.getIsAllRowsSelected(),
-      //         indeterminate: table.getIsSomeRowsSelected(),
-      //         onChange: table.getToggleAllRowsSelectedHandler()
-      //       }}
-      //     />
-      //   ),
-      //   cell: ({ row }) => (
-      //     <Checkbox
-      //       {...{
-      //         checked: row.getIsSelected(),
-      //         disabled: !row.getCanSelect(),
-      //         indeterminate: row.getIsSomeSelected(),
-      //         onChange: row.getToggleSelectedHandler()
-      //       }}
-      //     />
-      //   )
-      // },
       columnHelper.accessor('orderNumber', {
         header: 'Order',
         cell: ({ row }) => (
@@ -202,7 +143,9 @@ const OrderListTable = ({ orderData }) => {
             component={Link}
             href={getLocalizedUrl(`/apps/ecommerce/orders/details/${row.original.id}`, locale)}
             color='primary.main'
-          >{`#${row.original.orderNumber}`}</Typography>
+          >
+            {`#${row.original.orderNumber}`}
+          </Typography>
         )
       }),
       columnHelper.accessor('createdAt', {
@@ -255,22 +198,6 @@ const OrderListTable = ({ orderData }) => {
           />
         )
       }),
-      columnHelper.accessor('method', {
-        header: 'Method',
-        cell: ({ row }) => (
-          <div className='flex items-center'>
-            <div className='flex justify-center items-center bg-[#F6F8FA] rounded-sm is-[29px] bs-[18px]'>
-              <img
-                src={row.original.method === 'mastercard' ? mastercard : paypal}
-                height={row.original.method === 'mastercard' ? 11 : 14}
-              />
-            </div>
-            <Typography>
-              {`...${row.original.method === 'mastercard' ? row.original.methodNumber : '@gmail.com'}`}
-            </Typography>
-          </div>
-        )
-      }),
       columnHelper.accessor('action', {
         header: 'Action',
         cell: ({ row }) => (
@@ -300,128 +227,73 @@ const OrderListTable = ({ orderData }) => {
         enableSorting: false
       })
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [data]
   )
 
   const table = useReactTable({
-    data: data,
+    data,
     columns,
-    filterFns: {
-      fuzzy: fuzzyFilter
-    },
-    state: {
-      rowSelection,
-      globalFilter
-    },
-    initialState: {
-      pagination: {
-        pageSize: 10
-      }
-    },
-    enableRowSelection: true, //enable row selection for all rows
-    // enableRowSelection: row => row.original.age > 18, // or enable row selection conditionally per row
-    globalFilterFn: fuzzyFilter,
-    onRowSelectionChange: setRowSelection,
+    state: { rowSelection },
     getCoreRowModel: getCoreRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues()
+    onRowSelectionChange: setRowSelection
   })
 
-  const getAvatar = params => {
-    const { avatar, customer } = params
-
-    if (avatar) {
-      return <CustomAvatar src={avatar} skin='light' size={34} />
-    } else {
-      return (
-        <CustomAvatar skin='light' size={34}>
-          {getInitials(customer)}
-        </CustomAvatar>
-      )
-    }
+  const getAvatar = ({ avatar, customer }) => {
+    return avatar ? (
+      <CustomAvatar src={avatar} skin='light' size={34} />
+    ) : (
+      <CustomAvatar skin='light' color='primary' size={34}>
+        {getInitials(customer)}
+      </CustomAvatar>
+    )
   }
 
   return (
     <Card>
       <CardContent className='flex justify-between max-sm:flex-col sm:items-center gap-4'>
         <DebouncedInput
-  placeholder='Search orders...'
-  value={search}
-  onChange={value => {
-    setSearch(value)
-    setPage(1)
-    fetchOrderList(1, rowsPerPage)
-  }}
-  fullWidth
-/>
+          value={search}
+          onChange={value => setSearch(value)}
+          placeholder='Search Order'
+          className='sm:is-auto'
+        />
+        {/* <Button variant='outlined' color='secondary' startIcon={<i className='ri-upload-2-line' />}>
+          Export
+        </Button> */}
       </CardContent>
+
       <div className='overflow-x-auto'>
         <table className={tableStyles.table}>
-          <thead>
+          <thead className={tableStyles.thead}>
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map(header => (
-                  <th key={header.id}>
-                    {header.isPlaceholder ? null : (
-                      <>
-                        <div
-                          className={classnames({
-                            'flex items-center': header.column.getIsSorted(),
-                            'cursor-pointer select-none': header.column.getCanSort()
-                          })}
-                          onClick={header.column.getToggleSortingHandler()}
-                        >
-                          {flexRender(header.column.columnDef.header, header.getContext())}
-                          {{
-                            asc: <i className='ri-arrow-up-s-line text-xl' />,
-                            desc: <i className='ri-arrow-down-s-line text-xl' />
-                          }[header.column.getIsSorted()] ?? null}
-                        </div>
-                      </>
-                    )}
-                  </th>
+                  <th key={header.id}>{flexRender(header.column.columnDef.header, header.getContext())}</th>
                 ))}
               </tr>
             ))}
           </thead>
-          {table.getFilteredRowModel().rows.length === 0 ? (
-            <tbody>
-              <tr>
-                <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                  No data available
-                </td>
+          <tbody className={tableStyles.tbody}>
+            {table.getRowModel().rows.map(row => (
+              <tr key={row.id}>
+                {row.getVisibleCells().map(cell => (
+                  <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                ))}
               </tr>
-            </tbody>
-          ) : (
-            <tbody>
-              {table
-                .getRowModel()
-                .rows.slice(0, table.getState().pagination.pageSize)
-                .map(row => {
-                  return (
-                    <tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
-                      {row.getVisibleCells().map(cell => (
-                        <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-                      ))}
-                    </tr>
-                  )
-                })}
-            </tbody>
-          )}
+            ))}
+          </tbody>
         </table>
       </div>
+
       <TablePagination
         component='div'
-        count={5}
-        page={1}
+        count={totalRecords}
+        page={page}
         onPageChange={handleChangePage}
-        rowsPerPage={10}
+        rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
         rowsPerPageOptions={[1, 10, 20, 50]}
       />

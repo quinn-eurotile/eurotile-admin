@@ -25,17 +25,17 @@ export const getDashboardData = async() => {
 
 const DashboardAnalytics = async() => {
   const dashboardData = await getDashboardData();
-  const tableData = await getEcommerceData()
+  console.log('dashboardData',dashboardData)
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, md: 4 }}>
         <Profile userData={dashboardData?.data?.user}/>
       </Grid>
       <Grid size={{ xs: 12, md: 8, lg: 8 }}>
-        <Orders />
+        <Orders statusSummary={dashboardData?.data?.statusSummary} />
       </Grid>
       <Grid size={{ xs: 12, md: 6, lg: 8 }}>
-      <OrderListTable orderData={tableData?.orderData} />
+      <OrderListTable  />
       </Grid>
     </Grid>
   )
