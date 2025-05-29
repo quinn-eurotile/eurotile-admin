@@ -58,6 +58,7 @@ import SupportTicketListCards from './SupportTicketListCards';
 import Image from 'next/image';
 import { Box, Tooltip } from '@mui/material';
 import { useParams, useRouter } from 'next/navigation';
+import moment from 'moment';
 
 // Styled Components
 const Icon = styled('i')({});
@@ -203,9 +204,7 @@ const SupportTicketListTable = () => {
         ];
 
         setStatsData(stats);
-
-        console.log(response?.data?.docs, '.................................');
-
+        console.log('formattedformatted', response?.data?.docs);
         const formatted = response?.data?.docs?.map(ticket => ({
           id: ticket?._id,
           ticketNumber: ticket?.ticketNumber,
@@ -221,6 +220,7 @@ const SupportTicketListTable = () => {
           username: ticket?.subject,
           supportticketmsgs: ticket?.supportticketmsgs
         }));
+
 
         setPage(page);
         setData(formatted);
@@ -372,6 +372,10 @@ const SupportTicketListTable = () => {
           </div>
         )
       }),
+      columnHelper.accessor('createdAt', {
+              header: 'Requested Date & Time',
+              cell: ({ row }) => <Typography>{moment(row.original?.createdAt).format('MMMM Do YYYY, h:mm:ss a')}</Typography>
+            }),
       columnHelper.accessor('action', {
         header: 'Action',
         cell: ({ row }) => (

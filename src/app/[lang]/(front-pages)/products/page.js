@@ -70,7 +70,7 @@ export default function ProductsPage() {
             </div>
 
             {/* Mobile Filter Sidebar */}
-            {/* <FilterSidebar isMobile={true} isOpen={filterOpen} onClose={() => setFilterOpen(false)} /> */}
+           <FilterSidebar isMobile={true} isOpen={filterOpen} onClose={() => setFilterOpen(false)} /> 
 
             <div className="flex-1">
               <div className="flex justify-between items-center mb-6">
