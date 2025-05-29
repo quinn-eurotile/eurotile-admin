@@ -63,7 +63,7 @@ const formattedStatusArray = statusArray?.map(item => ({
     <Card className='bs-full'>
       <CardHeader
         title='Order Summary'
-        action={<OptionMenu iconClassName='text-textPrimary' options={[]} />}
+        //action={<OptionMenu iconClassName='text-textPrimary' options={[]} />}
 
       />
       <CardContent>
