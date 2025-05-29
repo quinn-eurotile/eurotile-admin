@@ -1,47 +1,50 @@
 // React Imports
-import { useState } from 'react'
+import { useState } from 'react';
 
 // MUI Imports
-import Avatar from '@mui/material/Avatar'
-import TextField from '@mui/material/TextField'
-import Drawer from '@mui/material/Drawer'
-import Typography from '@mui/material/Typography'
-import Chip from '@mui/material/Chip'
-import Autocomplete from '@mui/material/Autocomplete'
-import InputAdornment from '@mui/material/InputAdornment'
-import IconButton from '@mui/material/IconButton'
+import Avatar from '@mui/material/Avatar';
+import TextField from '@mui/material/TextField';
+import Drawer from '@mui/material/Drawer';
+import Typography from '@mui/material/Typography';
+import Chip from '@mui/material/Chip';
+import Autocomplete from '@mui/material/Autocomplete';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
 
 // Third-party Imports
-import classnames from 'classnames'
-import PerfectScrollbar from 'react-perfect-scrollbar'
+import classnames from 'classnames';
+import PerfectScrollbar from 'react-perfect-scrollbar';
 
 // Slice Imports
-import { addNewChat } from '@/redux-store/slices/chat'
+import { addNewChat } from '@/redux-store/slices/chat';
 
 // Component Imports
-import CustomAvatar from '@core/components/mui/Avatar'
-import UserProfileLeft from './UserProfileLeft'
-import AvatarWithBadge from './AvatarWithBadge'
+import CustomAvatar from '@core/components/mui/Avatar';
+import UserProfileLeft from './UserProfileLeft';
+import AvatarWithBadge from './AvatarWithBadge';
 
 // Util Imports
-import { getInitials } from '@/utils/getInitials'
-import { formatDateToMonthShort } from './utils'
+import { getInitials } from '@/utils/getInitials';
+import { formatDateToMonthShort } from './utils';
+import { Box, Button } from '@mui/material';
 
 export const statusObj = {
   busy: 'error',
   away: 'warning',
   online: 'success',
   offline: 'secondary'
-}
+};
 
 // Render chat list
 const renderChat = props => {
   // Props
-  const { chatStore, getActiveUserData, setSidebarOpen, backdropOpen, setBackdropOpen, isBelowMdScreen } = props
+  const { chatStore, getActiveUserData, setSidebarOpen, backdropOpen, setBackdropOpen, isBelowMdScreen } = props;
 
   return chatStore.chats.map(chat => {
-    const contact = chatStore.contacts.find(contact => contact.id === chat.userId) || chatStore.contacts[0]
-    const isChatActive = chatStore.activeUser?.id === contact.id
+
+    const contact = chatStore?.contacts?.find(contact => contact.id === chat.userId) || chatStore.contacts[0];
+    const isChatActive = chatStore.activeUser?.id === contact.id;
+    console.log(chatStore, contact.id, 'contacts');
 
     return (
       <li
@@ -51,9 +54,9 @@ const renderChat = props => {
           'text-[var(--mui-palette-primary-contrastText)]': isChatActive
         })}
         onClick={() => {
-          getActiveUserData(chat.userId)
-          isBelowMdScreen && setSidebarOpen(false)
-          isBelowMdScreen && backdropOpen && setBackdropOpen(false)
+          getActiveUserData(chat.userId);
+          isBelowMdScreen && setSidebarOpen(false);
+          isBelowMdScreen && backdropOpen && setBackdropOpen(false);
         }}
       >
         <AvatarWithBadge
@@ -88,18 +91,18 @@ const renderChat = props => {
           {chat.unseenMsgs > 0 ? <Chip label={chat.unseenMsgs} color='error' size='small' /> : null}
         </div>
       </li>
-    )
-  })
-}
+    );
+  });
+};
 
 // Scroll wrapper for chat list
 const ScrollWrapper = ({ children, isBelowLgScreen }) => {
   if (isBelowLgScreen) {
-    return <div className='bs-full overflow-y-auto overflow-x-hidden'>{children}</div>
+    return <div className='bs-full overflow-y-auto overflow-x-hidden'>{children}</div>;
   } else {
-    return <PerfectScrollbar options={{ wheelPropagation: false }}>{children}</PerfectScrollbar>
+    return <PerfectScrollbar options={{ wheelPropagation: false }}>{children}</PerfectScrollbar>;
   }
-}
+};
 
 const SidebarLeft = props => {
   // Props
@@ -114,22 +117,23 @@ const SidebarLeft = props => {
     isBelowLgScreen,
     isBelowMdScreen,
     isBelowSmScreen,
-    messageInputRef
-  } = props
+    messageInputRef,
+    handleLoadMore
+  } = props;
 
   // States
-  const [userSidebar, setUserSidebar] = useState(false)
-  const [searchValue, setSearchValue] = useState()
+  const [userSidebar, setUserSidebar] = useState(false);
+  const [searchValue, setSearchValue] = useState();
 
   const handleChange = (event, newValue) => {
-    setSearchValue(newValue)
-    dispatch(addNewChat({ id: chatStore.contacts.find(contact => contact.fullName === newValue)?.id }))
-    getActiveUserData(chatStore.contacts.find(contact => contact.fullName === newValue)?.id || chatStore.activeUser?.id)
-    isBelowMdScreen && setSidebarOpen(false)
-    setBackdropOpen(false)
-    setSearchValue(null)
-    messageInputRef.current?.focus()
-  }
+    setSearchValue(newValue);
+    dispatch(addNewChat({ id: chatStore?.contacts?.find(contact => contact.fullName === newValue)?.id }));
+    getActiveUserData(chatStore?.contacts?.find(contact => contact.fullName === newValue)?.id || chatStore.activeUser?.id);
+    isBelowMdScreen && setSidebarOpen(false);
+    setBackdropOpen(false);
+    setSearchValue(null);
+    messageInputRef.current?.focus();
+  };
 
   return (
     <>
@@ -154,13 +158,13 @@ const SidebarLeft = props => {
           }
         }}
       >
-        <div className='flex plb-[18px] pli-5 gap-4 border-be'>
+        <div className='flex plb-[18px] pli-5 gap-4 border-be' >
           <AvatarWithBadge
             alt={chatStore.profileUser.fullName}
             src={chatStore.profileUser.avatar}
             badgeColor={statusObj[chatStore.profileUser.status]}
             onClick={() => {
-              setUserSidebar(true)
+              setUserSidebar(true);
             }}
           />
           <div className='flex is-full items-center flex-auto sm:gap-x-3'>
@@ -168,7 +172,7 @@ const SidebarLeft = props => {
               fullWidth
               size='small'
               id='select-contact'
-              options={chatStore.contacts.map(contact => contact.fullName) || []}
+              options={chatStore?.contacts?.map(contact => contact.fullName) || []}
               value={searchValue || null}
               onChange={handleChange}
               renderInput={params => (
@@ -190,7 +194,7 @@ const SidebarLeft = props => {
                 />
               )}
               renderOption={(props, option) => {
-                const contact = chatStore.contacts.find(contact => contact.fullName === option)
+                const contact = chatStore?.contacts?.find(contact => contact.fullName === option);
 
                 return (
                   <li
@@ -217,15 +221,15 @@ const SidebarLeft = props => {
                     ) : null}
                     {option}
                   </li>
-                )
+                );
               }}
             />
             {isBelowMdScreen ? (
               <IconButton
                 className='p-0 mis-2'
                 onClick={() => {
-                  setSidebarOpen(false)
-                  setBackdropOpen(false)
+                  setSidebarOpen(false);
+                  setBackdropOpen(false);
                 }}
               >
                 <i className='ri-close-line' />
@@ -233,7 +237,7 @@ const SidebarLeft = props => {
             ) : null}
           </div>
         </div>
-        <ScrollWrapper isBelowLgScreen={isBelowLgScreen}>
+        <ScrollWrapper isBelowLgScreen={isBelowLgScreen}  >
           <ul className='p-3 pbs-4'>
             {renderChat({
               chatStore,
@@ -245,6 +249,10 @@ const SidebarLeft = props => {
             })}
           </ul>
         </ScrollWrapper>
+        {/* <Box bgcolor={'#fff'} display={'flex'} justifyContent={'center'} padding={'15px 10px'}>
+          <Button variant='contained' size='small' onClick={handleLoadMore}>Load More</Button>
+        </Box> */}
+
       </Drawer>
 
       <UserProfileLeft
@@ -256,7 +264,7 @@ const SidebarLeft = props => {
         isBelowSmScreen={isBelowSmScreen}
       />
     </>
-  )
-}
+  );
+};
 
-export default SidebarLeft
+export default SidebarLeft;

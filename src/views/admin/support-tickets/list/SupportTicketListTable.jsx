@@ -1,28 +1,27 @@
-'use client'
+'use client';
 
 // React Imports
-import { useEffect, useState, useMemo } from 'react'
-import Grid from '@mui/material/Grid2'
+import { useEffect, useState, useMemo } from 'react';
+import Grid from '@mui/material/Grid2';
 // Next Imports
-import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import Link from 'next/link';
 
 // MUI Imports
-import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
-import Divider from '@mui/material/Divider'
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import Chip from '@mui/material/Chip'
-import Checkbox from '@mui/material/Checkbox'
-import IconButton from '@mui/material/IconButton'
-import { styled } from '@mui/material/styles'
-import TablePagination from '@mui/material/TablePagination'
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import Divider from '@mui/material/Divider';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import Chip from '@mui/material/Chip';
+import Checkbox from '@mui/material/Checkbox';
+import IconButton from '@mui/material/IconButton';
+import { styled } from '@mui/material/styles';
+import TablePagination from '@mui/material/TablePagination';
 
 // Third-party Imports
-import classnames from 'classnames'
-import { rankItem } from '@tanstack/match-sorter-utils'
+import classnames from 'classnames';
+import { rankItem } from '@tanstack/match-sorter-utils';
 import {
   createColumnHelper,
   flexRender,
@@ -34,64 +33,65 @@ import {
   getFacetedMinMaxValues,
   getPaginationRowModel,
   getSortedRowModel
-} from '@tanstack/react-table'
+} from '@tanstack/react-table';
 
 // Component Imports
-import TableFilters from './TableFilters'
-import AddSupportTicketDrawer from './AddSupportTicketDrawer'
-import OptionMenu from '@core/components/option-menu'
-import CustomAvatar from '@core/components/mui/Avatar'
+import TableFilters from './TableFilters';
+import AddSupportTicketDrawer from './AddSupportTicketDrawer';
+import OptionMenu from '@core/components/option-menu';
+import CustomAvatar from '@core/components/mui/Avatar';
 
 // Util Imports
-import { getInitials } from '@/utils/getInitials'
-import { getLocalizedUrl } from '@/utils/i18n'
+import { getInitials } from '@/utils/getInitials';
+import { getLocalizedUrl } from '@/utils/i18n';
 
 // Style Imports
-import tableStyles from '@core/styles/table.module.css'
+import tableStyles from '@core/styles/table.module.css';
 
-import { deleteSupportTicket, createSupportTicket, getSupportTicketList } from '@/app/server/support-ticket'
-import { callCommonAction } from '@/redux-store/slices/common'
-import ConfirmationDialog from '@/components/dialogs/confirmation-dialog'
-import { useDispatch } from 'react-redux'
-import { toast } from 'react-toastify'
-import SupportTicketListCards from './SupportTicketListCards'
-import Image from 'next/image'
-import { Box } from '@mui/material'
+import { deleteSupportTicket, createSupportTicket, getSupportTicketList } from '@/app/server/support-ticket';
+import { callCommonAction } from '@/redux-store/slices/common';
+import ConfirmationDialog from '@/components/dialogs/confirmation-dialog';
+import { useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
+import SupportTicketListCards from './SupportTicketListCards';
+import Image from 'next/image';
+import { Box } from '@mui/material';
+import { useParams, useRouter } from 'next/navigation';
 
 // Styled Components
-const Icon = styled('i')({})
+const Icon = styled('i')({});
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value)
+  const itemRank = rankItem(row.getValue(columnId), value);
 
   // Store the itemRank info
   addMeta({
     itemRank
-  })
+  });
 
   // Return if the item should be filtered in/out
-  return itemRank.passed
-}
+  return itemRank.passed;
+};
 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
   // States
-  const [value, setValue] = useState(initialValue)
+  const [value, setValue] = useState(initialValue);
 
   useEffect(() => {
-    setValue(initialValue)
-  }, [initialValue])
+    setValue(initialValue);
+  }, [initialValue]);
   useEffect(() => {
     const timeout = setTimeout(() => {
-      onChange(value)
-    }, debounce)
+      onChange(value);
+    }, debounce);
 
-    return () => clearTimeout(timeout)
+    return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
+  }, [value]);
 
-  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
-}
+  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />;
+};
 
 const ticketStatusLabel = {
   1: 'Open',
@@ -101,7 +101,7 @@ const ticketStatusLabel = {
   5: 'Resolved',
   6: 'Rejected',
   7: 'Cancelled'
-}
+};
 
 const ticketStatusObj = {
   1: 'secondary',
@@ -111,46 +111,48 @@ const ticketStatusObj = {
   5: 'success',
   6: 'warning',
   7: 'error'
-}
+};
 
 // Column Definitions
-const columnHelper = createColumnHelper()
+const columnHelper = createColumnHelper();
 
 const SupportTicketListTable = () => {
-  const dispatch = useDispatch()
-  const [addSupportTicketOpen, setAddSupportTicketOpen] = useState(false)
-  const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState([])
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [totalRecords, setTotalRecords] = useState(0)
-  const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState({ status: '' })
-  const [globalFilter, setGlobalFilter] = useState('')
-  const [openConfirmation, setOpenConfirmation] = useState(false) // State for dialog
-  const [selectedId, setSelectedId] = useState(null)
-  const [statsData, setStatsData] = useState(null)
-  const [editData, setEditData] = useState(null)
-  const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN
+  // Hooks
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const [addSupportTicketOpen, setAddSupportTicketOpen] = useState(false);
+  const [rowSelection, setRowSelection] = useState({});
+  const [data, setData] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState({ status: '' });
+  const [globalFilter, setGlobalFilter] = useState('');
+  const [openConfirmation, setOpenConfirmation] = useState(false); // State for dialog
+  const [selectedId, setSelectedId] = useState(null);
+  const [statsData, setStatsData] = useState(null);
+  const [editData, setEditData] = useState(null);
+  const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
 
   // Hooks
-  const { lang: locale } = useParams()
+  const { lang: locale } = useParams();
 
   useEffect(() => {
-    fetchSupportTickets()
-  }, [])
+    fetchSupportTickets();
+  }, []);
 
   // Fetch support tickets from the server
   useEffect(() => {
-    fetchSupportTickets()
-  }, [page, rowsPerPage, search, filter])
+    fetchSupportTickets();
+  }, [page, rowsPerPage, search, filter]);
 
   const fetchSupportTickets = async (currentPage = 1) => {
-    console.log('fetchSupportTickets', currentPage, rowsPerPage, search, filter)
+    console.log('fetchSupportTickets', currentPage, rowsPerPage, search, filter);
     try {
-      dispatch(callCommonAction({ loading: true }))
-      const response = await getSupportTicketList(currentPage, rowsPerPage, search, filter)
-      dispatch(callCommonAction({ loading: false }))
+      dispatch(callCommonAction({ loading: true }));
+      const response = await getSupportTicketList(currentPage, rowsPerPage, search, filter);
+      dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
         // Define mappings
         const ticketStatusObj = {
@@ -159,7 +161,7 @@ const SupportTicketListTable = () => {
           resolved: 'success',
           pending: 'warning',
           rejected: 'error'
-        }
+        };
 
         const statusTitles = {
           open: 'Open Tickets',
@@ -167,7 +169,7 @@ const SupportTicketListTable = () => {
           resolved: 'Resolved Tickets',
           pending: 'Pending Tickets',
           rejected: 'Rejected Tickets'
-        }
+        };
 
         const statusIcons = {
           open: 'ri-user-follow-line',
@@ -175,20 +177,20 @@ const SupportTicketListTable = () => {
           resolved: 'ri-checkbox-circle-line',
           pending: 'ri-time-line',
           rejected: 'ri-close-line'
-        }
+        };
 
         // Get response data
-        const totalDocs = response?.data?.totalDocs || 0
-        const statusSummary = response?.data?.statusSummary || {}
+        const totalDocs = response?.data?.totalDocs || 0;
+        const statusSummary = response?.data?.statusSummary || {};
 
         // Get percentage trend
         const getTrend = count => {
-          const percentage = totalDocs ? ((count / totalDocs) * 100).toFixed(2) : 0
+          const percentage = totalDocs ? ((count / totalDocs) * 100).toFixed(2) : 0;
           return {
             trendNumber: `${percentage}%`,
             trend: percentage >= 50 ? 'positive' : 'negative'
-          }
-        }
+          };
+        };
 
         // Build stats array dynamically
         const stats = [
@@ -201,20 +203,20 @@ const SupportTicketListTable = () => {
             trendNumber: '100%'
           },
           ...Object.keys(ticketStatusObj).map(key => {
-            const count = statusSummary[key] || 0
+            const count = statusSummary[key] || 0;
             return {
               title: statusTitles[key],
               stats: count.toString(),
               avatarIcon: statusIcons[key],
               avatarColor: ticketStatusObj[key],
               ...getTrend(count)
-            }
+            };
           })
-        ]
+        ];
 
-        setStatsData(stats)
+        setStatsData(stats);
 
-        console.log(response?.data?.docs, '.................................')
+        console.log(response?.data?.docs, '.................................');
 
         const formatted = response?.data?.docs?.map(ticket => ({
           id: ticket?._id,
@@ -229,63 +231,63 @@ const SupportTicketListTable = () => {
           avatar: '',
           username: ticket?.subject,
           supportticketmsgs: ticket?.supportticketmsgs
-        }))
+        }));
 
-        setPage(page)
-        setData(formatted)
-        setTotalRecords(response.data.totalDocs || 0)
+        setPage(page);
+        setData(formatted);
+        setTotalRecords(response.data.totalDocs || 0);
       }
     } catch (error) {
-      dispatch(callCommonAction({ loading: false }))
-      console.error('Failed to fetch team members', error)
+      dispatch(callCommonAction({ loading: false }));
+      console.error('Failed to fetch team members', error);
     }
-  }
+  };
 
   const refreshList = async () => {
-    await fetchSupportTickets()
-  }
+    await fetchSupportTickets();
+  };
 
   const deleteMethod = async valueInBoolean => {
     if (valueInBoolean) {
       try {
-        const response = await deleteSupportTicket(selectedId)
+        const response = await deleteSupportTicket(selectedId);
         if (response?.statusCode === 200) {
-          toast.success(response?.message)
-          refreshList()
+          toast.success(response?.message);
+          refreshList();
         }
       } catch (error) {
-        setOpenConfirmation(false) // Close the dialog on error as well
+        setOpenConfirmation(false); // Close the dialog on error as well
       }
     }
-  }
+  };
 
-  const handleChangePage = (event, newPage) => setPage(newPage)
+  const handleChangePage = (event, newPage) => setPage(newPage);
 
   const handleChangeRowsPerPage = event => {
-    table.setPageSize(parseInt(event.target.value))
-    setRowsPerPage(parseInt(event.target.value))
-    setPage(0)
-  }
+    table.setPageSize(parseInt(event.target.value));
+    setRowsPerPage(parseInt(event.target.value));
+    setPage(0);
+  };
 
   const handleDeleteConfirmation = id => {
-    setSelectedId(id)
-    setOpenConfirmation(true)
-  }
+    setSelectedId(id);
+    setOpenConfirmation(true);
+  };
 
   // Handle Edit (open AddUserDrawer with current data)
   const handleEdit = id => {
-    const selectedData = data.find(result => result.id === id)
-    console.log(selectedData, 'selectedDataselectedDataselectedData')
-    setEditData(selectedData)
-    setAddSupportTicketOpen(true)
-  }
+    const selectedData = data.find(result => result.id === id);
+    console.log(selectedData, 'selectedDataselectedDataselectedData');
+    setEditData(selectedData);
+    setAddSupportTicketOpen(true);
+  };
 
   const columns = useMemo(
     () => [
       columnHelper.accessor('subject', {
         header: 'Subject',
         cell: ({ row }) => (
-          <div className='flex items-center gap-4'>
+          <div onClick={() => router.push(getLocalizedUrl(`/admin/support-tickets/view/${row.original.id}`, locale))} className='flex cursor-pointer items-center gap-4'>
             {getAvatar({ avatar: row?.original?.avatar, subject: row?.original?.subject })}
             <div className='flex flex-col'>
               <Typography className='font-medium' color='text.primary'>
@@ -307,8 +309,8 @@ const SupportTicketListTable = () => {
       columnHelper.accessor('supportticketmsgs', {
         header: 'Document',
         cell: ({ row }) => {
-          const filePath = row?.original?.supportticketmsgs?.filePath
-          const fullImageUrl = `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${filePath}`
+          const filePath = row?.original?.supportticketmsgs?.filePath;
+          const fullImageUrl = `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${filePath}`;
 
           return (
             <Box>
@@ -328,7 +330,7 @@ const SupportTicketListTable = () => {
                 </Typography>
               )}
             </Box>
-          )
+          );
         }
       }),
 
@@ -357,7 +359,7 @@ const SupportTicketListTable = () => {
               <i className='ri-delete-bin-7-line text-textSecondary' />
             </IconButton>
             <IconButton>
-              <Link href={getLocalizedUrl('/apps/user/view', locale)} className='flex'>
+              <Link href={getLocalizedUrl(`/admin/support-tickets/view/${row.original.id}`, locale)} className='flex'>
                 <i className='ri-eye-line text-textSecondary' />
               </Link>
             </IconButton>
@@ -368,7 +370,7 @@ const SupportTicketListTable = () => {
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data]
-  )
+  );
 
   const table = useReactTable({
     data: data,
@@ -397,21 +399,21 @@ const SupportTicketListTable = () => {
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues()
-  })
+  });
 
   const getAvatar = params => {
-    const { avatar, fullName } = params
+    const { avatar, fullName } = params;
 
     if (avatar) {
-      return <CustomAvatar src={avatar} skin='light' size={34} />
+      return <CustomAvatar src={avatar} skin='light' size={34} />;
     } else {
       return (
         <CustomAvatar skin='light' size={34}>
           {getInitials(fullName)}
         </CustomAvatar>
-      )
+      );
     }
-  }
+  };
 
   return (
     <Grid container spacing={6}>
@@ -424,7 +426,7 @@ const SupportTicketListTable = () => {
           <TableFilters setFilter={setFilter} filter={filter} />
           <Divider />
           <div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
-           <div></div>
+            <div></div>
             <div className='flex items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
               <DebouncedInput
                 value={search ?? ''}
@@ -490,7 +492,7 @@ const SupportTicketListTable = () => {
                             <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                           ))}
                         </tr>
-                      )
+                      );
                     })}
                 </tbody>
               )}
@@ -509,8 +511,8 @@ const SupportTicketListTable = () => {
         <AddSupportTicketDrawer
           open={addSupportTicketOpen}
           handleClose={() => {
-            setAddSupportTicketOpen(!addSupportTicketOpen)
-            setEditData(null)
+            setAddSupportTicketOpen(!addSupportTicketOpen);
+            setEditData(null);
           }}
           userData={data}
           setData={setData}
@@ -526,7 +528,7 @@ const SupportTicketListTable = () => {
         />
       </Grid>
     </Grid>
-  )
-}
+  );
+};
 
-export default SupportTicketListTable
+export default SupportTicketListTable;

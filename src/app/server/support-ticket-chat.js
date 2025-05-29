@@ -8,6 +8,10 @@ export const getChatMessageForTicket = async (id, currentPage, rowsPerPage, sear
     return await supportTicketChatServices.getByParamsIfUrlHasId(id, currentPage, rowsPerPage, searchTerm, filter);
 };
 
+export const getRawDataForChat = async () => {
+    return await supportTicketChatServices.getRawData();
+};
+
 /** SEND MESSAGE */
 export const sendChatMessage = async (data) => {
     return await supportTicketChatServices.create(data);

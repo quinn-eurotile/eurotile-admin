@@ -20,6 +20,7 @@ export const createApiService = (baseEndpoint, customMethods = {}) => {
 
     getByParamsIfUrlHasId: async (id, page = 1, limit = 10, searchString = "", filter = {}) => {
       console.log('getByParamsIfUrlHasId filter', filter);
+
       const queryParams = new URLSearchParams({
         page: page.toString(),
         limit: limit.toString(),
@@ -27,8 +28,12 @@ export const createApiService = (baseEndpoint, customMethods = {}) => {
         ...(searchString ? { search_string: searchString } : {}),
       }).toString();
 
-      return api.get(`${baseEndpoint}/${id}?${queryParams}`, {}, false);
+      // If `id` is present, append it to the URL path
+      const url = id ? `${baseEndpoint}/${id}?${queryParams}` : `${baseEndpoint}?${queryParams}`;
+
+      return api.get(url, {}, false);
     },
+
 
     // Get item by ID
     getById: async (id) => {

@@ -1,37 +1,38 @@
 // MUI Imports
-import Drawer from '@mui/material/Drawer'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import ListItemButton from '@mui/material/ListItemButton'
-import ListItemIcon from '@mui/material/ListItemIcon'
-import ListItemText from '@mui/material/ListItemText'
-import Button from '@mui/material/Button'
+import Drawer from '@mui/material/Drawer';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Button from '@mui/material/Button';
 
 // Third-party Imports
-import classnames from 'classnames'
-import PerfectScrollbar from 'react-perfect-scrollbar'
+import classnames from 'classnames';
+import PerfectScrollbar from 'react-perfect-scrollbar';
 
 // Component Imports
-import { statusObj } from './SidebarLeft'
-import AvatarWithBadge from './AvatarWithBadge'
+import { statusObj } from './SidebarLeft';
+import AvatarWithBadge from './AvatarWithBadge';
+import { Box } from '@mui/material';
 
 const ScrollWrapper = ({ children, isBelowLgScreen, className }) => {
   if (isBelowLgScreen) {
-    return <div className={classnames('bs-full overflow-x-hidden overflow-y-auto', className)}>{children}</div>
+    return <div className={classnames('bs-full overflow-x-hidden overflow-y-auto', className)}>{children}</div>;
   } else {
     return (
       <PerfectScrollbar options={{ wheelPropagation: false }} className={className}>
         {children}
       </PerfectScrollbar>
-    )
+    );
   }
-}
+};
 
 const UserProfileRight = props => {
   // Props
-  const { open, handleClose, activeUser, isBelowLgScreen, isBelowSmScreen } = props
+  const { open, handleClose, activeUser, isBelowLgScreen, isBelowSmScreen } = props;
 
   return activeUser ? (
     <Drawer
@@ -63,6 +64,9 @@ const UserProfileRight = props => {
       </div>
 
       <ScrollWrapper isBelowLgScreen={isBelowLgScreen} className='flex flex-col gap-6 p-5'>
+
+
+
         <div className='flex flex-col gap-1'>
           <Typography className='uppercase' color='text.disabled'>
             About
@@ -143,8 +147,8 @@ const UserProfileRight = props => {
           Delete Contact
         </Button>
       </ScrollWrapper>
-    </Drawer>
-  ) : null
-}
+    </Drawer >
+  ) : null;
+};
 
-export default UserProfileRight
+export default UserProfileRight;

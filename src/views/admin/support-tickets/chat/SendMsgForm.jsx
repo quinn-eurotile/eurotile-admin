@@ -117,9 +117,9 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
               >
                 <i className='ri-emotion-happy-line text-textPrimary' />
               </MenuItem>
-              <MenuItem onClick={handleClose} className='justify-center'>
+              {/* <MenuItem onClick={handleClose} className='justify-center'>
                 <i className='ri-mic-line text-textPrimary' />
-              </MenuItem>
+              </MenuItem> */}
               <MenuItem onClick={handleClose} className='p-0'>
                 <label htmlFor='upload-img' className='plb-2 pli-5'>
                   <i className='ri-attachment-2 text-textPrimary' />
@@ -159,9 +159,9 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
                 }
               }}
             />
-            <IconButton size='small'>
+            {/* <IconButton size='small'>
               <i className='ri-mic-line text-textPrimary' />
-            </IconButton>
+            </IconButton> */}
             <IconButton size='small' component='label' htmlFor='upload-img'>
               <i className='ri-attachment-2 text-textPrimary' />
               <input hidden type='file' id='upload-img' />
