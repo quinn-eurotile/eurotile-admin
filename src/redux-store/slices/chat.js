@@ -43,7 +43,9 @@ export const chatSlice = createSlice({
     },
     addNewChat: (state, action) => {
       const { id } = action.payload;
-
+      console.log(action.payload, 'action.payload');
+      console.log(state.chats, 'state.chats');
+      console.log(state.contacts, 'state.contacts');
       state.contacts.find(contact => {
         if (contact.id === id && !state.chats.find(chat => chat.userId === contact.id)) {
           state.chats.unshift({
