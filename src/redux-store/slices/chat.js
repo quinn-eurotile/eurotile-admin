@@ -30,22 +30,15 @@ export const chatSlice = createSlice({
 
       const activeUser = state.contacts.find(user => user.id === action.payload);
       const chat = state.chats.find(chat => chat.userId === action.payload);
-      // console.log(action.payload, 'action.payload');
-      // console.log(state.chats, 'state.chats');
-
       if (chat && chat.unseenMsgs > 0) {
         chat.unseenMsgs = 0;
       }
-
       if (activeUser) {
         state.activeUser = activeUser;
       }
     },
     addNewChat: (state, action) => {
       const { id } = action.payload;
-      console.log(action.payload, 'action.payload');
-      console.log(state.chats, 'state.chats');
-      console.log(state.contacts, 'state.contacts');
       state.contacts.find(contact => {
         if (contact.id === id && !state.chats.find(chat => chat.userId === contact.id)) {
           state.chats.unshift({
@@ -64,23 +57,27 @@ export const chatSlice = createSlice({
       };
     },
     sendMsg: (state, action) => {
-      const { msg } = action.payload;
+      const { data } = action.payload;
       const existingChat = state.chats.find(chat => chat.userId === state.activeUser?.id);
-      console.log(existingChat, 'existingChat');
-      console.log(state.profileUser, 'state.profileUser');
-      console.log(state.activeUser?.id, 'state.activeUser?.id');
 
       if (existingChat) {
         existingChat.chat.push({
-          message: msg,
+          message: data.message,
           time: new Date(),
-          senderId: state.profileUser.id,
+          senderId: data.sender,
           msgStatus: {
             isSent: true,
             isDelivered: false,
             isSeen: false
           }
         });
+
+        // Increment unseenMsgs
+    // if (typeof existingChat.unseenMsgs === 'number') {
+    //   existingChat.unseenMsgs += 1;
+    // } else {
+    //   existingChat.unseenMsgs = 1;
+    // }
 
         // Remove the chat from its current position
         state.chats = state.chats.filter(chat => chat.userId !== state.activeUser?.id);
