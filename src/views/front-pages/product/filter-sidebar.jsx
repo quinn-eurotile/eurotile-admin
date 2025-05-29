@@ -9,6 +9,14 @@ import Button from '@mui/material/Button'
 import { FormControlLabel, FormGroup, Slider } from "@mui/material"
 import CustomCheckboxLabel from "./cstm-checkbox"
 /* import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@mui/material/sheet" */
+import {
+  Drawer,
+  Typography,
+  IconButton,
+  Box,
+  Divider,
+} from '@mui/material';
+
 
 const FilterSection = ({ title, children }) => {
   const [isOpen, setIsOpen] = useState(true)
@@ -100,14 +108,37 @@ export default function FilterSidebar({ isMobile = false, isOpen = false, onClos
 
   if (isMobile) {
     return (
-      <Sheet open={isOpen} onOpenChange={onClose}>
+      <>
+      <Drawer
+      anchor="left"
+      open={isOpen}
+      onClose={onClose}
+      sx={{
+        '& .MuiDrawer-paper': {
+          width: { xs: 300, sm: 350 },
+        },
+      }}
+    >
+      <Box sx={{ p: 3 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6">Filters</Typography>
+          <IconButton onClick={onClose}>
+            <i class="ri-close-line"></i> 
+          </IconButton>
+        </Box>
+        <Divider sx={{ my: 2 }} />
+        <Box sx={{ overflowY: 'auto' }}>{filterContent}</Box>
+      </Box>
+    </Drawer>
+      {/* <Sheet open={isOpen} onOpenChange={onClose}>
         <SheetContent side="left" className="w-[300px] sm:w-[350px] overflow-y-auto">
           <SheetHeader className="text-left">
             <SheetTitle>Filters</SheetTitle>
           </SheetHeader>
           <div className="mt-6">{filterContent}</div>
         </SheetContent>
-      </Sheet>
+      </Sheet> */}
+      </>
     )
   }
 
