@@ -1,63 +1,63 @@
 
 //MUI Imports
-import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
-import CardContent from '@mui/material/CardContent'
-import Typography from '@mui/material/Typography'
-import Grid from '@mui/material/Grid2'
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid2';
 
 // Components Imports
-import OptionMenu from '@core/components/option-menu'
-import CustomAvatar from '@core/components/mui/Avatar'
+import OptionMenu from '@core/components/option-menu';
+import CustomAvatar from '@core/components/mui/Avatar';
 
 
 
-const Orders = ({statusSummary}) => {
+const Orders = ({ statusSummary }) => {
 
-  console.log('statusSummary',statusSummary)
+  console.log('statusSummary', statusSummary);
   // Define label metadata
-const statusArray = [
-  {
-    key: 'pending',
-    title: 'Pending',
-    color: 'warning',
-    icon: 'ri-time-line'
-  },
-  {
-    key: 'processing',
-    title: 'Processing',
-    color: 'info',
-    icon: 'ri-settings-3-line'
-  },
-  {
-    key: 'shipped',
-    title: 'Shipped',
-    color: 'primary',
-    icon: 'ri-truck-line'
-  },
-  {
-    key: 'delivered',
-    title: 'Delivered',
-    color: 'success',
-    icon: 'ri-check-double-line'
-  },
-  {
-    key: 'cancelled',
-    title: 'Cancelled',
-    color: 'error',
-    icon: 'ri-close-circle-line'
-  }
-];
+  const statusArray = [
+    {
+      key: 'pending',
+      title: 'Pending',
+      color: 'warning',
+      icon: 'ri-time-line'
+    },
+    {
+      key: 'processing',
+      title: 'Processing',
+      color: 'info',
+      icon: 'ri-settings-3-line'
+    },
+    {
+      key: 'shipped',
+      title: 'Shipped',
+      color: 'primary',
+      icon: 'ri-truck-line'
+    },
+    {
+      key: 'delivered',
+      title: 'Delivered',
+      color: 'success',
+      icon: 'ri-check-double-line'
+    },
+    {
+      key: 'cancelled',
+      title: 'Cancelled',
+      color: 'error',
+      icon: 'ri-close-circle-line'
+    }
+  ];
 
 
-const formattedStatusArray = statusArray?.map(item => ({
-  stats: `${(statusSummary?.[item.key] ?? 0)}`,
-  title: item.title,
-  color: item.color,
-  icon: item.icon
-}));
+  const formattedStatusArray = statusArray?.map(item => ({
+    stats: `${(statusSummary?.[item.key] ?? 0)}`,
+    title: item.title,
+    color: item.color,
+    icon: item.icon
+  }));
 
-// Merge status count into metadata
+  // Merge status count into metadata
 
   return (
     <Card className='bs-full'>
@@ -84,7 +84,7 @@ const formattedStatusArray = statusArray?.map(item => ({
         </Grid>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default Orders
+export default Orders;

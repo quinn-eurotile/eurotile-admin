@@ -55,24 +55,11 @@ import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import SupportTicketListCards from './SupportTicketListCards';
 import Image from 'next/image';
-import { Box } from '@mui/material';
+import { Box, Tooltip } from '@mui/material';
 import { useParams, useRouter } from 'next/navigation';
 
 // Styled Components
 const Icon = styled('i')({});
-
-const fuzzyFilter = (row, columnId, value, addMeta) => {
-  // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value);
-
-  // Store the itemRank info
-  addMeta({
-    itemRank
-  });
-
-  // Return if the item should be filtered in/out
-  return itemRank.passed;
-};
 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
   // States
@@ -219,7 +206,8 @@ const SupportTicketListTable = () => {
           subject: ticket?.subject,
           message: ticket?.message,
           status: ticket?.status,
-          sender: ticket?.sender,
+          sender_roles: ticket?.sender_roles?.map((el) => el?.name).join(', ') || 'Unknown',
+          sender_name: ticket?.sender_detail?.map((el) => el?.name).join(', ') || '',
           order: ticket?.order,
           createdAt: ticket?.createdAt,
           updatedAt: ticket?.updatedAt,
@@ -303,30 +291,63 @@ const SupportTicketListTable = () => {
           </Typography>
         )
       }),
+      columnHelper.accessor('sender_detail', {
+        header: 'Customer Name',
+        cell: ({ row }) => (
+          //console.log('row.originalrow.original', row)
+
+          < Typography className='capitalize' color='text.primary' >
+            {row.original?.sender_name}
+          </Typography >
+        )
+      }),
+      columnHelper.accessor('sender_role', {
+        header: 'Customer Type',
+        cell: ({ row }) => (
+          <Typography className='capitalize' color='text.primary'>
+            {row.original?.sender_roles}
+          </Typography>
+        )
+      }),
       columnHelper.accessor('supportticketmsgs', {
         header: 'Document',
         cell: ({ row }) => {
           const filePath = row?.original?.supportticketmsgs?.filePath;
-          const fullImageUrl = `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${filePath}`;
+          const fileType = row?.original?.supportticketmsgs?.fileType;
+          const fileURL = `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${filePath}`;
 
           return (
             <Box>
-              {filePath ? (
-                <a href={fullImageUrl} target='_blank' rel='noopener noreferrer'>
-                  <Image
-                    src={fullImageUrl}
-                    width={38}
-                    height={38}
-                    alt='Support Ticket Attachment'
-                    style={{ borderRadius: 4, objectFit: 'cover', cursor: 'pointer' }}
-                  />
-                </a>
-              ) : (
-                <Typography variant='body2' color='text.secondary'>
-                  No Image
-                </Typography>
-              )}
-            </Box>
+              {filePath ?
+                fileType === 'image' ? (
+                  <Tooltip title="View Doc">
+                    <a href={fileURL} target='_blank' rel='noopener noreferrer'>
+                      <Image
+                        src={'/images/icons/image.png'}
+                        width={24}
+                        height={24}
+                        alt='Support Ticket Attachment'
+                        style={{ borderRadius: 4, objectFit: 'cover', cursor: 'pointer' }}
+                      />
+                    </a>
+                  </Tooltip>
+                ) : (
+                  <Tooltip title="View Doc">
+                    <a href={fileURL} target='_blank' rel='noopener noreferrer' >
+                      <Image
+                        src="/images/icons/black-pdf.png"
+                        width={24}
+                        height={24}
+                        alt='Support Ticket Attachment'
+                        style={{ borderRadius: 4, objectFit: 'cover', cursor: 'pointer' }}
+                      />
+                    </a>
+                  </Tooltip>
+                )
+                : (
+                  null
+                )}
+            </Box >
           );
         }
       }),
