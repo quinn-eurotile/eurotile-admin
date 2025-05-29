@@ -18,6 +18,7 @@ import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import { styled } from '@mui/material/styles';
 import TablePagination from '@mui/material/TablePagination';
+import usePermission from '../../../../components/common/usePermission';
 
 // Third-party Imports
 import classnames from 'classnames';
@@ -121,6 +122,11 @@ const SupportTicketListTable = () => {
   const [statsData, setStatsData] = useState(null);
   const [editData, setEditData] = useState(null);
   const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
+
+  const canAddSupportTicket = usePermission("create-support-ticket");
+  const canUpdateSupportTicket = usePermission("update-support-ticket");
+  const canDeleteSupportTicket = usePermission("delete-support-ticket");
+  const canViewSupportTicket = usePermission("view-support-ticket");
 
   // Hooks
   const { lang: locale } = useParams();
@@ -370,17 +376,23 @@ const SupportTicketListTable = () => {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
-            <IconButton onClick={() => handleEdit(row.original.id)}>
-              <i className='ri-edit-line text-textSecondary' />
-            </IconButton>
-            <IconButton onClick={() => handleDeleteConfirmation(row.original.id)}>
-              <i className='ri-delete-bin-7-line text-textSecondary' />
-            </IconButton>
-            <IconButton>
-              <Link href={getLocalizedUrl(`/admin/support-tickets/view/${row.original.id}`, locale)} className='flex'>
-                <i className='ri-eye-line text-textSecondary' />
-              </Link>
-            </IconButton>
+            {canUpdateSupportTicket &&
+                <IconButton onClick={() => handleEdit(row.original.id)}>
+                  <i className='ri-edit-line text-textSecondary' />
+                </IconButton>
+            }
+            {canDeleteSupportTicket &&
+                <IconButton onClick={() => handleDeleteConfirmation(row.original.id)}>
+                  <i className='ri-delete-bin-7-line text-textSecondary' />
+                </IconButton>
+            }
+            {canViewSupportTicket &&
+                <IconButton>
+                  <Link href={getLocalizedUrl(`/admin/support-tickets/view/${row.original.id}`, locale)} className='flex'>
+                    <i className='ri-eye-line text-textSecondary' />
+                  </Link>
+                </IconButton>
+            }
           </div>
         ),
         enableSorting: false
@@ -434,13 +446,15 @@ const SupportTicketListTable = () => {
                 placeholder='Search Ticket'
                 className='max-sm:is-full'
               />
-              <Button
-                variant='contained'
-                onClick={() => setAddSupportTicketOpen(!addSupportTicketOpen)}
-                className='max-sm:is-full'
-              >
-                Add Ticket
-              </Button>
+              {canAddSupportTicket &&
+                <Button
+                  variant='contained'
+                  onClick={() => setAddSupportTicketOpen(!addSupportTicketOpen)}
+                  className='max-sm:is-full'
+                >
+                  Add Ticket
+                </Button>
+              }
             </div>
           </div>
           <div className='overflow-x-auto'>

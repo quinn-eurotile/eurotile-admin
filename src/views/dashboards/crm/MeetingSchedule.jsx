@@ -8,60 +8,92 @@ import Typography from '@mui/material/Typography'
 // Components Imports
 import OptionMenu from '@core/components/option-menu'
 import CustomAvatar from '@core/components/mui/Avatar'
+import { Button } from '@mui/material';
 
 // Vars
 const data = [
   {
-    avatarSrc: '/images/avatars/4.png',
-    title: 'Call with Woods',
+    promotionID : 'PROMO001',
+    avatarSrc: '/images/promotions/summer_sale_promotion.png',
+    title: 'Summer Sale',
     subtitle: '21 Jul | 08:20-10:30',
     chipLabel: 'Business',
-    chipColor: 'primary'
+    chipColor: 'primary',
+    startDate : 'May 28th 2025',
+    endDate : 'Oct 28th 2025',
+    type : 'Flat'
   },
   {
-    avatarSrc: '/images/avatars/8.png',
-    title: 'Call with Hilda',
+    promotionID : 'PROMO002',
+    avatarSrc: '/images/promotions/trade_pro_promotion.png',
+    title: 'Trade Pro Special',
     subtitle: '24 Jul | 11:30-12:00',
     chipLabel: 'Meditation',
-    chipColor: 'success'
+    chipColor: 'success',
+    startDate : 'May 28th 2025',
+    endDate : 'Oct 28th 2025',
+    type : 'Percentage'
   },
   {
-    avatarSrc: '/images/avatars/5.png',
-    title: 'Conference call',
+    promotionID : 'PROMO003',
+    avatarSrc: '/images/promotions/flash_deal_friday.png',
+    title: 'Flash Deal Friday',
     subtitle: '28 Jul | 05:00-6:45',
     chipLabel: 'Dinner',
-    chipColor: 'warning'
+    chipColor: 'primary',
+    startDate : 'May 28th 2025',
+    endDate : 'Oct 28th 2025',
+    type : 'Flat'
   },
   {
-    avatarSrc: '/images/avatars/3.png',
-    title: 'Meeting with Mark',
+    promotionID : 'PROMO004',
+    avatarSrc: '/images/promotions/clearance_bonanza.jpg',
+    title: 'Clearance Bonanza',
     subtitle: '03 Aug | 07:00-8:30',
     chipLabel: 'Meetup',
-    chipColor: 'secondary'
+    chipColor: 'success',
+    startDate : 'May 28th 2025',
+    endDate : 'Oct 28th 2025',
+    type : 'Percentage'
   },
   {
-    avatarSrc: '/images/avatars/2.png',
-    title: 'Meeting in Oakland',
+    promotionID : 'PROMO005',
+    avatarSrc: '/images/promotions/welcome_offer.png',
+    title: 'Welcome Offer',
     subtitle: '14 Aug | 04:15-05:30',
     chipLabel: 'Dinner',
-    chipColor: 'error'
+    chipColor: 'primary',
+    startDate : 'May 28th 2025',
+    endDate : 'Oct 28th 2025',
+    type : 'Flat'
   },
   {
-    avatarSrc: '/images/avatars/1.png',
-    title: 'Meeting with Carl',
+    promotionID : 'PROMO006',
+    avatarSrc: '/images/promotions/category_fest.jpg',
+    title: 'Category Fest',
     subtitle: '05 Oct | 10:00-12:45',
     chipLabel: 'Business',
-    chipColor: 'primary'
+    chipColor: 'success',
+    startDate : 'May 28th 2025',
+    endDate : 'Oct 28th 2025',
+    type : 'Percentage'
   }
 ]
 
 const MeetingSchedule = () => {
   return (
     <Card>
-      <CardHeader
-        title='Meeting Schedule'
+      {/* <CardHeader
+        title='Promotions'
         action={<OptionMenu iconClassName='text-textPrimary' options={['Last 28 Days', 'Last Month', 'Last Year']} />}
-      ></CardHeader>
+      ></CardHeader> */}
+<div className='flex p-4 justify-between items-center'>
+  <h3>Promotions</h3>
+      <Button size='small' variant='contained'>
+          View All
+        </Button>
+        </div>
+
       <CardContent className='flex flex-col gap-[1.71rem]'>
         {data.map((item, index) => (
           <div key={index} className='flex items-center gap-3'>
@@ -74,10 +106,10 @@ const MeetingSchedule = () => {
                 </Typography>
                 <div className='flex items-center gap-2'>
                   <i className='ri-calendar-line text-base text-textSecondary' />
-                  <Typography variant='body2'>{item.subtitle}</Typography>
+                  <Typography variant='body2'>{item.startDate} | {item.endDate}</Typography>
                 </div>
               </div>
-              <Chip label={item.chipLabel} color={item.chipColor} size='small' variant='tonal' />
+              <Chip label={item.type} color={item.chipColor} size='small' variant='tonal' />
             </div>
           </div>
         ))}

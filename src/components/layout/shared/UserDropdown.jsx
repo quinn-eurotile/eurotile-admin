@@ -1,33 +1,33 @@
-'use client';
+'use client'
 
 // React Imports
-import { useRef, useState } from 'react';
+import { useRef, useState } from 'react'
 
 // Next Imports
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation'
 
 // MUI Imports
-import { styled } from '@mui/material/styles';
-import Badge from '@mui/material/Badge';
-import Avatar from '@mui/material/Avatar';
-import Popper from '@mui/material/Popper';
-import Fade from '@mui/material/Fade';
-import Paper from '@mui/material/Paper';
-import ClickAwayListener from '@mui/material/ClickAwayListener';
-import MenuList from '@mui/material/MenuList';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
-import MenuItem from '@mui/material/MenuItem';
-import Button from '@mui/material/Button';
+import { styled } from '@mui/material/styles'
+import Badge from '@mui/material/Badge'
+import Avatar from '@mui/material/Avatar'
+import Popper from '@mui/material/Popper'
+import Fade from '@mui/material/Fade'
+import Paper from '@mui/material/Paper'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
+import MenuList from '@mui/material/MenuList'
+import Typography from '@mui/material/Typography'
+import Divider from '@mui/material/Divider'
+import MenuItem from '@mui/material/MenuItem'
+import Button from '@mui/material/Button'
 
 // Third-party Imports
-import { signOut, useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react'
 
 // Hook Imports
-import { useSettings } from '@core/hooks/useSettings';
+import { useSettings } from '@core/hooks/useSettings'
 
 // Util Imports
-import { getLocalizedUrl } from '@/utils/i18n';
+import { getLocalizedUrl } from '@/utils/i18n'
 
 // Styled component for badge content
 const BadgeContentSpan = styled('span')({
@@ -37,53 +37,57 @@ const BadgeContentSpan = styled('span')({
   cursor: 'pointer',
   backgroundColor: 'var(--mui-palette-success-main)',
   boxShadow: '0 0 0 2px var(--mui-palette-background-paper)'
-});
+})
 
 const UserDropdown = () => {
   // States
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
   // Refs
-  const anchorRef = useRef(null);
+  const anchorRef = useRef(null)
 
   // Hooks
-  const router = useRouter();
-  const { data: session } = useSession();
-  const { settings } = useSettings();
-  const { lang: locale } = useParams();
-
-
+  const router = useRouter()
+  const { data: session } = useSession()
+  const { settings } = useSettings()
+  const { lang: locale } = useParams()
 
   const handleDropdownOpen = () => {
-    !open ? setOpen(true) : setOpen(false);
-  };
+    !open ? setOpen(true) : setOpen(false)
+  }
 
   const handleDropdownClose = (event, url) => {
     if (url) {
-      router.push(getLocalizedUrl(url, locale));
+      router.push(getLocalizedUrl(url, locale))
     }
 
     if (anchorRef.current && anchorRef.current.contains(event?.target)) {
-      return;
+      return
     }
 
-    setOpen(false);
-  };
+    setOpen(false)
+  }
 
   const handleUserLogout = async () => {
     try {
       // Sign out from the app
-      await signOut({ callbackUrl: getLocalizedUrl('/login', locale) });
+      await signOut({ callbackUrl: getLocalizedUrl('/login', locale) })
     } catch (error) {
-      console.error(error);
+      console.error(error)
 
       // Show above error in a toast like following
       // toastService.error((err as Error).message)
     }
-  };
+  }
 
   return (
     <>
+<div className='flex items-center gap-2'>
+     <Typography className='cursor-pointer hover:text-red-800' onClick={() => {
+            router.push('/admin/support-tickets/view')
+          }} >
+            <i class="ri-message-2-line mt-2"></i>
+          </Typography>
       <Badge
         ref={anchorRef}
         overlap='circular'
@@ -99,6 +103,7 @@ const UserDropdown = () => {
           className='cursor-pointer bs-[38px] is-[38px]'
         />
       </Badge>
+      </div>
       <Popper
         open={open}
         transition
@@ -127,13 +132,15 @@ const UserDropdown = () => {
                     </div>
                   </div>
                   <Divider className='mlb-1' />
-                  <MenuItem className='gap-3' onClick={() => {
-                    const roleId = session?.user?.roles?.[0]?._id
-                    const route = roleId === '6819ce06bb8f30e6c73eba48'
-                      ? '/trade-professional/profile'
-                      : '/pages/user-profile'
-                    router.push(route)
-                  }}>
+                  <MenuItem
+                    className='gap-3'
+                    onClick={() => {
+                      const roleId = session?.user?.roles?.[0]?._id
+                      const route =
+                        roleId === '6819ce06bb8f30e6c73eba48' ? '/trade-professional/profile' : '/pages/user-profile'
+                      router.push(route)
+                    }}
+                  >
                     <i className='ri-user-3-line' />
                     <Typography color='text.primary'>My Profile</Typography>
                   </MenuItem>
@@ -169,7 +176,7 @@ const UserDropdown = () => {
         )}
       </Popper>
     </>
-  );
-};
+  )
+}
 
-export default UserDropdown;
+export default UserDropdown

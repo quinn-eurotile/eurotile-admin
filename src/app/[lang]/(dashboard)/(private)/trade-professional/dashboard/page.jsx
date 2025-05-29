@@ -16,7 +16,9 @@ import Profile from '@/views/trade-professional/dashboard/Profile';
 import { fetchDashboardData } from '@/app/server/trade-professional';
 import { CircularProgress } from '@mui/material';
 import OrderListTable from '@/views/trade-professional/dashboard/OrderListTable';
+import Promotions from '@/views/dashboards/crm/MeetingSchedule';
 import { getEcommerceData } from '@/app/server/actions';
+
 
 export const getDashboardData = async() => {
     const data = await fetchDashboardData();
@@ -34,8 +36,12 @@ const DashboardAnalytics = async() => {
       <Grid size={{ xs: 12, md: 8, lg: 8 }}>
         <Orders statusSummary={dashboardData?.data?.statusSummary} />
       </Grid>
-      <Grid size={{ xs: 12, md: 6, lg: 8 }}>
+      <Grid size={{ xs: 12, md: 6, lg: 7 }}>
       <OrderListTable  />
+      </Grid>
+
+      <Grid size={{ xs: 12, md: 4, lg: 5 }}>
+      <Promotions  />
       </Grid>
     </Grid>
   )

@@ -25,16 +25,16 @@ const Orders = ({ statusSummary }) => {
     },
     {
       key: 'processing',
-      title: 'Processing',
+      title: 'Process',
       color: 'info',
       icon: 'ri-settings-3-line'
     },
-    {
-      key: 'shipped',
-      title: 'Shipped',
-      color: 'primary',
-      icon: 'ri-truck-line'
-    },
+    // {
+    //   key: 'shipped',
+    //   title: 'Shipped',
+    //   color: 'primary',
+    //   icon: 'ri-truck-line'
+    // },
     {
       key: 'delivered',
       title: 'Delivered',
@@ -62,11 +62,11 @@ const Orders = ({ statusSummary }) => {
   return (
     <Card className='bs-full'>
       <CardHeader
-        title='Order Stats'
-        action={<OptionMenu iconClassName='text-textPrimary' options={[]} />}
+        title='Order Summary'
+      //action={<OptionMenu iconClassName='text-textPrimary' options={[]} />}
 
       />
-      <CardContent className='!pbs-5'>
+      <CardContent>
         <Grid container spacing={2}>
           {formattedStatusArray?.map((item, index) => (
             <Grid size={{ xs: 6, md: 3 }} key={index}>
@@ -75,7 +75,7 @@ const Orders = ({ statusSummary }) => {
                   <i className={item.icon}></i>
                 </CustomAvatar>
                 <div>
-                  <Typography>{item.title}</Typography>
+                  <Typography className='leading-4'>{item.title}</Typography>
                   <Typography variant='h5'>{item.stats}</Typography>
                 </div>
               </div>

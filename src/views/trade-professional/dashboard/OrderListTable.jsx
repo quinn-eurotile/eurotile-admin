@@ -102,18 +102,20 @@ const OrderListTable = ({ orderData }) => {
 
       if (response.statusCode === 200 && response.data) {
         const formatted = response.data.docs.map(order => ({
-          id: order._id,
-          orderNumber: order.orderNumber,
-          createdAt: order.createdAt,
-          orderStatus: order.orderStatus,
-          paymentStatus: order.paymentStatus,
-          sender: order.sender,
-          order: order.order,
-          updatedAt: order.updatedAt,
-          avatar: order.createdByDetails?.userImage,
-          username: order.createdByDetails?.name,
-          email: order.createdByDetails?.email,
-          supportticketmsgs: order.supportticketmsgs
+          id: order?._id,
+          orderNumber: order?.orderNumber,
+          createdAt: order?.createdAt,
+          orderStatus: order?.orderStatus,
+          commission: order?.commission,
+          paymentStatus: order?.paymentStatus,
+          sender: order?.sender,
+          totalAmount: order?.totalAmount,
+          order: order?.order,
+          updatedAt: order?.updatedAt,
+          avatar: order?.createdByDetails?.userImage,
+          username: order?.createdByDetails?.name,
+          email: order?.createdByDetails?.email,
+          supportticketmsgs: order?.supportticketmsgs
         }))
         setData(formatted)
         setTotalRecords(response.data.totalDocs || 0)
@@ -170,6 +172,14 @@ const OrderListTable = ({ orderData }) => {
             </div>
           </div>
         )
+      }),
+       columnHelper.accessor('totalAmount', {
+        header: 'Amount',
+        cell: ({ row }) => <Typography>€{parseFloat(row.original?.totalAmount).toFixed(2)}</Typography>
+      }),
+      columnHelper.accessor('commission', {
+        header: 'Commission',
+        cell: ({ row }) => <Typography>€{parseFloat(row.original?.commission).toFixed(2)}</Typography>
       }),
       columnHelper.accessor('paymentStatus', {
         header: 'Payment',
