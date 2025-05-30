@@ -78,7 +78,6 @@ import Button from '@mui/material/Button'
 // ]
 
 export default function ProductGrid({products}) {
-  console.log(products,'productsproductsproductsproducts')
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {products?.map((product) => (
@@ -96,7 +95,7 @@ export default function ProductGrid({products}) {
           <div className="text-center">
             <Link href={`/products/${product.slug}`} className="block">
               <h3 className="font-normal text-16">{product.name}</h3>
-              <p className="text-red-800 my-1">£{parseFloat(product.price).toFixed(2)}</p>
+              <p className="text-red-800 my-1">£{product.price ? parseFloat(product.price).toFixed(2) : '200 - £500'}</p>
             </Link>
             <div className="flex justify-center items-center gap-1 my-2">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -106,14 +105,14 @@ export default function ProductGrid({products}) {
                 />
               ))}
             </div>
-            <div className="flex mt-4 mb-4 justify-center gap-3">
+            {/* <div className="flex mt-4 mb-4 justify-center gap-3">
               <Link href={``} className="hover:no-underline text-sm text-redText underline flex gap-1 hover:text-darkGrey">
 
                 <i className="ri-box-3-line text-xl"></i>  Add Sample</Link>
               <Link href={``} className="text-sm hover:no-underline text-redText underline flex gap-1 hover:text-darkGrey">
                 <i className="ri-discount-percent-line text-xl"></i>  Bulk Discounts</Link>
-            </div>
-            <Button variant='outlined' className="capitalize border-red-800 !rounded-[4px] text-darkGrey hover:bg-darkGrey hover:text-white hover:border-darkGrey font-montserrat">Add To Cart <i className="ri-shopping-cart-line ms-2 text-16"></i></Button>
+            </div> */}
+            {/* <Button variant='outlined' className="capitalize border-red-800 !rounded-[4px] text-darkGrey hover:bg-darkGrey hover:text-white hover:border-darkGrey font-montserrat">Add To Cart <i className="ri-shopping-cart-line ms-2 text-16"></i></Button> */}
 
           </div>
         </div>

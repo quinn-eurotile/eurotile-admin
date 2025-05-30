@@ -24,14 +24,12 @@ export default function ProductsPage() {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [totalRecords, setTotalRecords] = useState(0)
-  const [search, setSearch] = useState('')
   const [filter, setFilter] = useState({
-    search_string:'',
+    search_string: '',
     category: [],
-    subcategory: [],
     suppliers: [],
     price: [10, 10000],
-    attributes: {} // { color: ['red', 'blue'], size: ['M'] }
+    attributeVariations: {} // { color: ['red', 'blue'], size: ['M'] }
   })
   const [filterOpen, setFilterOpen] = useState(false)
   //const dispatch = useDispatch()
@@ -39,7 +37,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchProductList(page + 1, rowsPerPage)
-  }, [page, rowsPerPage, search, filter])
+  }, [page, rowsPerPage, filter?.search_string, filter])
 
   const fetchFilterData = async () => {
     const response = await getProductRawData()
@@ -55,7 +53,7 @@ export default function ProductsPage() {
   const fetchProductList = async (currentPage = 1, pageSize = rowsPerPage) => {
     try {
       //dispatch(callCommonAction({ loading: true }))
-      const response = await getProductList(currentPage, pageSize, search, filter)
+      const response = await getProductList(currentPage, pageSize, filter?.search_string, filter)
       //dispatch(callCommonAction({ loading: false }))
       if (response.statusCode === 200 && response.data) {
         const formatted = response?.data?.docs?.map(product => ({
@@ -132,11 +130,11 @@ export default function ProductsPage() {
           <div className='flex flex-col md:flex-row gap-8'>
             {/* Desktop Filter Sidebar */}
             <div className='hidden md:block'>
-              <FilterSidebar reawFilterData={reawFilterData} setFilter={setFilter}/>
+              <FilterSidebar reawFilterData={reawFilterData} setFilter={setFilter} filter={filter} />
             </div>
 
             {/* Mobile Filter Sidebar */}
-            <FilterSidebar isMobile={true} isOpen={filterOpen} onClose={() => setFilterOpen(false)} />
+            {/* <FilterSidebar isMobile={true} isOpen={filterOpen} onClose={() => setFilterOpen(false)} /> */}
 
             <div className='flex-1'>
               <div className='flex justify-between items-center mb-6'>
@@ -173,21 +171,21 @@ export default function ProductsPage() {
               <ProductGrid products={data} />
 
               <div className='mt-16 mb-5 flex justify-center'>
-                <Pagination />
+                {/* <Pagination /> */}
+                <TablePagination
+                  component='div'
+                  count={totalRecords}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  rowsPerPageOptions={[1, 10, 20, 50]}
+                />
               </div>
             </div>
           </div>
         </div>
       </main>
-      <TablePagination
-        component='div'
-        count={totalRecords}
-        page={page}
-        onPageChange={handleChangePage}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        rowsPerPageOptions={[1, 10, 20, 50]}
-      />
     </div>
   )
 }
