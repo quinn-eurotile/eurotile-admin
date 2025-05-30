@@ -19,170 +19,149 @@ import { frontLayoutClasses } from '@layouts/utils/layoutClasses'
 // Styles Imports
 import styles from './styles.module.css'
 import frontCommonStyles from '@views/front-pages/styles.module.css'
+import { Container } from '@mui/material';
+import Image from 'next/image';
 
 const Footer = () => {
   return (
-    <footer className={frontLayoutClasses.footer}>
-      <div className='relative'>
-        <img
-          src='/images/front-pages/footer-bg.png'
-          alt='footer bg'
-          className='absolute inset-0 is-full bs-full object-cover -z-[1]'
-        />
-        <div className={classnames('plb-12 text-white', frontCommonStyles.layoutSpacing)}>
-          <Grid container rowSpacing={10} columnSpacing={12}>
-            <Grid size={{ xs: 12, lg: 5 }}>
-              <div className='flex flex-col items-start gap-6'>
-                <Link href='/front-pages/landing-page'>
-                  <Logo color='var(--mui-palette-common-white)' />
-                </Link>
-                <Typography color='white' className='lg:max-is-[390px] opacity-[0.78]'>
-                  Most Powerful & Comprehensive 🤩 React NextJS Admin Template with Elegant Material Design & Unique
-                  Layouts.
-                </Typography>
-                <div className='flex gap-4'>
-                  <TextField
-                    size='small'
-                    className={styles.inputBorder}
-                    label='Subscribe to newsletter'
-                    placeholder='Your email'
-                    sx={{
-                      ' & .MuiInputBase-root:hover:not(.Mui-focused) fieldset': {
-                        borderColor: 'rgb(var(--mui-mainColorChannels-dark) / 0.6) !important'
-                      },
-                      '& .MuiInputBase-root.Mui-focused fieldset': {
-                        borderColor: 'var(--mui-palette-primary-main)!important'
-                      },
-                      '& .MuiFormLabel-root.Mui-focused': {
-                        color: 'var(--mui-palette-primary-main) !important'
-                      }
-                    }}
+    <footer className="bg-darkGrey text-white py-12 pb-6 mt-16 bg-[url('/images/pages/why-choose-pattern-img.png'),_url('/images/pages/why-choose-pattern-img.png')] bg-no-repeat bg-[position:left_top,right_bottom] bg-[length:205,205px]">
+        <section className='py-8'>
+          <Container maxWidth='xl' sx={{ px: 4 }}>
+            <div className='flex flex-wrap justify-center items-center gap-8 bg-bgLight -mt-36 py-6 rounded-sm'>
+              {['Partner1', 'Partner2', 'Partner3', 'Partner4', 'Partner5', 'Partner6'].map((partner, index) => (
+                <div key={index} className='grayscale hover:grayscale-0 transition-all duration-300'>
+                  <Image
+                    src={`/images/pages/logo1.png?height=40&width=120&text=${partner}`}
+                    alt={partner}
+                    width={157}
+                    height={88}
+                    className='object-contain'
                   />
-                  <Button variant='contained' color='primary'>
-                    Subscribe
-                  </Button>
                 </div>
-              </div>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 3, lg: 2 }}>
-              <Typography color='white' className='font-medium mbe-6 opacity-[0.92]'>
-                Pages
-              </Typography>
-              <div className='flex flex-col gap-4'>
-                <Typography component={Link} href='/front-pages/pricing' color='white' className='opacity-[0.78]'>
-                  Pricing
-                </Typography>
-                <Link href='/front-pages/payment' className='flex items-center gap-[10px]'>
-                  <Typography color='white' className='opacity-[0.78]'>
-                    Payment
-                  </Typography>
-                  <Chip label='New' color='primary' size='small' />
-                </Link>
-                <Typography
-                  component={Link}
-                  href='/pages/misc/under-maintenance'
-                  color='white'
-                  className='opacity-[0.78]'
-                >
-                  Maintenance
-                </Typography>
-                <Typography component={Link} href='/pages/misc/coming-soon' color='white' className='opacity-[0.78]'>
-                  Coming Soon
-                </Typography>
-              </div>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 3, lg: 2 }}>
-              <Typography color='white' className='font-medium mbe-6 opacity-[0.92]'>
-                Products
-              </Typography>
-              <div className='flex flex-col gap-4'>
-                <Typography component={Link} href='/front-pages/landing-page' color='white' className='opacity-[0.78]'>
-                  Page builder
-                </Typography>
-                <Typography component={Link} href='/front-pages/landing-page' color='white' className='opacity-[0.78]'>
-                  Admin Dashboards
-                </Typography>
-                <Typography component={Link} href='/front-pages/landing-page' color='white' className='opacity-[0.78]'>
-                  UI Kits
-                </Typography>
-                <Typography component={Link} href='/front-pages/landing-page' color='white' className='opacity-[0.78]'>
-                  Illustrations
-                </Typography>
-              </div>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <Typography color='white' className='font-medium mbe-6 opacity-[0.92]'>
-                Download our App
-              </Typography>
-              <div className='flex flex-col gap-4'>
-                <Link className='bg-[#211B2C] bs-[56px] is-[211px] rounded'>
-                  <div className='flex items-center pli-5 plb-[7px] gap-6'>
-                    <img src='/images/front-pages/apple-icon.png' alt='apple store' className='bs-[34px]' />
-                    <div className='flex flex-col items-start'>
-                      <Typography variant='body2' color='white' className='opacity-[0.82]'>
-                        Download on the
-                      </Typography>
-                      <Typography color='white' className='font-medium opacity-[0.92]'>
-                        App Store
-                      </Typography>
-                    </div>
-                  </div>
-                </Link>
-                <Link className='bg-[#211B2C] bs-[56px] is-[211px] rounded'>
-                  <div className='flex items-center pli-5 plb-[7px] gap-6'>
-                    <img src='/images/front-pages/google-play-icon.png' alt='Google play' className='bs-[34px]' />
-                    <div className='flex flex-col items-start'>
-                      <Typography variant='body2' color='white' className='opacity-[0.82]'>
-                        Download on the
-                      </Typography>
-                      <Typography color='white' className='font-medium opacity-[0.92]'>
-                        Google Play
-                      </Typography>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            </Grid>
-          </Grid>
-        </div>
-      </div>
-      <div className='bg-[#211B2C]'>
-        <div
-          className={classnames(
-            'flex flex-wrap items-center justify-center sm:justify-between gap-4 plb-[15px]',
-            frontCommonStyles.layoutSpacing
-          )}
-        >
-          <Typography className='text-white opacity-[0.92]' variant='body2'>
-            <span>{`© ${new Date().getFullYear()}, Made with `}</span>
-            <span>{`❤️`}</span>
-            <span>{` by `}</span>
-            <Link href='https://mui.com/store/contributors/themeselection' target='_blank' className='font-medium text-white'>
-              ThemeSelection
-            </Link>
-          </Typography>
-          <div className='flex gap-6 items-center'>
-            <IconButton component={Link} size='small' href='https://github.com/themeselection' target='_blank'>
-              <i className='ri-github-fill text-white text-lg' />
-            </IconButton>
-            <IconButton component={Link} size='small' href='https://www.facebook.com/ThemeSelections/' target='_blank'>
-              <i className='ri-facebook-fill text-white text-lg' />
-            </IconButton>
-            <IconButton component={Link} size='small' href='https://twitter.com/Theme_Selection' target='_blank'>
-              <i className='ri-twitter-fill text-white text-lg' />
-            </IconButton>
-            <IconButton
-              component={Link}
-              size='small'
-              href='https://in.linkedin.com/company/themeselection'
-              target='_blank'
-            >
-              <i className='ri-linkedin-fill text-white text-lg' />
-            </IconButton>
+              ))}
+            </div>
+          </Container>
+        </section>
+
+        <div className='container mx-auto px-4'>
+          <div className='flex flex-col md:flex-row items-center justify-between mb-6 pb-6 border-b border-red-100  '>
+            <div className='w-full'>
+              <h3 className='text-3xl font-light mb-2 text-white'>Newsletter</h3>
+              <p className='text-sm text-white font-light'>Use this text to share the information which you like!</p>
+            </div>
+            <div className='mt-4 md:mt-0 flex w-full bg-white p-3 rounded-sm'>
+              <TextField
+                type='email'
+                placeholder='Your email address'
+                variant='outlined'
+                className='w-full rounded-l-md text-black me-4'
+                InputProps={{
+                  sx: {
+                    border: 'none',
+                    boxShadow: 'none',
+                    '& fieldset': {
+                      border: 'none'
+                    }
+                  }
+                }}
+              />
+              <Button size='small' className='bg-red-800 hover:bg-red-900 text-white rounded-l-none px-0 rounded'>
+                <i className='ri-send-plane-line text-xl'></i>
+              </Button>
+            </div>
+          </div>
+
+          <div className='grid grid-cols-1 md:grid-cols-4 gap-8 mb-8'>
+            <div>
+              <Link href='/' className='text-xl font-bold mb-4 block'>
+                <Image
+                  src='/images/pages/logo-white.png'
+                  alt='Luxury living room with tile flooring'
+                  width={211}
+                  height={21}
+                  className='object-cover brightness-100'
+                />
+              </Link>
+              <p className='text-sm text-gray-400'>
+                Reference site about Lorem Ipsum, giving information on its origins, as well as a random Lipsum
+                generator.
+              </p>
+            </div>
+            <div>
+              <h4 className='text-sm font-normal mb-4'>Information</h4>
+              <ul className='space-y-2 text-sm text-gray-400  list-none p-0'>
+                <li>
+                  <Link href='/products' className='hover:text-white'>
+                    Products
+                  </Link>
+                </li>
+                <li>
+                  <Link href='/faq' className='hover:text-white'>
+                    FAQ
+                  </Link>
+                </li>
+                <li>
+                  <Link href='/about' className='hover:text-white'>
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link href='/privacy' className='hover:text-white'>
+                    Privacy policy
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className='text-sm font-normal mb-4'>Support</h4>
+              <ul className='space-y-2 text-sm text-gray-400 list-none p-0'>
+                <li>
+                  <Link href='/contact' className='hover:text-white'>
+                    Contact Us
+                  </Link>
+                </li>
+
+                <li>
+                  <Link href='/track' className='hover:text-white'>
+                    Track Your Order
+                  </Link>
+                </li>
+                <li>
+                  <Link href='/help' className='hover:text-white'>
+                    Help Center
+                  </Link>
+                </li>
+                <li>
+                  <Link href='/terms-of-use' className='hover:text-white'>
+                    Terms Of Use
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h4 className='text-sm font-normal mb-4'>Contact Info</h4>
+              <address className='text-sm text-gray-400 not-italic'>
+                <div className='contact-div'>
+                  {' '}
+                  <h2 className='text-sm text-white mt-0 mb-2 font-normal'>Address </h2>
+                  <p className='mt-0'>1222, 13 One arlington Avenue ,UK</p>
+                </div>
+                <div className='contact-div mt-3'>
+                  <h2 className='text-sm text-white mt-0 mb-2 font-normal'>Phone</h2>
+                  <p className='mt-2'>(123) 456-7890</p>
+                </div>
+                <div className='contact-div mt-3'>
+                  <h2 className='text-sm text-white mt-0 mb-2 font-normal'>Email</h2>
+                  <p className='mt-0'>info@eurotile.com</p>
+                </div>
+              </address>
+            </div>
+          </div>
+          <div className='border-t border-gray-800 pt-6 text-sm text-gray-400 text-center'>
+            <p className='mb-0'>© 2025-2026 EUROTILE. All Rights Reserved.</p>
           </div>
         </div>
-      </div>
-    </footer>
+      </footer>
   )
 }
 

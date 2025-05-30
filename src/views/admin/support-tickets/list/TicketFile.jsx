@@ -1,7 +1,7 @@
 
-import { useDropzone } from 'react-dropzone'
-import { Controller, useForm } from 'react-hook-form'
-import { useEffect } from 'react'
+import { useDropzone } from 'react-dropzone';
+import { Controller, useForm } from 'react-hook-form';
+import { useEffect } from 'react';
 import {
   Card,
   CardHeader,
@@ -11,9 +11,9 @@ import {
   IconButton,
   List,
   ListItem
-} from '@mui/material'
-import CustomAvatar from '@core/components/mui/Avatar'
-import Image from 'next/image'
+} from '@mui/material';
+import CustomAvatar from '@core/components/mui/Avatar';
+import Image from 'next/image';
 
 const TicketFile = ({ onChangeImage }) => {
   // Separate form to manage file only
@@ -21,19 +21,19 @@ const TicketFile = ({ onChangeImage }) => {
     defaultValues: {
       ticketFile: null
     }
-  })
+  });
 
-  const imageValue = watch('ticketFile')
+  const imageValue = watch('ticketFile');
 
   useEffect(() => {
-    onChangeImage(imageValue)
-  }, [imageValue, onChangeImage])
+    onChangeImage(imageValue);
+  }, [imageValue, onChangeImage]);
 
   const renderFilePreview = file => {
-    const isLocalFile = file instanceof File
+    const isLocalFile = file instanceof File;
     const imageUrl = isLocalFile
       ? URL.createObjectURL(file)
-      : `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${file.filePath}`
+      : `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${file.filePath}`;
 
     return (
       <div style={{ position: 'relative', width: 38, height: 38 }}>
@@ -44,8 +44,8 @@ const TicketFile = ({ onChangeImage }) => {
           style={{ objectFit: 'cover', borderRadius: 4 }}
         />
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <Card>
@@ -57,19 +57,26 @@ const TicketFile = ({ onChangeImage }) => {
           render={({ field: { onChange, value }, fieldState: { error } }) => {
             const onDrop = acceptedFiles => {
               if (acceptedFiles.length > 0) {
-                onChange(acceptedFiles[0])
+                onChange(acceptedFiles[0]);
               }
-            }
+            };
 
             const { getRootProps, getInputProps } = useDropzone({
-              accept: { 'image/*': [] },
+              accept: {
+                'image/*': [],                // all image types
+                'application/pdf': [],       // PDF files
+                'application/msword': [],    // .doc
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': [], // .docx
+                'application/vnd.ms-excel': [], // .xls
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': [], // .xlsx
+              },
               multiple: false,
               onDrop
-            })
+            });
 
             const handleRemoveFile = () => {
-              onChange(null)
-            }
+              onChange(null);
+            };
 
             return (
               <>
@@ -131,12 +138,12 @@ const TicketFile = ({ onChangeImage }) => {
                   </>
                 )}
               </>
-            )
+            );
           }}
         />
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default TicketFile
+export default TicketFile;

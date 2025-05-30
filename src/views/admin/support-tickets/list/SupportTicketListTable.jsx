@@ -18,6 +18,7 @@ import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import { styled } from '@mui/material/styles';
 import TablePagination from '@mui/material/TablePagination';
+import usePermission from '../../../../components/common/usePermission';
 
 // Third-party Imports
 import classnames from 'classnames';
@@ -55,24 +56,12 @@ import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import SupportTicketListCards from './SupportTicketListCards';
 import Image from 'next/image';
-import { Box } from '@mui/material';
+import { Box, Tooltip } from '@mui/material';
 import { useParams, useRouter } from 'next/navigation';
+import moment from 'moment';
 
 // Styled Components
 const Icon = styled('i')({});
-
-const fuzzyFilter = (row, columnId, value, addMeta) => {
-  // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value);
-
-  // Store the itemRank info
-  addMeta({
-    itemRank
-  });
-
-  // Return if the item should be filtered in/out
-  return itemRank.passed;
-};
 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
   // States
@@ -134,6 +123,11 @@ const SupportTicketListTable = () => {
   const [statsData, setStatsData] = useState(null);
   const [editData, setEditData] = useState(null);
   const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
+
+  const canAddSupportTicket = usePermission("create-support-ticket");
+  const canUpdateSupportTicket = usePermission("update-support-ticket");
+  const canDeleteSupportTicket = usePermission("delete-support-ticket");
+  const canViewSupportTicket = usePermission("view-support-ticket");
 
   // Hooks
   const { lang: locale } = useParams();
@@ -210,16 +204,15 @@ const SupportTicketListTable = () => {
         ];
 
         setStatsData(stats);
-
-        console.log(response?.data?.docs, '.................................');
-
+        console.log('formattedformatted', response?.data?.docs);
         const formatted = response?.data?.docs?.map(ticket => ({
           id: ticket?._id,
           ticketNumber: ticket?.ticketNumber,
           subject: ticket?.subject,
           message: ticket?.message,
           status: ticket?.status,
-          sender: ticket?.sender,
+          sender_roles: ticket?.sender_roles?.map((el) => el?.name).join(', ') || 'Unknown',
+          sender_name: ticket?.sender_detail?.map((el) => el?.name).join(', ') || '',
           order: ticket?.order,
           createdAt: ticket?.createdAt,
           updatedAt: ticket?.updatedAt,
@@ -227,6 +220,7 @@ const SupportTicketListTable = () => {
           username: ticket?.subject,
           supportticketmsgs: ticket?.supportticketmsgs
         }));
+
 
         setPage(page);
         setData(formatted);
@@ -303,30 +297,63 @@ const SupportTicketListTable = () => {
           </Typography>
         )
       }),
+      columnHelper.accessor('sender_detail', {
+        header: 'Customer Name',
+        cell: ({ row }) => (
+          //console.log('row.originalrow.original', row)
+
+          < Typography className='capitalize' color='text.primary' >
+            {row.original?.sender_name}
+          </Typography >
+        )
+      }),
+      columnHelper.accessor('sender_role', {
+        header: 'Customer Type',
+        cell: ({ row }) => (
+          <Typography className='capitalize' color='text.primary'>
+            {row.original?.sender_roles}
+          </Typography>
+        )
+      }),
       columnHelper.accessor('supportticketmsgs', {
         header: 'Document',
         cell: ({ row }) => {
           const filePath = row?.original?.supportticketmsgs?.filePath;
-          const fullImageUrl = `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${filePath}`;
+          const fileType = row?.original?.supportticketmsgs?.fileType;
+          const fileURL = `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${filePath}`;
 
           return (
             <Box>
-              {filePath ? (
-                <a href={fullImageUrl} target='_blank' rel='noopener noreferrer'>
-                  <Image
-                    src={fullImageUrl}
-                    width={38}
-                    height={38}
-                    alt='Support Ticket Attachment'
-                    style={{ borderRadius: 4, objectFit: 'cover', cursor: 'pointer' }}
-                  />
-                </a>
-              ) : (
-                <Typography variant='body2' color='text.secondary'>
-                  No Image
-                </Typography>
-              )}
-            </Box>
+              {filePath ?
+                fileType === 'image' ? (
+                  <Tooltip title="View Doc">
+                    <a href={fileURL} target='_blank' rel='noopener noreferrer'>
+                      <Image
+                        src={'/images/icons/image.png'}
+                        width={24}
+                        height={24}
+                        alt='Support Ticket Attachment'
+                        style={{ borderRadius: 4, objectFit: 'cover', cursor: 'pointer' }}
+                      />
+                    </a>
+                  </Tooltip>
+                ) : (
+                  <Tooltip title="View Doc">
+                    <a href={fileURL} target='_blank' rel='noopener noreferrer' >
+                      <Image
+                        src="/images/icons/black-pdf.png"
+                        width={24}
+                        height={24}
+                        alt='Support Ticket Attachment'
+                        style={{ borderRadius: 4, objectFit: 'cover', cursor: 'pointer' }}
+                      />
+                    </a>
+                  </Tooltip>
+                )
+                : (
+                  null
+                )}
+            </Box >
           );
         }
       }),
@@ -345,21 +372,31 @@ const SupportTicketListTable = () => {
           </div>
         )
       }),
+      columnHelper.accessor('createdAt', {
+              header: 'Requested Date & Time',
+              cell: ({ row }) => <Typography>{moment(row.original?.createdAt).format('MMMM Do YYYY, h:mm:ss a')}</Typography>
+            }),
       columnHelper.accessor('action', {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
-            <IconButton onClick={() => handleEdit(row.original.id)}>
-              <i className='ri-edit-line text-textSecondary' />
-            </IconButton>
-            <IconButton onClick={() => handleDeleteConfirmation(row.original.id)}>
-              <i className='ri-delete-bin-7-line text-textSecondary' />
-            </IconButton>
-            <IconButton>
-              <Link href={getLocalizedUrl(`/admin/support-tickets/view/${row.original.id}`, locale)} className='flex'>
-                <i className='ri-eye-line text-textSecondary' />
-              </Link>
-            </IconButton>
+            {canUpdateSupportTicket &&
+                <IconButton onClick={() => handleEdit(row.original.id)}>
+                  <i className='ri-edit-line text-textSecondary' />
+                </IconButton>
+            }
+            {canDeleteSupportTicket &&
+                <IconButton onClick={() => handleDeleteConfirmation(row.original.id)}>
+                  <i className='ri-delete-bin-7-line text-textSecondary' />
+                </IconButton>
+            }
+            {canViewSupportTicket &&
+                <IconButton>
+                  <Link href={getLocalizedUrl(`/admin/support-tickets/view/${row.original.id}`, locale)} className='flex'>
+                    <i className='ri-eye-line text-textSecondary' />
+                  </Link>
+                </IconButton>
+            }
           </div>
         ),
         enableSorting: false
@@ -413,13 +450,15 @@ const SupportTicketListTable = () => {
                 placeholder='Search Ticket'
                 className='max-sm:is-full'
               />
-              <Button
-                variant='contained'
-                onClick={() => setAddSupportTicketOpen(!addSupportTicketOpen)}
-                className='max-sm:is-full'
-              >
-                Add Ticket
-              </Button>
+              {canAddSupportTicket &&
+                <Button
+                  variant='contained'
+                  onClick={() => setAddSupportTicketOpen(!addSupportTicketOpen)}
+                  className='max-sm:is-full'
+                >
+                  Add Ticket
+                </Button>
+              }
             </div>
           </div>
           <div className='overflow-x-auto'>

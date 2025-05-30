@@ -52,14 +52,11 @@ const ChatWrapper = () => {
   const isBelowMdScreen = useMediaQuery(theme => theme.breakpoints.down('md'));
   const isBelowSmScreen = useMediaQuery(theme => theme.breakpoints.down('sm'));
 
-  //console.log('ticketIdticketId', ticketId);
-
 
   const fetchChatData = async (currentPage = 1, searchTerm = '') => {
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await getChatMessageForTicket(ticketId, currentPage, rowsPerPage, searchTerm, {});
-      console.log('responsedddd', response);
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
         const formatted = {
@@ -68,8 +65,6 @@ const ChatWrapper = () => {
           profileUser: response?.data?.profileUser,
         };
 
-        console.log('formatted', formatted);
-        //dispatch(getActiveUserData(ticketId));
         dispatch(setChatData(formatted));
         activeUser(ticketId);
         if (chatStore.activeUser?.id !== null && messageInputRef.current) {
@@ -113,7 +108,6 @@ const ChatWrapper = () => {
 
   // Get active user’s data
   const activeUser = ticketId => {
-    console.log('ticketId11', ticketId);
     if (!socket.current) return;
     router.push(getLocalizedUrl(`/admin/support-tickets/view/${ticketId}`, locale));
 

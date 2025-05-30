@@ -50,8 +50,9 @@ const AddSupportTicketDrawer = ({ open, handleClose, refreshList, editData, setE
       reset({
         subject: '',
         message: '',
-        status: 1
+        status: 1,
       })
+       setFeaturedImageFile(null)
     }
   }, [editData, reset])
 

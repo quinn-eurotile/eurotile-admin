@@ -1,31 +1,31 @@
-'use client'
+'use client';
 
 // React Imports
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect } from 'react';
 
 // Next Imports
-import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 // MUI Imports
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Chip from '@mui/material/Chip'
-import Typography from '@mui/material/Typography'
-import Checkbox from '@mui/material/Checkbox'
-import IconButton from '@mui/material/IconButton'
-import { styled } from '@mui/material/styles'
-import TablePagination from '@mui/material/TablePagination'
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Chip from '@mui/material/Chip';
+import Typography from '@mui/material/Typography';
+import Checkbox from '@mui/material/Checkbox';
+import IconButton from '@mui/material/IconButton';
+import { styled } from '@mui/material/styles';
+import TablePagination from '@mui/material/TablePagination';
 
 // Third-party Imports
-import classnames from 'classnames'
-import { rankItem } from '@tanstack/match-sorter-utils'
+import classnames from 'classnames';
+import { rankItem } from '@tanstack/match-sorter-utils';
 import {
   createColumnHelper,
   flexRender,
@@ -37,53 +37,53 @@ import {
   getFacetedMinMaxValues,
   getPaginationRowModel,
   getSortedRowModel
-} from '@tanstack/react-table'
+} from '@tanstack/react-table';
 
 // Component Imports
-import CustomAvatar from '@core/components/mui/Avatar'
-import OptionMenu from '@core/components/option-menu'
+import CustomAvatar from '@core/components/mui/Avatar';
+import OptionMenu from '@core/components/option-menu';
 
 // Util Imports
-import { getInitials } from '@/utils/getInitials'
-import { getLocalizedUrl } from '@/utils/i18n'
+import { getInitials } from '@/utils/getInitials';
+import { getLocalizedUrl } from '@/utils/i18n';
 
 // Style Imports
-import tableStyles from '@core/styles/table.module.css'
+import tableStyles from '@core/styles/table.module.css';
 
 // Styled Components
-const Icon = styled('i')({})
+const Icon = styled('i')({});
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value)
+  const itemRank = rankItem(row.getValue(columnId), value);
 
   // Store the itemRank info
   addMeta({
     itemRank
-  })
+  });
 
   // Return if the item should be filtered in/out
-  return itemRank.passed
-}
+  return itemRank.passed;
+};
 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
   // States
-  const [value, setValue] = useState(initialValue)
+  const [value, setValue] = useState(initialValue);
 
   useEffect(() => {
-    setValue(initialValue)
-  }, [initialValue])
+    setValue(initialValue);
+  }, [initialValue]);
   useEffect(() => {
     const timeout = setTimeout(() => {
-      onChange(value)
-    }, debounce)
+      onChange(value);
+    }, debounce);
 
-    return () => clearTimeout(timeout)
+    return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
+  }, [value]);
 
-  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
-}
+  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />;
+};
 
 // Vars
 const userRoleObj = {
@@ -92,27 +92,27 @@ const userRoleObj = {
   editor: { icon: 'ri-edit-box-line', color: 'info' },
   maintainer: { icon: 'ri-pie-chart-2-line', color: 'success' },
   subscriber: { icon: 'ri-user-3-line', color: 'primary' }
-}
+};
 
 const userStatusObj = {
   active: 'success',
   pending: 'warning',
   inactive: 'secondary'
-}
+};
 
 // Column Definitions
-const columnHelper = createColumnHelper()
+const columnHelper = createColumnHelper();
 
 const RolesTable = ({ tableData }) => {
   // States
-  const [role, setRole] = useState('')
-  const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState(...[tableData])
-  const [filteredData, setFilteredData] = useState(data)
-  const [globalFilter, setGlobalFilter] = useState('')
+  const [role, setRole] = useState('');
+  const [rowSelection, setRowSelection] = useState({});
+  const [data, setData] = useState(...[tableData]);
+  const [filteredData, setFilteredData] = useState(data);
+  const [globalFilter, setGlobalFilter] = useState('');
 
   // Hooks
-  const { lang: locale } = useParams()
+  const { lang: locale } = useParams();
 
   const columns = useMemo(
     () => [
@@ -227,7 +227,7 @@ const RolesTable = ({ tableData }) => {
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, filteredData]
-  )
+  );
 
   const table = useReactTable({
     data: filteredData,
@@ -256,31 +256,31 @@ const RolesTable = ({ tableData }) => {
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues()
-  })
+  });
 
   const getAvatar = params => {
-    const { avatar, fullName } = params
+    const { avatar, fullName } = params;
 
     if (avatar) {
-      return <CustomAvatar src={avatar} skin='light' size={34} />
+      return <CustomAvatar src={avatar} skin='light' size={34} />;
     } else {
       return (
         <CustomAvatar skin='light' size={34}>
           {getInitials(fullName)}
         </CustomAvatar>
-      )
+      );
     }
-  }
+  };
 
   useEffect(() => {
     const filteredData = data?.filter(user => {
-      if (role && user.role !== role) return false
+      if (role && user.role !== role) return false;
 
-      return true
-    })
+      return true;
+    });
 
-    setFilteredData(filteredData)
-  }, [role, data, setFilteredData])
+    setFilteredData(filteredData);
+  }, [role, data, setFilteredData]);
 
   return (
     <Card>
@@ -369,7 +369,7 @@ const RolesTable = ({ tableData }) => {
                         <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                       ))}
                     </tr>
-                  )
+                  );
                 })}
             </tbody>
           )}
@@ -383,12 +383,12 @@ const RolesTable = ({ tableData }) => {
         rowsPerPage={table.getState().pagination.pageSize}
         page={table.getState().pagination.pageIndex}
         onPageChange={(_, page) => {
-          table.setPageIndex(page)
+          table.setPageIndex(page);
         }}
         onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
       />
     </Card>
-  )
-}
+  );
+};
 
-export default RolesTable
+export default RolesTable;
