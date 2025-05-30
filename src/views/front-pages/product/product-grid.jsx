@@ -2,91 +2,91 @@ import Image from "next/image"
 import Link from "next/link"
 import Button from '@mui/material/Button'
 
-const products = [
-  {
-    id: 1,
-    name: "Metal Tiles",
-    price: 45.0,
-    rating: 5,
-    image: "/images/pages/product-img4.jpg",
-    slug: "product-detail",
-  },
-  {
-    id: 2,
-    name: "Rock Pattern Tiles",
-    price: 45.0,
-    rating: 5,
-    image: "/images/pages/product-img4.jpg",
-    slug: "../product-detail",
-  },
-  {
-    id: 3,
-    name: "BIANCO CROSS CUT",
-    price: 45.0,
-    rating: 5,
-    image: "/images/pages/product-img4.jpg",
-    slug: "../product-detail",
-  },
-  {
-    id: 4,
-    name: "Metal Tiles",
-    price: 45.0,
-    rating: 5,
-    image: "/images/pages/product-img4.jpg",
-    slug: "../product-detail",
-  },
-  {
-    id: 5,
-    name: "Rock Pattern Tiles",
-    price: 45.0,
-    rating: 5,
-    image: "/images/pages/product-img4.jpg",
-    slug: "../product-detail",
-  },
-  {
-    id: 6,
-    name: "BIANCO CROSS CUT",
-    price: 45.0,
-    rating: 5,
-    image: "/images/pages/product-img4.jpg",
-    slug: "../product-detail",
-  },
-  {
-    id: 7,
-    name: "Metal Tiles",
-    price: 45.0,
-    rating: 5,
-    image: "/images/pages/product-img4.jpg",
-    slug: "../product-detail",
-  },
-  {
-    id: 8,
-    name: "Rock Pattern Tiles",
-    price: 45.0,
-    rating: 5,
-    image: "/images/pages/product-img4.jpg",
-    slug: "../product-detail",
-  },
-  {
-    id: 9,
-    name: "BIANCO CROSS CUT",
-    price: 45.0,
-    rating: 5,
-    image: "/images/pages/product-img4.jpg",
-    slug: "../product-detail",
-  },
-]
+// const products = [
+//   {
+//     id: 1,
+//     name: "Metal Tiles",
+//     price: 45.0,
+//     rating: 5,
+//     image: "/images/pages/product-img4.jpg",
+//     slug: "product-detail",
+//   },
+//   {
+//     id: 2,
+//     name: "Rock Pattern Tiles",
+//     price: 45.0,
+//     rating: 5,
+//     image: "/images/pages/product-img4.jpg",
+//     slug: "../product-detail",
+//   },
+//   {
+//     id: 3,
+//     name: "BIANCO CROSS CUT",
+//     price: 45.0,
+//     rating: 5,
+//     image: "/images/pages/product-img4.jpg",
+//     slug: "../product-detail",
+//   },
+//   {
+//     id: 4,
+//     name: "Metal Tiles",
+//     price: 45.0,
+//     rating: 5,
+//     image: "/images/pages/product-img4.jpg",
+//     slug: "../product-detail",
+//   },
+//   {
+//     id: 5,
+//     name: "Rock Pattern Tiles",
+//     price: 45.0,
+//     rating: 5,
+//     image: "/images/pages/product-img4.jpg",
+//     slug: "../product-detail",
+//   },
+//   {
+//     id: 6,
+//     name: "BIANCO CROSS CUT",
+//     price: 45.0,
+//     rating: 5,
+//     image: "/images/pages/product-img4.jpg",
+//     slug: "../product-detail",
+//   },
+//   {
+//     id: 7,
+//     name: "Metal Tiles",
+//     price: 45.0,
+//     rating: 5,
+//     image: "/images/pages/product-img4.jpg",
+//     slug: "../product-detail",
+//   },
+//   {
+//     id: 8,
+//     name: "Rock Pattern Tiles",
+//     price: 45.0,
+//     rating: 5,
+//     image: "/images/pages/product-img4.jpg",
+//     slug: "../product-detail",
+//   },
+//   {
+//     id: 9,
+//     name: "BIANCO CROSS CUT",
+//     price: 45.0,
+//     rating: 5,
+//     image: "/images/pages/product-img4.jpg",
+//     slug: "../product-detail",
+//   },
+// ]
 
-export default function ProductGrid() {
+export default function ProductGrid({products}) {
+  console.log(products,'productsproductsproductsproducts')
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {products.map((product) => (
+      {products?.map((product) => (
         <div key={product.id} className="group">
-          <Link href={`/products/${product.slug}`} className="block p-2 bg-bgLight rounded-lg mb-3">
+          <Link href={`/products/${product.sku}`} className="block p-2 bg-bgLight rounded-lg mb-3">
             <div className="relative aspect-square overflow-hidden rounded-md">
-              {console.log(product.image, 'Image')}
               <Image
-                src={product.image || "/placeholder.svg"}
+                src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product.avatar}`  || "/placeholder.svg"}
                 alt={product.name}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -96,7 +96,7 @@ export default function ProductGrid() {
           <div className="text-center">
             <Link href={`/products/${product.slug}`} className="block">
               <h3 className="font-normal text-16">{product.name}</h3>
-              <p className="text-red-800 my-1">£{product.price.toFixed(2)}</p>
+              <p className="text-red-800 my-1">£{parseFloat(product.price).toFixed(2)}</p>
             </Link>
             <div className="flex justify-center items-center gap-1 my-2">
               {[1, 2, 3, 4, 5].map((i) => (
