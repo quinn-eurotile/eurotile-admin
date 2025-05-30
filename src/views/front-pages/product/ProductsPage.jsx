@@ -56,6 +56,7 @@ export default function ProductsPage() {
   const fetchProductList = async (currentPage = 1, pageSize = rowsPerPage) => {
     try {
       //dispatch(callCommonAction({ loading: true }))
+      filter['attributeVariations'] = JSON.stringify(filter.attributeVariations)
       const response = await getProductList(currentPage, pageSize, filter?.search_string, filter)
       console.log(response,'.................')
       //dispatch(callCommonAction({ loading: false }))

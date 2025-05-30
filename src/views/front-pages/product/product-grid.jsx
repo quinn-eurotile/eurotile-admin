@@ -78,11 +78,12 @@ import Button from '@mui/material/Button'
 // ]
 
 export default function ProductGrid({products}) {
+  console.log(products,'productsproducts66666666666');
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {products?.map((product) => (
         <div key={product.id} className="group">
-          <Link href={`/products/${product.sku}`} className="block p-2 bg-bgLight rounded-lg mb-3">
+          <Link href={`/products/${product?.id}`} className="block p-2 bg-bgLight rounded-lg mb-3">
             <div className="relative aspect-square overflow-hidden rounded-md">
               {product.avatar ?
               <Image
@@ -102,7 +103,7 @@ export default function ProductGrid({products}) {
             </div>
           </Link>
           <div className="text-center">
-            <Link href={`/products/${product.slug}`} className="block">
+            <Link href={`/products/${product.id}`} className="block">
               <h3 className="font-normal text-16">{product.name}</h3>
               <p className="text-red-800 my-1">£{product.price ? parseFloat(product.price).toFixed(2) : '200 - £500'}</p>
             </Link>
