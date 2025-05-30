@@ -53,7 +53,6 @@ const AddProduct = () => {
   const fetchProductDetails = async () => {
     try {
       const response = await getProductDetails(productId);
-      console.log('response',response)
 
       if (response?.success && response?.data) {
         const product = response.data;
@@ -90,6 +89,7 @@ const AddProduct = () => {
 
             return {
               _id: variation?._id,
+              id: variation?._id,
               description: variation.description || '',
               stockStatus: variation.stockStatus || '',
               stockQuantity: variation.stockQuantity || 0,
@@ -108,6 +108,9 @@ const AddProduct = () => {
               numberOfTiles: variation?.numberOfTiles || 0,
               boxSize: variation?.boxSize || 0,
               palletSize: variation?.palletSize || 0,
+              sqmPerTile: variation?.sqmPerTile || 0,
+              palletWeight: variation?.palletWeight || 0,
+              boxesPerPallet: variation?.boxesPerPallet || 0,
               customImageUrl: variation.customImageUrl || '',
               variationImages: variation.variationImages || [],
               image: variation.image || '',
@@ -180,50 +183,75 @@ const AddProduct = () => {
   }, [productId]);
 
   const onSubmit = async formDataValues => {
-    console.log(formDataValues,'formDataValuesformDataValues...........')
-    formDataValues.productVariations?.forEach((variation, index) => {
+    try {
       const missingFields = [];
 
-      if (!variation.regularPriceB2B) missingFields.push('Regular Price');
-      if (!variation.regularPriceB2C) missingFields.push('Regular Price');
-      if (!variation.salePrice) missingFields.push('Sale Price');
-      if (!variation.purchasedPrice) missingFields.push('Purchased Price');
-      if (!variation.weight) missingFields.push('Weight');
-      if (!variation.numberOfTiles) missingFields.push('Number of Tiles');
-      if (!variation.boxSize) missingFields.push('Box Size');
-      if (!variation.palletSize) missingFields.push('Pallet Size');
+      // Validate all product variations
+      formDataValues.productVariations?.forEach((variation, index) => {
+        if (!variation.regularPriceB2B) missingFields.push('B2B Regular Price');
+        if (!variation.regularPriceB2C) missingFields.push('B2C Regular Price');
+        if (!variation.salePrice) missingFields.push('Sale Price');
+        if (!variation.purchasedPrice) missingFields.push('Purchased Price');
+        if (!variation.weight) missingFields.push('Weight');
+        if (!variation.numberOfTiles) missingFields.push('Number of Tiles');
+        if (!variation.boxSize) missingFields.push('Box Size');
+        if (!variation.palletSize) missingFields.push('Pallet Size');
 
+        if (!variation.variationImages || variation.variationImages.length === 0) {
+          missingFields.push('Variation Images');
+        }
+      });
+
+      // Stop submission and show error if any required fields are missing
       if (missingFields.length > 0) {
-        toast.error(`Please fill the variation fields`);
+        toast.error(`${missingFields[0]} is a required field`);
         return false;
       }
-    });
 
-    const formData = new FormData();
+      // Calculate B2B min/max prices
+      const regularPriceB2B = formDataValues.productVariations
+        .map(variation => parseFloat(variation.regularPriceB2B))
+        .filter(price => !isNaN(price));
 
-    // Handle existing featured image
-    const isExistingFeaturedImage =
-      formDataValues.productFeaturedImage &&
-      typeof formDataValues.productFeaturedImage === 'object' &&
-      formDataValues.productFeaturedImage._id &&
-      !(formDataValues.productFeaturedImage instanceof File);
+      if (regularPriceB2B.length > 0) {
+        formDataValues.minPriceB2B = Math.min(...regularPriceB2B);
+        formDataValues.maxPriceB2B = Math.max(...regularPriceB2B);
+      }
 
-    if (isExistingFeaturedImage) {
-      formDataValues.productFeaturedImage = [];
-    }
+      // Calculate B2C min/max prices
+      const regularPriceB2C = formDataValues.productVariations
+        .map(variation => parseFloat(variation.regularPriceB2C))
+        .filter(price => !isNaN(price));
 
-    // Set slug and SKU for creation
-    if (!productId) {
-      formDataValues.slug = generateSlug(formDataValues.name);
-      formDataValues.sku = generateSku();
-    } else {
-      delete formDataValues.slug;
-      delete formDataValues.sku;
-    }
+      if (regularPriceB2C.length > 0) {
+        formDataValues.minPriceB2C = Math.min(...regularPriceB2C);
+        formDataValues.maxPriceB2C = Math.max(...regularPriceB2C);
+      }
 
-    // Inject image keys into variationImages and append files separately
-    const updatedProductVariations =
-      formDataValues.productVariations?.map((variation, variationIndex) => {
+      const formData = new FormData();
+
+      // Handle featured image
+      const isExistingFeaturedImage =
+        formDataValues.productFeaturedImage &&
+        typeof formDataValues.productFeaturedImage === 'object' &&
+        formDataValues.productFeaturedImage._id &&
+        !(formDataValues.productFeaturedImage instanceof File);
+
+      if (isExistingFeaturedImage) {
+        formDataValues.productFeaturedImage = [];
+      }
+
+      // Generate slug and SKU if creating a new product
+      if (!productId) {
+        formDataValues.slug = generateSlug(formDataValues.name);
+        formDataValues.sku = generateSku();
+      } else {
+        delete formDataValues.slug;
+        delete formDataValues.sku;
+      }
+
+      // Append variation images and replace file objects with reference keys
+      const updatedProductVariations = formDataValues.productVariations?.map((variation, variationIndex) => {
         const updatedVariation = { ...variation };
 
         if (Array.isArray(updatedVariation.variationImages)) {
@@ -234,7 +262,6 @@ const AddProduct = () => {
               formData.append(formDataKey, file);
             }
 
-            // Replace file object with reference key string (whether file or existing string)
             return formDataKey;
           });
         }
@@ -242,38 +269,52 @@ const AddProduct = () => {
         return updatedVariation;
       }) || [];
 
-    // Assign back to formDataValues before serializing
-    formDataValues.productVariations = updatedProductVariations;
+      formDataValues.productVariations = updatedProductVariations;
 
-    // Append all form values except productFeaturedImage
-    for (const fieldKey in formDataValues) {
-      if (fieldKey !== 'productFeaturedImage') {
-        const fieldValue = formDataValues[fieldKey];
+      // Append all fields to formData
+      for (const fieldKey in formDataValues) {
+        if (fieldKey !== 'productFeaturedImage') {
+          const fieldValue = formDataValues[fieldKey];
 
-        if (Array.isArray(fieldValue) || typeof fieldValue === 'object') {
-          formData.append(fieldKey, JSON.stringify(fieldValue));
-        } else {
-          formData.append(fieldKey, fieldValue);
+          if (Array.isArray(fieldValue) || typeof fieldValue === 'object') {
+            formData.append(fieldKey, JSON.stringify(fieldValue));
+          } else {
+            formData.append(fieldKey, fieldValue);
+          }
         }
       }
-    }
 
-    // Append featured image if new
-    if (formDataValues.productFeaturedImage instanceof File) {
-      formData.append('productFeaturedImage', formDataValues.productFeaturedImage);
-    }
-    // API call
-    let response;
-    if (productId) {
-      response = await updateProduct(productId, formData);
-    } else {
-      response = await createProduct(formData);
-    }
+      // Append featured image if it's a new file
+      if (formDataValues.productFeaturedImage instanceof File) {
+        formData.append('productFeaturedImage', formDataValues.productFeaturedImage);
+      }
 
-    if (response.success) {
-      router.push(`/${locale}/admin/ecommerce/products/list`);
+      // Debug: log formData keys and values
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
+      // Call appropriate API
+      let response;
+      if (productId) {
+        response = await updateProduct(productId, formData);
+      } else {
+        response = await createProduct(formData);
+      }
+
+      console.log('API Response:', response);
+
+      if (response.success) {
+        //router.push(`/${locale}/admin/ecommerce/products/list`);
+      } else {
+        toast.error(response.message || 'Failed to save product');
+      }
+    } catch (error) {
+      console.error('Error during product submission:', error);
+      toast.error(error?.message || 'Something went wrong while submitting the product');
     }
   };
+
 
   return (
     <FormProvider {...formMethods}>

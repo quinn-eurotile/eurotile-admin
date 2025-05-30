@@ -111,6 +111,9 @@ export default function ProductVariants({
 
     // Create a map of existing variations for quick lookup
     const existingVariationsMap = new Map()
+
+    console.log(existingVariations,'existingVariations');
+
     existingVariations.forEach((variation) => {
       // Create a unique key based on attributes
       const key = Object.entries(selectedAttributeValues)
@@ -121,11 +124,16 @@ export default function ProductVariants({
         .filter(Boolean)
         .sort()
         .join("|")
+      console.log(key,'kkkkkayyyyy');
+
 
       if (key) {
         existingVariationsMap.set(key, variation)
       }
     })
+
+
+
 
     // Generate all possible combinations
     const cartesian = (arr) => arr.reduce((a, b) => a.flatMap((d) => b.map((e) => [...d, e])), [[]])
@@ -148,6 +156,85 @@ export default function ProductVariants({
         ...variationAttributes,
       }
     })
+
+    return newVariations
+  }
+  // Function to generate all combinations of selected attributes
+  function generateVariationsNEw(selectedAttributeValues, existingVariations = []) {
+    // console.log("Generating variations from attributes:", selectedAttributeValues)
+    // console.log(" existingVariations:", existingVariations)
+
+    // Filter out empty attribute selections
+    const filteredAttributeValues = Object.fromEntries(
+      Object.entries(selectedAttributeValues).filter(
+        ([_, values]) => Array.isArray(values) && values.length > 0
+      )
+    )
+    // console.log(" filteredAttributeValues:", filteredAttributeValues)
+    // Get arrays of values for cartesian product
+    const arrays = Object.values(filteredAttributeValues)
+    if (arrays.length === 0 || arrays.some((arr) => arr.length === 0)) {
+      return []
+    }
+
+    // Create a lookup map of existing variations for quick matching
+
+    const existingVariationsMap = new Map()
+    existingVariations.forEach((variation) => {
+      // Build a unique key from the variation's attribute values
+      const key = Object.entries(variation)
+        .map(([attributeId, value]) => `${attributeId}:${value}`)
+          //  .map((attributeId) => `${attributeId}:${variation[attributeId]}`)
+
+        .sort()
+        .join("|")
+
+      existingVariationsMap.set(key, variation)
+    })
+    // console.log(" existingVariationsMap: 55555", existingVariationsMap)
+    // Helper to calculate cartesian product of arrays
+    const cartesian = (arr) =>
+      arr.reduce((a, b) => a.flatMap((d) => b.map((e) => [...d, e])), [[]])
+
+    // Generate all possible combinations
+    const combinations = cartesian(arrays)
+
+    // Build new variations list from combinations
+    const newVariations = combinations.map((combo) => {
+      const variationAttributes = {}
+
+      // Assign each attribute value from the combo to its corresponding attribute ID
+      Object.keys(filteredAttributeValues).forEach((attributeId, index) => {
+        variationAttributes[attributeId] = combo[index]
+      })
+
+      // Build key from generated combination
+      const key = Object.entries(variationAttributes)
+        .map(([attributeId, value]) => `${attributeId}:${value}`)
+        .sort()
+        .join("|")
+
+
+
+      const existingVariation = existingVariationsMap.get(key)
+      console.log(
+        Array.from(existingVariationsMap.keys()),
+        "existingVariation keys"
+      )
+      console.log(key, 'key');
+      console.log(existingVariationsMap, 'existingVariationsMap');
+      console.log(existingVariation, 'existingVariation');
+      console.log(variationAttributes, 'variationAttributesddd66666');
+
+      // Return existing variation if present, otherwise new one
+      return   {
+        ...variationAttributes,
+        _id: existingVariation?._id || null,
+        // Add any additional default fields if necessary
+        // For example: price: 0, stock: 0, images: []
+      }
+    })
+
 
     return newVariations
   }
@@ -210,6 +297,7 @@ export default function ProductVariants({
 
     // Generate new variations while preserving existing data
     const newVariations = generateVariations(selectedAttributeValues, currentVariations)
+    console.log(newVariations,'newVariations');
 
     // Update form with merged variations
     setValue("productVariations", newVariations, { shouldValidate: true })
@@ -327,6 +415,7 @@ export default function ProductVariants({
     const updatedVariations = currentVariations.filter((_, i) => i !== removeIndex)
     setValue("productVariations", updatedVariations, { shouldValidate: true })
   }
+  // console.log(variations,'variations ram lal ji');
 
   return (
     <Card>
@@ -623,6 +712,15 @@ export default function ProductVariants({
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
+                        name={`productVariations.${index}._id`}
+                        control={control}
+                        defaultValue={variation._id || ""}
+                        render={({ field }) => (
+                          <input type="hidden" {...field} />
+                        )}
+                      />
+
+                      <Controller
                         name={`productVariations.${index}.regularPriceB2B`}
                         control={control}
                         defaultValue={variation.regularPriceB2B}
@@ -852,7 +950,7 @@ export default function ProductVariants({
                           <>
                             <TextField
                               {...field}
-                              label="Tile Length (cm)"
+                              label="Tile Length (mm)"
                               type="number"
                               inputProps={{ step: 1, min: 1 }}
                               fullWidth
@@ -875,7 +973,7 @@ export default function ProductVariants({
                           <>
                             <TextField
                               {...field}
-                              label="Tile Width (cm)"
+                              label="Tile Width (mm)"
                               type="number"
                               inputProps={{ step: 1, min: 1 }}
                               fullWidth
@@ -944,7 +1042,7 @@ export default function ProductVariants({
                           <>
                             <TextField
                               {...field}
-                              label="Box sizes (sqm/kg)"
+                              label="Box sizes (sq.m)"
                               type="number"
                               inputProps={{ step: 1, min: 1 }}
                               fullWidth
@@ -967,7 +1065,7 @@ export default function ProductVariants({
                           <>
                             <TextField
                               {...field}
-                              label="Pallet Size (sqm/kg)"
+                              label="Pallet Size (sq.m)"
                               fullWidth
                               type="number"
                               inputProps={{ step: 1, min: 1 }}
@@ -979,6 +1077,106 @@ export default function ProductVariants({
                         )}
                       />
                     </Grid>
+
+
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <Controller
+                        name={`productVariations.${index}.palletWeight`}
+                        control={control}
+                        defaultValue={variation.palletWeight}
+                        rules={{
+                          required: "Pallet Weight (KG) is required"
+                        }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label="Pallet Weight (KG)"
+                              fullWidth
+                              type="number"
+                              inputProps={{ step: 1, min: 1 }}
+                              variant="outlined"
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
+                        )}
+                      />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <Controller
+                        name={`productVariations.${index}.sqmPerTile`}
+                        control={control}
+                        defaultValue={variation.sqmPerTile}
+                        rules={{
+                          required: "SQ.M per Tile is required" }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label="SQ.M per Tile"
+                              fullWidth
+                              type="number"
+                              inputProps={{ step: 1, min: 1 }}
+                              variant="outlined"
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
+                        )}
+                      />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <Controller
+                        name={`productVariations.${index}.boxesPerPallet`}
+                        control={control}
+                        defaultValue={variation.boxesPerPallet}
+                        rules={{
+                          required: "Boxes Per Pallet is required" }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label="Boxes Per Pallet"
+                              fullWidth
+                              type="number"
+                              inputProps={{ step: 1, min: 1 }}
+                              variant="outlined"
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
+                        )}
+                      />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <Controller
+                        name={`productVariations.${index}.boxWeight`}
+                        control={control}
+                        defaultValue={variation.boxWeight}
+                        rules={{
+                          required: "Box Weight (KG) is required" }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label="Box Weight (KG)"
+                              fullWidth
+                              type="number"
+                              inputProps={{ step: 1, min: 1 }}
+                              variant="outlined"
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          </>
+                        )}
+                      />
+                    </Grid>
+
+
 
                     <Grid size={{ xs: 12 }}>
                       <Divider style={{ marginTop: "20px", marginBottom: "20px" }} />
