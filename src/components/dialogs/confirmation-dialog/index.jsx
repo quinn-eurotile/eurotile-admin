@@ -28,7 +28,8 @@ const ConfirmationDialog = ({ open, setOpen, type, callbackMethod = () => {} }) 
   }
 
   const handleConfirmation = async value => {
-    callbackMethod(true)
+
+    callbackMethod(value)
     setUserInput(value)
     //setSecondDialog(true);
     setOpen(false)

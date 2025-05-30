@@ -1,31 +1,20 @@
-'use client'
+'use client';
 
 // MUI Imports
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Typography from '@mui/material/Typography'
-import Button from '@mui/material/Button'
-import CircularProgress from '@mui/material/CircularProgress'
-import Chip from '@mui/material/Chip'
-import { green, red, orange } from '@mui/material/colors'
-import { useSession } from 'next-auth/react'
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
+import Chip from '@mui/material/Chip';
+import { green, red, orange } from '@mui/material/colors';
+import { useSession } from 'next-auth/react';
 import { Box } from '@mui/material';
 
-const Profile = ({userData}) => {
-  console.log(userData,'userDatauserData')
-  const { data: session, status } = useSession()
-
-  // Show loading indicator while session is loading
-  if (status === 'loading') {
-    return (
-      <div className='flex justify-center items-center h-60'>
-        <CircularProgress />
-      </div>
-    )
-  }
+const Profile = ({ userData }) => {
 
   // Status mapping logic
-  const userStatus = userData?.business?.status
+  const userStatus = userData?.business?.status;
   const getStatusProps = status => {
     switch (status) {
       case 1:
@@ -38,7 +27,7 @@ const Profile = ({userData}) => {
             backgroundColor: green[50],
             fontWeight: 500
           }
-        }
+        };
       case 0:
         return {
           label: 'Unverified',
@@ -49,7 +38,7 @@ const Profile = ({userData}) => {
             backgroundColor: red[50],
             fontWeight: 500
           }
-        }
+        };
       case 2:
       default:
         return {
@@ -61,11 +50,11 @@ const Profile = ({userData}) => {
             backgroundColor: orange[50],
             fontWeight: 500
           }
-        }
+        };
     }
-  }
+  };
 
-  const statusProps = getStatusProps(userStatus)
+  const statusProps = getStatusProps(userStatus);
 
   return (
     <Card>
@@ -82,8 +71,8 @@ const Profile = ({userData}) => {
           </Typography>
           <div className='mt-1 mb-2'>
             <Box variant='body2'>
-            <strong>Business Status:</strong>
-            <Chip variant='outlined' size='small' style={{marginLeft: '6px'}} {...statusProps} />
+              <strong>Business Status:</strong>
+              <Chip variant='outlined' size='small' style={{ marginLeft: '6px' }} {...statusProps} />
             </Box>
           </div>
         </div>
@@ -98,7 +87,7 @@ const Profile = ({userData}) => {
         />
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default Profile
+export default Profile;
