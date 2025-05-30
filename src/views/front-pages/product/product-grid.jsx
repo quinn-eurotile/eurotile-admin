@@ -84,12 +84,21 @@ export default function ProductGrid({products}) {
         <div key={product.id} className="group">
           <Link href={`/products/${product.sku}`} className="block p-2 bg-bgLight rounded-lg mb-3">
             <div className="relative aspect-square overflow-hidden rounded-md">
+              {product.avatar ?
               <Image
                 src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product.avatar}`  || "/placeholder.svg"}
                 alt={product.name}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
+              :
+               <Image
+                src={"/placeholder.svg"}
+                alt={product.name}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              }
             </div>
           </Link>
           <div className="text-center">

@@ -32,7 +32,7 @@ export default function FilterSidebar({ isMobile = false, isOpen = false, onClos
     // Handle attribute variations in a flat array
     if (group === 'attributeVariations') {
       setFilter(prev => {
-        const currentAttributes = Array.isArray(prev.attributes) ? prev.attributes : []
+        const currentAttributes = Array.isArray(prev.attributeVariations) ? prev.attributeVariations : []
         const isAlreadySelected = currentAttributes.includes(value)
 
         return {

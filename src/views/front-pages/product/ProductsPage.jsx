@@ -28,13 +28,12 @@ export default function ProductsPage() {
     search_string: '',
     category: [],
     suppliers: [],
-    price: [10, 10000],
+    // price: [10, 10000],
     attributeVariations: {}, // { color: ['red', 'blue'], size: ['M'] }
-    minPriceB2B: 0,
-    maxPriceB2B: 0
+    // minPriceB2B: 0,
+    // maxPriceB2B: 0
   })
 
-  console.log(filter,'filterfilter')
   const [filterOpen, setFilterOpen] = useState(false)
   //const dispatch = useDispatch()
   const [anchorEl, setAnchorEl] = useState(null)
@@ -58,6 +57,7 @@ export default function ProductsPage() {
     try {
       //dispatch(callCommonAction({ loading: true }))
       const response = await getProductList(currentPage, pageSize, filter?.search_string, filter)
+      console.log(response,'.................')
       //dispatch(callCommonAction({ loading: false }))
       if (response.statusCode === 200 && response.data) {
         const formatted = response?.data?.docs?.map(product => ({

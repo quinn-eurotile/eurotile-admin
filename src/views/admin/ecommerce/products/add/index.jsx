@@ -183,6 +183,7 @@ const AddProduct = () => {
   }, [productId]);
 
   const onSubmit = async formDataValues => {
+    console.log(formDataValues,'formDataValuesformDataValuesformDataValues')
     try {
       const missingFields = [];
 
@@ -306,6 +307,7 @@ const AddProduct = () => {
 
       if (response.success) {
         router.push(`/${locale}/admin/ecommerce/products/list`);
+         toast.success(response.message || 'Product created successfully');
       } else {
         toast.error(response.message || 'Failed to save product');
       }
