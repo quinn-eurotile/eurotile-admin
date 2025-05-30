@@ -1,23 +1,23 @@
-'use client'
+'use client';
 
 // React Imports
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react';
 
 // Next Imports
-import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 // MUI Imports
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Typography from '@mui/material/Typography'
-import Chip from '@mui/material/Chip'
-import TextField from '@mui/material/TextField'
-import TablePagination from '@mui/material/TablePagination'
-import Image from 'next/image'
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Chip from '@mui/material/Chip';
+import TextField from '@mui/material/TextField';
+import TablePagination from '@mui/material/TablePagination';
+import Image from 'next/image';
 // Third-party Imports
-import classnames from 'classnames'
-import { rankItem } from '@tanstack/match-sorter-utils'
+import classnames from 'classnames';
+import { rankItem } from '@tanstack/match-sorter-utils';
 import {
   createColumnHelper,
   flexRender,
@@ -29,100 +29,100 @@ import {
   getFacetedMinMaxValues,
   getPaginationRowModel,
   getSortedRowModel
-} from '@tanstack/react-table'
+} from '@tanstack/react-table';
 
 // Component Imports
-import OptionMenu from '@core/components/option-menu'
+import OptionMenu from '@core/components/option-menu';
 
 // Util Imports
-import { getLocalizedUrl } from '@/utils/i18n'
-import Button from '@mui/material/Button'
+import { getLocalizedUrl } from '@/utils/i18n';
+import Button from '@mui/material/Button';
 // Style Imports
-import tableStyles from '@core/styles/table.module.css'
-import { deleteProductVariation } from '@/app/server/productVariation'
-import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
-import { toast } from 'react-toastify'
-import ProductVariationView from './ProductVariationView'
+import tableStyles from '@core/styles/table.module.css';
+import { deleteProductVariation } from '@/app/server/productVariation';
+import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { toast } from 'react-toastify';
+import ProductVariationView from './ProductVariationView';
 
 export const paymentStatus = {
   1: { text: 'Paid', color: 'success' },
   2: { text: 'Pending', color: 'warning' },
   3: { text: 'Cancelled', color: 'secondary' },
   4: { text: 'Failed', color: 'error' }
-}
+};
 export const statusChipColor = {
   Delivered: { color: 'success' },
   'Out for Delivery': { color: 'primary' },
   'Ready to Pickup': { color: 'info' },
   Dispatched: { color: 'warning' }
-}
+};
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value)
+  const itemRank = rankItem(row.getValue(columnId), value);
 
   // Store the itemRank info
   addMeta({
     itemRank
-  })
+  });
 
   // Return if the item should be filtered in/out
-  return itemRank.passed
-}
+  return itemRank.passed;
+};
 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
   // States
-  const [value, setValue] = useState(initialValue)
+  const [value, setValue] = useState(initialValue);
 
   useEffect(() => {
-    setValue(initialValue)
-  }, [initialValue])
+    setValue(initialValue);
+  }, [initialValue]);
   useEffect(() => {
     const timeout = setTimeout(() => {
-      onChange(value)
-    }, debounce)
+      onChange(value);
+    }, debounce);
 
-    return () => clearTimeout(timeout)
+    return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
+  }, [value]);
 
-  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
-}
+  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />;
+};
 
 // Column Definitions
-const columnHelper = createColumnHelper()
+const columnHelper = createColumnHelper();
 
 const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) => {
-  const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN
-  const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState(productData?.productVariations || [])
-  const [globalFilter, setGlobalFilter] = useState('')
-  const { lang: locale } = useParams()
-  const [selectedId, setSelectedId] = useState(null)
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false) // State for dialog
-  const [openVariationDialog, setOpenVariationDialog] = useState(false)
-  const [selectedVariation, setSelectedVariation] = useState(null)
+  const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
+  const [rowSelection, setRowSelection] = useState({});
+  const [data, setData] = useState(productData?.productVariations || []);
+  const [globalFilter, setGlobalFilter] = useState('');
+  const { lang: locale } = useParams();
+  const [selectedId, setSelectedId] = useState(null);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false); // State for dialog
+  const [openVariationDialog, setOpenVariationDialog] = useState(false);
+  const [selectedVariation, setSelectedVariation] = useState(null);
 
   const handleDeleteConfirmation = id => {
-    setSelectedId(id)
-    setOpenConfirmDialog(true)
-  }
+    setSelectedId(id);
+    setOpenConfirmDialog(true);
+  };
 
   const handleDelete = async () => {
     try {
-      const response = await deleteProductVariation(selectedId)
+      const response = await deleteProductVariation(selectedId);
       if (response.success) {
         // Remove the deleted variation from local state
-        setData(prev => prev.filter(variation => String(variation.id) !== String(selectedId)))
+        setData(prev => prev.filter(variation => String(variation.id) !== String(selectedId)));
       } else {
-        toast.error(response.message || 'Failed to delete.')
+        toast.error(response.message || 'Failed to delete.');
       }
-      setOpenConfirmDialog(false) // Close the dialog after deletion
+      setOpenConfirmDialog(false); // Close the dialog after deletion
     } catch (error) {
-      console.error('Error deleting team member:', error)
-      setOpenConfirmDialog(false) // Close the dialog on error as well
+      console.error('Error deleting team member:', error);
+      setOpenConfirmDialog(false); // Close the dialog on error as well
     }
-  }
+  };
 
   const columns = useMemo(
     () => [
@@ -150,7 +150,7 @@ const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) =
       }),
       columnHelper.accessor('regularPrice', {
         header: 'Price',
-        cell: ({ row }) => <Typography>${parseFloat(row.original?.regularPrice).toFixed(2)}</Typography>
+        cell: ({ row }) => <Typography>${parseFloat(row.original?.regularPriceB2B).toFixed(2)}</Typography>
       }),
       columnHelper.accessor('stockQuantity', {
         header: 'Quantity',
@@ -170,9 +170,9 @@ const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) =
       columnHelper.accessor('action', {
         header: 'Actions',
         cell: ({ row }) => {
-          const variationId = row.original.id
+          const variationId = row.original.id;
 
-          const isOnlyOneVariation = data.length === 1
+          const isOnlyOneVariation = data.length === 1;
 
           return (
             <div className='flex items-center'>
@@ -185,8 +185,8 @@ const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) =
                     icon: 'ri-eye-line text-[16px]',
                     menuItemProps: {
                       onClick: () => {
-                        setSelectedVariation(row.original)
-                        setOpenVariationDialog(true)
+                        setSelectedVariation(row.original);
+                        setOpenVariationDialog(true);
                       },
                       className: 'gap-2 action-btn-comp'
                     }
@@ -194,27 +194,27 @@ const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) =
                   // Conditionally render delete option only if more than 1 variation exists
                   ...(!isOnlyOneVariation
                     ? [
-                        {
-                          text: 'Delete',
-                          icon: 'ri-delete-bin-7-line text-[16px]',
-                          menuItemProps: {
-                            onClick: () => handleDeleteConfirmation(variationId),
-                            className: 'gap-2 action-btn-comp'
-                          }
+                      {
+                        text: 'Delete',
+                        icon: 'ri-delete-bin-7-line text-[16px]',
+                        menuItemProps: {
+                          onClick: () => handleDeleteConfirmation(variationId),
+                          className: 'gap-2 action-btn-comp'
                         }
-                      ]
+                      }
+                    ]
                     : [])
                 ]}
               />
             </div>
-          )
+          );
         },
         enableSorting: false
       })
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data]
-  )
+  );
 
   const table = useReactTable({
     data: data,
@@ -243,7 +243,7 @@ const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) =
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues()
-  })
+  });
 
   return (
     <Card>
@@ -305,7 +305,7 @@ const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) =
                         <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                       ))}
                     </tr>
-                  )
+                  );
                 })}
             </tbody>
           )}
@@ -319,7 +319,7 @@ const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) =
         rowsPerPage={table.getState().pagination.pageSize}
         page={table.getState().pagination.pageIndex}
         onPageChange={(_, page) => {
-          table.setPageIndex(page)
+          table.setPageIndex(page);
         }}
         onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
       />
@@ -348,7 +348,7 @@ const ProductVariationListTable = ({ productData, statusMap, stockStatusMap }) =
         </DialogActions>
       </Dialog>
     </Card>
-  )
-}
+  );
+};
 
-export default ProductVariationListTable
+export default ProductVariationListTable;

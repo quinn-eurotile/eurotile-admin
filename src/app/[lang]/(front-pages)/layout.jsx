@@ -8,6 +8,8 @@ import 'react-perfect-scrollbar/dist/css/styles.css'
 // Context Imports
 import { IntersectionProvider } from '@/contexts/intersectionContext'
 
+import '@fontsource/montserrat'
+
 // Component Imports
 import Providers from '@components/Providers'
 import BlankLayout from '@layouts/BlankLayout'

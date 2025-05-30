@@ -28,9 +28,17 @@ export default function ProductsPage() {
     search_string: '',
     category: [],
     suppliers: [],
+<<<<<<< HEAD
     price: [10, 10000],
     attributeVariations: {} // { color: ['red', 'blue'], size: ['M'] }
+=======
+    // price: [10, 10000],
+    attributeVariations: {}, // { color: ['red', 'blue'], size: ['M'] }
+    // minPriceB2B: 0,
+    // maxPriceB2B: 0
+>>>>>>> 65189892ca2c40c11e3eb8e0a28e2b9bb81571b6
   })
+
   const [filterOpen, setFilterOpen] = useState(false)
   //const dispatch = useDispatch()
   const [anchorEl, setAnchorEl] = useState(null)
@@ -53,7 +61,9 @@ export default function ProductsPage() {
   const fetchProductList = async (currentPage = 1, pageSize = rowsPerPage) => {
     try {
       //dispatch(callCommonAction({ loading: true }))
+      filter['attributeVariations'] = JSON.stringify(filter.attributeVariations)
       const response = await getProductList(currentPage, pageSize, filter?.search_string, filter)
+      console.log(response,'.................')
       //dispatch(callCommonAction({ loading: false }))
       if (response.statusCode === 200 && response.data) {
         const formatted = response?.data?.docs?.map(product => ({

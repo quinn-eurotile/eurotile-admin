@@ -183,6 +183,7 @@ const AddProduct = () => {
   }, [productId]);
 
   const onSubmit = async formDataValues => {
+    console.log(formDataValues,'formDataValuesformDataValuesformDataValues')
     try {
       const missingFields = [];
 
@@ -290,9 +291,9 @@ const AddProduct = () => {
       }
 
       // Debug: log formData keys and values
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
+      // for (let [key, value] of formData.entries()) {
+      //   console.log(`${key}:`, value);
+      // }
 
       // Call appropriate API
       let response;
@@ -305,7 +306,8 @@ const AddProduct = () => {
       console.log('API Response:', response);
 
       if (response.success) {
-        //router.push(`/${locale}/admin/ecommerce/products/list`);
+        router.push(`/${locale}/admin/ecommerce/products/list`);
+         toast.success(response.message || 'Product created successfully');
       } else {
         toast.error(response.message || 'Failed to save product');
       }

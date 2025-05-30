@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from 'react'
 import {
   Box,
   Tabs,
@@ -24,21 +24,21 @@ import {
   ListItem,
   IconButton,
   Divider,
-  InputAdornment,
-} from "@mui/material"
-import { useFormContext, Controller } from "react-hook-form"
-import Grid from "@mui/material/Grid2"
-import { useDropzone } from "react-dropzone"
-import CustomAvatar from "@/@core/components/mui/Avatar"
-import Image from "next/image"
-import { calculateTierValue } from "@/components/common/helper"
-import ConfirmationDialog from "@/components/dialogs/confirmation-dialog"
+  InputAdornment
+} from '@mui/material'
+import { useFormContext, Controller } from 'react-hook-form'
+import Grid from '@mui/material/Grid2'
+import { useDropzone } from 'react-dropzone'
+import CustomAvatar from '@/@core/components/mui/Avatar'
+import Image from 'next/image'
+import { calculateTierValue } from '@/components/common/helper'
+import ConfirmationDialog from '@/components/dialogs/confirmation-dialog'
 
 export default function ProductVariants({
   productAttributes,
   defaultAttribute,
   defaultAttributeVariations,
-  defaultProductVariations,
+  defaultProductVariations
 }) {
   const hasAttributes = productAttributes && productAttributes.length > 0
   const [tabIndex, setTabIndex] = useState(0)
@@ -68,13 +68,13 @@ export default function ProductVariants({
     // Step 2: Build attributeId -> [variationIds] mapping from defaultAttributeVariations
     const attributeValueMap = {}
 
-    attributeIds.forEach((attributeId) => {
-      const attribute = productAttributes.find((attr) => attr._id === attributeId)
+    attributeIds.forEach(attributeId => {
+      const attribute = productAttributes.find(attr => attr._id === attributeId)
 
       if (attribute) {
         const matchedVariationIds = attribute.variations
-          .filter((variation) => defaultAttributeVariations.includes(variation._id))
-          .map((variation) => variation._id)
+          .filter(variation => defaultAttributeVariations.includes(variation._id))
+          .map(variation => variation._id)
 
         if (matchedVariationIds.length > 0) {
           attributeValueMap[attributeId] = matchedVariationIds
@@ -87,9 +87,9 @@ export default function ProductVariants({
     setSelectedAttributeValues(attributeValueMap)
 
     // Step 4: Set form values
-    setValue("attributes", attributeIds, { shouldValidate: true })
-    setValue("attributeVariations", defaultAttributeVariations, { shouldValidate: true })
-    setValue("productVariations", defaultProductVariations, { shouldValidate: true })
+    setValue('attributes', attributeIds, { shouldValidate: true })
+    setValue('attributeVariations', defaultAttributeVariations, { shouldValidate: true })
+    setValue('productVariations', defaultProductVariations, { shouldValidate: true })
   }, [productAttributes, defaultAttribute, defaultAttributeVariations, defaultProductVariations, setValue])
 
   const initialProductVariationsRef = useRef([])
@@ -98,49 +98,45 @@ export default function ProductVariants({
   const [removedProductVariations, setRemovedProductVariations] = useState([])
 
   function generateVariations(selectedAttributeValues, existingVariations = []) {
-    console.log("under variations", selectedAttributeValues)
+    console.log('under variations', selectedAttributeValues)
 
     const filteredAttributeValues = Object.fromEntries(
-      Object.entries(selectedAttributeValues).filter(([key, value]) => Array.isArray(value) && value.length > 0),
+      Object.entries(selectedAttributeValues).filter(([key, value]) => Array.isArray(value) && value.length > 0)
     )
 
     const arrays = Object.values(filteredAttributeValues)
-    if (arrays.length === 0 || arrays.some((arr) => arr.length === 0)) {
+    if (arrays.length === 0 || arrays.some(arr => arr.length === 0)) {
       return []
     }
 
     // Create a map of existing variations for quick lookup
     const existingVariationsMap = new Map()
 
-    console.log(existingVariations,'existingVariations');
+    console.log(existingVariations, 'existingVariations')
 
-    existingVariations.forEach((variation) => {
+    existingVariations.forEach(variation => {
       // Create a unique key based on attributes
       const key = Object.entries(selectedAttributeValues)
         .map(([attrId, values]) => {
           const value = variation[attrId]
-          return value ? `${attrId}:${value}` : ""
+          return value ? `${attrId}:${value}` : ''
         })
         .filter(Boolean)
         .sort()
-        .join("|")
-      console.log(key,'kkkkkayyyyy');
-
+        .join('|')
+      console.log(key, 'kkkkkayyyyy')
 
       if (key) {
         existingVariationsMap.set(key, variation)
       }
     })
 
-
-
-
     // Generate all possible combinations
-    const cartesian = (arr) => arr.reduce((a, b) => a.flatMap((d) => b.map((e) => [...d, e])), [[]])
+    const cartesian = arr => arr.reduce((a, b) => a.flatMap(d => b.map(e => [...d, e])), [[]])
     const combinations = cartesian(arrays)
 
     // Create new variations array
-    const newVariations = combinations.map((combo) => {
+    const newVariations = combinations.map(combo => {
       const variationAttributes = {}
       const formattedAttributes = []
 
@@ -153,7 +149,7 @@ export default function ProductVariants({
 
       // If it exists, use the existing data, otherwise create a new variation
       return {
-        ...variationAttributes,
+        ...variationAttributes
       }
     })
 
@@ -166,41 +162,38 @@ export default function ProductVariants({
 
     // Filter out empty attribute selections
     const filteredAttributeValues = Object.fromEntries(
-      Object.entries(selectedAttributeValues).filter(
-        ([_, values]) => Array.isArray(values) && values.length > 0
-      )
+      Object.entries(selectedAttributeValues).filter(([_, values]) => Array.isArray(values) && values.length > 0)
     )
     // console.log(" filteredAttributeValues:", filteredAttributeValues)
     // Get arrays of values for cartesian product
     const arrays = Object.values(filteredAttributeValues)
-    if (arrays.length === 0 || arrays.some((arr) => arr.length === 0)) {
+    if (arrays.length === 0 || arrays.some(arr => arr.length === 0)) {
       return []
     }
 
     // Create a lookup map of existing variations for quick matching
 
     const existingVariationsMap = new Map()
-    existingVariations.forEach((variation) => {
+    existingVariations.forEach(variation => {
       // Build a unique key from the variation's attribute values
       const key = Object.entries(variation)
         .map(([attributeId, value]) => `${attributeId}:${value}`)
-          //  .map((attributeId) => `${attributeId}:${variation[attributeId]}`)
+        //  .map((attributeId) => `${attributeId}:${variation[attributeId]}`)
 
         .sort()
-        .join("|")
+        .join('|')
 
       existingVariationsMap.set(key, variation)
     })
     // console.log(" existingVariationsMap: 55555", existingVariationsMap)
     // Helper to calculate cartesian product of arrays
-    const cartesian = (arr) =>
-      arr.reduce((a, b) => a.flatMap((d) => b.map((e) => [...d, e])), [[]])
+    const cartesian = arr => arr.reduce((a, b) => a.flatMap(d => b.map(e => [...d, e])), [[]])
 
     // Generate all possible combinations
     const combinations = cartesian(arrays)
 
     // Build new variations list from combinations
-    const newVariations = combinations.map((combo) => {
+    const newVariations = combinations.map(combo => {
       const variationAttributes = {}
 
       // Assign each attribute value from the combo to its corresponding attribute ID
@@ -212,29 +205,23 @@ export default function ProductVariants({
       const key = Object.entries(variationAttributes)
         .map(([attributeId, value]) => `${attributeId}:${value}`)
         .sort()
-        .join("|")
-
-
+        .join('|')
 
       const existingVariation = existingVariationsMap.get(key)
-      console.log(
-        Array.from(existingVariationsMap.keys()),
-        "existingVariation keys"
-      )
-      console.log(key, 'key');
-      console.log(existingVariationsMap, 'existingVariationsMap');
-      console.log(existingVariation, 'existingVariation');
-      console.log(variationAttributes, 'variationAttributesddd66666');
+      console.log(Array.from(existingVariationsMap.keys()), 'existingVariation keys')
+      console.log(key, 'key')
+      console.log(existingVariationsMap, 'existingVariationsMap')
+      console.log(existingVariation, 'existingVariation')
+      console.log(variationAttributes, 'variationAttributesddd66666')
 
       // Return existing variation if present, otherwise new one
-      return   {
+      return {
         ...variationAttributes,
-        _id: existingVariation?._id || null,
+        _id: existingVariation?._id || null
         // Add any additional default fields if necessary
         // For example: price: 0, stock: 0, images: []
       }
     })
-
 
     return newVariations
   }
@@ -255,13 +242,13 @@ export default function ProductVariants({
       // Loop through productAttributes with index to use as key
       productAttributes.forEach((attribute, index) => {
         // Map attribute variations to array of { id, label }
-        const values = attribute.variations.map((variation) => {
-          const unitName = variation.measurementUnit?.name || ""
+        const values = attribute.variations.map(variation => {
+          const unitName = variation.measurementUnit?.name || ''
           const label = unitName ? `${variation.metaValue} ${unitName}` : variation.metaValue
 
           return {
             id: variation._id, // Variation ID
-            label, // Label string to display
+            label // Label string to display
           }
         })
 
@@ -269,7 +256,7 @@ export default function ProductVariants({
         indexedAttributes[index] = {
           _id: attribute._id, // Original attribute ID stored in _id
           name: attribute.name, // Attribute name for display
-          values, // Array of variation objects with id and label
+          values // Array of variation objects with id and label
         }
       })
 
@@ -279,10 +266,10 @@ export default function ProductVariants({
   }, [productAttributes])
 
   // Watch variations from form context
-  const variations = watch("productVariations") || []
+  const variations = watch('productVariations') || []
 
   // When selectedAttributeValues changes, generate new variations and update form
-  const isEmptyArray = (arr) => !Array.isArray(arr) || arr.length === 0
+  const isEmptyArray = arr => !Array.isArray(arr) || arr.length === 0
   const hasMountedRef = useRef(false)
   useEffect(() => {
     if (!hasMountedRef.current) {
@@ -290,34 +277,34 @@ export default function ProductVariants({
       return
     }
 
-    console.log(".................................")
+    console.log('.................................')
 
     // Get current variations from form
-    const currentVariations = getValues("productVariations") || []
+    const currentVariations = getValues('productVariations') || []
 
     // Generate new variations while preserving existing data
     const newVariations = generateVariations(selectedAttributeValues, currentVariations)
-    console.log(newVariations,'newVariations');
+    console.log(newVariations, 'newVariations')
 
     // Update form with merged variations
-    setValue("productVariations", newVariations, { shouldValidate: true })
+    setValue('productVariations', newVariations, { shouldValidate: true })
   }, [selectedAttributeValues, setValue, getValues])
 
   useEffect(() => {
-    setValue("variationsImagesToRemove", removedImageIds)
+    setValue('variationsImagesToRemove', removedImageIds)
   }, [removedImageIds])
 
   useEffect(() => {
     // Collect matched variation IDs based on selected attribute IDs and variation IDs
     const matchedVariationIds = []
 
-    selectedAttributes.forEach((attributeId) => {
-      const matchedAttribute = productAttributes.find((attr) => attr._id === attributeId)
+    selectedAttributes.forEach(attributeId => {
+      const matchedAttribute = productAttributes.find(attr => attr._id === attributeId)
 
       if (matchedAttribute) {
         const selectedVariationIds = selectedAttributeValues[attributeId] || []
 
-        matchedAttribute.variations.forEach((variation) => {
+        matchedAttribute.variations.forEach(variation => {
           if (selectedVariationIds.includes(variation._id)) {
             matchedVariationIds.push(variation._id)
           }
@@ -326,13 +313,13 @@ export default function ProductVariants({
     })
 
     // Update attributeVariations in the form with variation IDs
-    setValue("attributeVariations", matchedVariationIds, { shouldValidate: true })
+    setValue('attributeVariations', matchedVariationIds, { shouldValidate: true })
   }, [selectedAttributes, selectedAttributeValues, productAttributes, setValue])
 
   useEffect(() => {
     // Initialize the form values for tracking removed items
-    setValue("attributesToRemove", [], { shouldValidate: false })
-    setValue("attributeVariationsToRemove", [], { shouldValidate: false })
+    setValue('attributesToRemove', [], { shouldValidate: false })
+    setValue('attributeVariationsToRemove', [], { shouldValidate: false })
   }, [setValue])
 
   // Disable variations tab if no attributes or any attribute has no values selected
@@ -340,22 +327,22 @@ export default function ProductVariants({
   //   selectedAttributes.length === 0 || Object.values(selectedAttributeValues).some(vals => vals.length === 0)
 
   const isVariationsDisabled = Object.values(selectedAttributeValues).some(
-    (valueArray) => Array.isArray(valueArray) && valueArray.length > 0,
+    valueArray => Array.isArray(valueArray) && valueArray.length > 0
   )
 
-  console.log(isVariationsDisabled, "isVariationsDisabledisVariationsDisabled")
+  console.log(isVariationsDisabled, 'isVariationsDisabledisVariationsDisabled')
 
-  const isAttributeExist = watch("attributes")
+  const isAttributeExist = watch('attributes')
 
-  const handleAttributesChange = (event) => {
+  const handleAttributesChange = event => {
     const newSelectedAttributes = event.target.value // Newly selected attribute IDs
     const previousSelectedAttributes = selectedAttributes // Previously selected attribute IDs
 
     // Identify which attributes are being removed
-    const removedAttributes = previousSelectedAttributes.filter((id) => !newSelectedAttributes.includes(id))
+    const removedAttributes = previousSelectedAttributes.filter(id => !newSelectedAttributes.includes(id))
 
     // Check if any removed attribute has selected values
-    const hasValuesUnderRemovedAttributes = removedAttributes.some((attributeId) => {
+    const hasValuesUnderRemovedAttributes = removedAttributes.some(attributeId => {
       return selectedAttributeValues[attributeId] && selectedAttributeValues[attributeId].length > 0
     })
 
@@ -366,115 +353,115 @@ export default function ProductVariants({
 
     // Track removed attributes for submission
     if (removedAttributes.length > 0) {
-      setAttributesToRemove((prev) => {
+      setAttributesToRemove(prev => {
         const updated = [...prev, ...removedAttributes]
         // Update form value
-        setValue("attributesToRemove", updated, { shouldValidate: true })
+        setValue('attributesToRemove', updated, { shouldValidate: true })
         return updated
       })
     }
 
     // Safe to update attributes
-    setValue("attributes", newSelectedAttributes, { shouldValidate: true })
+    setValue('attributes', newSelectedAttributes, { shouldValidate: true })
     setSelectedAttributes(newSelectedAttributes)
   }
 
   const handleAttributeValuesChange = (attributeId, values) => {
     const previousValues = selectedAttributeValues[attributeId] || []
-    const removedValues = previousValues.filter((id) => !values.includes(id))
+    const removedValues = previousValues.filter(id => !values.includes(id))
 
     // Track removed attribute variations for submission
     if (removedValues.length > 0) {
-      setAttributeVariationsToRemove((prev) => {
+      setAttributeVariationsToRemove(prev => {
         const updated = [...prev, ...removedValues]
         // Update form value
-        setValue("attributeVariationsToRemove", updated, { shouldValidate: true })
+        setValue('attributeVariationsToRemove', updated, { shouldValidate: true })
         return updated
       })
     }
 
-    setSelectedAttributeValues((prev) => ({
+    setSelectedAttributeValues(prev => ({
       ...prev,
-      [attributeId]: values,
+      [attributeId]: values
     }))
   }
 
-  const handleRemoveVariation = (removeIndex) => {
-    const currentVariations = getValues("productVariations")
+  const handleRemoveVariation = removeIndex => {
+    const currentVariations = getValues('productVariations')
     const variationToRemove = currentVariations[removeIndex]
     if (variationToRemove?._id) {
       // Update local state
-      setRemovedProductVariations((prev) => {
+      setRemovedProductVariations(prev => {
         const updated = prev.includes(variationToRemove._id) ? prev : [...prev, variationToRemove._id]
         // Sync with form state
-        setValue("variationsToRemove", updated, { shouldValidate: true })
+        setValue('variationsToRemove', updated, { shouldValidate: true })
         return updated
       })
     }
     // Remove the variation from the form state
     const updatedVariations = currentVariations.filter((_, i) => i !== removeIndex)
-    setValue("productVariations", updatedVariations, { shouldValidate: true })
+    setValue('productVariations', updatedVariations, { shouldValidate: true })
   }
   // console.log(variations,'variations ram lal ji');
 
   return (
     <Card>
-      <ConfirmationDialog open={openConfirmation} setOpen={setOpenConfirmation} type="alert-message" />
+      <ConfirmationDialog open={openConfirmation} setOpen={setOpenConfirmation} type='alert-message' />
       <CardHeader
-        title="Product Data"
+        title='Product Data'
         action={
-          <Typography color="primary.main" className="font-medium">
+          <Typography color='primary.main' className='font-medium'>
             Set Product Attribute and Variations
           </Typography>
         }
-        sx={{ "& .MuiCardHeader-action": { alignSelf: "center" } }}
+        sx={{ '& .MuiCardHeader-action': { alignSelf: 'center' } }}
       />
       <CardContent>
-        <Box sx={{ display: "flex", height: "100%", width: "100%" }}>
+        <Box sx={{ display: 'flex', height: '100%', width: '100%' }}>
           <Tabs
-            orientation="vertical"
+            orientation='vertical'
             value={tabIndex}
             onChange={(e, newValue) => setTabIndex(newValue)}
-            sx={{ borderRight: 1, borderColor: "divider", minWidth: 180 }}
+            sx={{ borderRight: 1, borderColor: 'divider', minWidth: 180 }}
           >
-            <Tab label="Attributes" />
-            <Tab label="Variations" disabled={!isVariationsDisabled} />
+            <Tab label='Attributes' />
+            <Tab label='Variations' disabled={!isVariationsDisabled} />
           </Tabs>
 
           {tabIndex === 0 && (
             <Box sx={{ p: 3, flexGrow: 1 }}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant='h6' gutterBottom>
                 Choose Attributes to Combine
               </Typography>
 
               <FormControl
                 sx={{ mb: 4, minWidth: 300 }}
-                variant="outlined"
-                margin="normal"
+                variant='outlined'
+                margin='normal'
                 required
                 error={!hasAttributes}
               >
-                <InputLabel id="select-attributes-label">Attributes</InputLabel>
+                <InputLabel id='select-attributes-label'>Attributes</InputLabel>
                 <Select
-                  labelId="select-attributes-label"
+                  labelId='select-attributes-label'
                   multiple
                   value={selectedAttributes}
                   onChange={handleAttributesChange}
-                  input={<OutlinedInput label="Attributes" />}
-                  renderValue={(selected) => {
+                  input={<OutlinedInput label='Attributes' />}
+                  renderValue={selected => {
                     // For each selected attribute ID, find its corresponding name in allAttributes
                     const names = selected
-                      .map((attrId) => {
+                      .map(attrId => {
                         // Find attribute by matching _id
-                        const attrEntry = Object.values(allAttributes).find((attr) => attr._id === attrId)
+                        const attrEntry = Object.values(allAttributes).find(attr => attr._id === attrId)
                         return attrEntry ? attrEntry.name : null
                       })
                       .filter(Boolean)
 
-                    return names.join(", ")
+                    return names.join(', ')
                   }}
                 >
-                  {Object.keys(allAttributes).map((indexKey) => {
+                  {Object.keys(allAttributes).map(indexKey => {
                     const attribute = allAttributes[indexKey]
                     return (
                       <MenuItem key={attribute._id} value={attribute._id}>
@@ -490,12 +477,12 @@ export default function ProductVariants({
 
               {selectedAttributes.length > 0 && (
                 <>
-                  <Typography variant="h6" gutterBottom>
+                  <Typography variant='h6' gutterBottom>
                     Select Attribute Values
                   </Typography>
                   <Grid container spacing={2}>
-                    {selectedAttributes.map((attributeId) => {
-                      const attribute = Object.values(allAttributes).find((attr) => attr._id === attributeId)
+                    {selectedAttributes.map(attributeId => {
+                      const attribute = Object.values(allAttributes).find(attr => attr._id === attributeId)
                       if (!attribute) return null
 
                       const valuesSelected = selectedAttributeValues?.length > 0
@@ -510,20 +497,20 @@ export default function ProductVariants({
                               labelId={`${attributeId}-label`}
                               multiple
                               value={selectedAttributeValues[attributeId] || []}
-                              onChange={(e) => handleAttributeValuesChange(attributeId, e.target.value)}
+                              onChange={e => handleAttributeValuesChange(attributeId, e.target.value)}
                               input={<OutlinedInput label={attribute.name} />}
-                              renderValue={(selected) => {
+                              renderValue={selected => {
                                 // Map selected value ids to their labels for display
                                 return selected
-                                  .map((valueId) => {
-                                    const foundValue = attribute.values.find((v) => v.id === valueId)
-                                    return foundValue ? foundValue.label : ""
+                                  .map(valueId => {
+                                    const foundValue = attribute.values.find(v => v.id === valueId)
+                                    return foundValue ? foundValue.label : ''
                                   })
                                   .filter(Boolean)
-                                  .join(", ")
+                                  .join(', ')
                               }}
                             >
-                              {attribute.values.map((value) => (
+                              {attribute.values.map(value => (
                                 <MenuItem key={value.id} value={value.id}>
                                   <Checkbox
                                     checked={selectedAttributeValues[attributeId]?.includes(value.id) || false}
@@ -546,19 +533,19 @@ export default function ProductVariants({
           )}
 
           {tabIndex === 1 && (
-            <Box sx={{ p: 3, flexGrow: 1, overflowY: "auto", maxHeight: 600 }}>
-              <Typography variant="h6" gutterBottom>
+            <Box sx={{ p: 3, flexGrow: 1, overflowY: 'auto', maxHeight: 600 }}>
+              <Typography variant='h6' gutterBottom>
                 Manage Variations
               </Typography>
 
               {/* Debug information */}
               {variations.length === 0 && defaultProductVariations.length > 0 && (
-                <Box sx={{ mb: 4, p: 2, bgcolor: "#f5f5f5", borderRadius: 1 }}>
-                  <Typography color="error">No variations loaded. Using default variations directly.</Typography>
+                <Box sx={{ mb: 4, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                  <Typography color='error'>No variations loaded. Using default variations directly.</Typography>
                   <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => setValue("productVariations", defaultProductVariations)}
+                    variant='contained'
+                    color='primary'
+                    onClick={() => setValue('productVariations', defaultProductVariations)}
                     sx={{ mt: 2 }}
                   >
                     Load Default Variations
@@ -567,33 +554,33 @@ export default function ProductVariants({
               )}
 
               {variations.map((variation, index) => (
-                <Box key={index} sx={{ mb: 4, border: "1px solid #ddd", borderRadius: 1, p: 2 }}>
+                <Box key={index} sx={{ mb: 4, border: '1px solid #ddd', borderRadius: 1, p: 2 }}>
                   <Box sx={{}}>
                     <IconButton onClick={() => handleRemoveVariation(index)}>
-                      <i className="ri-delete-bin-line text-xl text-red-600" />
+                      <i className='ri-delete-bin-line text-xl text-red-600' />
                     </IconButton>
                   </Box>
-                  <Typography variant="subtitle1" gutterBottom>
+                  <Typography variant='subtitle1' gutterBottom>
                     {selectedAttributes
-                      .map((attrId) => {
-                        const attribute = Object.values(allAttributes).find((attr) => attr._id === attrId)
+                      .map(attrId => {
+                        const attribute = Object.values(allAttributes).find(attr => attr._id === attrId)
                         const attributeName = attribute ? attribute.name : attrId
 
                         const variationId = variation[attrId]
                         const variationLabel =
-                          attribute?.values?.find((val) => val.id === variationId)?.label || variationId
+                          attribute?.values?.find(val => val.id === variationId)?.label || variationId
 
                         return `${attributeName.charAt(0).toUpperCase() + attributeName.slice(1)}: ${variationLabel}`
                       })
-                      .join(", ")}
+                      .join(', ')}
                   </Typography>
 
                   <Grid container spacing={2}>
                     <Grid size={{ xs: 12 }}>
-                      <Card style={{ marginBottom: "20px" }}>
+                      <Card style={{ marginBottom: '20px' }}>
                         <CardHeader
-                          title="Variation Image"
-                          sx={{ "& .MuiCardHeader-action": { alignSelf: "center" } }}
+                          title='Variation Image'
+                          sx={{ '& .MuiCardHeader-action': { alignSelf: 'center' } }}
                         />
                         <CardContent>
                           <Controller
@@ -601,7 +588,7 @@ export default function ProductVariants({
                             control={control}
                             defaultValue={[]} // Array of images
                             render={({ field: { value = [], onChange } }) => {
-                              const onDrop = (acceptedFiles) => {
+                              const onDrop = acceptedFiles => {
                                 if (acceptedFiles?.length > 0) {
                                   // Append newly selected images to the current list
                                   onChange([...value, ...acceptedFiles])
@@ -611,19 +598,19 @@ export default function ProductVariants({
                               const { getRootProps, getInputProps } = useDropzone({
                                 onDrop,
                                 multiple: true,
-                                accept: { "image/*": [] },
+                                accept: { 'image/*': [] }
                               })
 
                               // const handleRemoveImage = removeIndex => {
                               //   const updated = value.filter((_, i) => i !== removeIndex)
                               //   onChange(updated)
                               // }
-                              const handleRemoveImage = (removeIndex) => {
+                              const handleRemoveImage = removeIndex => {
                                 const removedImage = value[removeIndex]
 
                                 // If the removed image is from backend (has an id), add its id to removedImageIds array
                                 if (removedImage && !(removedImage instanceof File) && removedImage.id) {
-                                  setRemovedImageIds((prevIds) => [...prevIds, removedImage.id])
+                                  setRemovedImageIds(prevIds => [...prevIds, removedImage.id])
                                 }
 
                                 // Remove the image from current list
@@ -633,15 +620,15 @@ export default function ProductVariants({
 
                               return (
                                 <Box>
-                                  <div {...getRootProps({ className: "dropzone" })}>
+                                  <div {...getRootProps({ className: 'dropzone' })}>
                                     <input {...getInputProps()} />
-                                    <div className="flex items-center flex-col gap-2 text-center">
-                                      <CustomAvatar variant="rounded" skin="light" color="secondary">
-                                        <i className="ri-upload-2-line" />
+                                    <div className='flex items-center flex-col gap-2 text-center'>
+                                      <CustomAvatar variant='rounded' skin='light' color='secondary'>
+                                        <i className='ri-upload-2-line' />
                                       </CustomAvatar>
-                                      <Typography variant="h4">Drag and Drop Images</Typography>
-                                      <Typography color="text.disabled">or</Typography>
-                                      <Button variant="outlined" size="small">
+                                      <Typography variant='h4'>Drag and Drop Images</Typography>
+                                      <Typography color='text.disabled'>or</Typography>
+                                      <Button variant='outlined' size='small'>
                                         Browse Images
                                       </Button>
                                     </div>
@@ -664,25 +651,25 @@ export default function ProductVariants({
                                             key={index}
                                             secondaryAction={
                                               <IconButton onClick={() => handleRemoveImage(index)}>
-                                                <i className="ri-close-line text-xl" />
+                                                <i className='ri-close-line text-xl' />
                                               </IconButton>
                                             }
                                           >
-                                            <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                                              <div style={{ position: "relative", width: 60, height: 60 }}>
+                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                              <div style={{ position: 'relative', width: 60, height: 60 }}>
                                                 <Image
-                                                  src={imageUrl || "/placeholder.svg"}
+                                                  src={imageUrl || '/placeholder.svg'}
                                                   alt={`variation-image-${index}`}
                                                   fill
-                                                  style={{ objectFit: "cover", borderRadius: 4 }}
+                                                  style={{ objectFit: 'cover', borderRadius: 4 }}
                                                 />
                                               </div>
                                               <div>
-                                                <Typography className="file-name font-medium" color="text.primary">
+                                                <Typography className='file-name font-medium' color='text.primary'>
                                                   {fileName || `Image ${index + 1}`}
                                                 </Typography>
                                                 {fileSize && (
-                                                  <Typography variant="body2">
+                                                  <Typography variant='body2'>
                                                     {fileSize > 1000000
                                                       ? `${(fileSize / 1024 / 1024).toFixed(1)} MB`
                                                       : `${(fileSize / 1024).toFixed(1)} KB`}
@@ -704,43 +691,42 @@ export default function ProductVariants({
                     </Grid>
 
                     <Grid size={{ xs: 12 }}>
-                      <Divider style={{ marginTop: "10px", marginBottom: "10px" }} />
-                      <Typography variant="h5" mb={2}>
+                      <Divider style={{ marginTop: '10px', marginBottom: '10px' }} />
+                      <Typography variant='h5' mb={2}>
                         Price Management
                       </Typography>
                     </Grid>
 
                     <Grid size={{ xs: 12, md: 4 }}>
-                      <Controller
-                        name={`productVariations.${index}._id`}
-                        control={control}
-                        defaultValue={variation._id || ""}
-                        render={({ field }) => (
-                          <input type="hidden" {...field} />
-                        )}
-                      />
-
+                      {variation._id && (
+                          <Controller
+                            name={`productVariations.${index}._id`}
+                            control={control}
+                            defaultValue={variation._id}
+                            render={({ field }) => <input type='hidden' {...field} />}
+                          />
+                      )}
                       <Controller
                         name={`productVariations.${index}.regularPriceB2B`}
                         control={control}
                         defaultValue={variation.regularPriceB2B}
-                        rules={{ required: "Regular Price is required" }}
+                        rules={{ required: 'Regular Price is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Regular Price (B2B)"
-                              type="number"
+                              label='Regular Price (B2B)'
+                              type='number'
                               fullWidth
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                               InputProps={{
-                                startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                                startAdornment: <InputAdornment position='start'>€</InputAdornment>,
                                 inputProps: {
                                   step: 1,
-                                  min: 1,
-                                },
+                                  min: 1
+                                }
                               }}
                             />
                           </>
@@ -753,23 +739,23 @@ export default function ProductVariants({
                         name={`productVariations.${index}.regularPriceB2C`}
                         control={control}
                         defaultValue={variation.regularPriceB2C}
-                        rules={{ required: "Regular Price is required" }}
+                        rules={{ required: 'Regular Price is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Regular Price (B2C)"
-                              type="number"
+                              label='Regular Price (B2C)'
+                              type='number'
                               fullWidth
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                               InputProps={{
-                                startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                                startAdornment: <InputAdornment position='start'>€</InputAdornment>,
                                 inputProps: {
                                   step: 1,
-                                  min: 1,
-                                },
+                                  min: 1
+                                }
                               }}
                             />
                           </>
@@ -782,23 +768,23 @@ export default function ProductVariants({
                         name={`productVariations.${index}.salePrice`}
                         control={control}
                         defaultValue={variation.salePrice}
-                        rules={{ required: "Sale Price is required" }}
+                        rules={{ required: 'Sale Price is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Sale Price"
-                              type="number"
+                              label='Sale Price'
+                              type='number'
                               fullWidth
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                               InputProps={{
-                                startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                                startAdornment: <InputAdornment position='start'>€</InputAdornment>,
                                 inputProps: {
                                   step: 1,
-                                  min: 1,
-                                },
+                                  min: 1
+                                }
                               }}
                             />
                           </>
@@ -811,23 +797,23 @@ export default function ProductVariants({
                         name={`productVariations.${index}.purchasedPrice`}
                         control={control}
                         defaultValue={variation.purchasedPrice}
-                        rules={{ required: "Purchased Price is required" }}
+                        rules={{ required: 'Purchased Price is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Purchased Price"
-                              type="number"
+                              label='Purchased Price'
+                              type='number'
                               fullWidth
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                               InputProps={{
-                                startAdornment: <InputAdornment position="start">€</InputAdornment>,
+                                startAdornment: <InputAdornment position='start'>€</InputAdornment>,
                                 inputProps: {
                                   step: 1,
-                                  min: 1,
-                                },
+                                  min: 1
+                                }
                               }}
                             />
                           </>
@@ -836,8 +822,8 @@ export default function ProductVariants({
                     </Grid>
 
                     <Grid size={{ xs: 12 }}>
-                      <Divider style={{ marginTop: "10px", marginBottom: "10px" }} />
-                      <Typography variant="h5" mb={2}>
+                      <Divider style={{ marginTop: '10px', marginBottom: '10px' }} />
+                      <Typography variant='h5' mb={2}>
                         Stock Management
                       </Typography>
                     </Grid>
@@ -846,18 +832,18 @@ export default function ProductVariants({
                       <Controller
                         name={`productVariations.${index}.stockStatus`}
                         control={control}
-                        defaultValue={variation.stockStatus ?? "in_stock"}
-                        rules={{ required: "Stock status is required" }} // Required validation rule
+                        defaultValue={variation.stockStatus ?? 'in_stock'}
+                        rules={{ required: 'Stock status is required' }} // Required validation rule
                         render={({ field, fieldState: { error } }) => (
                           <FormControl fullWidth error={!!error}>
                             <InputLabel id={`stock-status-label-${index}`}>Stock Status</InputLabel>
-                            <Select {...field} labelId={`stock-status-label-${index}`} label="Stock Status">
-                              <MenuItem value="in_stock">In Stock</MenuItem>
-                              <MenuItem value="out_of_stock">Out of Stock</MenuItem>
-                              <MenuItem value="on_backorder">On Backorder</MenuItem>
+                            <Select {...field} labelId={`stock-status-label-${index}`} label='Stock Status'>
+                              <MenuItem value='in_stock'>In Stock</MenuItem>
+                              <MenuItem value='out_of_stock'>Out of Stock</MenuItem>
+                              <MenuItem value='on_backorder'>On Backorder</MenuItem>
                             </Select>
                             {error && (
-                              <Typography variant="caption" color="error" mt={0.5}>
+                              <Typography variant='caption' color='error' mt={0.5}>
                                 {error.message}
                               </Typography>
                             )}
@@ -871,16 +857,16 @@ export default function ProductVariants({
                         name={`productVariations.${index}.stockQuantity`}
                         control={control}
                         defaultValue={variation.stockQuantity}
-                        rules={{ required: "Stock Quantity is required" }}
+                        rules={{ required: 'Stock Quantity is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Stock Quantity"
-                              type="number"
+                              label='Stock Quantity'
+                              type='number'
                               inputProps={{ min: 1 }}
                               fullWidth
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                             />
@@ -889,7 +875,7 @@ export default function ProductVariants({
                       />
                     </Grid>
 
-                    <Grid size={{ xs: 12 }} sx={{ display: "flex", alignItems: "center" }}>
+                    <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
                       <Controller
                         name={`productVariations.${index}.status`}
                         control={control}
@@ -900,7 +886,7 @@ export default function ProductVariants({
                             <Switch
                               {...field}
                               checked={Boolean(field.value)}
-                              onChange={(e) => field.onChange(e.target.checked)}
+                              onChange={e => field.onChange(e.target.checked)}
                               sx={{ ml: 1 }}
                             />
                           </>
@@ -909,8 +895,8 @@ export default function ProductVariants({
                     </Grid>
 
                     <Grid size={{ xs: 12 }}>
-                      <Divider style={{ marginTop: "10px", marginBottom: "10px" }} />
-                      <Typography variant="h5" mb={2}>
+                      <Divider style={{ marginTop: '10px', marginBottom: '10px' }} />
+                      <Typography variant='h5' mb={2}>
                         Units Management
                       </Typography>
                     </Grid>
@@ -920,16 +906,16 @@ export default function ProductVariants({
                         name={`productVariations.${index}.weight`}
                         control={control}
                         defaultValue={variation.weight}
-                        rules={{ required: "Weight is required" }}
+                        rules={{ required: 'Weight is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Tile Weight (kg)"
-                              type="number"
+                              label='Tile Weight (kg)'
+                              type='number'
                               inputProps={{ step: 1, min: 1 }}
                               fullWidth
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                             />
@@ -945,16 +931,16 @@ export default function ProductVariants({
                         name={`productVariations.${index}.dimensions.length`}
                         control={control}
                         defaultValue={variation.dimensions?.length}
-                        rules={{ required: "Length is required" }}
+                        rules={{ required: 'Length is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Tile Length (mm)"
-                              type="number"
+                              label='Tile Length (mm)'
+                              type='number'
                               inputProps={{ step: 1, min: 1 }}
                               fullWidth
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                             />
@@ -968,16 +954,16 @@ export default function ProductVariants({
                         name={`productVariations.${index}.dimensions.width`}
                         control={control}
                         defaultValue={variation.dimensions?.width}
-                        rules={{ required: "Width is required" }}
+                        rules={{ required: 'Width is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Tile Width (mm)"
-                              type="number"
+                              label='Tile Width (mm)'
+                              type='number'
                               inputProps={{ step: 1, min: 1 }}
                               fullWidth
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                             />
@@ -991,16 +977,16 @@ export default function ProductVariants({
                         name={`productVariations.${index}.dimensions.height`}
                         control={control}
                         defaultValue={variation.dimensions?.height}
-                        rules={{ required: "Height is required" }}
+                        rules={{ required: 'Height is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Tile Height (cm)"
-                              type="number"
+                              label='Tile Height (cm)'
+                              type='number'
                               inputProps={{ step: 1, min: 1 }}
                               fullWidth
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                             />
@@ -1014,16 +1000,16 @@ export default function ProductVariants({
                         name={`productVariations.${index}.numberOfTiles`}
                         control={control}
                         defaultValue={variation.numberOfTiles}
-                        rules={{ required: "Number of tiles per box is required" }}
+                        rules={{ required: 'Number of tiles per box is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Number of tiles per box"
-                              type="number"
+                              label='Number of tiles per box'
+                              type='number'
                               inputProps={{ step: 1, min: 1 }}
                               fullWidth
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                             />
@@ -1037,16 +1023,16 @@ export default function ProductVariants({
                         name={`productVariations.${index}.boxSize`}
                         control={control}
                         defaultValue={variation.boxSize}
-                        rules={{ required: "Box sizes are required" }}
+                        rules={{ required: 'Box sizes are required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Box sizes (sq.m)"
-                              type="number"
+                              label='Box sizes (sq.m)'
+                              type='number'
                               inputProps={{ step: 1, min: 1 }}
                               fullWidth
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                             />
@@ -1060,16 +1046,16 @@ export default function ProductVariants({
                         name={`productVariations.${index}.palletSize`}
                         control={control}
                         defaultValue={variation.palletSize}
-                        rules={{ required: "Pallet Size is required" }}
+                        rules={{ required: 'Pallet Size is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Pallet Size (sq.m)"
+                              label='Pallet Size (sq.m)'
                               fullWidth
-                              type="number"
+                              type='number'
                               inputProps={{ step: 1, min: 1 }}
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                             />
@@ -1078,24 +1064,23 @@ export default function ProductVariants({
                       />
                     </Grid>
 
-
                     <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
                         name={`productVariations.${index}.palletWeight`}
                         control={control}
                         defaultValue={variation.palletWeight}
                         rules={{
-                          required: "Pallet Weight (KG) is required"
+                          required: 'Pallet Weight (KG) is required'
                         }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Pallet Weight (KG)"
+                              label='Pallet Weight (KG)'
                               fullWidth
-                              type="number"
+                              type='number'
                               inputProps={{ step: 1, min: 1 }}
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                             />
@@ -1110,16 +1095,17 @@ export default function ProductVariants({
                         control={control}
                         defaultValue={variation.sqmPerTile}
                         rules={{
-                          required: "SQ.M per Tile is required" }}
+                          required: 'SQ.M per Tile is required'
+                        }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="SQ.M per Tile"
+                              label='SQ.M per Tile'
                               fullWidth
-                              type="number"
+                              type='number'
                               inputProps={{ step: 1, min: 1 }}
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                             />
@@ -1134,16 +1120,17 @@ export default function ProductVariants({
                         control={control}
                         defaultValue={variation.boxesPerPallet}
                         rules={{
-                          required: "Boxes Per Pallet is required" }}
+                          required: 'Boxes Per Pallet is required'
+                        }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Boxes Per Pallet"
+                              label='Boxes Per Pallet'
                               fullWidth
-                              type="number"
+                              type='number'
                               inputProps={{ step: 1, min: 1 }}
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                             />
@@ -1158,16 +1145,17 @@ export default function ProductVariants({
                         control={control}
                         defaultValue={variation.boxWeight}
                         rules={{
-                          required: "Box Weight (KG) is required" }}
+                          required: 'Box Weight (KG) is required'
+                        }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Box Weight (KG)"
+                              label='Box Weight (KG)'
                               fullWidth
-                              type="number"
+                              type='number'
                               inputProps={{ step: 1, min: 1 }}
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                             />
@@ -1176,31 +1164,29 @@ export default function ProductVariants({
                       />
                     </Grid>
 
-
-
                     <Grid size={{ xs: 12 }}>
-                      <Divider style={{ marginTop: "20px", marginBottom: "20px" }} />
+                      <Divider style={{ marginTop: '20px', marginBottom: '20px' }} />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
                       <Grid container spacing={2} mb={3}>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="h6">Tier 5 - Price (inc.VAT) - Under 30 sq.m</Typography>
+                          <Typography variant='h6'>Tier 5 - Price (inc.VAT) - Under 30 sq.m</Typography>
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
                             name={`productVariations.${index}.tierDiscount.tierFirst.tierAddOn`}
                             control={control}
                             defaultValue={variation.tierDiscount?.tierFirst?.tierAddOn}
-                            rules={{ required: "Tier Add On is required" }}
+                            rules={{ required: 'Tier Add On is required' }}
                             render={({ field, fieldState: { error } }) => (
                               <>
                                 <TextField
                                   {...field}
-                                  label="Tier Add On"
+                                  label='Tier Add On'
                                   fullWidth
-                                  type="number"
+                                  type='number'
                                   inputProps={{ step: 1, min: 1 }}
-                                  variant="outlined"
+                                  variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
                                 />
@@ -1213,16 +1199,16 @@ export default function ProductVariants({
                             name={`productVariations.${index}.tierDiscount.tierFirst.tierMultiplyBy`}
                             control={control}
                             defaultValue={variation?.tierDiscount?.tierFirst?.tierMultiplyBy}
-                            rules={{ required: "Tier Multiply By is required" }}
+                            rules={{ required: 'Tier Multiply By is required' }}
                             render={({ field, fieldState: { error } }) => (
                               <>
                                 <TextField
                                   {...field}
-                                  label="Tier Multiply By"
+                                  label='Tier Multiply By'
                                   fullWidth
-                                  type="number"
+                                  type='number'
                                   inputProps={{ step: 1, min: 1 }}
-                                  variant="outlined"
+                                  variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
                                 />
@@ -1233,36 +1219,36 @@ export default function ProductVariants({
                         <Grid size={{ xs: 12, md: 4 }}>
                           <TextField
                             disabled
-                            id="outlined-disabled"
-                            label="Tier Price"
+                            id='outlined-disabled'
+                            label='Tier Price'
                             value={calculateTierValue(
                               variation?.purchasedPrice,
                               1.17,
                               variation.tierDiscount?.tierFirst?.tierAddOn,
-                              variation.tierDiscount?.tierFirst?.tierMultiplyBy,
+                              variation.tierDiscount?.tierFirst?.tierMultiplyBy
                             )}
                           />
                         </Grid>
                       </Grid>
                       <Grid container spacing={2} mb={3}>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="h6">Tier 4 - Price (inc.VAT) - 30 - 51 sq.m</Typography>
+                          <Typography variant='h6'>Tier 4 - Price (inc.VAT) - 30 - 51 sq.m</Typography>
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
                             name={`productVariations.${index}.tierDiscount.tierSecond.tierAddOn`}
                             control={control}
                             defaultValue={variation.tierAddOn}
-                            rules={{ required: "Tier Add On is required" }}
+                            rules={{ required: 'Tier Add On is required' }}
                             render={({ field, fieldState: { error } }) => (
                               <>
                                 <TextField
                                   {...field}
-                                  label="Tier Add On"
+                                  label='Tier Add On'
                                   fullWidth
-                                  type="number"
+                                  type='number'
                                   inputProps={{ step: 1, min: 1 }}
-                                  variant="outlined"
+                                  variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
                                 />
@@ -1275,16 +1261,16 @@ export default function ProductVariants({
                             name={`productVariations.${index}.tierDiscount.tierSecond.tierMultiplyBy`}
                             control={control}
                             defaultValue={variation.tierMultiplyBy}
-                            rules={{ required: "Tier Multiply By is required" }}
+                            rules={{ required: 'Tier Multiply By is required' }}
                             render={({ field, fieldState: { error } }) => (
                               <>
                                 <TextField
                                   {...field}
-                                  label="Tier Multiply By"
+                                  label='Tier Multiply By'
                                   fullWidth
-                                  type="number"
+                                  type='number'
                                   inputProps={{ step: 1, min: 1 }}
-                                  variant="outlined"
+                                  variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
                                 />
@@ -1295,36 +1281,36 @@ export default function ProductVariants({
                         <Grid size={{ xs: 12, md: 4 }}>
                           <TextField
                             disabled
-                            id="outlined-disabled"
-                            label="Tier Price"
+                            id='outlined-disabled'
+                            label='Tier Price'
                             value={calculateTierValue(
                               variation?.purchasedPrice,
                               1.17,
                               variation.tierDiscount?.tierSecond?.tierAddOn,
-                              variation.tierDiscount?.tierSecond?.tierMultiplyBy,
+                              variation.tierDiscount?.tierSecond?.tierMultiplyBy
                             )}
                           />
                         </Grid>
                       </Grid>
                       <Grid container spacing={2} mb={3}>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="h6">Tier 3 - Price (inc.VAT) - 51 - 153 sq.m</Typography>
+                          <Typography variant='h6'>Tier 3 - Price (inc.VAT) - 51 - 153 sq.m</Typography>
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
                             name={`productVariations.${index}.tierDiscount.tierThird.tierAddOn`}
                             control={control}
                             defaultValue={variation.tierAddOn}
-                            rules={{ required: "Tier Add On is required" }}
+                            rules={{ required: 'Tier Add On is required' }}
                             render={({ field, fieldState: { error } }) => (
                               <>
                                 <TextField
                                   {...field}
-                                  label="Tier Add On"
+                                  label='Tier Add On'
                                   fullWidth
-                                  type="number"
+                                  type='number'
                                   inputProps={{ step: 1, min: 1 }}
-                                  variant="outlined"
+                                  variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
                                 />
@@ -1337,16 +1323,16 @@ export default function ProductVariants({
                             name={`productVariations.${index}.tierDiscount.tierThird.tierMultiplyBy`}
                             control={control}
                             defaultValue={variation.tierMultiplyBy}
-                            rules={{ required: "Tier Multiply By is required" }}
+                            rules={{ required: 'Tier Multiply By is required' }}
                             render={({ field, fieldState: { error } }) => (
                               <>
                                 <TextField
                                   {...field}
-                                  label="Tier Multiply By"
+                                  label='Tier Multiply By'
                                   fullWidth
-                                  type="number"
+                                  type='number'
                                   inputProps={{ step: 1, min: 1 }}
-                                  variant="outlined"
+                                  variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
                                 />
@@ -1357,36 +1343,36 @@ export default function ProductVariants({
                         <Grid size={{ xs: 12, md: 4 }}>
                           <TextField
                             disabled
-                            id="outlined-disabled"
-                            label="Tier Price"
+                            id='outlined-disabled'
+                            label='Tier Price'
                             value={calculateTierValue(
                               variation?.purchasedPrice,
                               1.17,
                               variation.tierDiscount?.tierThird?.tierAddOn,
-                              variation.tierDiscount?.tierThird?.tierMultiplyBy,
+                              variation.tierDiscount?.tierThird?.tierMultiplyBy
                             )}
                           />
                         </Grid>
                       </Grid>
                       <Grid container spacing={2} mb={3}>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="h6">Tier 2 - Price (inc. VAT) - 153 - 1300 sq.m</Typography>
+                          <Typography variant='h6'>Tier 2 - Price (inc. VAT) - 153 - 1300 sq.m</Typography>
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
                             name={`productVariations.${index}.tierDiscount.tierFourth.tierAddOn`}
                             control={control}
                             defaultValue={variation.tierAddOn}
-                            rules={{ required: "Tier Add On is required" }}
+                            rules={{ required: 'Tier Add On is required' }}
                             render={({ field, fieldState: { error } }) => (
                               <>
                                 <TextField
                                   {...field}
-                                  label="Tier Add On"
+                                  label='Tier Add On'
                                   fullWidth
-                                  type="number"
+                                  type='number'
                                   inputProps={{ step: 1, min: 1 }}
-                                  variant="outlined"
+                                  variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
                                 />
@@ -1399,16 +1385,16 @@ export default function ProductVariants({
                             name={`productVariations.${index}.tierDiscount.tierFourth.tierMultiplyBy`}
                             control={control}
                             defaultValue={variation.tierMultiplyBy}
-                            rules={{ required: "Tier Multiply By is required" }}
+                            rules={{ required: 'Tier Multiply By is required' }}
                             render={({ field, fieldState: { error } }) => (
                               <>
                                 <TextField
                                   {...field}
-                                  label="Tier Multiply By"
+                                  label='Tier Multiply By'
                                   fullWidth
-                                  type="number"
+                                  type='number'
                                   inputProps={{ step: 1, min: 1 }}
-                                  variant="outlined"
+                                  variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
                                 />
@@ -1419,36 +1405,36 @@ export default function ProductVariants({
                         <Grid size={{ xs: 12, md: 4 }}>
                           <TextField
                             disabled
-                            id="outlined-disabled"
-                            label="Tier Price"
+                            id='outlined-disabled'
+                            label='Tier Price'
                             value={calculateTierValue(
                               variation?.purchasedPrice,
                               1.17,
                               variation.tierDiscount?.tierFourth?.tierAddOn,
-                              variation.tierDiscount?.tierFourth?.tierMultiplyBy,
+                              variation.tierDiscount?.tierFourth?.tierMultiplyBy
                             )}
                           />
                         </Grid>
                       </Grid>
                       <Grid container spacing={2} mb={3}>
                         <Grid size={{ xs: 12 }}>
-                          <Typography variant="h6">Tier 1 - Price (inc.VAT) - Over 1300 sq.m</Typography>
+                          <Typography variant='h6'>Tier 1 - Price (inc.VAT) - Over 1300 sq.m</Typography>
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
                             name={`productVariations.${index}.tierDiscount.tierFifth.tierAddOn`}
                             control={control}
                             defaultValue={variation.tierAddOn}
-                            rules={{ required: "Tier Add On is required" }}
+                            rules={{ required: 'Tier Add On is required' }}
                             render={({ field, fieldState: { error } }) => (
                               <>
                                 <TextField
                                   {...field}
-                                  label="Tier Add On"
+                                  label='Tier Add On'
                                   fullWidth
-                                  type="number"
+                                  type='number'
                                   inputProps={{ step: 1, min: 1 }}
-                                  variant="outlined"
+                                  variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
                                 />
@@ -1461,16 +1447,16 @@ export default function ProductVariants({
                             name={`productVariations.${index}.tierDiscount.tierFifth.tierMultiplyBy`}
                             control={control}
                             defaultValue={variation.tierMultiplyBy}
-                            rules={{ required: "Tier Multiply By is required" }}
+                            rules={{ required: 'Tier Multiply By is required' }}
                             render={({ field, fieldState: { error } }) => (
                               <>
                                 <TextField
                                   {...field}
-                                  label="Tier Multiply By"
+                                  label='Tier Multiply By'
                                   fullWidth
-                                  type="number"
+                                  type='number'
                                   inputProps={{ step: 1, min: 1 }}
-                                  variant="outlined"
+                                  variant='outlined'
                                   error={!!error}
                                   helperText={error?.message}
                                 />
@@ -1481,13 +1467,13 @@ export default function ProductVariants({
                         <Grid size={{ xs: 12, md: 4 }}>
                           <TextField
                             disabled
-                            id="outlined-disabled"
-                            label="Tier Price"
+                            id='outlined-disabled'
+                            label='Tier Price'
                             value={calculateTierValue(
                               variation?.purchasedPrice,
                               1.17,
                               variation.tierDiscount?.tierFifth?.tierAddOn,
-                              variation.tierDiscount?.tierFifth?.tierMultiplyBy,
+                              variation.tierDiscount?.tierFifth?.tierMultiplyBy
                             )}
                           />
                         </Grid>
@@ -1520,16 +1506,16 @@ export default function ProductVariants({
                         name={`productVariations.${index}.description`}
                         control={control}
                         defaultValue={variation.description}
-                        rules={{ required: "Description is required" }}
+                        rules={{ required: 'Description is required' }}
                         render={({ field, fieldState: { error } }) => (
                           <>
                             <TextField
                               {...field}
-                              label="Description"
+                              label='Description'
                               multiline
                               rows={2}
                               fullWidth
-                              variant="outlined"
+                              variant='outlined'
                               error={!!error}
                               helperText={error?.message}
                             />

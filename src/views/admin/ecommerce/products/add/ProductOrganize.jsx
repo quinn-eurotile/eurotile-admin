@@ -20,7 +20,7 @@ import { Autocomplete, FormHelperText } from '@mui/material'
 
 const ProductOrganize = ({ rawProductData }) => {
   // Access RHF context methods and form control
-  const { control } = useFormContext()
+  const { control, watch } = useFormContext()
   const [vendorList, setVendorList] = useState([])
   const [categoryList, setCategoryList] = useState([])
 
@@ -34,7 +34,7 @@ const ProductOrganize = ({ rawProductData }) => {
     }
   }, [rawProductData])
 
-  function flattenCategories(categories, parent = '', level = 0) {
+  function flattenCategoriesold(categories, parent = '', level = 0) {
     return categories.flatMap(cat => {
       const current = {
         id: cat._id,
@@ -47,7 +47,27 @@ const ProductOrganize = ({ rawProductData }) => {
     })
   }
 
+  function flattenCategories(categories, parent = '', level = 0, parentIds = []) {
+    return categories.flatMap(cat => {
+      const current = {
+        id: cat._id,
+        title: cat.name,
+        fullPath: parent ? `${parent} > ${cat.name}` : cat.name,
+        level,
+        parentIds
+      }
+
+      const children = cat.children
+        ? flattenCategories(cat.children, current.fullPath, level + 1, [...parentIds, cat._id])
+        : []
+
+      return [current, ...children]
+    })
+  }
+
   const flatOptions = flattenCategories(categoryList)
+
+  console.log(watch('categories'), '00000000000000000000000')
 
   return (
     <Card>
@@ -99,35 +119,49 @@ const ProductOrganize = ({ rawProductData }) => {
             />
           </FormControl> */}
 
-          <FormControl fullWidth>
-            <Controller
-              name='categories'
-              control={control}
-              defaultValue={[]} // Will store: ["681221f4...", "6813576d..."]
-              rules={{ required: 'At least one category is required' }}
-              render={({ field, fieldState }) => (
+          <Controller
+            name='categories'
+            control={control}
+            defaultValue={[]}
+            rules={{ required: 'At least one category is required' }}
+            render={({ field, fieldState }) => {
+              // All available options
+              const allOptions = flatOptions
+
+              // Find the explicitly selected categories by comparing field.value to flatOptions
+              // Only include options whose `id` is not present in another option's `parentIds`
+              const selectedLeafOptions = allOptions.filter(
+                opt =>
+                  field.value.includes(opt.id) &&
+                  !allOptions.some(other => field.value.includes(other.id) && other.parentIds.includes(opt.id))
+              )
+
+              return (
                 <Autocomplete
                   multiple
-                  options={flatOptions}
+                  options={allOptions}
+                  value={selectedLeafOptions}
                   getOptionLabel={option => option.fullPath}
                   groupBy={option => option.fullPath.split(' > ')[0]}
                   onChange={(_, selectedOptions) => {
-                    field.onChange(selectedOptions.map(opt => opt.id))
+                    // When user selects options, include selected IDs + their parent IDs in form state
+                    const allSelectedIds = selectedOptions.flatMap(opt => [opt.id, ...opt.parentIds])
+                    const uniqueIds = Array.from(new Set(allSelectedIds))
+                    field.onChange(uniqueIds)
                   }}
-                  value={flatOptions.filter(opt => field.value.includes(opt.id))}
                   renderInput={params => (
                     <TextField
                       {...params}
                       label='Select Category'
-                      error={!!fieldState.error} // MUI error state
-                      helperText={fieldState.error?.message} // Show validation message
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
                     />
                   )}
                   sx={{ width: 400 }}
                 />
-              )}
-            />
-          </FormControl>
+              )
+            }}
+          />
         </div>
 
         {/* Collection Select */}
