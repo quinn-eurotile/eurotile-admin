@@ -2,7 +2,7 @@
 
 // React Imports
 import { useState } from 'react';
-
+import { adminRole } from '@configs/constant';
 // Next Imports
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -19,7 +19,7 @@ import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 
 // Third-party Imports
-import { signIn } from 'next-auth/react';
+import { getSession, signIn } from 'next-auth/react';
 import { Controller, useForm } from 'react-hook-form';
 import { valibotResolver } from '@hookform/resolvers/valibot';
 import { object, minLength, string, email, pipe, nonEmpty } from 'valibot';
@@ -105,7 +105,16 @@ const Login = ({ mode }) => {
     });
 
     if (res && res.ok && res.error === null) {
-      const redirectURL = searchParams.get('redirectTo') ?? themeConfig.homePageUrl;
+      const session = await getSession(); // Or useSession()
+      const roles = session?.user?.roles?.map((el) => el?.id);
+      console.log('roles', roles);
+      console.log('constants?.adminRole?.id', adminRole?.id);
+      let url = '/admin/dashboards/crm';
+      if (!roles?.includes(adminRole?.id)) {
+        url = '/trade-professional/dashboard';
+      }
+      const redirectURL = searchParams.get('redirectTo') ?? url;
+      console.log('redirectURL', redirectURL);
       router.replace(getLocalizedUrl(redirectURL, locale));
     } else {
       setError('User not Found');
