@@ -24,7 +24,7 @@ const FilterSection = ({ title, children }) => {
   )
 }
 
-export default function FilterSidebar({ isMobile = false, isOpen = false, onClose, reawFilterData, setFilter, filter }) {
+export default function FilterSidebar({ isMobile = false, isOpen = false, onClose, reawFilterData, setFilter }) {
   // Default price range values - could be dynamic based on your product data
   const [priceRange, setPriceRange] = useState([10, 10000])
 
@@ -56,21 +56,13 @@ export default function FilterSidebar({ isMobile = false, isOpen = false, onClos
     }
   }
 
-  const handlePriceChange = (event, newValue) => {
-    setPriceRange(newValue)
-    setFilter(prev => ({
-      ...prev,
-      price: newValue
-    }))
-  }
-
   const filterContent = (
     <>
       <div className='relative mb-6'>
         <input
           type='text'
           placeholder='Search'
-           onChange={value =>
+          onChange={value =>
             setFilter(prevFilter => ({
               ...prevFilter,
               search_string: String(value)
@@ -146,7 +138,16 @@ export default function FilterSidebar({ isMobile = false, isOpen = false, onClos
           </div>
           <Slider
             value={priceRange}
-            onChange={handlePriceChange}
+            onChange={(event, newValue) => setPriceRange(newValue)} // Only update local state while dragging
+            onChangeCommitted={(event, newValue) => {
+              // Update the filter when user drops the slider
+              setFilter(prev => ({
+                ...prev,
+                price: newValue,
+                minPriceB2B: newValue[0],
+                maxPriceB2B: newValue[1]
+              }))
+            }}
             valueLabelDisplay='auto'
             min={10}
             max={5780}
@@ -184,7 +185,19 @@ export default function FilterSidebar({ isMobile = false, isOpen = false, onClos
           variant='outlined'
           color='secondary'
           size=''
-          onClick={onClose}
+          onClick={() => {
+            // Reset the filter state
+            setFilter({
+              search_string: '',
+              categories: [],
+              supplier: [],
+              attributeVariations: [],
+              price: []
+            })
+
+            // Reset the price range state
+            setPriceRange([10, 10000]) // or whatever your default range is
+          }}
           className='border-gray-400 text-black capitalize font-montserrat'
         >
           Clear Filter

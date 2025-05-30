@@ -29,8 +29,12 @@ export default function ProductsPage() {
     category: [],
     suppliers: [],
     price: [10, 10000],
-    attributeVariations: {} // { color: ['red', 'blue'], size: ['M'] }
+    attributeVariations: {}, // { color: ['red', 'blue'], size: ['M'] }
+    minPriceB2B: 0,
+    maxPriceB2B: 0
   })
+
+  console.log(filter,'filterfilter')
   const [filterOpen, setFilterOpen] = useState(false)
   //const dispatch = useDispatch()
   const [anchorEl, setAnchorEl] = useState(null)
