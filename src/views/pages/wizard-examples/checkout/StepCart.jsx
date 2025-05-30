@@ -38,6 +38,7 @@ const StepCart = ({ handleNext }) => {
   // Context
   const { cartItems, setCartItems, orderSummary, setOrderSummary, setStepValid, loading } = useContext(CheckoutContext)
 
+
   useEffect(() => {
     if (!openFade) {
       setTimeout(() => {
@@ -62,7 +63,7 @@ const StepCart = ({ handleNext }) => {
 
       if (response.ok) {
         // Update local state
-        const updatedItems = cartItems.map((item) => (item.id === itemId ? { ...item, count: newQuantity } : item))
+        const updatedItems = cartItems.map((item) => (item._id === itemId ? { ...item, count: newQuantity } : item))
         setCartItems(updatedItems)
 
         // Recalculate order summary
@@ -94,7 +95,7 @@ const StepCart = ({ handleNext }) => {
 
       if (response.ok) {
         // Update local state
-        const updatedItems = cartItems.filter((item) => item.id !== itemId)
+        const updatedItems = cartItems.filter((item) => item._id !== itemId)
         setCartItems(updatedItems)
 
         // Recalculate order summary
@@ -225,7 +226,7 @@ const StepCart = ({ handleNext }) => {
           <div className="border rounded">
             {cartItems.map((product, index) => (
               <div
-                key={product.id || index}
+                key={product._id || index}
                 className="flex flex-col sm:flex-row items-center relative p-5 gap-4 [&:not(:last-child)]:border-be"
               >
                 <img
@@ -237,7 +238,7 @@ const StepCart = ({ handleNext }) => {
                 <IconButton
                   size="small"
                   className="absolute block-start-2 inline-end-2"
-                  onClick={() => removeItem(product.id)}
+                  onClick={() => removeItem(product._id)}
                   disabled={isUpdating}
                 >
                   <i className="ri-close-line text-lg" />
@@ -260,16 +261,17 @@ const StepCart = ({ handleNext }) => {
                         <Chip size="small" variant="tonal" color="error" label="Out of Stock" />
                       )}
                     </div>
-                    <Rating name={`product-rating-${product.id}`} value={product.rating || 0} readOnly />
-                    <TextField
+                    <Rating name={`product-rating-${product._id}`} value={product.rating || 0} readOnly />
+                    {/* <TextField
                       size="small"
                       type="number"
-                      value={product.count}
-                      onChange={(e) => updateItemQuantity(product.id, Number.parseInt(e.target.value))}
+                      value={product?.count}
+                      onChange={(e) => updateItemQuantity(product._id, Number.parseInt(e.target.value), 10)}
                       className="block max-is-[100px]"
                       disabled={isUpdating}
-                      inputProps={{ min: 1 }}
-                    />
+                      inputProps={{ min: 1, step: 1 }}
+
+                    /> */}
                   </div>
                   <div className="flex flex-col justify-between items-center mt-4 gap-1 sm:items-end">
                     <div className="flex">
@@ -284,7 +286,7 @@ const StepCart = ({ handleNext }) => {
                     <Button
                       variant="outlined"
                       size="small"
-                      onClick={() => moveToWishlist(product.id)}
+                      onClick={() => moveToWishlist(product._id)}
                       disabled={isUpdating}
                     >
                       Move to wishlist

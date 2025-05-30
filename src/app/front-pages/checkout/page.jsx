@@ -1,14 +1,18 @@
 // Next.js Server Component
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+// import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { cartService } from "@/services/cart"
 import { addressService } from "@/services/address"
 import CheckoutPage from "@/views/front-pages/CheckoutPage"
+import { authOptions } from "@/libs/auth"
 
 // Server-side data fetching functions
 export async function fetchCartData(userId) {
   try {
     const cartData = await cartService.getById(userId)
+
+    console.log(cartData,'cartData hello');
+
     return {
       items: cartData?.items || [],
       subtotal: cartData?.subtotal || 0,
@@ -62,12 +66,13 @@ const CheckoutServerPage = async () => {
   }
 
   // Fetch data if user is authenticated
-  if (session?.user?.id) {
+  if (session?.user?._id) {
     const [cartData, addresses, userProfile] = await Promise.all([
-      fetchCartData(session.user.id),
-      fetchUserAddresses(session.user.id),
-      fetchUserProfile(session.user.id),
+      fetchCartData(session.user._id),
+      fetchUserAddresses(session.user._id),
+      fetchUserProfile(session.user._id),
     ])
+
 
     initialData = {
       cartItems: cartData.items,

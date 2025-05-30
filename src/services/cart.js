@@ -40,4 +40,9 @@ export const cartService = {
   updateStatus: async (id, status) => {
     return api.patch(`${TEAM_MEMBERS_ENDPOINT}/${id}/status`, { status })
   },
+   // 🟡 FIXED: client-side call to an API endpoint (e.g., /api/cart?userId=123)
+    getByUserId: async (userId) => {
+      return api.get(`/api/pages/cart?userId=${userId}`, {}, false);
+    },
+
 }

@@ -1,5 +1,6 @@
 // Component Imports
 import { fetchUserProfile } from '@/app/front-pages/checkout/page';
+import { getCartData } from '@/app/server/actions';
 import { authOptions } from '@/libs/auth';
 import { addressService } from '@/services/address';
 import { cartService } from '@/services/cart';
@@ -9,7 +10,13 @@ import { getServerSession } from 'next-auth';
 // Server-side data fetching functions
 export async function fetchCartData(userId) {
   try {
-    const cartData = await cartService.getById(userId)
+
+   const response = await getCartData();;
+  //  const response = await cartService.getByUserId(userId);
+    console.log(response, 'cartData response');
+
+    const cartData = response?.data || {};
+
     return {
       items: cartData?.items || [],
       subtotal: cartData?.subtotal || 0,
@@ -45,14 +52,16 @@ const CheckoutPage = async () => {
       total: 0
     }
   }
+ console.log(session,'sessionsession');
 
   // Fetch data if user is authenticated
-  if (session?.user?.id) {
+  if (session?.user?._id) {
     const [cartData, addresses, userProfile] = await Promise.all([
-      fetchCartData(session.user.id),
-      fetchUserAddresses(session.user.id),
-      fetchUserProfile(session.user.id)
+      fetchCartData(session.user._id),
+      fetchUserAddresses(session.user._id),
+      fetchUserProfile(session.user._id)
     ])
+    console.log(cartData,'cartDatacartData');
 
     initialData = {
       cartItems: cartData.items,
@@ -65,7 +74,7 @@ const CheckoutPage = async () => {
       }
     }
   }
-  return <Checkout   initialData={initialData}   session={session} />
+  return <Checkout   initialData={initialData}       session={session} />
 }
 
 export default CheckoutPage
