@@ -24,7 +24,7 @@ const FilterSection = ({ title, children }) => {
   )
 }
 
-export default function FilterSidebar({ isMobile = false, isOpen = false, onClose, reawFilterData, setFilter }) {
+export default function FilterSidebar({ isMobile = false, isOpen = false, onClose, reawFilterData, setFilter, filter }) {
   // Default price range values - could be dynamic based on your product data
   const [priceRange, setPriceRange] = useState([10, 10000])
 
@@ -32,7 +32,7 @@ export default function FilterSidebar({ isMobile = false, isOpen = false, onClos
     // Handle attribute variations in a flat array
     if (group === 'attributeVariations') {
       setFilter(prev => {
-        const currentAttributes = Array.isArray(prev.attributes) ? prev.attributes : []
+        const currentAttributes = Array.isArray(prev.attributeVariations) ? prev.attributeVariations : []
         const isAlreadySelected = currentAttributes.includes(value)
 
         return {

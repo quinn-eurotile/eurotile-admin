@@ -14,6 +14,7 @@ import { db as permissionData } from '@/fake-db/apps/permissions'
 import { db as profileData } from '@/fake-db/pages/userProfile'
 import { db as faqData } from '@/fake-db/pages/faq'
 import { db as pricingData } from '@/fake-db/pages/pricing'
+import { db as cartData } from '@/fake-db/pages/cart'
 import { db as statisticsData } from '@/fake-db/pages/widgetExamples'
 import { tradeProfessionalService } from '@/services/trade-professionals';
 import { productRawDataServices } from '@/services/product-raw-data';
@@ -101,5 +102,31 @@ export const updateStatus = async (id, subPath, data) => {
 export const getProductDetails = async (id) => {
      return await productServices.getById(id);
 }
+export const getCartData = async (userId) => {
+  // You can ignore userId in this dummy implementation if you want
+  const items = cartData;
 
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.price * item.count,
+    0
+  );
+  const discount = 0;
+  const shipping = 20;
+  const total = subtotal + shipping - discount;
+
+  return {
+    success: true,
+    message: "Cart data retrieved successfully",
+    data: {
+      userId,
+      items,
+      orderSummary: {
+        subtotal,
+        discount,
+        shipping,
+        total,
+      },
+    },
+  };
+};
 

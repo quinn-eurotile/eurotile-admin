@@ -1,7 +1,10 @@
 "use client"
 
 // React Imports
-import { useState, useEffect } from "react"
+import { useState, useEffect, createContext } from "react"
+
+// Next Auth Import
+import { useSession } from "next-auth/react"
 
 // MUI Imports
 import Card from "@mui/material/Card"
@@ -14,9 +17,6 @@ import MuiStepper from "@mui/material/Stepper"
 import { styled } from "@mui/material/styles"
 import CircularProgress from "@mui/material/CircularProgress"
 
-// Next Auth Import
-import { useSession } from "next-auth/react"
-
 // Component Imports
 import StepCart from "./StepCart"
 import StepAddress from "./StepAddress"
@@ -27,7 +27,25 @@ import DirectionalIcon from "@components/DirectionalIcon"
 // Styled Component Imports
 import StepperWrapper from "@core/styles/stepper"
 
-// Vars
+// Context for sharing checkout data between steps
+export const CheckoutContext = createContext({
+  cartItems: [],
+  addresses: [],
+  selectedAddress: null,
+  selectedShipping: "standard",
+  orderSummary: {},
+  user: null,
+  setCartItems: () => {},
+  setAddresses: () => {},
+  setSelectedAddress: () => {},
+  setSelectedShipping: () => {},
+  setOrderSummary: () => {},
+  isStepValid: () => false,
+  setStepValid: () => {},
+  loading: false,
+})
+
+// Steps configuration
 const steps = [
   {
     title: "Cart",
@@ -50,7 +68,7 @@ const steps = [
           <path d="M30 36H45C45.552 36 46 35.553 46 35C46 34.447 45.552 34 45 34H30C29.448 34 29 34.447 29 35C29 35.553 29.448 36 30 36Z" />
           <path d="M24.29 34.29C24.11 34.479 24 34.729 24 35C24 35.26 24.11 35.52 24.29 35.71C24.48 35.89 24.74 36 25 36C25.26 36 25.52 35.89 25.71 35.71C25.89 35.52 26 35.26 26 35C26 34.74 25.89 34.479 25.71 34.29C25.34 33.92 24.66 33.92 24.29 34.29Z" />
           <path d="M30 41H15C14.448 41 14 41.447 14 42C14 42.553 14.448 43 15 43H30C30.552 43 31 42.553 31 42C31 41.447 30.552 41 30 41Z" />
-          <path d="M10 43C10.26 43 10.52 42.89 10.71 42.71C10.89 42.52 11 42.26 11 42C11 41.74 10.89 41.479 10.71 41.3C10.34 40.92 9.67 40.92 9.29 41.29C9.11 41.479 9 41.74 9 42C9 42.26 9.11 42.52 9.29 42.71C9.48 42.89 9.74 43 10 43Z" />
+          <path d="M10 43C10.26 43 10.52 42.89 10.71 42.71C10.89 42.52 11 42.26 11 42C11 41.74 10.89 41.479 10.71 41.3C10.34 40.92 9.67 40.92 9.29 41.29C9.11 41.479 9 41.74 9 42C9 42.26 9.11 41.479 9.29 41.29Z" />
           <path d="M49.29 34.29C49.11 34.479 49 34.729 49 35C49 35.26 49.11 35.52 49.29 35.71C49.48 35.89 49.74 36 50 36C50.26 36 50.52 35.89 50.71 35.71C50.89 35.52 51 35.26 51 35C51 34.74 50.89 34.479 50.71 34.29C50.34 33.92 49.67 33.92 49.29 34.29Z" />
           <path d="M50 20H35C34.448 20 34 20.447 34 21C34 21.553 34.448 22 35 22H50C50.552 22 51 21.553 51 21C51 20.447 50.552 20 50 20Z" />
           <path d="M50 27H40C39.448 27 39 27.447 39 28C39 28.553 39.448 29 40 29H50C50.552 29 51 28.553 51 28C51 27.447 50.552 27 50 27Z" />
@@ -81,7 +99,7 @@ const steps = [
           <path d="M36 38C35.447 38 35 38.447 35 39V48C35 48.553 35.447 49 36 49C36.553 49 37 48.553 37 48V39C37 38.447 36.553 38 36 38Z" />
           <path d="M31 25C30.447 25 30 25.447 30 26V27C30 27.553 30.447 28 31 28C31.553 28 32 27.553 32 27V26C32 25.447 31.553 25 31 25Z" />
           <path d="M31 30C30.447 30 30 30.447 30 31V33C30 33.553 30.447 34 31 34C31.553 34 32 33.553 32 33V31C32 30.447 31.553 30 31 30Z" />
-          <path d="M31 36C30.447 36 30 36.447 30 37V38C30 38.553 30.447 39 31 39C31.553 39 32 38.553 32 38V37C32 36.447 31.553 36 31 36Z" />
+          <path d="M31 36C30.447 36 30 36.447 30 37V38C30 38.553 30.447 39 31 39C31.553 39 32 38.553 32 38V37C37 36.447 31.553 36 31 36Z" />
           <path d="M31 41C30.447 41 30 41.447 30 42V44C30 44.553 30.447 45 31 45C31.553 45 32 44.553 32 44V42C32 41.447 31.553 41 31 41Z" />
           <path d="M30.29 47.29C30.109 47.479 30 47.74 30 48C30 48.27 30.109 48.52 30.29 48.71C30.479 48.89 30.74 49 31 49C31.26 49 31.52 48.89 31.71 48.71C31.89 48.52 32 48.27 32 48C32 47.74 31.89 47.479 31.71 47.29C31.33 46.92 30.68 46.91 30.29 47.29Z" />
           <path d="M48 2H0V9H3V53.783C3 56.108 4.892 58 7.217 58H40.783C43.108 58 45 56.108 45 53.783V9H48V2ZM43 53.783C43 55.006 42.006 56 40.783 56H7.217C5.994 56 5 55.006 5 53.783V7H9V14H17V7H26V11.255V12.745V18.745C26 19.988 27.012 21 28.255 21H36.255H37.745C38.988 21 40 19.988 40 18.745V11.255V7H43V53.783ZM11 7H15V12H11V7ZM34 7V9H32V7H34ZM38 7V9.026C37.915 9.016 37.832 9 37.745 9H36V7H38ZM28.255 19C28.114 19 28 18.886 28 18.745V14.974C28.085 14.984 28.168 15 28.255 15H30V19H28.255ZM32 15H33.745C33.886 15 34 15.114 34 15.255V18.745C34 18.832 34.016 18.915 34.026 19H32V15ZM36 18.745V15.255C36 14.012 34.988 13 33.745 13H28.255C28.114 13 28 12.886 28 12.745V11.255C28 11.114 28.114 11 28.255 11H37.745C37.886 11 38 11.114 38 11.255V18.745C38 18.886 37.886 19 37.745 19H36.255C36.114 19 36 18.886 36 18.745ZM30 9H28.255C28.168 9 28.085 9.016 28 9.026V7H30V9ZM46 7H45V5H40H26H17H9H3V7H2V4H46V7Z" />
@@ -156,55 +174,42 @@ const Stepper = styled(MuiStepper)(({ theme }) => ({
   },
 }))
 
-// Context for sharing checkout data between steps
-import { createContext } from "react"
-
-export const CheckoutContext = createContext({
-  cartItems: [],
-  addresses: [],
-  selectedAddress: null,
-  selectedShipping: null,
-  orderSummary: {},
-  setCartItems: () => {},
-  setAddresses: () => {},
-  setSelectedAddress: () => {},
-  setSelectedShipping: () => {},
-  setOrderSummary: () => {},
-  isStepValid: () => false,
-  loading: false,
-})
-
 const getStepContent = (step, handleNext, checkoutData) => {
   switch (step) {
     case 0:
-      return <StepCart handleNext={handleNext} {...checkoutData} />
+      return <StepCart handleNext={handleNext} />
     case 1:
-      return <StepAddress handleNext={handleNext} {...checkoutData} />
+      return <StepAddress handleNext={handleNext} />
     case 2:
-      return <StepPayment handleNext={handleNext} {...checkoutData} />
+      return <StepPayment handleNext={handleNext} />
     case 3:
-      return <StepConfirmation {...checkoutData} />
+      return <StepConfirmation />
     default:
       return null
   }
 }
 
-const CheckoutWizard = () => {
+const CheckoutWizard = ({ initialData }) => {
   // Get user session
   const { data: session, status } = useSession()
+console.log(initialData,'initialDatainitialDatainitialData');
 
   // States
   const [activeStep, setActiveStep] = useState(0)
-  const [cartItems, setCartItems] = useState([])
-  const [addresses, setAddresses] = useState([])
+  const [cartItems, setCartItems] = useState(initialData?.cartItems || [])
+  const [addresses, setAddresses] = useState(initialData?.addresses || [])
   const [selectedAddress, setSelectedAddress] = useState(null)
   const [selectedShipping, setSelectedShipping] = useState("standard")
-  const [orderSummary, setOrderSummary] = useState({
-    subtotal: 0,
-    shipping: 0,
-    total: 0,
-  })
-  const [loading, setLoading] = useState(true)
+  const [orderSummary, setOrderSummary] = useState(
+    initialData?.orderSummary || {
+      subtotal: 0,
+      shipping: 0,
+      total: 0,
+    },
+  )
+  console.log(initialData,'orderSummaryorderSummary9999999');
+
+  const [loading, setLoading] = useState(false)
   const [stepValidation, setStepValidation] = useState({
     0: false, // Cart step
     1: false, // Address step
@@ -222,73 +227,45 @@ const CheckoutWizard = () => {
     }))
   }
 
-  // Handle next step
+  // Handle next step with validation
   const handleNext = () => {
     if (isStepValid(activeStep)) {
       const nextStep = activeStep + 1
       setActiveStep(nextStep)
 
-      // Save current step to localStorage
-      localStorage.setItem("checkoutStep", nextStep.toString())
+      // Save current step to localStorage for persistence
+      if (typeof window !== "undefined") {
+        localStorage.setItem("checkoutStep", nextStep.toString())
+      }
     }
   }
 
-  // Load data on component mount
+  // Initialize component with server data
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      try {
-        // Restore step from localStorage if available
-        const savedStep = localStorage.getItem("checkoutStep")
-        if (savedStep) {
-          setActiveStep(Number.parseInt(savedStep, 10))
-        }
-
-        // Fetch cart items
-        const cartResponse = await fetch("/api/cart")
-        if (cartResponse.ok) {
-          const cartData = await cartResponse.json()
-          setCartItems(cartData.items || [])
-
-          // Calculate order summary
-          const subtotal = cartData.items.reduce((sum, item) => sum + item.price * item.count, 0)
-          setOrderSummary({
-            subtotal,
-            shipping: 0, // Free shipping by default
-            total: subtotal,
-          })
-
-          // Set cart step validation based on items
-          setStepValid(0, cartData.items.length > 0)
-        }
-
-        // Fetch user addresses if logged in
-        if (session?.user) {
-          const addressResponse = await fetch("/api/user/addresses")
-          if (addressResponse.ok) {
-            const addressData = await addressResponse.json()
-            setAddresses(addressData.addresses || [])
-
-            // Set default address if available
-            const defaultAddress = addressData.addresses.find((addr) => addr.isDefault)
-            if (defaultAddress) {
-              setSelectedAddress(defaultAddress.value)
-              setStepValid(1, true)
-            } else if (addressData.addresses.length > 0) {
-              setSelectedAddress(addressData.addresses[0].value)
-              setStepValid(1, true)
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching checkout data:", error)
-      } finally {
-        setLoading(false)
+    // Restore step from localStorage if available
+    if (typeof window !== "undefined") {
+      const savedStep = localStorage.getItem("checkoutStep")
+      if (savedStep && Number.parseInt(savedStep, 10) <= 3) {
+        setActiveStep(Number.parseInt(savedStep, 10))
       }
     }
 
-    fetchData()
-  }, [session])
+    // Set initial validations based on data
+    if (cartItems.length > 0) {
+      setStepValid(0, true)
+    }
+
+    if (addresses.length > 0) {
+      const defaultAddress = addresses.find((addr) => addr.isDefault)
+      if (defaultAddress) {
+        setSelectedAddress(defaultAddress.id)
+        setStepValid(1, true)
+      } else {
+        setSelectedAddress(addresses[0].id)
+        setStepValid(1, true)
+      }
+    }
+  }, [cartItems, addresses])
 
   // Checkout context value
   const checkoutData = {
@@ -297,6 +274,7 @@ const CheckoutWizard = () => {
     selectedAddress,
     selectedShipping,
     orderSummary,
+    user: session?.user || initialData?.user,
     setCartItems,
     setAddresses,
     setSelectedAddress,
@@ -305,10 +283,9 @@ const CheckoutWizard = () => {
     isStepValid,
     setStepValid,
     loading,
-    user: session?.user,
   }
 
-  if (status === "loading" || loading) {
+  if (status === "loading") {
     return (
       <Card>
         <CardContent className="flex justify-center items-center py-10">
@@ -342,7 +319,9 @@ const CheckoutWizard = () => {
                       // Only allow going back to previous steps or current step
                       if (index <= activeStep) {
                         setActiveStep(index)
-                        localStorage.setItem("checkoutStep", index.toString())
+                        if (typeof window !== "undefined") {
+                          localStorage.setItem("checkoutStep", index.toString())
+                        }
                       }
                     }}
                   >

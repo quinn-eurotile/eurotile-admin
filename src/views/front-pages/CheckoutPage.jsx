@@ -1,23 +1,27 @@
-'use client'
+"use client"
 
 // React Imports
-import { useEffect } from 'react'
+import { SessionProvider } from "next-auth/react"
 
 // Third-party Imports
-import classnames from 'classnames'
+import classnames from "classnames"
 
 // Component Imports
-import Checkout from '@views/pages/wizard-examples/checkout/index'
+import CheckoutWizard from "@/views/pages/wizard-examples/checkout/CheckoutWizard"
 
 // Styles Imports
-import frontCommonStyles from './styles.module.css'
+import frontCommonStyles from "./styles.module.css"
 
-const CheckoutPage = () => {
+
+const CheckoutPage = ({ initialData, session }) => {
+
 
   return (
-    <section className={classnames('md:plb-[100px] plb-6', frontCommonStyles.layoutSpacing)}>
-      <Checkout />
-    </section>
+    <SessionProvider session={session}>
+      <section className={classnames("md:plb-[100px] plb-6", frontCommonStyles.layoutSpacing)}>
+        <CheckoutWizard initialData={initialData} />
+      </section>
+    </SessionProvider>
   )
 }
 
