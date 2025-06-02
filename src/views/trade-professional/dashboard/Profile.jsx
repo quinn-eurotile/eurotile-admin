@@ -10,11 +10,14 @@ import Chip from '@mui/material/Chip';
 import { green, red, orange } from '@mui/material/colors';
 import { useSession } from 'next-auth/react';
 import { Box } from '@mui/material';
+import { useParams, useRouter } from 'next/navigation';
 
 const Profile = ({ userData }) => {
 
   // Status mapping logic
   const userStatus = userData?.business?.status;
+    const router = useRouter();
+      const { lang: locale } = useParams();
   const getStatusProps = status => {
     switch (status) {
       case 1:
@@ -76,7 +79,7 @@ const Profile = ({ userData }) => {
             </Box>
           </div>
         </div>
-        <Button size='small' variant='contained'>
+        <Button size='small' variant='contained' onClick={() => router.push(`/${locale}/trade-professional/profile`)}>
           View Profile
         </Button>
         <img
