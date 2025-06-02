@@ -1,5 +1,5 @@
-import Image from "next/image"
-import Link from "next/link"
+import Image from 'next/image'
+import Link from 'next/link'
 import Button from '@mui/material/Button'
 
 // const products = [
@@ -77,41 +77,40 @@ import Button from '@mui/material/Button'
 //   },
 // ]
 
-export default function ProductGrid({products}) {
-  console.log(products,'productsproducts66666666666');
+export default function ProductGrid({ products }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {products?.map((product) => (
-        <div key={product.id} className="group">
-          <Link href={`/products/${product?.id}`} className="block p-2 bg-bgLight rounded-lg mb-3">
-            <div className="relative aspect-square overflow-hidden rounded-md">
-              {product.avatar ?
-              <Image
-                src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product.avatar}`  || "/placeholder.svg"}
-                alt={product.name}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              :
-               <Image
-                src={"/placeholder.svg"}
-                alt={product.name}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              }
+    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+      {products?.map(product => (
+        <div key={product.id} className='group'>
+          <Link href={`/products/${product?.id}`} className='block p-2 bg-bgLight rounded-lg mb-3'>
+            <div className='relative aspect-square overflow-hidden rounded-md'>
+              {product.avatar ? (
+                <Image
+                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product.avatar}` || '/placeholder.svg'}
+                  alt={product.name}
+                  fill
+                  className='object-cover group-hover:scale-105 transition-transform duration-300'
+                />
+              ) : (
+                <Image
+                  src={'/placeholder.svg'}
+                  alt={product.name}
+                  fill
+                  className='object-cover group-hover:scale-105 transition-transform duration-300'
+                />
+              )}
             </div>
           </Link>
-          <div className="text-center">
-            <Link href={`/products/${product.id}`} className="block">
-              <h3 className="font-normal text-16">{product.name}</h3>
-              <p className="text-red-800 my-1">£{product.price ? parseFloat(product.price).toFixed(2) : '200 - £500'}</p>
+          <div className='text-center'>
+            <Link href={`/products/${product.id}`} className='block'>
+              <h3 className='font-normal text-16'>{product.name}</h3>
+              <p className='text-red-800 my-1'>£{product.price ? parseFloat(product.price).toFixed(2) : '0.00'}</p>
             </Link>
-            <div className="flex justify-center items-center gap-1 my-2">
-              {[1, 2, 3, 4, 5].map((i) => (
+            <div className='flex justify-center items-center gap-1 my-2'>
+              {[1, 2, 3, 4, 5].map(i => (
                 <i
                   key={i}
-                  className={`ri-star-fill h-4 w-4 ${i <= product.rating ? "text-red-800" : "text-gray-200"}`}
+                  className={`ri-star-fill h-4 w-4 ${i <= product.rating ? 'text-red-800' : 'text-gray-200'}`}
                 />
               ))}
             </div>
@@ -123,7 +122,6 @@ export default function ProductGrid({products}) {
                 <i className="ri-discount-percent-line text-xl"></i>  Bulk Discounts</Link>
             </div> */}
             {/* <Button variant='outlined' className="capitalize border-red-800 !rounded-[4px] text-darkGrey hover:bg-darkGrey hover:text-white hover:border-darkGrey font-montserrat">Add To Cart <i className="ri-shopping-cart-line ms-2 text-16"></i></Button> */}
-
           </div>
         </div>
       ))}
