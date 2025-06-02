@@ -28,15 +28,10 @@ export default function ProductsPage() {
     search_string: '',
     category: [],
     suppliers: [],
-<<<<<<< HEAD
-    price: [10, 10000],
-    attributeVariations: {} // { color: ['red', 'blue'], size: ['M'] }
-=======
     // price: [10, 10000],
     attributeVariations: {}, // { color: ['red', 'blue'], size: ['M'] }
     // minPriceB2B: 0,
     // maxPriceB2B: 0
->>>>>>> 65189892ca2c40c11e3eb8e0a28e2b9bb81571b6
   })
 
   const [filterOpen, setFilterOpen] = useState(false)

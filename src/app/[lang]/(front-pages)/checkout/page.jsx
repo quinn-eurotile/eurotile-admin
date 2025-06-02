@@ -3,7 +3,7 @@ import { fetchUserProfile } from '@/app/front-pages/checkout/page';
 import { getCartData } from '@/app/server/actions';
 import { authOptions } from '@/libs/auth';
 import { addressService } from '@/services/address';
-import { cartService } from '@/services/cart';
+import { cartServices } from '@/services/cart';
 import Checkout from '@views/front-pages/CheckoutPage'
 import { getServerSession } from 'next-auth';
 
@@ -11,8 +11,8 @@ import { getServerSession } from 'next-auth';
 export async function fetchCartData(userId) {
   try {
 
-   const response = await getCartData();;
-  //  const response = await cartService.getByUserId(userId);
+  //  const response = await getCartData();;
+   const response = await cartServices.getById(userId);
     console.log(response, 'cartData response');
 
     const cartData = response?.data || {};
@@ -52,7 +52,7 @@ const CheckoutPage = async () => {
       total: 0
     }
   }
- console.log(session,'sessionsession');
+
 
   // Fetch data if user is authenticated
   if (session?.user?._id) {
@@ -74,7 +74,9 @@ const CheckoutPage = async () => {
       }
     }
   }
-  return <Checkout   initialData={initialData}       session={session} />
+  return <>
+   <Checkout   initialData={initialData}       session={session} />
+  </>
 }
 
 export default CheckoutPage

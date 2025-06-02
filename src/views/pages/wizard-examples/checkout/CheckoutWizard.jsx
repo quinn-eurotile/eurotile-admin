@@ -179,11 +179,11 @@ const getStepContent = (step, handleNext, checkoutData) => {
     case 0:
       return <StepCart handleNext={handleNext} />
     case 1:
-      return <StepAddress handleNext={handleNext} />
+      return' <StepAddress handleNext={handleNext} />'
     case 2:
-      return <StepPayment handleNext={handleNext} />
+      return '<StepPayment handleNext={handleNext} />'
     case 3:
-      return <StepConfirmation />
+      return '<StepConfirmation />'
     default:
       return null
   }
@@ -255,7 +255,7 @@ console.log(initialData,'initialDatainitialDatainitialData');
       setStepValid(0, true)
     }
 
-    if (addresses.length > 0) {
+    if (addresses?.length > 0) {
       const defaultAddress = addresses.find((addr) => addr.isDefault)
       if (defaultAddress) {
         setSelectedAddress(defaultAddress.id)

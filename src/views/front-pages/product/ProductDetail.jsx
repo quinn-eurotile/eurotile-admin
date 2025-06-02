@@ -14,8 +14,12 @@ import TabContext from '@mui/lab/TabContext'
 import Typography from '@mui/material/Typography'
 import ColorSelector from "./ColorSelector"
 import RelatedProductGrid from "./related-product"
-import { getProductDetails } from "@/app/server/actions"
+import { addCart, getProductDetails } from "@/app/server/actions"
 import { useParams } from "next/navigation"
+import { useDispatch, useSelector } from "react-redux"
+import { addToCart } from "@/redux-store/slices/cart"
+
+import { getSession } from "next-auth/react"
 
 
 
@@ -29,13 +33,8 @@ import { useParams } from "next/navigation"
 // ]
 
 export default function ProductDetailPage() {
-
-    const { lang: locale, id: productId } = useParams();
-     const [product, setProduct] = useState(null)
-
-    console.log(productId,'productId000000');
-
-
+  const { lang: locale, id: productId } = useParams()
+  const [product, setProduct] = useState(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [quantity, setQuantity] = useState("1")
   const [tiles, setTiles] = useState("10")
@@ -45,8 +44,18 @@ export default function ProductDetailPage() {
   const [pricingTier, setPricingTier] = useState("Tier 5")
   const [selectedVariation, setSelectedVariation] = useState(null)
   const [selectedAttributes, setSelectedAttributes] = useState({})
+  const [error, setError] = useState('')
+  const [calculatedValues, setCalculatedValues] = useState({
+    sqm: 0,
+    tiles: 0,
+    pallets: 0
+  })
+  const [value, setValue] = useState('1')
+  const [Tabvalue, setTabValue] = useState('1')
+  const dispatch = useDispatch()
+  const cart = useSelector(state => state.cartReducer);
 
-
+  console.log('Current cart state:', cart);
   const fetchProductDetails = async () => {
     try {
       const response = await getProductDetails(productId)
@@ -57,6 +66,8 @@ export default function ProductDetailPage() {
       console.error('Failed to fetch product details:', error)
     }
   }
+  const userId = '680b8ce6e2f902abe9cc790b'; // get it from auth/user context if dynamic
+
 
   useEffect(() => {
     if (productId) {
@@ -87,13 +98,15 @@ export default function ProductDetailPage() {
       }
     }
   }
-console.log(selectedAttributes,'selectedAttributes');
-console.log(selectedVariation,'selectedVariation');
+
 
   // Update product images to use variation images
-  const productImages = selectedVariation?.variationImages?.map(img => img.filePath) ||
-                       [product?.productFeaturedImage?.filePath] ||
-                       ["/images/pages/product-img1.jpg"]
+ const productImages =
+  (selectedVariation?.variationImages?.length
+    ? selectedVariation.variationImages.map(img => img.filePath)
+    : product?.productFeaturedImage?.filePath
+    ? [product.productFeaturedImage.filePath]
+    : ["/images/pages/product-img1.jpg"]);
 
 
   const nextImage = () => {
@@ -125,23 +138,17 @@ console.log(selectedVariation,'selectedVariation');
     }
   }
 
-  const handleQuantityChange = (e) => {
-    setQuantity(e.target.value)
-    updatePricingTier(e.target.value)
-  }
 
-  const [value, setValue] = useState('1')
+
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
   }
 
-  const [Tabvalue, setTabValue] = useState('1')
 
   const handleTab = (event, newValue) => {
     setTabValue(newValue)
   }
-    console.log(product,'productproductproduct');
   // Update price display
   const displayPrice = selectedVariation ? {
     minPrice: selectedVariation.regularPriceB2B,
@@ -181,6 +188,179 @@ const tierData = [
     tierName: 'Tier 5',
   },
 ];
+
+
+
+const calculateValues = (type, value) => {
+  if (!selectedVariation) {
+    setError('Please select product variation first');
+    return null;
+  }
+
+  // Use palletSize as tilesPerPallet
+  const tilesPerPallet = selectedVariation.palletSize || 1;
+  // Use sqmPerTile if available, else fallback to 1 to avoid division by 0
+  const sqmPerTile = selectedVariation.sqmPerTile || 1;
+
+  let newValues = { ...calculatedValues };
+
+  switch (type) {
+    case 'sqm':
+      newValues = {
+        sqm: parseFloat(value) || 0,
+        tiles: Math.ceil((parseFloat(value) || 0) / sqmPerTile),
+        pallets: Math.ceil(Math.ceil((parseFloat(value) || 0) / sqmPerTile) / tilesPerPallet)
+      };
+      break;
+    case 'tiles':
+      newValues = {
+        sqm: (parseInt(value) || 0) * sqmPerTile,
+        tiles: parseInt(value) || 0,
+        pallets: Math.ceil((parseInt(value) || 0) / tilesPerPallet)
+      };
+      break;
+    case 'pallets':
+      newValues = {
+        tiles: parseInt(value) * tilesPerPallet,
+        sqm: (parseInt(value) * tilesPerPallet) * sqmPerTile,
+        pallets: parseInt(value) || 0
+      };
+      break;
+  }
+
+  // Calculate the tier discount
+  const sqm = newValues.sqm;
+  let pricingTier;
+
+  if (sqm > 1500) {
+    pricingTier = 'tierFirst';
+  } else if (sqm > 153) {
+    pricingTier = 'tierSecond';
+  } else if (sqm > 75) {
+    pricingTier = 'tierThird';
+  } else if (sqm > 30) {
+    pricingTier = 'tierFourth';
+  } else {
+    pricingTier = 'tierFifth';
+  }
+
+  const tierData = selectedVariation.tierDiscount[pricingTier];
+  if (tierData) {
+    const { tierAddOn, tierMultiplyBy } = tierData;
+    const calculatedPrice = tierAddOn + tierMultiplyBy * sqm;
+
+    newValues.tier = pricingTier;
+    newValues.calculatedPrice = calculatedPrice;
+  }
+
+  setCalculatedValues(newValues);
+  updatePricingTier(newValues.sqm);
+
+  return newValues;
+};
+
+const handleQuantityChange = (e) => {
+  const values = calculateValues('sqm', e.target.value)
+
+  console.log(values,'values');
+
+  if (values) {
+    setQuantity(e.target.value)
+    setTiles(values.tiles.toString())
+    setPallets(values.pallets.toString())
+  }
+}
+
+const handleTilesChange = (e) => {
+  const values = calculateValues('tiles', e.target.value)
+  if (values) {
+    setQuantity(values.sqm.toString())
+    setTiles(e.target.value)
+    setPallets(values.pallets.toString())
+  }
+}
+
+const handlePalletsChange = (e) => {
+  const values = calculateValues('pallets', e.target.value)
+  if (values) {
+    setQuantity(values.sqm.toString())
+    setTiles(values.tiles.toString())
+    setPallets(e.target.value)
+  }
+}
+
+const handleAddToCart = async () => {
+  if (!selectedVariation) {
+    setError('Please select product variation')
+    return
+  }
+
+  if (!calculatedValues.sqm) {
+    setError('Please enter quantity')
+    return
+  }
+
+  if (calculatedValues.sqm > selectedVariation.stockQuantity) {
+    setError('Not enough stock available')
+    return
+  }
+
+  const cartItem = {
+    productId: product.id,
+    variationId: selectedVariation.id,
+    quantity: calculatedValues.sqm,
+    numberOfTiles: calculatedValues.tiles,
+    numberOfPallets: calculatedValues.pallets,
+    attributes: selectedAttributes,
+    price: selectedVariation.regularPriceB2B // Or use appropriate price based on tier
+  }
+
+     const response = await addCart({
+      items: cartItem,
+      userId: "680b8ce6e2f902abe9cc790b" // Include user ID if needed
+    });
+ if(response.success){
+dispatch(addToCart(response.data))
+ }
+    console.log('API Response:', response);
+
+}
+  // const cart = useSelector(state => state.cartReducer);
+  // console.log('Current Cart:', cart);
+// 🟩 Calculate thresholds and map them to discounts
+const getDynamicTierData = () => {
+  // const { tierDiscount } = selectedVariation;
+  const { tierDiscount = {} } = selectedVariation || {};
+  return Object.keys(tierDiscount).map((tierKey) => {
+    const tierData = tierDiscount[tierKey];
+    const threshold = tierData.tierAddOn * tierData.tierMultiplyBy;
+
+    // 🟦 Extract dynamic discount from tierKey (example: "tierFirst" → 20%, etc.)
+    const discountPercent = parseInt(tierKey.replace(/\D/g, '')) * 5 || 5;
+
+    return {
+      tier: tierKey,
+      threshold,
+      discountPercent
+    };
+  }).sort((a, b) => a.threshold - b.threshold); // 🟦 Sort by threshold ascending
+};
+
+const getNextTierMessage = (sqm) => {
+  const tiers = getDynamicTierData();
+
+  for (const tier of tiers) {
+    if (sqm < tier.threshold) {
+      const sqmNeeded = (tier.threshold - sqm).toFixed(2);
+      return `Add ${sqmNeeded} sq.m more and you will get ${tier.discountPercent}% discount`;
+    }
+  }
+
+  // If user already reached highest tier
+  return 'You have unlocked the maximum discount!';
+};
+
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navigation */}
@@ -196,7 +376,7 @@ const tierData = [
               <div className="mb-4 relative p-4 bg-bgLight rounded-lg">
                 <div className="relative aspect-square">
                   <Image
-                    src={productImages[currentImageIndex] || "/placeholder.svg"}
+                    src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${productImages[currentImageIndex]}` || "/placeholder.svg"}
                     alt="Travertini Bianco Cross Cut"
                     fill
                     className="object-cover"
@@ -234,8 +414,8 @@ const tierData = [
 
             {/* Product Details */}
             <div>
-              <h1 className="text-3xl font-medium text-red-800">{product.name || "Product Name"}</h1>
-              <p className="text-sm text-gray-600">From {product?.supplier?.companyName || 'Suplier'}</p>
+              <h1 className="text-3xl font-medium text-red-800">{product.name || ""}</h1>
+              <p className="text-sm text-gray-600">From {product?.supplier?.companyName || ''}</p>
 
               <div className="flex items-center gap-1 my-2">
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -248,12 +428,12 @@ const tierData = [
                 <p className="text-md text-redText mb-3">£{displayPrice?.minPrice} - £{displayPrice?.maxPrice}/SQ.M</p>
                 <p className="flex items-center gap-2 text-sm">
                   <span>Current Stock:</span>
-                  <span className="text-green-600 font-medium"> {product?.totalQuantity || 'Stock'} SQ.M</span>
+                  <span className="text-green-600 font-medium"> {selectedVariation?.stockQuantity || ''} SQ.M</span>
                 </p>
               </div>
 
               <p className="text-sm text-gray-600 my-4">
-                   {product?.shortDescription || 'shortDescription'}
+                   {product?.shortDescription || ''}
               </p>
 
               <div className="my-6">
@@ -268,8 +448,20 @@ const tierData = [
                       </tr>
                     </thead>
                     <tbody>
+                       {selectedVariation && tierData.map((tier) => {
+                        const discount = selectedVariation?.tierDiscount?.[tier.tierKey];
 
-                      <tr className="border-t text-black/50">
+                        // Example price calculation (you can adapt this logic as needed)
+                        const price = discount.tierAddOn + discount.tierMultiplyBy;
+                        return (
+                          <tr key={tier.tierKey} className="border-t text-black/50">
+                            <td className="px-4 py-2 border-r">{tier.label}</td>
+                            <td className="px-4 py-2 border-r">{tier.tierName}</td>
+                            <td className="px-4 py-2">£{price.toFixed(2)} (inc. VAT)</td>
+                          </tr>
+                        );
+                      })}
+                      {/* <tr className="border-t text-black/50">
                         <td className="px-4 py-2 border-r">Under 30 sq.m</td>
                         <td className="px-4 py-2 border-r">Tier 5</td>
                         <td className="px-4 py-2">£100.00 (inc. VAT)</td>
@@ -293,7 +485,7 @@ const tierData = [
                         <td className="px-4 py-2 border-r">Over 1500 sq.m</td>
                         <td className="px-4 py-2 border-r">Tier 1</td>
                         <td className="px-4 py-2">£65.00 (inc. VAT)</td>
-                      </tr>
+                      </tr> */}
                     </tbody>
                   </table>
                 </div>
@@ -332,85 +524,6 @@ const tierData = [
                               </FormControl>
                             )
                           })}
-                  {/* <FormControl fullWidth>
-                    <InputLabel id='select-size-label'>Select Size</InputLabel>
-                    <Select label='Select Size' labelId='select-size-label' id='select-size' defaultValue=''
-                      sx={{
-                        backgroundColor: '#f4f0ed',
-                        borderRadius: '10px',
-                        '&:hover .MuiSelect-filled:not(.Mui-disabled)::before': {
-                          borderBottom: 'none',
-                        },
-                        '& .MuiSelect-filled::before': {
-                          borderBottom: 'none',
-                        },
-                        '& .MuiSelect-filled::after': {
-                          borderBottom: 'none',
-                        },
-
-                      }}
-                    >
-                      <MenuItem value=''>
-                        <em>None</em>
-                      </MenuItem>
-                      <MenuItem value={10}>Ten</MenuItem>
-                      <MenuItem value={20}>Twenty</MenuItem>
-                      <MenuItem value={30}>Thirty</MenuItem>
-                    </Select>
-                  </FormControl> */}
-                  {/*  <Select value={selectedSize} onValueChange={setSelectedSize}>
-                    <SelectTrigger className="bg-bgLight border-0 focus:ring-0 focus-within:outline-none">
-                      <SelectValue placeholder="Select Required Size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="30x30">30x30 cm</SelectItem>
-                      <SelectItem value="60x60">60x60 cm</SelectItem>
-                      <SelectItem value="90x90">90x90 cm</SelectItem>
-                    </SelectContent>
-                  </Select> */}
-
-                  {/* <Select value={selectedFinish} onValueChange={setSelectedFinish}>
-                    <SelectTrigger className="bg-bgLight border-0 focus:ring-0 focus-within:outline-none">
-                      <SelectValue placeholder="Select Required Finish" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="polished">Polished</SelectItem>
-                      <SelectItem value="matte">Matte</SelectItem>
-                      <SelectItem value="honed">Honed</SelectItem>
-                    </SelectContent>
-                  </Select> */}
-
-                  {/* <FormControl fullWidth>
-                    <InputLabel id="select-finish-label">Select Finish</InputLabel>
-                    <Select
-                      label="Select Finish"
-                      labelId="select-finish-label"
-                      id="select-finish"
-                      defaultValue=""
-                      sx={{
-                        backgroundColor: '#f4f0ed',
-                        borderRadius: '10px',
-                        '&:hover .MuiSelect-filled:not(.Mui-disabled)::before': {
-                          borderBottom: 'none',
-                        },
-                        '& .MuiSelect-filled::before': {
-                          borderBottom: 'none',
-                        },
-                        '& .MuiSelect-filled::after': {
-                          borderBottom: 'none',
-                        },
-
-                      }}
-                    >
-                      <MenuItem value="">
-                        <em>None</em>
-                      </MenuItem>
-                      <MenuItem value={10}>Ten</MenuItem>
-                      <MenuItem value={20}>Twenty</MenuItem>
-                      <MenuItem value={30}>Thirty</MenuItem>
-                    </Select>
-                  </FormControl> */}
-
 
 
 
@@ -418,8 +531,42 @@ const tierData = [
                     <span className="text-sm text-center w-full">{pricingTier}</span>
                   </div>
                 </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="rounded-md">
+                  <input
+                    type="text"
+                    value={quantity}
+                    placeholder="Quantity / Enter SQ.M"
+                    className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
+                    onChange={handleQuantityChange}
+                  />
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="rounded-md">
+                  <input
+                    type="text"
+                    value={tiles}
+                    className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
+                    onChange={handleTilesChange}
+                    placeholder="No. Of Tiles"
+                  />
+                </div>
+
+                <div className="rounded-md">
+                  <input
+                    type="text"
+                    className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
+                    value={pallets}
+                    onChange={handlePalletsChange}
+                    placeholder="No. Of Pallets"
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <div className="text-red-500 mb-4">{error}</div>
+              )}
+                {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
                   <div className="rounded-md">
                     <input type="text" placeholder="Quantity / Enter SQ.M" className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black" onChange={handleQuantityChange} />
@@ -444,10 +591,10 @@ const tierData = [
                       placeholder="No. Of Pallets"
                     />
                   </div>
-                </div>
+                </div> */}
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Button className="flex-1 bg-red-800 hover:bg-red-900 text-white">
+                  <Button className="flex-1 bg-red-800 hover:bg-red-900 text-white"  onClick={handleAddToCart}>
                     <i className="ri-shopping-cart-line me-2 text-lg"></i>
                     Add To Cart
                   </Button>
@@ -463,10 +610,16 @@ const tierData = [
                     <span className="text-darkGrey">Nationwide Delivery Included</span>
                   </div>
 
-                  <div className="flex items-center w-1/2 rounded-sm text-redText bg-redText/25 px-4 py-2">
+                  {/* <div className="flex items-center w-1/2 rounded-sm text-redText bg-redText/25 px-4 py-2">
                     <i className="ri-discount-percent-line me-1"></i>
                     Add 10.08 sq.m more to unlock 5% off
-                  </div>
+                  </div> */}
+                  {calculatedValues?.sqm  !== undefined && (
+                    <div className="flex items-center w-1/2 rounded-sm text-redText bg-redText/25 px-4 py-2">
+                      <i className="ri-discount-percent-line me-1"></i>
+                      {getNextTierMessage(calculatedValues.sqm)}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -478,7 +631,7 @@ const tierData = [
 
 
 
-          <h1 className="text-lg font-semibold text-gray-900 mb-5">Get the Best Deal for I travertini bianco cross cut</h1>
+          {/* <h1 className="text-lg font-semibold text-gray-900 mb-5">Get the Best Deal for I travertini bianco cross cut</h1>
 
 
           <Grid2 container spacing={2} className="mb-12">
@@ -560,7 +713,7 @@ const tierData = [
                 </div>
               </div>
             </Grid2>
-          </Grid2>
+          </Grid2> */}
 
           <TabContext value={Tabvalue}>
             <TabList
@@ -605,8 +758,10 @@ const tierData = [
               />
             </TabList>
 
-            <TabPanel value='1' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px]">
-              <p className="text-sm leading-relaxed">
+            <TabPanel value='1' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-4">
+
+              { product?.description ??''}
+              {/* <p className="text-sm leading-relaxed">
                 The Timeless Modernity Of Travertine And Its Harmonious Elegance Are Expressed In An Extremely Versatile
                 Collection Available In Terms Of Colours, Which Range From Cool Tones To Warmer, Enveloping Nuances.
                 Appearance And Surface Variation Travertine Reveals Different Textures Depending On Its Cuts.
@@ -614,13 +769,13 @@ const tierData = [
               <p className="text-sm leading-relaxed mt-4">
                 The Cross Cut Technology Reproduces The Cloudy Aesthetics Achieved By Cutting Perpendicular To The
                 Direction Of Layering Of The Stone, Resulting In A Homogeneous And Balanced Overall Effect.
-              </p>
+              </p> */}
 
-              <div className="mt-6">
+              {/* <div className="mt-6">
                 <h3 className="font-normal mb-2 text-sm">Need A Sample?</h3>
                 <p className="text-sm text-gray-600 mb-3">20x20cm Sample Delivered In 3-5 Working Days</p>
 
-                {/* <Select className="mt-4">
+                <Select className="mt-4">
                   <SelectTrigger className="max-w-xs w-full md:w-1/4 mt-3 bg-bgLight">
                     <SelectValue placeholder="£9.99 CHOOSE FINISH" />
                   </SelectTrigger>
@@ -629,7 +784,7 @@ const tierData = [
                     <SelectItem value="matte">Matte</SelectItem>
                     <SelectItem value="honed">Honed</SelectItem>
                   </SelectContent>
-                </Select> */}
+                </Select>
 
                 <FormControl fullWidth className="max-w-xs w-full md:w-1/4 mt-3 bg-bgLight  rounded-md">
                   <InputLabel id='choose-finish-label'>£9.99 CHOOSE FINISH</InputLabel>
@@ -657,19 +812,19 @@ const tierData = [
                   </Select>
                 </FormControl>
 
-              </div>
+              </div> */}
 
-              <div className="mt-6">
+              {/* <div className="mt-6">
                 <h3 className="font-normal mb-2">High Res Images Pack</h3>
 
-                {/*  <Select className="max-w-xs">
+                 <Select className="max-w-xs">
                   <SelectTrigger className="max-w-xs w-full md:w-1/4 mt-3 bg-bgLight">
                     <SelectValue placeholder="DOWNLOAD (5.8MB)" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="download">Download Now</SelectItem>
                   </SelectContent>
-                </Select> */}
+                </Select>
 
                 <FormControl fullWidth className="max-w-xs w-full md:w-1/4 mt-3 bg-bgLight rounded-md">
                   <InputLabel id='download-label'>DOWNLOAD (5.8MB)</InputLabel>
@@ -695,48 +850,81 @@ const tierData = [
                   </Select>
                 </FormControl>
 
-              </div>
+              </div> */}
 
             </TabPanel>
-            <TabPanel value='2' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px]">
-              <div className="grid md:grid-cols-2 gap-8">
+            <TabPanel value='2' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-4">
+              <div className="grid md:grid-cols-2 gap-8 ">
                 <div>
                   <h3 className="font-medium mb-4 text-redText">Technical Specifications</h3>
-                  <ul className="text-sm space-y-4 list-none p-0">
+                   <ul className="text-sm space-y-4 list-none p-0">
                     <li>
-                      <span className="font-medium">Material:</span> Natural Travertine
+                      <span className="font-medium">SKU:</span> {product.sku}
                     </li>
                     <li>
-                      <span className="font-medium">Finish:</span> Polished, Honed, or Matte
+                      <span className="font-medium">Name:</span> {product.name}
                     </li>
                     <li>
-                      <span className="font-medium">Thickness:</span> 10mm
+                      <span className="font-medium">Description:</span> {product.description}
                     </li>
                     <li>
-                      <span className="font-medium">Sizes Available:</span> 30x30cm, 60x60cm, 90x90cm
+                      <span className="font-medium">Stock Status:</span> {product.stockStatusLabel}
                     </li>
                     <li>
-                      <span className="font-medium">Water Absorption:</span> &lt;0.5%
+                      <span className="font-medium">Status:</span> {product.statusLabel}
                     </li>
                     <li>
-                      <span className="font-medium">Slip Resistance:</span> R9
+                      <span className="font-medium">Min Price (B2B):</span> {product.minPriceB2B}
                     </li>
+                    <li>
+                      <span className="font-medium">Max Price (B2B):</span> {product.maxPriceB2B}
+                    </li>
+                    <li>
+                      <span className="font-medium">Min Price (B2C):</span> {product.minPriceB2C}
+                    </li>
+                    <li>
+                      <span className="font-medium">Max Price (B2C):</span> {product.maxPriceB2C}
+                    </li>
+
                   </ul>
                 </div>
-                <div>
+                 <div>
+                <h3 className="font-medium mb-4 text-redText">Product Variations</h3>
+                {product.productVariations.map((variation) => (
+                  <div key={variation._id} className="mb-4 border p-2 rounded">
+                    <p><span className="font-medium">Description:</span> {variation.description}</p>
+                    <p><span className="font-medium">Stock Quantity:</span> {variation.stockQuantity}</p>
+                    <p><span className="font-medium">Weight:</span> {variation.weight} kg</p>
+                    <p><span className="font-medium">Regular Price (B2B):</span> {variation.regularPriceB2B}</p>
+                    <p><span className="font-medium">Regular Price (B2C):</span> {variation.regularPriceB2C}</p>
+                    <p><span className="font-medium">Sale Price:</span> {variation.salePrice}</p>
+                    <p><span className="font-medium">Pallet Size:</span> {variation.palletSize}</p>
+                    <p><span className="font-medium">Box Size:</span> {variation.boxSize}</p>
+                    <p><span className="font-medium">Number of Tiles:</span> {variation.numberOfTiles}</p>
+                    <p><span className="font-medium">Dimensions (L×W×H):</span> {variation.dimensions.length}×{variation.dimensions.width}×{variation.dimensions.height}</p>
+                    {variation.variationImages.length > 0 && (
+                      <div className="mt-2">
+                        <span className="font-medium">Variation Image:</span>
+                        <img
+                          src={variation.variationImages[0].filePath}
+                          alt="Variation"
+                          className="mt-1 w-32 h-32 object-cover rounded border"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+
                   <h3 className="font-medium mb-4 text-redText">Applications</h3>
                   <ul className="text-sm space-y-4 list-none p-0">
-                    <li>Interior Floors</li>
-                    <li>Interior Walls</li>
-                    <li>Bathroom Floors</li>
-                    <li>Bathroom Walls</li>
-                    <li>Kitchen Floors</li>
-                    <li>Kitchen Backsplashes</li>
+                         {product.categories.map((category) => (
+                              <li  key={category._id} >{category?.name}</li>
+                      ))}
                   </ul>
                 </div>
               </div>
             </TabPanel>
-            <TabPanel value='3' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px]">
+            <TabPanel value='3' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-4">
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((i) => (
@@ -771,7 +959,9 @@ const tierData = [
 
           <div className="mt-12">
             <h2 className="text-2xl font-medium text-red-800 mb-6 text-center">More Products</h2>
-            <RelatedProductGrid />
+            {/* <RelatedProductGrid products={product?.associatedProduct} /> */}
+            {/* <RelatedProductGrid products={product?.associatedProducts || []} /> */}
+
           </div>
         </div>
 

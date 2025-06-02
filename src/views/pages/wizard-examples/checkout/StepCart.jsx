@@ -172,6 +172,7 @@ const StepCart = ({ handleNext }) => {
     }
   }
 
+
   // Check if cart is empty and update validation
   useEffect(() => {
     setStepValid(0, cartItems.length > 0)

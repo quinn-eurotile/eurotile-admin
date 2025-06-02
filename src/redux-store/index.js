@@ -16,7 +16,7 @@ export const store = configureStore({
     kanbanReducer,
     emailReducer,
     commonReducer,
-    cart: cartReducer
+    cartReducer
 
   },
   middleware: getDefaultMiddleware => getDefaultMiddleware({ serializableCheck: false })

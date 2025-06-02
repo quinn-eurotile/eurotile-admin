@@ -19,6 +19,8 @@ import { db as statisticsData } from '@/fake-db/pages/widgetExamples'
 import { tradeProfessionalService } from '@/services/trade-professionals';
 import { productRawDataServices } from '@/services/product-raw-data';
 import { productServices } from '@/services/product';
+import { cartServices } from '@/services/cart'
+
 
 export const getEcommerceData = async () => {
   return eCommerceData
@@ -129,4 +131,9 @@ export const getCartData = async (userId) => {
     },
   };
 };
+export const addCart = async (data) => {
+     return await cartServices.create(data);
+}
+
+
 
