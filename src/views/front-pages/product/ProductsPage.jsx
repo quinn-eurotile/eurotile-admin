@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import Image from 'next/image'
-import Link from 'next/link'
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
+import Image from 'next/image';
+import Link from 'next/link';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
 
-import { useEffect, useState } from 'react'
-import { Container, Menu, MenuItem, Pagination, TablePagination } from '@mui/material'
-import FilterSidebar from '@/views/front-pages/product/filter-sidebar'
-import ProductGrid from '@/views/front-pages/product/product-grid'
-import { getProductList, getProductRawData } from '@/app/server/actions'
-import { callCommonAction } from '@/redux-store/slices/common'
+import { useEffect, useState } from 'react';
+import { Container, Menu, MenuItem, Pagination, TablePagination } from '@mui/material';
+import FilterSidebar from '@/views/front-pages/product/filter-sidebar';
+import ProductGrid from '@/views/front-pages/product/product-grid';
+import { getProductList, getProductRawData } from '@/app/server/actions';
+import { callCommonAction } from '@/redux-store/slices/common';
 
 /* import ProductGrid from "@/components/product-grid"
 import FilterSidebar from "@/components/filter-sidebar"
@@ -18,52 +18,47 @@ import Pagination from "@/components/pagination"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"*/
 
 export default function ProductsPage() {
-  const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState([])
-  const [reawFilterData, setReawFilterData] = useState([])
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [totalRecords, setTotalRecords] = useState(0)
+  const [rowSelection, setRowSelection] = useState({});
+  const [data, setData] = useState([]);
+  const [reawFilterData, setReawFilterData] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [filter, setFilter] = useState({
     search_string: '',
     category: [],
     suppliers: [],
-<<<<<<< HEAD
-    price: [10, 10000],
-    attributeVariations: {} // { color: ['red', 'blue'], size: ['M'] }
-=======
     // price: [10, 10000],
     attributeVariations: {}, // { color: ['red', 'blue'], size: ['M'] }
     // minPriceB2B: 0,
     // maxPriceB2B: 0
->>>>>>> 65189892ca2c40c11e3eb8e0a28e2b9bb81571b6
-  })
+  });
 
-  const [filterOpen, setFilterOpen] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false);
   //const dispatch = useDispatch()
-  const [anchorEl, setAnchorEl] = useState(null)
+  const [anchorEl, setAnchorEl] = useState(null);
 
   useEffect(() => {
-    fetchProductList(page + 1, rowsPerPage)
-  }, [page, rowsPerPage, filter?.search_string, filter])
+    fetchProductList(page + 1, rowsPerPage);
+  }, [page, rowsPerPage, filter?.search_string, filter]);
 
   const fetchFilterData = async () => {
-    const response = await getProductRawData()
+    const response = await getProductRawData();
     if (response?.data) {
-      setReawFilterData(response?.data)
+      setReawFilterData(response?.data);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchFilterData()
-  }, [])
+    fetchFilterData();
+  }, []);
 
   const fetchProductList = async (currentPage = 1, pageSize = rowsPerPage) => {
     try {
       //dispatch(callCommonAction({ loading: true }))
-      filter['attributeVariations'] = JSON.stringify(filter.attributeVariations)
-      const response = await getProductList(currentPage, pageSize, filter?.search_string, filter)
-      console.log(response,'.................')
+      filter['attributeVariations'] = JSON.stringify(filter.attributeVariations);
+      const response = await getProductList(currentPage, pageSize, filter?.search_string, filter);
+      console.log(response, '.................');
       //dispatch(callCommonAction({ loading: false }))
       if (response.statusCode === 200 && response.data) {
         const formatted = response?.data?.docs?.map(product => ({
@@ -76,35 +71,35 @@ export default function ProductsPage() {
           status: product?.status,
           avatar: product?.featuredImage?.filePath,
           username: product?.name.split(' ')[0]
-        }))
+        }));
 
-        setPage(page)
-        setData(formatted)
-        setTotalRecords(response.data.totalDocs || 0)
+        setPage(page);
+        setData(formatted);
+        setTotalRecords(response.data.totalDocs || 0);
       }
     } catch (error) {
       //dispatch(callCommonAction({ loading: false }))
-      console.error('Failed to fetch team members', error)
+      console.error('Failed to fetch team members', error);
     }
-  }
+  };
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage)
-  }
+    setPage(newPage);
+  };
 
   const handleChangeRowsPerPage = event => {
-    const newSize = parseInt(event.target.value, 10)
-    setRowsPerPage(newSize)
-    setPage(0)
-  }
+    const newSize = parseInt(event.target.value, 10);
+    setRowsPerPage(newSize);
+    setPage(0);
+  };
 
   const handleClick = event => {
-    setAnchorEl(event.currentTarget)
-  }
+    setAnchorEl(event.currentTarget);
+  };
 
   const handleClose = () => {
-    setAnchorEl(null)
-  }
+    setAnchorEl(null);
+  };
 
   return (
     <div className='min-h-screen flex flex-col'>
@@ -197,5 +192,5 @@ export default function ProductsPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }
