@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import Image from 'next/image'
-import Link from 'next/link'
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
+import Image from 'next/image';
+import Link from 'next/link';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
 
 import { useEffect, useState } from 'react'
 import { CircularProgress, Container, Menu, MenuItem, Pagination, TablePagination, Typography } from '@mui/material'
@@ -38,22 +38,22 @@ export default function ProductsPage() {
 
   const [filterOpen, setFilterOpen] = useState(false)
   //const dispatch = useDispatch()
-  const [anchorEl, setAnchorEl] = useState(null)
+  const [anchorEl, setAnchorEl] = useState(null);
 
   useEffect(() => {
     fetchProductList(page + 1, rowsPerPage)
   }, [page, rowsPerPage, filter])
 
   const fetchFilterData = async () => {
-    const response = await getProductRawData()
+    const response = await getProductRawData();
     if (response?.data) {
-      setReawFilterData(response?.data)
+      setReawFilterData(response?.data);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchFilterData()
-  }, [])
+    fetchFilterData();
+  }, []);
 
   const fetchProductList = async (currentPage = 1, pageSize = rowsPerPage) => {
     try {
@@ -83,9 +83,9 @@ export default function ProductsPage() {
           matchedVariationPrice: item?.matchedVariationPrice ?? 0
         }))
 
-        setPage(page)
-        setData(formatted)
-        setTotalRecords(response.data.totalDocs || 0)
+        setPage(page);
+        setData(formatted);
+        setTotalRecords(response.data.totalDocs || 0);
       }
     } catch (error) {
       //dispatch(callCommonAction({ loading: false }))
@@ -93,25 +93,25 @@ export default function ProductsPage() {
     } finally {
       setLoading(false) // End loading
     }
-  }
+  };
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage)
-  }
+    setPage(newPage);
+  };
 
   const handleChangeRowsPerPage = event => {
-    const newSize = parseInt(event.target.value, 10)
-    setRowsPerPage(newSize)
-    setPage(0)
-  }
+    const newSize = parseInt(event.target.value, 10);
+    setRowsPerPage(newSize);
+    setPage(0);
+  };
 
   const handleClick = event => {
-    setAnchorEl(event.currentTarget)
-  }
+    setAnchorEl(event.currentTarget);
+  };
 
   const handleClose = () => {
-    setAnchorEl(null)
-  }
+    setAnchorEl(null);
+  };
 
   const handleSortChange = (sortByValue, sortOrderValue) => {
     setFilter(prevFilter => ({
@@ -233,5 +233,5 @@ export default function ProductsPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }
