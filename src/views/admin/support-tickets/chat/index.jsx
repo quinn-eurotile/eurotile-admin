@@ -86,7 +86,7 @@ const ChatWrapper = () => {
 
   useEffect(() => {
     // Initialize socket connection
-    socket.current = io('http://localhost:3001', {
+    socket.current = io(process.env.NEXT_PUBLIC_BACKEND_DOMAIN, {
       transports: ['websocket', 'polling']
     });
 
