@@ -10,7 +10,6 @@ export const tradeProfessionalService = createApiService(TRADE_PROFESSIONALS_END
 
 export const userTradeProfessionalService = createApiService(USER_TRADE_PROFESSIONALS_ENDPOINT, {
     addBankAccountForTradeProfessional: async (data) => {
-        console.log('sxscsdcsd', `${USER_TRADE_PROFESSIONALS_ENDPOINT}/create-connect-account`);
         return api.post(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/create-connect-account`, data);
     },
 
