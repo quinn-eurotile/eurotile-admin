@@ -16,8 +16,8 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
-import { update } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/view/[id]/page';
-import { toast } from 'react-toastify';
+import { update } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/view/[id]/page'
+import { toast } from 'react-toastify'
 import { updateTradeProfessional } from '@/app/server/trade-professional'
 import { CircularProgress, InputAdornment, List, ListItem, ListItemText, Paper } from '@mui/material'
 
@@ -215,7 +215,8 @@ const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your add
   )
 }
 
-const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
+const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
+  console.log(isAdmin, 'isAdminisAdmin........................')
   const formatInitialData = data => ({
     fullName: data?.name || '',
     email: data?.email || '',
@@ -240,7 +241,7 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
       lat: data?.addresses?.lat || '',
       long: data?.addresses?.long || '',
       type: data?.addresses?.type || ''
-    },
+    }
   })
 
   const {
@@ -249,7 +250,7 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
     reset,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors }
   } = useForm({
     defaultValues: formatInitialData(data)
   })
@@ -266,8 +267,7 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
     reset(formatInitialData(data))
   }
 
-
-  const onSubmit = async (formValues) => {
+  const onSubmit = async formValues => {
     try {
       const requestData = {
         name: formValues.fullName,
@@ -288,7 +288,7 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
         business_phone: formValues.businessPhone,
         status: formValues.status,
         business_status: formValues.businessStatus,
-        accept_term: 1,
+        accept_term: 1
       }
 
       const response = await updateTradeProfessional(data._id, requestData)
@@ -297,7 +297,7 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
 
       if (isSuccess) {
         toast.success(response?.message || 'Operation successful')
-        setRefresh(true);
+        setRefresh(true)
         handleClose()
         reset()
         return
@@ -311,13 +311,11 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
       } else {
         toast.error(response?.message || 'Something went wrong.')
       }
-
     } catch (error) {
       console.error('User update failed:', error)
       toast.error('Unexpected error occurred. Please try again.')
     }
   }
-
 
   return (
     <Dialog fullWidth open={open} onClose={handleClose} maxWidth='md' scroll='body'>
@@ -347,23 +345,25 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
             <Grid size={{ xs: 12, md: 4 }}>
               <TextField fullWidth label='Role' disabled {...register('role')} />
             </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
-                <Select
-                  label='Status'
-                  {...register('status')}
-                  value={watch('status')}
-                  onChange={e => setValue('status', e.target.value)}
-                >
-                  {statusOptions.map(status => (
-                    <MenuItem key={status.value} value={status.value}>
-                      {status.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
+            {isAdmin && (
+              <Grid size={{ xs: 12, md: 4 }}>
+                <FormControl fullWidth>
+                  <InputLabel>Status</InputLabel>
+                  <Select
+                    label='Status'
+                    {...register('status')}
+                    value={watch('status')}
+                    onChange={e => setValue('status', e.target.value)}
+                  >
+                    {statusOptions.map(status => (
+                      <MenuItem key={status.value} value={status.value}>
+                        {status.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            )}
 
             {/* Address Search Section */}
             <Grid size={{ xs: 12 }}>
@@ -373,7 +373,7 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <AddressSearch label='Search Address' placeholder='Start typing your address...' setValue={setValue}  />
+              <AddressSearch label='Search Address' placeholder='Start typing your address...' setValue={setValue} />
             </Grid>
 
             {/* Address Fields - Auto-filled by AddressSearch */}
@@ -462,10 +462,13 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
             <input type='hidden' {...register('address.lat')} />
             <input type='hidden' {...register('address.long')} />
 
-
             {/* Business Info Fields */}
             <Grid size={{ xs: 12 }}>
-              <Typography variant='h5' className='mb-2' sx={{ borderBottom: '1px solid #ebebeb', paddingBottom: '8px' }}>
+              <Typography
+                variant='h5'
+                className='mb-2'
+                sx={{ borderBottom: '1px solid #ebebeb', paddingBottom: '8px' }}
+              >
                 Business Information
               </Typography>
             </Grid>
@@ -479,23 +482,26 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
             <Grid size={{ xs: 12, md: 4 }}>
               <TextField fullWidth label='Business Phone' {...register('businessPhone')} />
             </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <FormControl fullWidth>
-                <InputLabel>Business Status</InputLabel>
-                <Select
-                  label='Business Status'
-                  {...register('businessStatus')}
-                  value={watch('businessStatus')}
-                  onChange={e => setValue('businessStatus', e.target.value)}
-                >
-                  {statusOptions.map(status => (
-                    <MenuItem key={status.value} value={status.value}>
-                      {status.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
+
+            {isAdmin && (
+              <Grid size={{ xs: 12, md: 4 }}>
+                <FormControl fullWidth>
+                  <InputLabel>Business Status</InputLabel>
+                  <Select
+                    label='Business Status'
+                    {...register('businessStatus')}
+                    value={watch('businessStatus')}
+                    onChange={e => setValue('businessStatus', e.target.value)}
+                  >
+                    {statusOptions.map(status => (
+                      <MenuItem key={status.value} value={status.value}>
+                        {status.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            )}
 
             {/* Read-only business metadata */}
             <Grid size={{ xs: 12, md: 4 }}>

@@ -59,7 +59,7 @@ const ResetPasswordV1 = ({ mode }) => {
 
     try {
       // Sending password reset request
-        const response = await resetPasswordApi({ token , password }); 
+        const response = await resetPasswordApi({ token , password });
 
       // Handling response from server
       if (response.statusCode === 200) {

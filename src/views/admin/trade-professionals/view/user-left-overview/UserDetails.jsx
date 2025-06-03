@@ -55,7 +55,6 @@ const UserDetails = ({ data }) => {
     verifyRole()
   }, [])
 
-  console.log(isAdmin, 'isAdminisAdminisAdmin')
 
   const buttonProps = (children, color, variant) => ({
     children,
@@ -450,7 +449,7 @@ const statusDetails = getStatusLabel(userData?.business?.status);
           element={Button}
           elementProps={buttonProps('Edit', 'primary', 'contained')}
           dialog={EditUserInfo}
-          dialogProps={{ data: userData, setRefresh: setRefresh }}
+          dialogProps={{ data: userData, setRefresh: setRefresh, isAdmin: isAdmin }}
         />
       </CardContent>
 

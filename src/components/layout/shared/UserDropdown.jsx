@@ -80,6 +80,7 @@ const UserDropdown = () => {
     }
   }
 
+
   return (
     <>
 <div className='flex items-center gap-2'>
@@ -136,6 +137,7 @@ const UserDropdown = () => {
                     className='gap-3'
                     onClick={() => {
                       const roleId = session?.user?.roles?.[0]?._id
+                      console.log(roleId,'roleIdroleIdroleId')
                       const route =
                         roleId === '6819ce06bb8f30e6c73eba48' ? '/trade-professional/profile' : '/pages/user-profile'
                       router.push(route)
