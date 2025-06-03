@@ -1,39 +1,39 @@
-'use client'
+'use client';
 // React Imports
-import { useState } from 'react'
-import { useFormContext } from 'react-hook-form'
+import { useState } from 'react';
+import { useFormContext } from 'react-hook-form';
 
 // MUI Imports
-import Grid from '@mui/material/Grid2'
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
-import InputAdornment from '@mui/material/InputAdornment'
+import Grid from '@mui/material/Grid2';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
 
 // Component Imports
-import DirectionalIcon from '@components/DirectionalIcon'
-import AddressSearch from './AddressSearch'
+import DirectionalIcon from '@components/DirectionalIcon';
+import AddressSearch from './AddressSearch';
 
 const StepAccountDetails = ({ activeStep, handleNext, handlePrev }) => {
   // States
-  const [isPasswordShown, setIsPasswordShown] = useState(false)
-  const [isConfirmPasswordShown, setIsConfirmPasswordShown] = useState(false)
+  const [isPasswordShown, setIsPasswordShown] = useState(false);
+  const [isConfirmPasswordShown, setIsConfirmPasswordShown] = useState(false);
 
   // Get form context
   const {
     register,
     formState: { errors },
     watch
-  } = useFormContext()
+  } = useFormContext();
 
   const handleClickShowPassword = () => {
-    setIsPasswordShown(!isPasswordShown)
-  }
+    setIsPasswordShown(!isPasswordShown);
+  };
 
   const handleClickShowConfirmPassword = () => {
-    setIsConfirmPasswordShown(!isConfirmPasswordShown)
-  }
+    setIsConfirmPasswordShown(!isConfirmPasswordShown);
+  };
 
   return (
     <>
@@ -74,18 +74,45 @@ const StepAccountDetails = ({ activeStep, handleNext, handlePrev }) => {
           <TextField
             {...register('phone', {
               required: 'Phone is required',
-              // pattern: {
-              //   value: /^(\+?\d{1,4}[\s-]?)?\d{10}$/,
-              //   message: 'Invalid phone number'
-              // }
+              pattern: {
+                value: /^\+?[0-9\s\-().]{7,20}$/,
+                message: 'Enter a valid phone number (no letters)',
+              },
             })}
-            placeholder='+1 (555) 123-4567'
+            inputProps={{
+              inputMode: 'tel',
+              pattern: '\\+?[0-9\\s\\-().]{7,20}',
+              onKeyDown: (e) => {
+                const allowedKeys = [
+                  'Backspace',
+                  'Tab',
+                  'ArrowLeft',
+                  'ArrowRight',
+                  'Delete',
+                  'Home',
+                  'End',
+                  '+',
+                  '-',
+                  '(',
+                  ')',
+                  ' ',
+                ];
+                const isNumber = /[0-9]/.test(e.key);
+                if (!isNumber && !allowedKeys.includes(e.key)) {
+                  e.preventDefault();
+                }
+              },
+            }}
             error={Boolean(errors?.phone)}
             helperText={errors.phone?.message}
             fullWidth
             label='Phone'
           />
+
+
         </Grid>
+
+
 
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
@@ -127,8 +154,8 @@ const StepAccountDetails = ({ activeStep, handleNext, handlePrev }) => {
             {...register('confirmPassword', {
               required: 'Confirm Password is required',
               validate: value => {
-                const password = watch('password')
-                return value === password || 'Passwords do not match'
+                const password = watch('password');
+                return value === password || 'Passwords do not match';
               }
             })}
             error={Boolean(errors?.confirmPassword)}
@@ -275,7 +302,7 @@ const StepAccountDetails = ({ activeStep, handleNext, handlePrev }) => {
         </Grid>
       </Grid>
     </>
-  )
-}
+  );
+};
 
-export default StepAccountDetails
+export default StepAccountDetails;

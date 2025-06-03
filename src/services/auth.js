@@ -3,7 +3,7 @@
 import { api } from "@/utils/api";
 
 const AUTH_ENDPOINT = "/admin/forgot-password";
-const AUTH_RESET_ENDPOINT = "/admin/rest-password";
+const AUTH_RESET_ENDPOINT = "/admin/reset-password";
 
 
 // Export async functions directly instead of wrapping them in an object
