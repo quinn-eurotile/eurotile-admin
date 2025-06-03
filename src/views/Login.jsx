@@ -264,7 +264,7 @@ const Login = ({ mode }) => {
 
             <div className='flex justify-between items-center flex-wrap gap-x-3 gap-y-1'>
               <FormControlLabel control={<Checkbox defaultChecked />} label='Remember me' />
-              <Typography className='text-end' color='primary.main' component={Link} href='/admin/forgot-password'>
+              <Typography className='text-end' color='primary.main' component={Link} href='/en/forgot-password'>
                 Forgot password?
               </Typography>
             </div>

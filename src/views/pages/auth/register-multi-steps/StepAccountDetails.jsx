@@ -74,11 +74,12 @@ const StepAccountDetails = ({ activeStep, handleNext, handlePrev }) => {
           <TextField
             {...register('phone', {
               required: 'Phone is required',
-              pattern: {
-                value: /^(\+?\d{1,4}[\s-]?)?\d{10}$/,
-                message: 'Invalid phone number'
-              }
+              // pattern: {
+              //   value: /^(\+?\d{1,4}[\s-]?)?\d{10}$/,
+              //   message: 'Invalid phone number'
+              // }
             })}
+            placeholder='+1 (555) 123-4567'
             error={Boolean(errors?.phone)}
             helperText={errors.phone?.message}
             fullWidth
