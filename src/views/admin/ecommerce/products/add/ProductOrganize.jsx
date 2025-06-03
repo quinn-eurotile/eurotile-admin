@@ -67,8 +67,6 @@ const ProductOrganize = ({ rawProductData }) => {
 
   const flatOptions = flattenCategories(categoryList)
 
-  console.log(watch('categories'), '00000000000000000000000')
-
   return (
     <Card>
       <CardHeader title='Organize' />

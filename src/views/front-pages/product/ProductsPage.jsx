@@ -34,8 +34,6 @@ export default function ProductsPage() {
     sortOrder: -1
   })
 
-  console.log(filter, data, 'filterfilterfilter')
-
   const [filterOpen, setFilterOpen] = useState(false)
   //const dispatch = useDispatch()
   const [anchorEl, setAnchorEl] = useState(null);
@@ -71,7 +69,7 @@ export default function ProductsPage() {
       //dispatch(callCommonAction({ loading: false }))
       if (response.statusCode === 200 && response.data) {
         const formatted = response?.data?.docs?.map(item => ({
-          id: item?._id,
+          id: item?.productDetail?._id,
           name: item?.productDetail?.name,
           categories: item?.categories,
           supplier: item?.supplier,

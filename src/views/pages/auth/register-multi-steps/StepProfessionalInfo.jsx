@@ -1,23 +1,23 @@
-'use client'
+'use client';
 // React Imports
-import { useFormContext } from 'react-hook-form'
+import { useFormContext } from 'react-hook-form';
 
 // MUI Imports
-import Grid from '@mui/material/Grid2'
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
+import Grid from '@mui/material/Grid2';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 
 // Component Imports
-import DirectionalIcon from '@components/DirectionalIcon'
-import DropzoneImageUploader from '@/components/common/DropzoneImageUploader'
+import DirectionalIcon from '@components/DirectionalIcon';
+import DropzoneImageUploader from '@/components/common/DropzoneImageUploader';
 
 const StepProfessionalInfo = ({ activeStep, handlePrev }) => {
   // Get form context
   const {
     register,
     formState: { errors, isSubmitting }
-  } = useFormContext()
+  } = useFormContext();
 
   return (
     <>
@@ -55,7 +55,37 @@ const StepProfessionalInfo = ({ activeStep, handlePrev }) => {
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
-            {...register('business_phone', { required: 'Business phone is required' })}
+            {...register('business_phone', {
+              required: 'Business phone is required',
+              pattern: {
+                value: /^\+?[0-9\s\-().]{7,20}$/,
+                message: 'Enter a valid phone number (no letters)',
+              },
+            })}
+            inputProps={{
+              inputMode: 'tel',
+              pattern: '\\+?[0-9\\s\\-().]{7,20}',
+              onKeyDown: (e) => {
+                const allowedKeys = [
+                  'Backspace',
+                  'Tab',
+                  'ArrowLeft',
+                  'ArrowRight',
+                  'Delete',
+                  'Home',
+                  'End',
+                  '+',
+                  '-',
+                  '(',
+                  ')',
+                  ' ',
+                ];
+                const isNumber = /[0-9]/.test(e.key);
+                if (!isNumber && !allowedKeys.includes(e.key)) {
+                  e.preventDefault();
+                }
+              },
+            }}
             error={Boolean(errors?.business_phone)}
             helperText={errors?.business_phone?.message}
             fullWidth
@@ -127,7 +157,7 @@ const StepProfessionalInfo = ({ activeStep, handlePrev }) => {
         </Grid>
       </Grid>
     </>
-  )
-}
+  );
+};
 
-export default StepProfessionalInfo
+export default StepProfessionalInfo;

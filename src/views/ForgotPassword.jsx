@@ -141,7 +141,7 @@ const ForgotPasswordV2 = ({ mode }) => {
               {isLoading ? 'Sending...' : 'Send reset link'}
             </Button>
             <Typography className='flex justify-center items-center' color='primary.main'>
-              <Link href='/login' className='flex items-center'>
+              <Link href='/en/login' className='flex items-center'>
                 <i className='ri-arrow-left-s-line' />
                 <span>Back to Login</span>
               </Link>

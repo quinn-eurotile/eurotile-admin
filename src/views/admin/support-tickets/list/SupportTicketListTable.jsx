@@ -137,7 +137,6 @@ const SupportTicketListTable = () => {
   }, [page, rowsPerPage, search, filter]);
 
   const fetchSupportTickets = async (currentPage = 1, pageSize = rowsPerPage) => {
-    console.log('fetchSupportTickets', currentPage, pageSize, search, filter);
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await getSupportTicketList(currentPage, pageSize, search, filter);
@@ -204,7 +203,6 @@ const SupportTicketListTable = () => {
         ];
 
         setStatsData(stats);
-        console.log('formattedformatted', response?.data?.docs);
         const formatted = response?.data?.docs?.map(ticket => ({
           id: ticket?._id,
           ticketNumber: ticket?.ticketNumber,
@@ -268,7 +266,6 @@ const SupportTicketListTable = () => {
   // Handle Edit (open AddUserDrawer with current data)
   const handleEdit = id => {
     const selectedData = data.find(result => result.id === id);
-    console.log(selectedData, 'selectedDataselectedDataselectedData');
     setEditData(selectedData);
     setAddSupportTicketOpen(true);
   };

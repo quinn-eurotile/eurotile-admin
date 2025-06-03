@@ -699,32 +699,61 @@ export default function ProductVariants({
                       </Typography>
                     </Grid>
 
+                    {variation._id && (
+                      <Controller
+                        name={`productVariations.${index}._id`}
+                        control={control}
+                        defaultValue={variation._id}
+                        render={({ field }) => <input type='hidden' {...field} />}
+                      />
+                    )}
+
+                    {/* Hidden Field: attribute (entire selectedAttributes array) */}
+                    <Controller
+                      name={`productVariations.${index}.attributes`}
+                      control={control}
+                      defaultValue={selectedAttributes}
+                      render={({ field }) => <input type='hidden' {...field} />}
+                    />
+
+                    {/* Hidden Field: attributeVariations (map of attributeId: variationId for this variation) */}
+                    <Controller
+                      name={`productVariations.${index}.attributeVariations`}
+                      control={control}
+                      defaultValue={selectedAttributes.map(attrId => variation[attrId])}
+                      render={({ field }) => <input type='hidden' {...field} />}
+                    />
+
                     <Grid size={{ xs: 12, md: 4 }}>
-                      {variation._id && (
-                        <Controller
-                          name={`productVariations.${index}._id`}
-                          control={control}
-                          defaultValue={variation._id}
-                          render={({ field }) => <input type='hidden' {...field} />}
-                        />
-                      )}
-
-                      {/* Hidden Field: attribute (entire selectedAttributes array) */}
                       <Controller
-                        name={`productVariations.${index}.attributes`}
+                        name={`productVariations.${index}.purchasedPrice`}
                         control={control}
-                        defaultValue={selectedAttributes}
-                        render={({ field }) => <input type='hidden' {...field} />}
+                        defaultValue={variation.purchasedPrice}
+                        rules={{ required: 'Purchased Price is required' }}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <TextField
+                              {...field}
+                              label='Purchased Price'
+                              type='number'
+                              fullWidth
+                              variant='outlined'
+                              error={!!error}
+                              helperText={error?.message}
+                              InputProps={{
+                                startAdornment: <InputAdornment position='start'>€</InputAdornment>,
+                                inputProps: {
+                                  step: 1,
+                                  min: 1
+                                }
+                              }}
+                            />
+                          </>
+                        )}
                       />
+                    </Grid>
 
-                      {/* Hidden Field: attributeVariations (map of attributeId: variationId for this variation) */}
-                      <Controller
-                        name={`productVariations.${index}.attributeVariations`}
-                        control={control}
-                        defaultValue={selectedAttributes.map(attrId => variation[attrId])}
-                        render={({ field }) => <input type='hidden' {...field} />}
-                      />
-
+                    <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
                         name={`productVariations.${index}.regularPriceB2B`}
                         control={control}
@@ -782,7 +811,7 @@ export default function ProductVariants({
                       />
                     </Grid>
 
-                    <Grid size={{ xs: 12, md: 4 }}>
+                    {/* <Grid size={{ xs: 12, md: 4 }}>
                       <Controller
                         name={`productVariations.${index}.salePrice`}
                         control={control}
@@ -809,36 +838,7 @@ export default function ProductVariants({
                           </>
                         )}
                       />
-                    </Grid>
-
-                    <Grid size={{ xs: 12, md: 4 }}>
-                      <Controller
-                        name={`productVariations.${index}.purchasedPrice`}
-                        control={control}
-                        defaultValue={variation.purchasedPrice}
-                        rules={{ required: 'Purchased Price is required' }}
-                        render={({ field, fieldState: { error } }) => (
-                          <>
-                            <TextField
-                              {...field}
-                              label='Purchased Price'
-                              type='number'
-                              fullWidth
-                              variant='outlined'
-                              error={!!error}
-                              helperText={error?.message}
-                              InputProps={{
-                                startAdornment: <InputAdornment position='start'>€</InputAdornment>,
-                                inputProps: {
-                                  step: 1,
-                                  min: 1
-                                }
-                              }}
-                            />
-                          </>
-                        )}
-                      />
-                    </Grid>
+                    </Grid> */}
 
                     <Grid size={{ xs: 12 }}>
                       <Divider style={{ marginTop: '10px', marginBottom: '10px' }} />

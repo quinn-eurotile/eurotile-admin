@@ -13,8 +13,6 @@ import CustomAvatar from '@core/components/mui/Avatar';
 
 
 const Orders = ({ statusSummary }) => {
-
-  console.log('statusSummary', statusSummary);
   // Define label metadata
   const statusArray = [
     {

@@ -1,43 +1,44 @@
-'use client';
+'use client'
 
 // React Imports
-import { useState } from 'react';
-import { adminRole } from '@configs/constant';
+import { useState } from 'react'
+import { adminRole } from '@configs/constant'
 // Next Imports
-import Link from 'next/link';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 
 // MUI Imports
-import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
-import InputAdornment from '@mui/material/InputAdornment';
-import Checkbox from '@mui/material/Checkbox';
-import Button from '@mui/material/Button';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Alert from '@mui/material/Alert';
-import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography'
+import TextField from '@mui/material/TextField'
+import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
+import Checkbox from '@mui/material/Checkbox'
+import Button from '@mui/material/Button'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Alert from '@mui/material/Alert'
+import CircularProgress from '@mui/material/CircularProgress'
 
 // Third-party Imports
-import { getSession, signIn } from 'next-auth/react';
-import { Controller, useForm } from 'react-hook-form';
-import { valibotResolver } from '@hookform/resolvers/valibot';
-import { object, minLength, string, email, pipe, nonEmpty } from 'valibot';
-import classnames from 'classnames';
+import { getSession, signIn } from 'next-auth/react'
+import { Controller, useForm } from 'react-hook-form'
+import { valibotResolver } from '@hookform/resolvers/valibot'
+import { object, minLength, string, email, pipe, nonEmpty } from 'valibot'
+import classnames from 'classnames'
 
 // Component Imports
-import Logo from '@components/layout/shared/Logo';
-import Illustrations from '@components/Illustrations';
+import Logo from '@components/layout/shared/Logo'
+import Illustrations from '@components/Illustrations'
 
 // Config Imports
-import themeConfig from '@configs/themeConfig';
+import themeConfig from '@configs/themeConfig'
 
 // Hook Imports
-import { useImageVariant } from '@core/hooks/useImageVariant';
-import { useSettings } from '@core/hooks/useSettings';
+import { useImageVariant } from '@core/hooks/useImageVariant'
+import { useSettings } from '@core/hooks/useSettings'
 
 // Util Imports
-import { getLocalizedUrl } from '@/utils/i18n';
+import { getLocalizedUrl } from '@/utils/i18n'
+import { getDashboardRedirectUrl } from '@/components/common/common'
 
 const schema = object({
   email: pipe(string(), minLength(1, 'This field is required'), email('Please enter a valid email address')),
@@ -46,29 +47,29 @@ const schema = object({
     nonEmpty('This field is required'),
     minLength(5, 'Password must be at least 5 characters long')
   )
-});
+})
 
 const Login = ({ mode }) => {
   // States
-  const [isPasswordShown, setIsPasswordShown] = useState(false);
-  const [errorState, setErrorState] = useState(null);
+  const [isPasswordShown, setIsPasswordShown] = useState(false)
+  const [errorState, setErrorState] = useState(null)
 
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   // Vars
-  const darkImg = '/images/pages/auth-v2-mask-dark.png';
-  const lightImg = '/images/pages/auth-v2-mask-light.png';
-  const darkIllustration = '/images/illustrations/auth/v2-login-dark.png';
-  const lightIllustration = '/images/illustrations/auth/v2-login-light.png';
-  const borderedDarkIllustration = '/images/illustrations/auth/v2-login-dark-border.png';
-  const borderedLightIllustration = '/images/illustrations/auth/v2-login-light-border.png';
+  const darkImg = '/images/pages/auth-v2-mask-dark.png'
+  const lightImg = '/images/pages/auth-v2-mask-light.png'
+  const darkIllustration = '/images/illustrations/auth/v2-login-dark.png'
+  const lightIllustration = '/images/illustrations/auth/v2-login-light.png'
+  const borderedDarkIllustration = '/images/illustrations/auth/v2-login-dark-border.png'
+  const borderedLightIllustration = '/images/illustrations/auth/v2-login-light-border.png'
 
   // Hooks
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { lang: locale } = useParams();
-  const { settings } = useSettings();
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { lang: locale } = useParams()
+  const { settings } = useSettings()
 
   const {
     control,
@@ -80,9 +81,9 @@ const Login = ({ mode }) => {
       email: 'admin317@yopmail.com',
       password: '123456789'
     }
-  });
+  })
 
-  const authBackground = useImageVariant(mode, lightImg, darkImg);
+  const authBackground = useImageVariant(mode, lightImg, darkImg)
 
   const characterIllustration = useImageVariant(
     mode,
@@ -90,40 +91,36 @@ const Login = ({ mode }) => {
     darkIllustration,
     borderedLightIllustration,
     borderedDarkIllustration
-  );
+  )
 
-  const handleClickShowPassword = () => setIsPasswordShown(show => !show);
+  const handleClickShowPassword = () => setIsPasswordShown(show => !show)
 
   const onSubmit = async data => {
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true)
+    setError(null)
 
     const res = await signIn('credentials', {
       email: data.email,
       password: data.password,
       redirect: false
-    });
+    })
 
     if (res && res.ok && res.error === null) {
-      const session = await getSession(); // Or useSession()
-      const roles = session?.user?.roles?.map((el) => el?.id);
-      console.log('roles', roles);
-      console.log('constants?.adminRole?.id', adminRole?.id);
-      let url = '/admin/dashboards/crm';
-      if (!roles?.includes(adminRole?.id)) {
-        url = '/trade-professional/dashboard';
-      }
-      const redirectURL = searchParams.get('redirectTo') ?? url;
-      console.log('redirectURL', redirectURL);
-      router.replace(getLocalizedUrl(redirectURL, locale));
+      const redirectURL = await getDashboardRedirectUrl()
+      router.replace(redirectURL)
     } else {
-      setError('User not Found');
+      if (res?.error != 'CredentialsSignin') {
+        const parsedError = JSON.parse(res.error)
+        let errorMessage = parsedError.message
+        setError(res?.error ? errorMessage : 'User not Found')
+      } else {
+        setError('User not Found')
+      }
     }
+    setIsLoading(false)
+  }
 
-    setIsLoading(false);
-  };
-
-  const FullLogoImage = '/images/euro-tile/logo/Eurotile_Logo.png';
+  const FullLogoImage = '/images/euro-tile/logo/Eurotile_Logo.png'
   return (
     <div className='flex bs-full justify-center'>
       <div
@@ -171,7 +168,7 @@ const Login = ({ mode }) => {
 
           <form
             noValidate
-            action={() => { }}
+            action={() => {}}
             autoComplete='off'
             onSubmit={handleSubmit(onSubmit)}
             className='flex flex-col gap-5'
@@ -188,8 +185,8 @@ const Login = ({ mode }) => {
                   type='email'
                   label='Email'
                   onChange={e => {
-                    field.onChange(e.target.value);
-                    errorState !== null && setErrorState(null);
+                    field.onChange(e.target.value)
+                    errorState !== null && setErrorState(null)
                   }}
                   {...((errors.email || errorState !== null) && {
                     error: true,
@@ -210,8 +207,8 @@ const Login = ({ mode }) => {
                   id='login-password'
                   type={isPasswordShown ? 'text' : 'password'}
                   onChange={e => {
-                    field.onChange(e.target.value);
-                    errorState !== null && setErrorState(null);
+                    field.onChange(e.target.value)
+                    errorState !== null && setErrorState(null)
                   }}
                   slotProps={{
                     input: {
@@ -238,7 +235,7 @@ const Login = ({ mode }) => {
             {error && (
               <Alert
                 onClose={() => {
-                  setError(false);
+                  setError(false)
                 }}
                 sx={{
                   padding: '5px 15px',
@@ -258,7 +255,7 @@ const Login = ({ mode }) => {
 
             <div className='flex justify-between items-center flex-wrap gap-x-3 gap-y-1'>
               <FormControlLabel control={<Checkbox defaultChecked />} label='Remember me' />
-              <Typography className='text-end' color='primary.main' component={Link} href='/admin/forgot-password'>
+              <Typography className='text-end' color='primary.main' component={Link} href='/en/forgot-password'>
                 Forgot password?
               </Typography>
             </div>
@@ -285,7 +282,7 @@ const Login = ({ mode }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login

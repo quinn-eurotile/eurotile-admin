@@ -82,6 +82,7 @@ const RegisterMultiSteps = () => {
   const {
     handleSubmit,
     trigger,
+    setError,
     formState: { errors }
   } = methods
 
@@ -98,6 +99,27 @@ const RegisterMultiSteps = () => {
 
   const handlePrev = () => {
     if (activeStep !== 0) setActiveStep(prev => prev - 1)
+  }
+
+  const fieldStepMap = {
+    name: 0,
+    email: 0,
+    password: 0,
+    confirmPassword: 0,
+    phone: 0,
+    'address.addressLine1': 0,
+    'address.addressLine2': 0,
+    'address.city': 0,
+    'address.state': 0,
+    'address.postalCode': 0,
+    'address.country': 0,
+    business_name: 1,
+    business_email: 1,
+    business_phone: 1,
+    business_documents: 1,
+    registration_certificate: 1,
+    trade_license: 1,
+    proof_of_business: 1
   }
 
   const onSubmit = async data => {
@@ -150,15 +172,31 @@ const RegisterMultiSteps = () => {
       }
 
       const response = await createTradeProfessional(formData)
-      console.log('Success response:', response)
+      console.log(response, 'responseresponse')
 
       if (response.success) {
         toast.success('Registration successful!')
         router.push(`/${locale}/login`)
+      } else {
+        const apiErrors = response?.data?.errors || response?.data || {}
+        for (const [field, messages] of Object.entries(apiErrors)) {
+          setError(field, {
+            message: messages?.[0] || 'Invalid input'
+          })
+        }
+
+        const errorFields = Object.keys(apiErrors)
+        for (const field of errorFields) {
+          const step = fieldStepMap[field]
+          if (step !== undefined) {
+            setActiveStep(step)
+            break
+          }
+        }
       }
     } catch (error) {
       console.error('Error during form submission:', error)
-      toast.error('Something went wrong.');
+      toast.error('Something went wrong.')
 
       // if (error.response) {
       //   console.error('Server error response:', error.response.data)

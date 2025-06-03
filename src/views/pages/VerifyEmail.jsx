@@ -51,7 +51,6 @@ const VerifyEmail = ({ mode }) => {
           setIsTokenMismatch(true)
         }
       } catch (error) {
-        console.log(error, '...................')
         setIsTokenMismatch(true)
       } finally {
         setIsLoading(false)
