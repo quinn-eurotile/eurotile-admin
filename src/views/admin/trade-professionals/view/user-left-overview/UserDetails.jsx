@@ -330,7 +330,7 @@ const UserDetails = ({ data }) => {
             {[
               ['Email', userData.email],
               ['Phone', userData.phone],
-              ['Status', userData.status === 0 ? 'Inactive' : 'Active'],
+              ['Status', userData.status === 0 ? 'Inactive' : userData.status === 1 ? 'Active' : userData.status === 2 ? 'Pending' : 'Unknown'],
               ['Role', roleName]
             ].map(([label, value]) => (
               <div key={label} className='flex items-center flex-wrap gap-x-1.5'>
@@ -448,7 +448,7 @@ const UserDetails = ({ data }) => {
           element={Button}
           elementProps={buttonProps('Edit', 'primary', 'contained')}
           dialog={EditUserInfo}
-          dialogProps={{ data: userData, setRefresh: setRefresh }}
+          dialogProps={{ data: userData, setRefresh: setRefresh, isAdmin }}
         />
       </CardContent>
 
