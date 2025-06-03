@@ -480,7 +480,7 @@ const tierData = [
             <Grid2 size={{ xs: 12, md: 6 }}>
               <div className="bg-slate-50 rounded-2xl border border-red-200 p-3 shadow-sm hover:shadow-md transition-shadow duration-200 w-full">
                 <div className="flex gap-4 items-center flex-col md:flex-row">
-                  <div class="flex gap-4 items-center w-full">
+                  <div className="flex gap-4 items-center w-full">
                     <div className="flex-shrink-0">
                       <div className="w-35 h-35 rounded-lg overflow-hidden ">
                         <Image
@@ -510,7 +510,7 @@ const tierData = [
                   <div className="flex-shrink-0">
                     <Button variant="text" className="flex items-center gap-1 text-gray-700 hover:bg-red-800 hover:text-white transition-colors">
                       <span className="text-sm font-medium">Shop Now</span>
-                      <i class="ri-arrow-right-s-line text-sm"></i>
+                      <i className="ri-arrow-right-s-line text-sm"></i>
                     </Button>
                   </div>
                 </div>
@@ -519,7 +519,7 @@ const tierData = [
             <Grid2 size={{ xs: 12, md: 6 }}>
               <div className="bg-slate-50 rounded-2xl border border-red-200 p-3 shadow-sm hover:shadow-md transition-shadow duration-200 w-full">
                 <div className="flex gap-4 items-center flex-col md:flex-row">
-                  <div class="flex gap-4 items-center w-full">
+                  <div className="flex gap-4 items-center w-full">
                   <div className="flex-shrink-0">
                     <div className="w-35 h-35 rounded-lg overflow-hidden ">
                       <Image
@@ -549,7 +549,7 @@ const tierData = [
                   <div className="flex-shrink-0">
                     <Button variant="text" className="flex items-center gap-1 text-gray-700 hover:bg-red-800 hover:text-white transition-colors">
                       <span className="text-sm font-medium">Shop Now</span>
-                      <i class="ri-arrow-right-s-line text-sm"></i>
+                      <i className="ri-arrow-right-s-line text-sm"></i>
                     </Button>
                   </div>
                 </div>
