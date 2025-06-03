@@ -38,7 +38,7 @@ import { useSettings } from '@core/hooks/useSettings'
 
 // Util Imports
 import { getLocalizedUrl } from '@/utils/i18n'
-import { getDashboardRedirectUrl } from '@/components/common/common';
+import { getDashboardRedirectUrl } from '@/components/common/common'
 
 const schema = object({
   email: pipe(string(), minLength(1, 'This field is required'), email('Please enter a valid email address')),
@@ -106,12 +106,17 @@ const Login = ({ mode }) => {
     })
 
     if (res && res.ok && res.error === null) {
-    const redirectURL = await getDashboardRedirectUrl();
-      router.replace(redirectURL);
+      const redirectURL = await getDashboardRedirectUrl()
+      router.replace(redirectURL)
     } else {
-      setError('User not Found')
+      if (res?.error != 'CredentialsSignin') {
+        const parsedError = JSON.parse(res.error)
+        let errorMessage = parsedError.message
+        setError(res?.error ? errorMessage : 'User not Found')
+      } else {
+        setError('User not Found')
+      }
     }
-
     setIsLoading(false)
   }
 

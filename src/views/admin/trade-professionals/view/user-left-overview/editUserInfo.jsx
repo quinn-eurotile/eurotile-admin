@@ -21,10 +21,11 @@ import { toast } from 'react-toastify'
 import { updateTradeProfessional } from '@/app/server/trade-professional'
 import { CircularProgress, InputAdornment, List, ListItem, ListItemText, Paper } from '@mui/material'
 
+
 const statusOptions = [
   { label: 'Active', value: 1 },
   { label: 'Inactive', value: 0 },
-  { label: 'Suspended', value: 2 }
+  { label: 'Pending', value: 2 }
 ]
 
 const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your address...', setValue }) => {
@@ -216,7 +217,6 @@ const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your add
 }
 
 const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
-  console.log(isAdmin, 'isAdminisAdmin........................')
   const formatInitialData = data => ({
     fullName: data?.name || '',
     email: data?.email || '',
@@ -243,6 +243,9 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
       type: data?.addresses?.type || ''
     }
   })
+
+  console.log('isAdminisAdminisAdminisAdmin', isAdmin);
+
 
   const {
     register,
@@ -316,6 +319,10 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
       toast.error('Unexpected error occurred. Please try again.')
     }
   }
+
+  //console.log('formatInitialDataformatInitialData', data);
+
+
 
   return (
     <Dialog fullWidth open={open} onClose={handleClose} maxWidth='md' scroll='body'>
