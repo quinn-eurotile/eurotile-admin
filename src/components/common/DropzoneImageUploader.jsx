@@ -35,20 +35,30 @@ function DropzoneImageUploader({
   const [dropzoneErrorMessage, setDropzoneErrorMessage] = useState(null) // ✅ State for maxFiles error
 
   const renderFilePreview = file => {
+    const isImage = file.type?.startsWith('image/')
     const isLocalFile = file instanceof File
-    const imageUrl = isLocalFile
+    const fileUrl = isLocalFile
       ? URL.createObjectURL(file)
       : `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${file.filePath}`
 
+    if (isImage) {
+      return (
+        <div style={{ position: 'relative', width: 38, height: 38 }}>
+          <Image
+            src={fileUrl}
+            alt={file.name || file.fileName || 'Image'}
+            fill
+            style={{ objectFit: 'cover', borderRadius: 4 }}
+          />
+        </div>
+      )
+    }
+
+    // Render icon for non-image files
     return (
-      <div style={{ position: 'relative', width: 38, height: 38 }}>
-        <Image
-          src={imageUrl}
-          alt={file.name || file.fileName || 'Image'}
-          fill
-          style={{ objectFit: 'cover', borderRadius: 4 }}
-        />
-      </div>
+      <CustomAvatar skin='light' color='primary' variant='rounded'>
+        <i className='ri-file-line' />
+      </CustomAvatar>
     )
   }
 
@@ -83,14 +93,12 @@ function DropzoneImageUploader({
 
                 // Show warning if any files were rejected or ignored due to maxFiles
                 if (ignoredFilesCount > 0) {
-                  setDropzoneErrorMessage(
-                    `Only ${maxFiles} file${maxFiles > 1 ? 's are' : ' is'} allowed.`
-                  )
+                  setDropzoneErrorMessage(`Only ${maxFiles} file${maxFiles > 1 ? 's are' : ' is'} allowed.`)
                 }
               }
 
               const { getRootProps, getInputProps } = useDropzone({
-                accept: { 'image/*': [] },
+                accept: {},
                 multiple,
                 onDrop: handleDrop,
                 maxFiles: multiple ? maxFiles : 1

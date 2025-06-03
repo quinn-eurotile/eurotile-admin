@@ -1,13 +1,14 @@
 'use client'
 
 // React Imports
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 
 // MUI Imports
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import Divider from '@mui/material/Divider'
+import { adminRole } from '@configs/constant'
 
 // Table Imports
 import classnames from 'classnames'
@@ -24,15 +25,19 @@ import {
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
 import FileTypeIcon from '@/components/common/fileTypeIcon'
-import { Chip } from '@mui/material'
+import { Chip, FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 import Tooltip from '@mui/material/Tooltip'
 
 import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'
 import DropzoneImageUploader from '@/components/common/DropzoneImageUploader'
 import SimpleDropzoneImageUploader from '@/components/common/SimpleDropzoneImageUploader'
-import { updateTradeProfessional } from '@/app/server/trade-professional'
+import { updateBusinessProfileStatus, updateTradeProfessional } from '@/app/server/trade-professional'
 import { toast } from 'react-toastify'
 import { fetchById } from '@/app/[lang]/(dashboard)/(private)/trade-professional/profile/page'
+import { updateStatus } from '@/app/server/actions'
+import { tradeProfessionalService } from '@/services/trade-professionals'
+import { getSession } from 'next-auth/react'
+import { checkUserRoleIsAdmin } from '@/components/common/userRole';
 // Column helper
 const columnHelper = createColumnHelper()
 
@@ -52,11 +57,29 @@ const ProjectListTable = ({ documentData }) => {
   const [data, setData] = useState(documentData?.documents ?? [])
   const [openDialog, setOpenDialog] = useState(false)
   const [selectedRowFile, setSelectedRowFile] = useState(null)
-  const [documentType, setDocumentType] = useState('');
+  const [documentType, setDocumentType] = useState('')
   const [uploadedFile, setUploadedFile] = useState(null)
-  const [documentsToRemove, setDocumentsToRemove] = useState([]);
+  const [documentsToRemove, setDocumentsToRemove] = useState([])
+
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false)
+  const [selectedDocument, setSelectedDocument] = useState(null)
+  const [newStatus, setNewStatus] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
 
   const BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN || 'http://localhost:3001'
+
+  useEffect(() => {
+    const verifyRole = async () => {
+      const isAdminUser = await checkUserRoleIsAdmin()
+      if (isAdminUser) {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+    }
+
+    verifyRole()
+  }, [])
 
   // Group data by docType
   const groupedDocuments = useMemo(() => {
@@ -71,17 +94,18 @@ const ProjectListTable = ({ documentData }) => {
   const handleOpen = (rowData, docType) => {
     setSelectedRowFile(rowData)
     setDocumentsToRemove([rowData?._id])
-    setDocumentType(docType ?? 'business_documents');
+    setDocumentType(docType ?? 'business_documents')
     setOpenDialog(true)
   }
   const handleClose = () => {
-    setDocumentsToRemove([]);
-    setDocumentsToRemove('');
+    setDocumentsToRemove([])
+    setDocumentsToRemove('')
     setOpenDialog(false)
+    setSelectedDocument(null)
   }
 
-  const refreshList = async() => {
-    const data = await fetchById(documentData?._id);
+  const refreshList = async () => {
+    const data = await fetchById(documentData?._id)
     setData(data?.data?.documents)
   }
 
@@ -135,7 +159,7 @@ const ProjectListTable = ({ documentData }) => {
 
       if (isSuccess) {
         toast.success(response?.message || 'Operation successful')
-        await refreshList();
+        await refreshList()
         handleClose()
         return
       }
@@ -198,10 +222,10 @@ const ProjectListTable = ({ documentData }) => {
       }),
       columnHelper.accessor('status', {
         header: 'Status',
-        cell: ({ getValue }) => {
-          const status = getValue()
+        cell: ({ row }) => {
+          const status = row.original.status
 
-          const getStatusLabel = (status) => {
+          const getStatusLabel = status => {
             switch (status) {
               case 1:
                 return { label: 'Approved', color: 'success' }
@@ -209,6 +233,8 @@ const ProjectListTable = ({ documentData }) => {
                 return { label: 'Rejected', color: 'error' }
               case 2:
                 return { label: 'Pending', color: 'warning' }
+              case 3:
+                return { label: 'Under Review', color: 'info' }
               default:
                 return { label: 'Unknown', color: 'default' }
             }
@@ -216,9 +242,17 @@ const ProjectListTable = ({ documentData }) => {
 
           const { label, color } = getStatusLabel(status)
 
-          return <Chip label={label} color={color} size='small' />
+          return (
+            <>
+            <div className="flex gap-2 align-center">
+            <Chip label={label} color={color} size='small'/>
+              {isAdmin &&  <i class="ri-edit-line cursor-pointer" onClick={() => handleStatusClick(row.original)} clickable ></i>}
+              </div>
+            </>
+          )
         }
       }),
+      ,
       columnHelper.accessor('filePath', {
         header: 'Action',
         cell: ({ row }) => {
@@ -240,8 +274,13 @@ const ProjectListTable = ({ documentData }) => {
               <Button size='small' variant='outlined' onClick={handleDownload}>
                 View
               </Button>
-              {documentData.status === 0 && (
-                <Button size='small' variant='contained' color='warning' onClick={() => handleOpen(row.original, row.original?.docType)}>
+              {(documentData.status === 0 || documentData.status === 2) && (
+                <Button
+                  size='small'
+                  variant='contained'
+                  color='warning'
+                  onClick={() => handleOpen(row.original, row.original?.docType)}
+                >
                   Replace Document
                 </Button>
               )}
@@ -249,11 +288,33 @@ const ProjectListTable = ({ documentData }) => {
           )
         }
       })
-
-
     ],
-    []
+    [isAdmin]
   )
+
+
+  const handleStatusClick = document => {
+    setSelectedDocument(document)
+    setNewStatus(document.status)
+    setStatusDialogOpen(true)
+  }
+
+  const handleStatusUpdate = async () => {
+    try {
+      const response = await updateBusinessProfileStatus(selectedDocument._id, 'status', { status: newStatus })
+      if (response?.statusCode === 200 || response?.statusCode === 201) {
+        toast.success(response?.message || 'Status updated successfully')
+        await refreshList()
+        setSelectedDocument(null)
+        setStatusDialogOpen(false)
+      } else {
+        toast.error(response?.message || 'Failed to update status')
+      }
+    } catch (error) {
+      console.error('Error updating status:', error)
+      toast.error('An unexpected error occurred. Please try again.')
+    }
+  }
 
   return (
     <>
@@ -341,7 +402,7 @@ const ProjectListTable = ({ documentData }) => {
             // onFilesChange={files => {
             //   setUploadedFile(Array.isArray(files) ? files[0] : files)
             // }}
-            onFilesChange={(files) => {
+            onFilesChange={files => {
               setUploadedFile(prev => ({
                 ...prev,
                 [documentType]: Array.isArray(files) ? files[0] : files
@@ -356,6 +417,40 @@ const ProjectListTable = ({ documentData }) => {
           {/* Add save logic below */}
           <Button onClick={handleUpload} variant='contained'>
             Upload
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={statusDialogOpen} onClose={() => setStatusDialogOpen(false)} fullWidth maxWidth='sm'>
+        <DialogTitle>Update Status</DialogTitle>
+        <DialogContent sx={{ paddingTop: '20px !important' }}>
+          <FormControl fullWidth>
+            <InputLabel id='status-select-label'>Status</InputLabel>
+            <Select
+              labelId='status-select-label'
+              value={newStatus}
+              onChange={e => setNewStatus(e.target.value)}
+              label='Status'
+            >
+              <MenuItem value={2}>Pending</MenuItem>
+              <MenuItem value={1}>Approved</MenuItem>
+              <MenuItem value={0}>Rejected</MenuItem>
+              <MenuItem value={3}>Under Review</MenuItem>
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setSelectedDocument(null)
+              setStatusDialogOpen(false)
+            }}
+            color='secondary'
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleStatusUpdate} variant='contained' color='primary'>
+            Update
           </Button>
         </DialogActions>
       </Dialog>

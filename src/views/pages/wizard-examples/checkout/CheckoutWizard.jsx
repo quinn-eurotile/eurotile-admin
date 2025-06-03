@@ -192,7 +192,6 @@ const getStepContent = (step, handleNext, checkoutData) => {
 const CheckoutWizard = ({ initialData }) => {
   // Get user session
   const { data: session, status } = useSession()
-console.log(initialData,'initialDatainitialDatainitialData');
 
   // States
   const [activeStep, setActiveStep] = useState(0)
@@ -207,7 +206,6 @@ console.log(initialData,'initialDatainitialDatainitialData');
       total: 0,
     },
   )
-  console.log(initialData,'orderSummaryorderSummary9999999');
 
   const [loading, setLoading] = useState(false)
   const [stepValidation, setStepValidation] = useState({
