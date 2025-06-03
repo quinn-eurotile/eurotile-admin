@@ -233,7 +233,7 @@ const StepCart = ({ handleNext }) => {
                 <img
                   height={140}
                   width={140}
-                  src={product.imgSrc || "/placeholder.svg?height=140&width=140"}
+                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product.imgSrc}` || "/placeholder.svg?height=140&width=140"}
                   alt={product.imgAlt || product.productName}
                 />
                 <IconButton

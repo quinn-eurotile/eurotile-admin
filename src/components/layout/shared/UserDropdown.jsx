@@ -86,7 +86,7 @@ const UserDropdown = () => {
      <Typography className='cursor-pointer hover:text-red-800' onClick={() => {
             router.push('/admin/support-tickets/view')
           }} >
-            <i class="ri-message-2-line mt-2"></i>
+            <i className="ri-message-2-line mt-2"></i>
           </Typography>
       <Badge
         ref={anchorRef}

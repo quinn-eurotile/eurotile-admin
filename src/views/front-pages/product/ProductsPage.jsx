@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import Image from 'next/image'
-import Link from 'next/link'
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
+import Image from 'next/image';
+import Link from 'next/link';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
 
 import { useEffect, useState } from 'react'
-import { Container, Menu, MenuItem, Pagination, TablePagination } from '@mui/material'
+import { CircularProgress, Container, Menu, MenuItem, Pagination, TablePagination, Typography } from '@mui/material'
 import FilterSidebar from '@/views/front-pages/product/filter-sidebar'
 import ProductGrid from '@/views/front-pages/product/product-grid'
-import { getProductList, getProductRawData } from '@/app/server/actions'
+import { getFrontProductList, getProductList, getProductRawData } from '@/app/server/actions'
 import { callCommonAction } from '@/redux-store/slices/common'
 
 /* import ProductGrid from "@/components/product-grid"
@@ -24,81 +24,102 @@ export default function ProductsPage() {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [totalRecords, setTotalRecords] = useState(0)
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState({
     search_string: '',
-    category: [],
-    suppliers: [],
-    // price: [10, 10000],
-    attributeVariations: {}, // { color: ['red', 'blue'], size: ['M'] }
-    // minPriceB2B: 0,
-    // maxPriceB2B: 0
+    categories: [],
+    supplier: '',
+    attributeVariations: [],
+    sortBy: '_id',
+    sortOrder: -1
   })
+
+  console.log(filter, data, 'filterfilterfilter')
 
   const [filterOpen, setFilterOpen] = useState(false)
   //const dispatch = useDispatch()
-  const [anchorEl, setAnchorEl] = useState(null)
+  const [anchorEl, setAnchorEl] = useState(null);
 
   useEffect(() => {
     fetchProductList(page + 1, rowsPerPage)
-  }, [page, rowsPerPage, filter?.search_string, filter])
+  }, [page, rowsPerPage, filter])
 
   const fetchFilterData = async () => {
-    const response = await getProductRawData()
+    const response = await getProductRawData();
     if (response?.data) {
-      setReawFilterData(response?.data)
+      setReawFilterData(response?.data);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchFilterData()
-  }, [])
+    fetchFilterData();
+  }, []);
 
   const fetchProductList = async (currentPage = 1, pageSize = rowsPerPage) => {
     try {
-      //dispatch(callCommonAction({ loading: true }))
-      filter['attributeVariations'] = JSON.stringify(filter.attributeVariations)
-      const response = await getProductList(currentPage, pageSize, filter?.search_string, filter)
-      console.log(response,'.................')
+      const response = await getFrontProductList(currentPage, pageSize, filter?.search_string, {
+        attributeVariations: JSON.stringify(filter.attributeVariations),
+        search_string: filter.search_string,
+        categories: JSON.stringify(filter?.categories),
+        supplier: filter?.supplier,
+        maxPriceB2B: filter?.maxPriceB2B ?? '',
+        minPriceB2B: filter?.minPriceB2B ?? '',
+        sortBy: filter?.sortBy ?? '_id',
+        sortOrder: filter?.sortOrder ?? '-1'
+      })
+
       //dispatch(callCommonAction({ loading: false }))
       if (response.statusCode === 200 && response.data) {
-        const formatted = response?.data?.docs?.map(product => ({
-          id: product?._id,
-          name: product?.name,
-          categories: product?.categories,
-          supplier: product?.supplier,
-          totalQuantity: product?.totalQuantity,
-          sku: product?.sku,
-          status: product?.status,
-          avatar: product?.featuredImage?.filePath,
-          username: product?.name.split(' ')[0]
+        const formatted = response?.data?.docs?.map(item => ({
+          id: item?._id,
+          name: item?.productDetail?.name,
+          categories: item?.categories,
+          supplier: item?.supplier,
+          totalQuantity: item?.totalQuantity,
+          sku: item?.productDetail?.sku,
+          status: item?.status,
+          avatar: item?.variationImagesDetail?.[0]?.filePath,
+          price: item?.regularPriceB2B,
+          matchedVariationPrice: item?.matchedVariationPrice ?? 0
         }))
 
-        setPage(page)
-        setData(formatted)
-        setTotalRecords(response.data.totalDocs || 0)
+        setPage(page);
+        setData(formatted);
+        setTotalRecords(response.data.totalDocs || 0);
       }
     } catch (error) {
       //dispatch(callCommonAction({ loading: false }))
       console.error('Failed to fetch team members', error)
+    } finally {
+      setLoading(false) // End loading
     }
-  }
+  };
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage)
-  }
+    setPage(newPage);
+  };
 
   const handleChangeRowsPerPage = event => {
-    const newSize = parseInt(event.target.value, 10)
-    setRowsPerPage(newSize)
-    setPage(0)
-  }
+    const newSize = parseInt(event.target.value, 10);
+    setRowsPerPage(newSize);
+    setPage(0);
+  };
 
   const handleClick = event => {
-    setAnchorEl(event.currentTarget)
-  }
+    setAnchorEl(event.currentTarget);
+  };
 
   const handleClose = () => {
-    setAnchorEl(null)
+    setAnchorEl(null);
+  };
+
+  const handleSortChange = (sortByValue, sortOrderValue) => {
+    setFilter(prevFilter => ({
+      ...prevFilter,
+      sortBy: sortByValue,
+      sortOrder: sortOrderValue
+    }))
+    handleClose() // close the menu
   }
 
   return (
@@ -141,56 +162,76 @@ export default function ProductsPage() {
             {/* Mobile Filter Sidebar */}
             {/* <FilterSidebar isMobile={true} isOpen={filterOpen} onClose={() => setFilterOpen(false)} /> */}
 
-            <div className='flex-1'>
-              <div className='flex justify-between items-center mb-6'>
-                <h2 className='text-2xl font-medium text-red-800 mb-0'>Products</h2>
-                {/* Mobile Filter Button */}
-                <Button
-                  variant='outline'
-                  className='md:hidden flex items-center gap-2'
-                  onClick={() => setFilterOpen(true)}
-                >
-                  <i className='ri-filter-line text-xl h-4 w-4'></i>
-                  Filters
-                </Button>
-
-                {/* Sort Dropdown */}
-                <Button
-                  variant='outlined'
-                  aria-controls='basic-menu'
-                  aria-haspopup='true'
-                  onClick={handleClick}
-                  className='bg-red-800 hover:bg-black border-0 text-white px-4 py-2 rounded-md flex items-center gap-2'
-                >
-                  Sort By <i className='ri-arrow-right-s-line text-xl h-4 w-4'></i>
-                </Button>
-                <Menu keepMounted id='basic-menu' anchorEl={anchorEl} onClose={handleClose} open={Boolean(anchorEl)}>
-                  <MenuItem onClick={handleClose}>Price: Low to High</MenuItem>
-                  <MenuItem onClick={handleClose}>Price: High to Low</MenuItem>
-                  <MenuItem onClick={handleClose}>Newest First</MenuItem>
-                  <MenuItem onClick={handleClose}>Popularity</MenuItem>
-                  <MenuItem onClick={handleClose}>Rating</MenuItem>
-                </Menu>
+            {loading ? (
+              <div className='flex-1 flex items-center justify-center min-h-[300px]'>
+                {/* You can replace this with a MUI CircularProgress */}
+                <CircularProgress />
               </div>
+            ) : data?.length > 0 ? (
+              <>
+                <div className='flex-1'>
+                  <div className='flex justify-between items-center mb-6'>
+                    <h2 className='text-2xl font-medium text-red-800 mb-0'>Products</h2>
+                    {/* Mobile Filter Button */}
+                    <Button
+                      variant='outline'
+                      className='md:hidden flex items-center gap-2'
+                      onClick={() => setFilterOpen(true)}
+                    >
+                      <i className='ri-filter-line text-xl h-4 w-4'></i>
+                      Filters
+                    </Button>
 
-              <ProductGrid products={data} />
+                    {/* Sort Dropdown */}
+                    <Button
+                      variant='outlined'
+                      aria-controls='basic-menu'
+                      aria-haspopup='true'
+                      onClick={handleClick}
+                      className='bg-red-800 hover:bg-black border-0 text-white px-4 py-2 rounded-md flex items-center gap-2'
+                    >
+                      Sort By <i className='ri-arrow-right-s-line text-xl h-4 w-4'></i>
+                    </Button>
+                    <Menu
+                      keepMounted
+                      id='basic-menu'
+                      anchorEl={anchorEl}
+                      onClose={handleClose}
+                      open={Boolean(anchorEl)}
+                    >
+                      <MenuItem onClick={() => handleSortChange('regularPriceB2B', 1)}>Price: Low to High</MenuItem>
+                      <MenuItem onClick={() => handleSortChange('regularPriceB2B', -1)}>Price: High to Low</MenuItem>
+                      <MenuItem onClick={() => handleSortChange('createdAt', -1)}>Newest First</MenuItem>
+                      {/* <MenuItem onClick={() => handleSortChange('rating', -1)}>Rating</MenuItem> */}
+                    </Menu>
+                  </div>
 
-              <div className='mt-16 mb-5 flex justify-center'>
-                {/* <Pagination /> */}
-                <TablePagination
-                  component='div'
-                  count={totalRecords}
-                  page={page}
-                  onPageChange={handleChangePage}
-                  rowsPerPage={rowsPerPage}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                  rowsPerPageOptions={[1, 10, 20, 50]}
-                />
+                  <ProductGrid products={data} />
+
+                  <div className='mt-16 mb-5 flex justify-center'>
+                    {/* <Pagination /> */}
+                    <TablePagination
+                      component='div'
+                      count={totalRecords}
+                      page={page}
+                      onPageChange={handleChangePage}
+                      rowsPerPage={rowsPerPage}
+                      onRowsPerPageChange={handleChangeRowsPerPage}
+                      rowsPerPageOptions={[1, 10, 20, 50]}
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className='flex-1 mt-12'>
+                <Typography variant='h5' component='p' sx={{ textAlign: 'center' }}>
+                  No product Found for the matching seleciton
+                </Typography>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </main>
     </div>
-  )
+  );
 }

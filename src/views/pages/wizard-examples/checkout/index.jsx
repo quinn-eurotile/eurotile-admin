@@ -165,11 +165,11 @@ export const CheckoutContext = createContext({
   selectedAddress: null,
   selectedShipping: null,
   orderSummary: {},
-  setCartItems: () => {},
-  setAddresses: () => {},
-  setSelectedAddress: () => {},
-  setSelectedShipping: () => {},
-  setOrderSummary: () => {},
+  setCartItems: () => { },
+  setAddresses: () => { },
+  setSelectedAddress: () => { },
+  setSelectedShipping: () => { },
+  setOrderSummary: () => { },
   isStepValid: () => false,
   loading: false,
 })
@@ -235,7 +235,10 @@ const CheckoutWizard = () => {
 
   // Load data on component mount
   useEffect(() => {
+
     const fetchData = async () => {
+
+
       setLoading(true)
       try {
         // Restore step from localStorage if available
@@ -261,9 +264,10 @@ const CheckoutWizard = () => {
           // Set cart step validation based on items
           setStepValid(0, cartData.items.length > 0)
         }
-
+        console.log(session?.user, 'session?.user')
         // Fetch user addresses if logged in
         if (session?.user) {
+
           const addressResponse = await fetch("/api/user/addresses")
           if (addressResponse.ok) {
             const addressData = await addressResponse.json()

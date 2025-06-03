@@ -12,8 +12,8 @@ const getCommonHeaders = async () => {
   const session = await getServerSession(authOptions);
 
   const headers = {
-    Authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
-    Accept: 'application/json'
+    authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
+    'Accept': 'application/json',
   };
 
 
@@ -26,11 +26,9 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {}, sho
 
 
     const headers = {
-      ...(await getCommonHeaders()),
+      ...(await getCommonHeaders()), // 👈 Skip Content-Type if FormData
       ...customHeaders,
     };
-
-
 
     const RESOURCE_URL = API_BASE_URL;
     const REQUEST_URL = RESOURCE_URL + endpoint;

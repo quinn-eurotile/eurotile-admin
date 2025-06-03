@@ -18,9 +18,9 @@ import { db as cartData } from '@/fake-db/pages/cart'
 import { db as statisticsData } from '@/fake-db/pages/widgetExamples'
 import { tradeProfessionalService } from '@/services/trade-professionals';
 import { productRawDataServices } from '@/services/product-raw-data';
-import { productServices } from '@/services/product';
-import { cartServices } from '@/services/cart'
-
+import { productFrontListServices, productServices } from '@/services/product';
+import {  cartServices } from '@/services/cart'
+import { addressService } from '@/services/address'
 
 export const getEcommerceData = async () => {
   return eCommerceData
@@ -85,6 +85,10 @@ export const getProductList = async (currentPage, rowsPerPage, searchTerm, filte
      return await productServices.get(currentPage, rowsPerPage, searchTerm, filteredData);
 }
 
+export const getFrontProductList = async (currentPage, rowsPerPage, searchTerm, filteredData) => {
+     return await productFrontListServices.get(currentPage, rowsPerPage, searchTerm, filteredData);
+}
+
 export const createProduct = async (data) => {
      return await productServices.create(data);
 }
@@ -134,6 +138,17 @@ export const getCartData = async (userId) => {
 export const addCart = async (data) => {
      return await cartServices.create(data);
 }
+
+export const addAddress = async (data) => {
+     return await addressService.create(data);
+}
+export const updateAddress = async (id ,data) => {
+     return await addressService.update(id,data);
+}
+export const getAddresses = async (id) => {
+     return await addressService.getById(id);
+}
+
 
 
 

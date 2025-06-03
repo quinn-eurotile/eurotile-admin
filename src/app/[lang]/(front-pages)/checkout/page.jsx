@@ -11,8 +11,8 @@ import { getServerSession } from 'next-auth';
 export async function fetchCartData(userId) {
   try {
 
-  //  const response = await getCartData();;
-   const response = await cartServices.getById(userId);
+    //  const response = await getCartData();;
+    const response = await cartServices.getById(userId);
     console.log(response, 'cartData response');
 
     const cartData = response?.data || {};
@@ -30,7 +30,7 @@ export async function fetchCartData(userId) {
 export async function fetchUserAddresses(userId) {
   try {
     const addresses = await addressService.getById(userId)
-    return addresses || []
+    return addresses?.data || []
   } catch (error) {
     console.error('Failed to fetch user addresses:', error)
     return []
@@ -38,7 +38,7 @@ export async function fetchUserAddresses(userId) {
 }
 
 const CheckoutPage = async () => {
-   // Get session on server side
+  // Get session on server side
   const session = await getServerSession(authOptions)
 
   // Initialize data
@@ -61,7 +61,7 @@ const CheckoutPage = async () => {
       fetchUserAddresses(session.user._id),
       fetchUserProfile(session.user._id)
     ])
-    console.log(cartData,'cartDatacartData');
+    console.log(cartData, 'cartDatacartData');
 
     initialData = {
       cartItems: cartData.items,
@@ -75,7 +75,7 @@ const CheckoutPage = async () => {
     }
   }
   return <>
-   <Checkout   initialData={initialData}       session={session} />
+    <Checkout initialData={initialData} session={session} />
   </>
 }
 

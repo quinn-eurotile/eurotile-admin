@@ -404,6 +404,8 @@ export default function ProductVariants({
   }
   // console.log(variations,'variations ram lal ji');
 
+  console.log(watch('productVariations'), 'productVariationsproductVariationsproductVariations')
+
   return (
     <Card>
       <ConfirmationDialog open={openConfirmation} setOpen={setOpenConfirmation} type='alert-message' />
@@ -699,13 +701,30 @@ export default function ProductVariants({
 
                     <Grid size={{ xs: 12, md: 4 }}>
                       {variation._id && (
-                          <Controller
-                            name={`productVariations.${index}._id`}
-                            control={control}
-                            defaultValue={variation._id}
-                            render={({ field }) => <input type='hidden' {...field} />}
-                          />
+                        <Controller
+                          name={`productVariations.${index}._id`}
+                          control={control}
+                          defaultValue={variation._id}
+                          render={({ field }) => <input type='hidden' {...field} />}
+                        />
                       )}
+
+                      {/* Hidden Field: attribute (entire selectedAttributes array) */}
+                      <Controller
+                        name={`productVariations.${index}.attributes`}
+                        control={control}
+                        defaultValue={selectedAttributes}
+                        render={({ field }) => <input type='hidden' {...field} />}
+                      />
+
+                      {/* Hidden Field: attributeVariations (map of attributeId: variationId for this variation) */}
+                      <Controller
+                        name={`productVariations.${index}.attributeVariations`}
+                        control={control}
+                        defaultValue={selectedAttributes.map(attrId => variation[attrId])}
+                        render={({ field }) => <input type='hidden' {...field} />}
+                      />
+
                       <Controller
                         name={`productVariations.${index}.regularPriceB2B`}
                         control={control}

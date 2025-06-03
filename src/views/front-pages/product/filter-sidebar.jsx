@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '@mui/material/Button'
 import { FormGroup, Slider } from '@mui/material'
 import CustomCheckboxLabel from './cstm-checkbox'
@@ -24,24 +24,64 @@ const FilterSection = ({ title, children }) => {
   )
 }
 
-export default function FilterSidebar({ isMobile = false, isOpen = false, onClose, reawFilterData, setFilter, filter }) {
+export default function FilterSidebar({
+  isMobile = false,
+  isOpen = false,
+  onClose,
+  reawFilterData,
+  setFilter,
+  filter
+}) {
   // Default price range values - could be dynamic based on your product data
   const [priceRange, setPriceRange] = useState([10, 10000])
+  const [searchText, setSearchText] = useState('')
+  const [selectedSupplierId, setSelectedSupplierId] = useState(null)
+
+  // const isAnyFilterApplied = Boolean(
+  //   searchText.trim() ||
+  //     (filter.categories && filter.categories.length > 0) ||
+  //     (filter.attributeVariations && filter.attributeVariations.length > 0) ||
+  //     filter.supplier ||
+  //     priceRange[0] !== 10 ||
+  //     priceRange[1] !== 10000
+  // )
 
   const handleCheckboxChange = (name, value, group = null) => {
-    // Handle attribute variations in a flat array
     if (group === 'attributeVariations') {
       setFilter(prev => {
         const currentAttributes = Array.isArray(prev.attributeVariations) ? prev.attributeVariations : []
+
         const isAlreadySelected = currentAttributes.includes(value)
+
+        if (isAlreadySelected) {
+          // Uncheck the current value
+          return {
+            ...prev,
+            attributeVariations: currentAttributes.filter(item => item !== value)
+          }
+        }
+
+        // Otherwise, replace any existing variation from the same attribute group
+        const updatedAttributes = currentAttributes.filter(variationId => {
+          const isFromSameAttribute = reawFilterData.productAttributes.some(
+            attr => attr.slug === name && attr.variations.some(variation => variation._id === variationId)
+          )
+          return !isFromSameAttribute
+        })
 
         return {
           ...prev,
-          attributeVariations: isAlreadySelected
-            ? currentAttributes.filter(item => item !== value)
-            : [...currentAttributes, value]
+          attributeVariations: [...updatedAttributes, value]
         }
       })
+    } else if (name === 'supplier') {
+      const isAlreadySelected = filter.supplier === value
+      const newValue = isAlreadySelected ? '' : value
+
+      setFilter(prev => ({
+        ...prev,
+        supplier: newValue
+      }))
     } else {
       // Handle other filters (category, suppliers, etc.)
       setFilter(prev => {
@@ -56,131 +96,141 @@ export default function FilterSidebar({ isMobile = false, isOpen = false, onClos
     }
   }
 
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setFilter(prevFilter => ({
+        ...prevFilter,
+        search_string: String(searchText)
+      }))
+    }, 500) // adjust debounce time (ms) as needed
+
+    return () => clearTimeout(debounceTimer)
+  }, [searchText, setFilter])
+
   const filterContent = (
     <>
-      <div className='relative mb-6'>
-        <input
-          type='text'
-          placeholder='Search'
-          onChange={value =>
-            setFilter(prevFilter => ({
-              ...prevFilter,
-              search_string: String(value)
-            }))
-          }
-          className='w-full border-0 border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-black'
-        />
-        <i className='ri-search-line text-xl absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400'></i>
-      </div>
+      <div className='overflow-y-auto overflow-x-hidden max-h-[600px]'>
+        <div className='relative mb-6'>
+          <input
+            type='text'
+            placeholder='Search'
+            value={searchText}
+            onChange={e => setSearchText(e.target.value)}
+            className='w-full border-0 border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-black'
+          />
+          <i className='ri-search-line text-xl absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400'></i>
+        </div>
 
-      {/* Categories Filter */}
-      {reawFilterData?.nestedCategories?.length > 0 && (
-        <FilterSection title='Categories'>
-          <FormGroup row>
-            <div className='space-y-3'>
-              {reawFilterData.nestedCategories.map(category => (
-                <div key={category._id}>
-                  <div className='flex items-center gap-2'>
-                    <CustomCheckboxLabel
-                      id={`category-${category._id}`}
-                      label={category.name}
-                      name='categories'
-                      onChange={() => handleCheckboxChange('categories', category._id)}
-                    />
-                  </div>
-                  {category.children?.length > 0 && (
-                    <div className='pl-6 mt-2 space-y-2'>
-                      {category.children.map(subCategory => (
-                        <div key={subCategory._id} className='flex items-center gap-2'>
-                          <CustomCheckboxLabel
-                            id={`subcategory-${subCategory._id}`}
-                            label={subCategory.name}
-                            name='categories'
-                            onChange={() => handleCheckboxChange('categories', subCategory._id)}
-                          />
-                        </div>
-                      ))}
+        {/* Categories Filter */}
+        {reawFilterData?.nestedCategories?.length > 0 && (
+          <FilterSection title='Categories'>
+            <FormGroup row>
+              <div className='space-y-3'>
+                {reawFilterData.nestedCategories.map(category => (
+                  <div key={category._id}>
+                    <div className='flex items-center gap-2'>
+                      <CustomCheckboxLabel
+                        id={`category-${category._id}`}
+                        label={category.name}
+                        name='categories'
+                        onChange={() => handleCheckboxChange('categories', category._id)}
+                      />
                     </div>
-                  )}
+                    {category.children?.length > 0 && (
+                      <div className='pl-6 mt-2 space-y-2'>
+                        {category.children.map(subCategory => (
+                          <div key={subCategory._id} className='flex items-center gap-2'>
+                            <CustomCheckboxLabel
+                              id={`subcategory-${subCategory._id}`}
+                              label={subCategory.name}
+                              name='categories'
+                              onChange={() => handleCheckboxChange('categories', subCategory._id)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </FormGroup>
+          </FilterSection>
+        )}
+
+        {/* Dynamic Attributes */}
+        {reawFilterData?.productAttributes?.map(attribute => (
+          <FilterSection key={attribute._id} title={`Filter By ${attribute.name}`}>
+            <div className='space-y-2'>
+              {attribute.variations.map(variation => (
+                <div key={variation._id} className='flex items-center gap-2'>
+                  <CustomCheckboxLabel
+                    id={`${attribute.slug}-${variation._id}`}
+                    label={`${variation.metaValue}${variation.measurementUnit?.symbol ? ` (${variation.measurementUnit.symbol})` : ''}`}
+                    name={attribute.slug}
+                    checked={filter.attributeVariations?.includes(variation._id)} // ensure single selection reflects visually
+                    onChange={() => handleCheckboxChange(attribute.slug, variation._id, 'attributeVariations')}
+                  />
                 </div>
               ))}
             </div>
-          </FormGroup>
-        </FilterSection>
-      )}
+          </FilterSection>
+        ))}
 
-      {/* Dynamic Attributes */}
-      {reawFilterData?.productAttributes?.map(attribute => (
-        <FilterSection key={attribute._id} title={`Filter By ${attribute.name}`}>
-          <div className='space-y-2'>
-            {attribute.variations.map(variation => (
-              <div key={variation._id} className='flex items-center gap-2'>
-                <CustomCheckboxLabel
-                  id={`${attribute.slug}-${variation._id}`}
-                  label={`${variation.metaValue}${
-                    variation.measurementUnit?.symbol ? ` (${variation.measurementUnit.symbol})` : ''
-                  }`}
-                  name={attribute.slug}
-                  onChange={() => handleCheckboxChange(attribute.slug, variation._id, 'attributeVariations')}
-                />
+        {/* Price */}
+        <div className='px-4'>
+          <FilterSection title='Filter By Price'>
+            <div className='px-0'>
+              <div className='flex items-center justify-between mt-4 mb-4 text-sm'>
+                <span>£{priceRange[0]}</span>
+                <span>£{priceRange[1]}</span>
               </div>
-            ))}
-          </div>
-        </FilterSection>
-      ))}
-
-      {/* Price */}
-      <FilterSection title='Filter By Price'>
-        <div className='px-0'>
-          <div className='flex items-center justify-between mt-4 mb-4 text-sm'>
-            <span>£{priceRange[0]}</span>
-            <span>£{priceRange[1]}</span>
-          </div>
-          <Slider
-            value={priceRange}
-            onChange={(event, newValue) => setPriceRange(newValue)} // Only update local state while dragging
-            onChangeCommitted={(event, newValue) => {
-              // Update the filter when user drops the slider
-              setFilter(prev => ({
-                ...prev,
-                price: newValue,
-                minPriceB2B: newValue[0],
-                maxPriceB2B: newValue[1]
-              }))
-            }}
-            valueLabelDisplay='auto'
-            min={10}
-            max={5780}
-            sx={{ color: '#991b1b' }}
-          />
+              <Slider
+                value={priceRange}
+                onChange={(event, newValue) => setPriceRange(newValue)} // Only update local state while dragging
+                onChangeCommitted={(event, newValue) => {
+                  // Update the filter when user drops the slider
+                  setFilter(prev => ({
+                    ...prev,
+                    minPriceB2B: newValue[0],
+                    maxPriceB2B: newValue[1]
+                  }))
+                }}
+                valueLabelDisplay='auto'
+                min={10}
+                max={5780}
+                sx={{ color: '#991b1b' }}
+              />
+            </div>
+          </FilterSection>
         </div>
-      </FilterSection>
 
-      {/* Suppliers */}
-      {reawFilterData?.suppliers?.length > 0 && (
-        <FilterSection title='Manufacturer'>
-          <div className='space-y-2'>
-            {reawFilterData.suppliers.map(supplier => (
-              <div key={supplier._id} className='flex items-center gap-2'>
-                <CustomCheckboxLabel
-                  id={`supplier-${supplier._id}`}
-                  label={supplier.companyName}
-                  name='supplier'
-                  onChange={() => handleCheckboxChange('supplier', supplier._id)}
-                />
-              </div>
-            ))}
-          </div>
-        </FilterSection>
-      )}
-      <div className='flex gap-2'>
+        {/* Suppliers */}
+        {reawFilterData?.suppliers?.length > 0 && (
+          <FilterSection title='Manufacturer'>
+            <div className='space-y-2'>
+              {reawFilterData.suppliers.map(supplier => (
+                <div key={supplier._id} className='flex items-center gap-2'>
+                  <CustomCheckboxLabel
+                    id={`supplier-${supplier._id}`}
+                    label={supplier.companyName}
+                    name='supplier'
+                    checked={filter.supplier === supplier._id}
+                    onChange={() => handleCheckboxChange('supplier', supplier._id)}
+                  />
+                </div>
+              ))}
+            </div>
+          </FilterSection>
+        )}
+      </div>
+      <div className='flex gap-2 mt-4 justify-center'>
         {/* <Button
-          variant='contained'
-          size=''
-          className='bg-red-800 hover:bg-black capitalize border-0 text-white px-4 py-2 rounded-md flex items-center gap-2 font-montserrat'
-        >
-          Apply Filter
-        </Button> */}
+            variant='contained'
+            size=''
+            className='bg-red-800 hover:bg-black capitalize border-0 text-white px-4 py-2 rounded-md flex items-center gap-2 font-montserrat'
+          >
+            Apply Filter
+          </Button> */}
         <Button
           variant='outlined'
           color='secondary'
@@ -192,7 +242,6 @@ export default function FilterSidebar({ isMobile = false, isOpen = false, onClos
               categories: [],
               supplier: [],
               attributeVariations: [],
-              price: []
             })
 
             // Reset the price range state
@@ -200,7 +249,7 @@ export default function FilterSidebar({ isMobile = false, isOpen = false, onClos
           }}
           className='border-gray-400 text-black capitalize font-montserrat'
         >
-          Clear Filter
+          <i class='ri-close-line text-16 me-1'></i> Clear
         </Button>
       </div>
     </>
@@ -235,8 +284,30 @@ export default function FilterSidebar({ isMobile = false, isOpen = false, onClos
   }
 
   return (
-    <div className='w-full md:w-64 shrink-0'>
-      <h3 className='text-xl text-redText font-medium mb-4'>Filters</h3>
+    <div className='w-full md:w-74 shrink-0'>
+      <div className='flex gap-2 mt-4 justify-between'>
+        <h3 className='text-xl text-redText font-medium mb-4'>Filters</h3>
+        {/* <div className=''>
+          <Button
+            variant='outlined'
+            color='secondary'
+            size=''
+            onClick={() => {
+              setFilter({
+                search_string: '',
+                categories: [],
+                supplier: [],
+                attributeVariations: [],
+                price: []
+              })
+              setPriceRange([10, 10000])
+            }}
+            className='border-gray-400 text-black capitalize font-montserrat'
+          >
+            <i class='ri-close-line text-16 me-1'></i> Clear
+          </Button>
+        </div> */}
+      </div>
       {filterContent}
     </div>
   )
