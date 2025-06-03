@@ -33,8 +33,6 @@ export default function ProductDetailPage() {
     const { lang: locale, id: productId } = useParams();
      const [product, setProduct] = useState(null)
 
-    console.log(productId,'productId000000');
-
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [quantity, setQuantity] = useState("1")
@@ -108,7 +106,7 @@ export default function ProductDetailPage() {
   const handleTab = (event, newValue) => {
     setTabValue(newValue)
   }
-    console.log(product,'productproductproduct');
+
 
   if (!product) {
     return <div>Loading product details...</div>

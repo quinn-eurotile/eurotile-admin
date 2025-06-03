@@ -84,8 +84,7 @@ export default function ProductDetailPage() {
       }
     }
   }
-console.log(selectedAttributes,'selectedAttributes');
-console.log(selectedVariation,'selectedVariation');
+
 
   // Update product images to use variation images
   const productImages = selectedVariation?.variationImages?.map(img => img.filePath) ||
@@ -138,7 +137,6 @@ console.log(selectedVariation,'selectedVariation');
   const handleTab = (event, newValue) => {
     setTabValue(newValue)
   }
-    console.log(product,'productproductproduct');
   // Update price display
   const displayPrice = selectedVariation ? {
     minPrice: selectedVariation.regularPriceB2B,

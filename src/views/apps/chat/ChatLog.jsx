@@ -111,7 +111,6 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
         {activeUserChat &&
           formatedChatData(activeUserChat.chat, profileUser).map((msgGroup, index) => {
             const isSender = msgGroup.senderId === profileUser.id;
-            console.log(msgGroup.senderId, '-------', profileUser.id, 'dfsfsdf');
 
             return (
               <div key={index} className={classnames('flex gap-4 p-5', { 'flex-row-reverse': isSender })}>

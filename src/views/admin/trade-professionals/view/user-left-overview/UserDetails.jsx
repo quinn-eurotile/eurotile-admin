@@ -26,8 +26,8 @@ import { toast } from 'react-toastify'
 import AlertDialog from '@/components/common/AlertDialog'
 import EditUserInfo from '../user-left-overview/editUserInfo'
 import { fetchById } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/view/[id]/page'
-import { updateProfile } from '@/app/server/trade-professional'
-
+import { updateBusinessStatus, updateProfile } from '@/app/server/trade-professional'
+import { checkUserRoleIsAdmin } from '@/components/common/userRole'
 
 const UserDetails = ({ data }) => {
   const [userData, setUserData] = useState(data ?? [])
@@ -39,6 +39,24 @@ const UserDetails = ({ data }) => {
   const [refresh, setRefresh] = useState(false)
   const [anchorEl, setAnchorEl] = useState(null) // for edit menu anchor
   const inputFileRef = useRef(null)
+
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    const verifyRole = async () => {
+      const isAdminUser = await checkUserRoleIsAdmin()
+      if (isAdminUser) {
+        setIsAdmin(true)
+      } else {
+        setIsAdmin(false)
+      }
+    }
+
+    verifyRole()
+  }, [])
+
+  console.log(isAdmin, 'isAdminisAdminisAdmin')
+
   const buttonProps = (children, color, variant) => ({
     children,
     color,
@@ -57,9 +75,11 @@ const UserDetails = ({ data }) => {
 
   const roleName = userData.roles?.[0]?.name || 'Unknown'
 
-  const handleUser = async (status, reasonText = '') => {
+  console.log(userData, 'userDatauserDatauserDatauserData')
+
+  const handleBusiness = async (status, reasonText = '') => {
     // If rejecting and no reason is provided, do not proceed
-    if (status === 4 && !reasonText.trim()) {
+    if (status === 0 && !reasonText.trim()) {
       toast.error('Rejection reason is required.')
       return // Prevent request and dialog close
     }
@@ -67,7 +87,7 @@ const UserDetails = ({ data }) => {
     // setIsLoading(true)
 
     const requestData = {
-      reason: status === 4 ? reasonText : null,
+      reason: status === 0 ? reasonText : null,
       email: userData.email,
       name: userData.name,
       userRole: userData.roles?.[0]?.name || 'Unknown',
@@ -75,10 +95,11 @@ const UserDetails = ({ data }) => {
     }
 
     try {
-      const response = await updateStatus(userData._id, 'status', requestData)
+      const response = await updateBusinessStatus(userData?.business?._id, 'status', requestData)
+      console.log(response, 'responseresponseresponseresponse')
       toast.success(`User ${status === 3 ? 'approved' : 'rejected'} successfully.`)
       refreshUserDetails(userData._id)
-      setDialogOpen(false) // ✅ Only close dialog here
+      setDialogOpen(false)
       setRejectionReasonText('') // Clear input after success
     } catch (error) {
       console.error(error)
@@ -106,7 +127,7 @@ const UserDetails = ({ data }) => {
       cancelText,
       confirmColor,
       cancelColor,
-      onConfirm: reason => handleUser(status, reason)
+      onConfirm: reason => handleBusiness(status, reason)
     })
     setDialogOpen(true)
   }
@@ -120,12 +141,11 @@ const UserDetails = ({ data }) => {
   const refreshUserDetails = async userId => {
     const updatedResult = await fetchById(userId)
     setUserData(updatedResult?.data ?? [])
-    setRefresh(false);
+    setRefresh(false)
   }
 
-
   // Handle clicking edit icon
-  const handleEditIconClick = (event) => {
+  const handleEditIconClick = event => {
     setAnchorEl(event.currentTarget)
   }
 
@@ -145,7 +165,6 @@ const UserDetails = ({ data }) => {
 
       // Call the same updateProfile endpoint to clear the image
       const response = await updateProfile(userData._id, formData)
-      console.log(response, 'removeImageResponse')
 
       if (response.success) {
         toast.success('Image removed successfully')
@@ -160,7 +179,6 @@ const UserDetails = ({ data }) => {
     }
   }
 
-
   // Trigger hidden file input on update image click
   const handleUpdateImageClick = () => {
     handleMenuClose()
@@ -169,9 +187,7 @@ const UserDetails = ({ data }) => {
     }
   }
 
-  console.log(userData._id,'userData._iduserData._id')
-
-  const handleFileChange = async (event) => {
+  const handleFileChange = async event => {
     const file = event.target.files?.[0] // Get the selected file
     if (!file) return
 
@@ -184,13 +200,11 @@ const UserDetails = ({ data }) => {
 
       // Upload the formData to backend, assuming uploadUserImage handles FormData correctly
       const response = await updateProfile(userData._id, formData)
-      console.log(response,'responseresponse')
 
       if (response.success) {
         toast.success('Image updated successfully')
         setUserData(prevUserData => ({ ...prevUserData, userImage: response.data.userImage }))
       }
-
     } catch (error) {
       toast.error('Failed to update image')
       console.error(error)
@@ -200,7 +214,19 @@ const UserDetails = ({ data }) => {
     }
   }
 
-  console.log(process.env.NEXT_PUBLIC_BACKEND_DOMAIN, userData, 'userDatauserDatauserData')
+  const getStatusLabel = (status) => {
+  switch (status) {
+    case 1:
+      return { label: 'Approved', color: 'success' };
+    case 0:
+      return { label: 'Rejected', color: 'error' };
+    case 2:
+    default:
+      return { label: 'Pending', color: 'warning' };
+  }
+};
+
+const statusDetails = getStatusLabel(userData?.business?.status);
 
   return (
     <Card>
@@ -255,26 +281,26 @@ const UserDetails = ({ data }) => {
               {/* Edit Icon button */}
               {!isLoading && (
                 <>
-                <IconButton
-                  aria-label='edit avatar'
-                  size='small'
-                  onClick={handleEditIconClick}
-                  sx={{
-                    position: 'absolute',
-                    bottom: 8,
-                    right: 8,
-                    bgcolor: 'background.paper',
-                    boxShadow: 1,
-                    '&:hover': {
-                      bgcolor: '#891815',
-                      '& i': {
-                        color: 'white'
+                  <IconButton
+                    aria-label='edit avatar'
+                    size='small'
+                    onClick={handleEditIconClick}
+                    sx={{
+                      position: 'absolute',
+                      bottom: 8,
+                      right: 8,
+                      bgcolor: 'background.paper',
+                      boxShadow: 1,
+                      '&:hover': {
+                        bgcolor: '#891815',
+                        '& i': {
+                          color: 'white'
+                        }
                       }
-                    }
-                  }}
-                >
-                  <i className="ri-add-line text-lg"></i>
-                </IconButton>
+                    }}
+                  >
+                    <i className='ri-add-line text-lg'></i>
+                  </IconButton>
                 </>
               )}
             </Box>
@@ -289,11 +315,7 @@ const UserDetails = ({ data }) => {
             />
 
             {/* Menu for Remove / Update */}
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-            >
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
               <MenuItem onClick={handleRemoveImage}>Remove Image</MenuItem>
               <MenuItem onClick={handleUpdateImageClick}>Update Image</MenuItem>
             </Menu>
@@ -328,11 +350,14 @@ const UserDetails = ({ data }) => {
           <Divider className='mlb-4' />
           <div className='flex flex-col gap-2'>
             {[
-              ['Address', [userData.addresses?.addressLine1, userData.addresses?.addressLine2].filter(Boolean).join(', ')],
+              [
+                'Address',
+                [userData.addresses?.addressLine1, userData.addresses?.addressLine2].filter(Boolean).join(', ')
+              ],
               ['City', userData.addresses?.city],
               ['State', userData.addresses?.state],
               ['Postal Code', userData.addresses?.postalCode],
-              ['Country', userData.addresses?.country],
+              ['Country', userData.addresses?.country]
             ].map(([label, value]) => (
               <div key={label} className='flex items-center flex-wrap gap-x-1.5'>
                 <Typography className='font-medium' color='text.primary'>
@@ -343,8 +368,6 @@ const UserDetails = ({ data }) => {
             ))}
           </div>
         </div>
-
-
 
         {/* Business Info */}
         {userData.business && (
@@ -368,76 +391,60 @@ const UserDetails = ({ data }) => {
           </div>
         )}
 
-        {/* Action buttons */}
-        {userData?.status === 2 ? (
+        <div>Business Status: <Chip
+      label={statusDetails.label}
+      color={statusDetails.color}
+      variant='outlined'
+    />
+
+        </div>
+
+
+        {isAdmin && (
           <div className='flex gap-4 justify-center'>
             <Button
               variant='outlined'
               color='success'
+              disabled={userData?.business?.status === 1} // Disable if already approved
               onClick={() =>
                 openConfirmationDialog({
-                  title: 'Approve User',
-                  description: 'Are you sure you want to approve this user?',
+                  title: 'Approve Business',
+                  description: 'Are you sure you want to approve the Business?',
                   confirmText: 'Approve',
                   cancelText: 'Cancel',
                   confirmColor: 'success',
                   cancelColor: 'inherit',
-                  status: 3,
+                  status: 1,
                   showInput: false
                 })
               }
             >
-              Approve
+              Approve Business
             </Button>
 
             <Button
               variant='outlined'
               color='error'
+              disabled={userData?.business?.status === 0} // Disable if already rejected
               onClick={() =>
                 openConfirmationDialog({
-                  title: 'Reject User',
-                  description: 'Are you sure you want to reject this user?',
+                  title: 'Reject Business',
+                  description: 'Are you sure you want to reject the Business?',
                   confirmText: 'Reject',
                   cancelText: 'Cancel',
                   confirmColor: 'error',
                   cancelColor: 'inherit',
-                  status: 4,
+                  status: 0,
                   showInput: true
                 })
               }
             >
-              Reject
+              Reject Business
             </Button>
           </div>
-        ) : userData?.status === 4 ? (
-          <Chip label='Status Disabled' color='error' size='small' variant='tonal' />
-        ) : (
-          <Box gap={2} display='flex' flexDirection='column'>
-            <Divider />
-            <FormGroup>
-              <FormControlLabel
-                label='Status'
-                control={
-                  <Switch
-                    checked={userStatus}
-                    onChange={async event => {
-                      const newStatus = event.target.checked ? 1 : 0
-                      try {
-                        await updateStatus(userData._id, 'status', { status: newStatus })
-                        setUserStatus(newStatus)
-                        refreshUserDetails(userData._id)
-                        toast.success('User status updated successfully.')
-                      } catch (error) {
-                        console.error('Error updating user status:', error)
-                        toast.error('Failed to update user status.')
-                      }
-                    }}
-                  />
-                }
-              />
-            </FormGroup>
-          </Box>
         )}
+
+        {/* <Chip label='Status Disabled' color='error' size='small' variant='tonal' /> */}
 
         <OpenDialogOnElementClick
           element={Button}

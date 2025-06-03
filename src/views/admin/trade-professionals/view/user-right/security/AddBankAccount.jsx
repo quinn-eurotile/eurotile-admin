@@ -30,7 +30,7 @@ const AddBankAccount = ({ userId }) => {
         formState: { errors, isSubmitting }
     } = useForm({
         defaultValues: {
-            routingNumber: '',
+            sortCode: '',
             accountNumber: '',
         },
     });
@@ -40,13 +40,18 @@ const AddBankAccount = ({ userId }) => {
             const response = await addBankAccountForTradeProfessional(data);
             console.log(response, 'res');
             if (response.success) {
-                toast.success('Bank account added successfully');
-                setValue('routingNumber', '');
+                setValue('sortCode', '');
                 setValue('accountNumber', '');
+                if (response.data?.object === "account_link") {
+                    window.open(response.data.url, '_blank');
+                } else {
+                    toast.error("Failed to get Stripe onboarding link");
+                }
             } else {
-                toast.error(response.message || 'Failed to add bank account');
+                toast.error(response.message || 'Failed to get Stripe onboarding link');
             }
         } catch (error) {
+            console.error('Error adding bank account:', error);
             toast.error('Unexpected error occurred. Please try again.');
         }
     };
@@ -62,17 +67,17 @@ const AddBankAccount = ({ userId }) => {
 
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <Grid container spacing={4}>
-                        <Grid xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
-                                label='Routing Number'
-                                {...register('routingNumber', { required: 'Routing number is required' })}
-                                error={!!errors.routingNumber}
-                                helperText={errors.routingNumber?.message}
+                                label='Sort Code'
+                                {...register('sortCode', { required: 'Sort code is required' })}
+                                error={!!errors.sortCode}
+                                helperText={errors.sortCode?.message}
                             />
                         </Grid>
-
-                        <Grid xs={12} sm={6}>
+                        {/* New Password Field */}
+                        <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
                                 fullWidth
                                 label='Account Number'
@@ -82,7 +87,8 @@ const AddBankAccount = ({ userId }) => {
                             />
                         </Grid>
 
-                        <Grid xs={12}>
+                        {/* Submit Button */}
+                        <Grid xs={12} className='flex gap-4'>
                             <Button
                                 type='submit'
                                 variant='contained'
@@ -93,6 +99,7 @@ const AddBankAccount = ({ userId }) => {
                             </Button>
                         </Grid>
                     </Grid>
+
                 </form>
             </CardContent>
         </Card>

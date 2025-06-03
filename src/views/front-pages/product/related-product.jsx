@@ -44,7 +44,6 @@ export default function RelatedProduct() {
         <div key={product.id} className="group">
           <Link href={`/products/${product.slug}`} className="block p-2 bg-bgLight rounded-lg mb-3">
             <div className="relative aspect-square overflow-hidden rounded-md">
-              {console.log(product.image, 'Image')}
               <Image
                 src={product.image || "/placeholder.svg"}
                 alt={product.name}
@@ -77,7 +76,7 @@ export default function RelatedProduct() {
 
           </div>
         </div>
-      ))} 
+      ))}
     </div>
   )
 }

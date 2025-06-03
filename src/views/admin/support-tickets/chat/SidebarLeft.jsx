@@ -44,7 +44,6 @@ const renderChat = props => {
 
     const contact = chatStore?.contacts?.find(contact => contact.id === chat.userId) || chatStore.contacts[0];
     const isChatActive = chatStore.activeUser?.id === contact.id;
-    console.log(chatStore, contact.id, 'contacts');
 
     return (
       <li
