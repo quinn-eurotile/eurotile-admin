@@ -16,8 +16,8 @@ const Profile = ({ userData }) => {
 
   // Status mapping logic
   const userStatus = userData?.business?.status;
-    const router = useRouter();
-      const { lang: locale } = useParams();
+  const router = useRouter();
+  const { lang: locale } = useParams();
   const getStatusProps = status => {
     switch (status) {
       case 1:

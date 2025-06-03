@@ -58,8 +58,10 @@ const ResetPasswordV1 = ({ mode }) => {
     }
 
     try {
+      console.log('token , password', token, password);
+
       // Sending password reset request
-        const response = await resetPasswordApi({ token , password }); 
+        const response = await resetPasswordApi({ token , password });
 
       // Handling response from server
       if (response.statusCode === 200) {

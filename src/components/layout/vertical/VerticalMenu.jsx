@@ -22,7 +22,7 @@ import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNav
 import menuItemStyles from '@core/styles/vertical/menuItemStyles'
 import menuSectionStyles from '@core/styles/vertical/menuSectionStyles'
 
-import { useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react'
 
 const RenderExpandIcon = ({ open, transitionDuration }) => (
   <StyledVerticalNavExpandIcon open={open} transitionDuration={transitionDuration}>
@@ -41,12 +41,11 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
   const { lang: locale } = params
   const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar
 
-  const { data: session } = useSession();
-    const user = session?.user;
-    const roles = user?.roles || [];
-    const roleId = !roles.length ? '' : roles[0]?._id;
-    //console.log('useruseruser', roleId);
-
+  const { data: session } = useSession()
+  const user = session?.user
+  const roles = user?.roles || []
+  const roleId = !roles.length ? '' : roles[0]?._id
+  //console.log('useruseruser', roleId);
 
   return (
     // eslint-disable-next-line lines-around-comment
@@ -71,66 +70,80 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
         renderExpandedMenuItemIcon={{ icon: <i className='ri-circle-line' /> }}
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
       >
-
-
         <MenuSection label={'Pages'}>
-          {
-            roleId !== '' && roleId !== '680f110aa6224872fab09569' &&
-          <MenuItem
-          href={`/${locale}/trade-professional/dashboard`}
-          exactMatch={false}
-          activeUrl='/trade-professional/dashboard'
-          icon={<i className='ri-home-smile-line' />}
-        >
-          Dashboard
-        </MenuItem>
-        }
 
-          {
-            roleId !== '' && roleId === '680f110aa6224872fab09569' &&
-          <>
-          <MenuItem
-            href={`/${locale}/admin/team-members/list`}
-            exactMatch={false}
-            activeUrl='/admin/team-members/list'
-            icon={<i className='ri-team-fill' />}
-          >
-            Team Management
-          </MenuItem>
-          <MenuItem
-            href={`/${locale}/admin/supplier/list`}
-            exactMatch={false}
-            activeUrl='/admin/supplier/list'
-            icon={<i className='ri-store-3-line'></i>}
-          >
-            Supplier Management
-          </MenuItem>
+          {/* Dashboard For Admin and Team Member*/}
+          {roleId !== '' && (roleId == '680f110aa6224872fab09569' || roleId == '680f606cb47c317ad30841b5') && (
+            <MenuItem
+              href={`/${locale}/admin/dashboards/crm`}
+              exactMatch={false}
+              activeUrl='/admin/dashboards/crm'
+              icon={<i className='ri-home-smile-line' />}
+            >
+              Dashboard
+            </MenuItem>
+          )}
+           {/*End Dashboard For Admin and Team Member*/}
 
-          <MenuItem
-            href={`/${locale}/admin/tax/list`}
-            exactMatch={false}
-            activeUrl='/admin/tax/list'
-            icon={<i className='ri-money-dollar-box-line'></i>}
-          >
-            Tax Management
-          </MenuItem>
-          <MenuItem
-            href={`/${locale}/admin/trade-professionals/list`}
-            exactMatch={false}
-            activeUrl='/admin/trade-professionals/list'
-            icon={<i className='ri-team-fill' />}
-          >
-            Trade Professionals
-          </MenuItem>
-          <SubMenu label={dictionary['navigation'].eCommerce} icon={<i className='ri-shopping-bag-3-line' />}>
-            <SubMenu label={dictionary['navigation'].products}>
-              <MenuItem href={`/${locale}/admin/ecommerce/products/list`}>Product Management</MenuItem>
-              <MenuItem href={`/${locale}/admin/ecommerce/products/category/list`}>Category Management</MenuItem>
-              <MenuItem href={`/${locale}/admin/ecommerce/products/attribute`}>Attribute Management</MenuItem>
-            </SubMenu>
-          </SubMenu>
-          </>
-          }
+          {/* Dashboard For Trade Professional*/}
+          {roleId !== '' && roleId == '6819ce06bb8f30e6c73eba48' && (
+            <MenuItem
+              href={`/${locale}/trade-professional/dashboard`}
+              exactMatch={false}
+              activeUrl='/trade-professional/dashboard'
+              icon={<i className='ri-home-smile-line' />}
+            >
+              Dashboard
+            </MenuItem>
+          )}
+           {/*End Dashboard For Trade Professional*/}
+
+          {roleId !== '' && (roleId === '680f110aa6224872fab09569' || roleId === '680f606cb47c317ad30841b5') && (
+            <>
+              {roleId !== '' && roleId === '680f110aa6224872fab09569' && (
+                <MenuItem
+                  href={`/${locale}/admin/team-members/list`}
+                  exactMatch={false}
+                  activeUrl='/admin/team-members/list'
+                  icon={<i className='ri-team-fill' />}
+                >
+                  Team Management
+                </MenuItem>
+              )}
+              <MenuItem
+                href={`/${locale}/admin/supplier/list`}
+                exactMatch={false}
+                activeUrl='/admin/supplier/list'
+                icon={<i className='ri-store-3-line'></i>}
+              >
+                Supplier Management
+              </MenuItem>
+
+              <MenuItem
+                href={`/${locale}/admin/tax/list`}
+                exactMatch={false}
+                activeUrl='/admin/tax/list'
+                icon={<i className='ri-money-dollar-box-line'></i>}
+              >
+                Tax Management
+              </MenuItem>
+              <MenuItem
+                href={`/${locale}/admin/trade-professionals/list`}
+                exactMatch={false}
+                activeUrl='/admin/trade-professionals/list'
+                icon={<i className='ri-team-fill' />}
+              >
+                Trade Professionals
+              </MenuItem>
+              <SubMenu label={dictionary['navigation'].eCommerce} icon={<i className='ri-shopping-bag-3-line' />}>
+                <SubMenu label={dictionary['navigation'].products}>
+                  <MenuItem href={`/${locale}/admin/ecommerce/products/list`}>Product Management</MenuItem>
+                  <MenuItem href={`/${locale}/admin/ecommerce/products/category/list`}>Category Management</MenuItem>
+                  <MenuItem href={`/${locale}/admin/ecommerce/products/attribute`}>Attribute Management</MenuItem>
+                </SubMenu>
+              </SubMenu>
+            </>
+          )}
         </MenuSection>
 
         <MenuItem

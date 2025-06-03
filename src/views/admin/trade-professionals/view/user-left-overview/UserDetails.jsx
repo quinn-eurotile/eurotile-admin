@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -16,52 +16,51 @@ import {
   IconButton,
   Menu,
   MenuItem
-} from '@mui/material'
+} from '@mui/material';
 
-import ConfirmationDialog from '@components/dialogs/confirmation-dialog'
-import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
-import CustomAvatar from '@core/components/mui/Avatar'
-import { updateStatus } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/list/page'
-import { toast } from 'react-toastify'
-import AlertDialog from '@/components/common/AlertDialog'
-import EditUserInfo from '../user-left-overview/editUserInfo'
-import { fetchById } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/view/[id]/page'
-import { updateBusinessStatus, updateProfile } from '@/app/server/trade-professional'
-import { checkUserRoleIsAdmin } from '@/components/common/userRole'
+import ConfirmationDialog from '@components/dialogs/confirmation-dialog';
+import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick';
+import CustomAvatar from '@core/components/mui/Avatar';
+import { updateStatus } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/list/page';
+import { toast } from 'react-toastify';
+import AlertDialog from '@/components/common/AlertDialog';
+import EditUserInfo from '../user-left-overview/editUserInfo';
+import { fetchById } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/view/[id]/page';
+import { updateBusinessStatus, updateProfile } from '@/app/server/trade-professional';
+import { checkUserRoleIsAdmin } from '@/components/common/userRole';
 
 const UserDetails = ({ data }) => {
-  const [userData, setUserData] = useState(data ?? [])
-  const [isLoading, setIsLoading] = useState(false)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [userStatus, setUserStatus] = useState(userData.status == 1)
-  const [rejectionReasonText, setRejectionReasonText] = useState('')
-  const [showInput, setShowInput] = useState(false)
-  const [refresh, setRefresh] = useState(false)
-  const [anchorEl, setAnchorEl] = useState(null) // for edit menu anchor
-  const inputFileRef = useRef(null)
+  const [userData, setUserData] = useState(data ?? []);
+  const [isLoading, setIsLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [userStatus, setUserStatus] = useState(userData.status == 1);
+  const [rejectionReasonText, setRejectionReasonText] = useState('');
+  const [showInput, setShowInput] = useState(false);
+  const [refresh, setRefresh] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null); // for edit menu anchor
+  const inputFileRef = useRef(null);
 
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const verifyRole = async () => {
-      const isAdminUser = await checkUserRoleIsAdmin()
+      const isAdminUser = await checkUserRoleIsAdmin();
       if (isAdminUser) {
-        setIsAdmin(true)
+        setIsAdmin(true);
       } else {
-        setIsAdmin(false)
+        setIsAdmin(false);
       }
-    }
+    };
 
-    verifyRole()
-  }, [])
+    verifyRole();
+  }, []);
 
-  console.log(isAdmin, 'isAdminisAdminisAdmin')
 
   const buttonProps = (children, color, variant) => ({
     children,
     color,
     variant
-  })
+  });
 
   const [dialogConfig, setDialogConfig] = useState({
     title: '',
@@ -71,17 +70,15 @@ const UserDetails = ({ data }) => {
     confirmColor: 'success',
     cancelColor: 'inherit',
     onConfirm: null
-  })
+  });
 
-  const roleName = userData.roles?.[0]?.name || 'Unknown'
-
-  console.log(userData, 'userDatauserDatauserDatauserData')
+  const roleName = userData.roles?.[0]?.name || 'Unknown';
 
   const handleBusiness = async (status, reasonText = '') => {
     // If rejecting and no reason is provided, do not proceed
     if (status === 0 && !reasonText.trim()) {
-      toast.error('Rejection reason is required.')
-      return // Prevent request and dialog close
+      toast.error('Rejection reason is required.');
+      return; // Prevent request and dialog close
     }
 
     // setIsLoading(true)
@@ -92,22 +89,22 @@ const UserDetails = ({ data }) => {
       name: userData.name,
       userRole: userData.roles?.[0]?.name || 'Unknown',
       status
-    }
+    };
 
     try {
-      const response = await updateBusinessStatus(userData?.business?._id, 'status', requestData)
-      console.log(response, 'responseresponseresponseresponse')
-      toast.success(`User ${status === 3 ? 'approved' : 'rejected'} successfully.`)
-      refreshUserDetails(userData._id)
-      setDialogOpen(false)
-      setRejectionReasonText('') // Clear input after success
+      const response = await updateBusinessStatus(userData?.business?._id, 'status', requestData);
+      console.log(response, 'responseresponseresponseresponse');
+      toast.success(`User ${status === 3 ? 'approved' : 'rejected'} successfully.`);
+      refreshUserDetails(userData._id);
+      setDialogOpen(false);
+      setRejectionReasonText(''); // Clear input after success
     } catch (error) {
-      console.error(error)
-      toast.error(`Failed to ${status === 3 ? 'approve' : 'reject'} user. Please try again.`)
+      console.error(error);
+      toast.error(`Failed to ${status === 3 ? 'approve' : 'reject'} user. Please try again.`);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const openConfirmationDialog = ({
     title,
@@ -119,7 +116,7 @@ const UserDetails = ({ data }) => {
     status,
     showInput = false
   }) => {
-    setShowInput(showInput)
+    setShowInput(showInput);
     setDialogConfig({
       title,
       description,
@@ -128,105 +125,105 @@ const UserDetails = ({ data }) => {
       confirmColor,
       cancelColor,
       onConfirm: reason => handleBusiness(status, reason)
-    })
-    setDialogOpen(true)
-  }
+    });
+    setDialogOpen(true);
+  };
 
   useEffect(() => {
     if (refresh) {
-      refreshUserDetails(userData._id)
+      refreshUserDetails(userData._id);
     }
-  }, [refresh])
+  }, [refresh]);
 
   const refreshUserDetails = async userId => {
-    const updatedResult = await fetchById(userId)
-    setUserData(updatedResult?.data ?? [])
-    setRefresh(false)
-  }
+    const updatedResult = await fetchById(userId);
+    setUserData(updatedResult?.data ?? []);
+    setRefresh(false);
+  };
 
   // Handle clicking edit icon
   const handleEditIconClick = event => {
-    setAnchorEl(event.currentTarget)
-  }
+    setAnchorEl(event.currentTarget);
+  };
 
   // Close menu
   const handleMenuClose = () => {
-    setAnchorEl(null)
-  }
+    setAnchorEl(null);
+  };
 
   // Remove image handler
   const handleRemoveImage = async () => {
-    setIsLoading(true) // Show loading indicator
+    setIsLoading(true); // Show loading indicator
 
     try {
       // Create FormData without attaching a file
-      const formData = new FormData()
-      formData.append('userImage', '') // This assumes your backend will interpret this as a remove request
+      const formData = new FormData();
+      formData.append('userImage', ''); // This assumes your backend will interpret this as a remove request
 
       // Call the same updateProfile endpoint to clear the image
-      const response = await updateProfile(userData._id, formData)
+      const response = await updateProfile(userData._id, formData);
 
       if (response.success) {
-        toast.success('Image removed successfully')
+        toast.success('Image removed successfully');
         // Clear userImage from local state
-        setUserData(prevUserData => ({ ...prevUserData, userImage: '' }))
+        setUserData(prevUserData => ({ ...prevUserData, userImage: '' }));
       }
     } catch (error) {
-      toast.error('Failed to remove image')
-      console.error(error)
+      toast.error('Failed to remove image');
+      console.error(error);
     } finally {
-      setIsLoading(false) // Hide loading indicator
+      setIsLoading(false); // Hide loading indicator
     }
-  }
+  };
 
   // Trigger hidden file input on update image click
   const handleUpdateImageClick = () => {
-    handleMenuClose()
+    handleMenuClose();
     if (inputFileRef.current) {
-      inputFileRef.current.click()
+      inputFileRef.current.click();
     }
-  }
+  };
 
   const handleFileChange = async event => {
-    const file = event.target.files?.[0] // Get the selected file
-    if (!file) return
+    const file = event.target.files?.[0]; // Get the selected file
+    if (!file) return;
 
-    setIsLoading(true) // Show loading indicator
+    setIsLoading(true); // Show loading indicator
 
     try {
       // Create FormData and append the file with key 'userImage'
-      const formData = new FormData()
-      formData.append('userImage', file)
+      const formData = new FormData();
+      formData.append('userImage', file);
 
       // Upload the formData to backend, assuming uploadUserImage handles FormData correctly
-      const response = await updateProfile(userData._id, formData)
+      const response = await updateProfile(userData._id, formData);
 
       if (response.success) {
-        toast.success('Image updated successfully')
-        setUserData(prevUserData => ({ ...prevUserData, userImage: response.data.userImage }))
+        toast.success('Image updated successfully');
+        setUserData(prevUserData => ({ ...prevUserData, userImage: response.data.userImage }));
       }
     } catch (error) {
-      toast.error('Failed to update image')
-      console.error(error)
+      toast.error('Failed to update image');
+      console.error(error);
     } finally {
-      setIsLoading(false) // Hide loading indicator
-      event.target.value = '' // Reset file input for future uploads
+      setIsLoading(false); // Hide loading indicator
+      event.target.value = ''; // Reset file input for future uploads
     }
-  }
+  };
 
   const getStatusLabel = (status) => {
-  switch (status) {
-    case 1:
-      return { label: 'Approved', color: 'success' };
-    case 0:
-      return { label: 'Rejected', color: 'error' };
-    case 2:
-    default:
-      return { label: 'Pending', color: 'warning' };
-  }
-};
+    switch (status) {
+      case 1:
+        return { label: 'Approved', color: 'success' };
+      case 0:
+        return { label: 'Rejected', color: 'error' };
+      case 2:
+      default:
+        return { label: 'Pending', color: 'warning' };
+    }
+  };
 
-const statusDetails = getStatusLabel(userData?.business?.status);
+  const statusDetails = getStatusLabel(userData?.business?.status);
 
   return (
     <Card>
@@ -392,10 +389,10 @@ const statusDetails = getStatusLabel(userData?.business?.status);
         )}
 
         <div>Business Status: <Chip
-      label={statusDetails.label}
-      color={statusDetails.color}
-      variant='outlined'
-    />
+          label={statusDetails.label}
+          color={statusDetails.color}
+          variant='outlined'
+        />
 
         </div>
 
@@ -450,7 +447,7 @@ const statusDetails = getStatusLabel(userData?.business?.status);
           element={Button}
           elementProps={buttonProps('Edit', 'primary', 'contained')}
           dialog={EditUserInfo}
-          dialogProps={{ data: userData, setRefresh: setRefresh, isAdmin }}
+          dialogProps={{ data: userData, setRefresh: setRefresh, isAdmin: isAdmin }}
         />
       </CardContent>
 
@@ -464,8 +461,8 @@ const statusDetails = getStatusLabel(userData?.business?.status);
         cancelColor={dialogConfig.cancelColor}
         onConfirm={dialogConfig.onConfirm}
         onCancel={() => {
-          setDialogOpen(false)
-          setRejectionReasonText('')
+          setDialogOpen(false);
+          setRejectionReasonText('');
         }}
         isLoading={isLoading}
         showInput={showInput}
@@ -473,7 +470,7 @@ const statusDetails = getStatusLabel(userData?.business?.status);
         setRejectionReasonText={setRejectionReasonText}
       />
     </Card>
-  )
-}
+  );
+};
 
-export default UserDetails
+export default UserDetails;

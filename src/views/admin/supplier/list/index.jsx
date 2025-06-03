@@ -134,7 +134,7 @@ const SupplierMemberList = ({ initialData, fetchSupplierList, deleteTeamMember }
       }),
 
       columnHelper.accessor('email', {
-        header: 'Compnay Email',
+        header: 'Company Email',
         cell: ({ row }) => <>{row?.original?.companyEmail ?? '-'}</>
       }),
 

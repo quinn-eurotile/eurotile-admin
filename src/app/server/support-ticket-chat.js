@@ -16,7 +16,3 @@ export const getRawDataForChat = async () => {
 export const sendChatMessage = async (data) => {
     return await supportTicketChatServices.create(data);
 };
-
-
-
-
