@@ -19,12 +19,12 @@ const AddSupportTicketDrawer = ({ open, handleClose, refreshList, editData, setE
 
   const statusOptions = [
     { value: 1, label: 'Open' },
-    { value: 2, label: 'Closed' },
+    //{ value: 2, label: 'Closed' },
     { value: 3, label: 'Pending' },
     { value: 4, label: 'In Progress' },
     { value: 5, label: 'Resolved' },
     { value: 6, label: 'Rejected' },
-    { value: 7, label: 'Cancelled' }
+    //{ value: 7, label: 'Cancelled' }
   ]
 
   const {
