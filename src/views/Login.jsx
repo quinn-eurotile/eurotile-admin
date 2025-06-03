@@ -114,10 +114,16 @@ const Login = ({ mode }) => {
         url = '/trade-professional/dashboard';
       }
       const redirectURL = searchParams.get('redirectTo') ?? url;
-      console.log('redirectURL', redirectURL);
       router.replace(getLocalizedUrl(redirectURL, locale));
     } else {
-      setError('User not Found');
+      if (res?.error != 'CredentialsSignin') {
+        const parsedError =  JSON.parse(res.error);
+        let errorMessage = parsedError.message;
+        setError(res?.error ? errorMessage : 'User not Found');
+      } else {
+        setError('User not Found');
+      }
+
     }
 
     setIsLoading(false);

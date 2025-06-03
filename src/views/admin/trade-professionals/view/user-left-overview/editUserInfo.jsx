@@ -21,10 +21,11 @@ import { toast } from 'react-toastify';
 import { updateTradeProfessional } from '@/app/server/trade-professional'
 import { CircularProgress, InputAdornment, List, ListItem, ListItemText, Paper } from '@mui/material'
 
+
 const statusOptions = [
   { label: 'Active', value: 1 },
   { label: 'Inactive', value: 0 },
-  { label: 'Suspended', value: 2 }
+  { label: 'Pending', value: 2 }
 ]
 
 const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your address...', setValue }) => {
@@ -215,7 +216,7 @@ const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your add
   )
 }
 
-const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
+const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
   const formatInitialData = data => ({
     fullName: data?.name || '',
     email: data?.email || '',
@@ -242,6 +243,9 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
       type: data?.addresses?.type || ''
     },
   })
+
+  console.log('isAdminisAdminisAdminisAdmin', isAdmin);
+
 
   const {
     register,
@@ -318,6 +322,9 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
     }
   }
 
+  //console.log('formatInitialDataformatInitialData', data);
+
+
 
   return (
     <Dialog fullWidth open={open} onClose={handleClose} maxWidth='md' scroll='body'>
@@ -348,7 +355,7 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
               <TextField fullWidth label='Role' disabled {...register('role')} />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <FormControl fullWidth>
+              <FormControl fullWidth disabled={!isAdmin}>
                 <InputLabel>Status</InputLabel>
                 <Select
                   label='Status'
@@ -480,7 +487,7 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
               <TextField fullWidth label='Business Phone' {...register('businessPhone')} />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <FormControl fullWidth>
+              <FormControl fullWidth disabled={!isAdmin}>
                 <InputLabel>Business Status</InputLabel>
                 <Select
                   label='Business Status'
