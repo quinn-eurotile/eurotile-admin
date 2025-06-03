@@ -19,6 +19,8 @@ import { db as statisticsData } from '@/fake-db/pages/widgetExamples';
 import { tradeProfessionalService } from '@/services/trade-professionals';
 import { productRawDataServices } from '@/services/product-raw-data';
 import { productFrontListServices, productServices } from '@/services/product';
+import {  cartServices } from '@/services/cart'
+import { addressService } from '@/services/address'
 import { adminSettingServices } from '@/services/adminSetting';
 
 export const getEcommerceData = async () => {
@@ -145,4 +147,20 @@ export const getCartData = async (userId) => {
     },
   };
 };
+export const addCart = async (data) => {
+     return await cartServices.create(data);
+}
+
+export const addAddress = async (data) => {
+     return await addressService.create(data);
+}
+export const updateAddress = async (id ,data) => {
+     return await addressService.update(id,data);
+}
+export const getAddresses = async (id) => {
+     return await addressService.getById(id);
+}
+
+
+
 

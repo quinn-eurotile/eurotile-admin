@@ -1,15 +1,16 @@
 // Next.js Server Component
 import { getServerSession } from "next-auth/next"
 // import { authOptions } from "@/app/api/auth/[...nextauth]/route"
-import { cartService } from "@/services/cart"
+
 import { addressService } from "@/services/address"
 import CheckoutPage from "@/views/front-pages/CheckoutPage"
 import { authOptions } from "@/libs/auth"
+import { cartServices } from "@/services/cart"
 
 // Server-side data fetching functions
 export async function fetchCartData(userId) {
   try {
-    const cartData = await cartService.getById(userId)
+    const cartData = await cartServices.getById(userId)
 
     console.log(cartData,'cartData hello');
 
