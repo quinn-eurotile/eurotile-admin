@@ -287,7 +287,7 @@ const AddProduct = () => {
       console.log('API Response:', response)
 
       if (response.success) {
-        // router.push(`/${locale}/admin/ecommerce/products/list`)
+        router.push(`/${locale}/admin/ecommerce/products/list`)
         toast.success(response.message || 'Product created successfully')
       } else {
         toast.error(response.message || 'Failed to save product')

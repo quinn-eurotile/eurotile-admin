@@ -13,7 +13,7 @@ export const api2 =   () => {
       console.log(
         session,'session'
       );
-
+      
         if (!session?.access_token) {
             throw new Error('No access token available');
         }
@@ -44,7 +44,7 @@ export const api2 =   () => {
         try {
             const response = await axios(requestOptions);
 
-            
+
 return response.data;
         } catch (error) {
             console.error('API request failed', error);

@@ -64,6 +64,8 @@ const StepAddress = ({ handleNext }) => {
   const [isUpdating, setIsUpdating] = useState(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [addressToDelete, setAddressToDelete] = useState(null)
+  const [open, setOpen] = useState(false);
+  const [addressData, setAddressData] = useState(null);
 
   // Button props for add address
   const buttonProps = {
@@ -138,11 +140,11 @@ const StepAddress = ({ handleNext }) => {
   }
 
   // Edit address
-  const handleEditAddress = async (address) => {
-    // Implementation for editing address
-    // This would typically open a dialog with the address form
-  }
-
+  const handleEditAddress = (address) => {
+    alert('hkk');
+    setAddressData(address); // set the address you want to edit
+    setOpen(true); // open the dialog
+  };
   // Delete address confirmation
   const confirmDeleteAddress = (addressId) => {
     setAddressToDelete(addressId)
@@ -161,7 +163,7 @@ const StepAddress = ({ handleNext }) => {
 
       if (response.ok) {
         // Update local state
-        const updatedAddresses = addresses.filter((addr) => addr.id !== addressToDelete)
+        const updatedAddresses = addresses?.filter((addr) => addr.id !== addressToDelete)
         setAddresses(updatedAddresses)
 
         // If deleted address was selected, select another one if available
@@ -184,8 +186,11 @@ const StepAddress = ({ handleNext }) => {
     }
   }
 
+
+
+
   // Format addresses for custom input component
-  const formattedAddresses = addresses.map((address) => ({
+  const formattedAddresses = addresses?.map((address) => ({
     title: `${address.name} ${address.isDefault ? "(Default)" : ""}`,
     meta: (
       <Chip size="small" variant="tonal" label={address.type} color={address.type === "Home" ? "primary" : "success"} />
@@ -220,7 +225,8 @@ const StepAddress = ({ handleNext }) => {
         </div>
       </HorizontalContent>
     ),
-  }))
+  })) ?? {};
+  console.log(formattedAddresses, 'formattedAddresses');
 
   // Check if address is selected and update validation
   useEffect(() => {
@@ -248,7 +254,7 @@ const StepAddress = ({ handleNext }) => {
               <Alert severity="info">You don't have any saved addresses. Please add a new address to continue.</Alert>
             ) : (
               <Grid container spacing={6} className="is-full">
-                {formattedAddresses.map((item, index) => (
+                {formattedAddresses?.map((item, index) => (
                   <CustomInputHorizontal
                     type="radio"
                     key={index}
@@ -394,6 +400,14 @@ const StepAddress = ({ handleNext }) => {
           </Button>
         </DialogActions>
       </Dialog>
+      {open &&
+        <AddEditAddress
+          open={open}
+          setOpen={setOpen}
+          data={addressData}
+        />
+      }
+
     </>
   )
 }
