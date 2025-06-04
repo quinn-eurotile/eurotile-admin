@@ -1,147 +1,147 @@
-'use client'
+'use client';
 
-import { useEffect, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
-import Grid from '@mui/material/Grid2'
-import Dialog from '@mui/material/Dialog'
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
-import DialogTitle from '@mui/material/DialogTitle'
-import DialogContent from '@mui/material/DialogContent'
-import DialogActions from '@mui/material/DialogActions'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
-import { update } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/view/[id]/page'
-import { toast } from 'react-toastify'
-import { updateTradeProfessional } from '@/app/server/trade-professional'
-import { CircularProgress, InputAdornment, List, ListItem, ListItemText, Paper } from '@mui/material'
+import Grid from '@mui/material/Grid2';
+import Dialog from '@mui/material/Dialog';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import { update } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/view/[id]/page';
+import { toast } from 'react-toastify';
+import { updateTradeProfessional } from '@/app/server/trade-professional';
+import { CircularProgress, InputAdornment, List, ListItem, ListItemText, Paper } from '@mui/material';
 
 
 const statusOptions = [
   { label: 'Active', value: 1 },
   { label: 'Inactive', value: 0 },
   { label: 'Pending', value: 2 }
-]
+];
 
 const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your address...', setValue }) => {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [suggestions, setSuggestions] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const searchTimeoutRef = useRef(null)
-  const suggestionsRef = useRef(null)
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchTimeoutRef = useRef(null);
+  const suggestionsRef = useRef(null);
 
   // Debounced search function
   useEffect(() => {
     if (searchQuery.length > 2) {
       if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current)
+        clearTimeout(searchTimeoutRef.current);
       }
 
       searchTimeoutRef.current = setTimeout(() => {
-        searchAddress(searchQuery)
-      }, 500)
+        searchAddress(searchQuery);
+      }, 500);
     } else {
-      setSuggestions([])
-      setShowSuggestions(false)
+      setSuggestions([]);
+      setShowSuggestions(false);
     }
 
     return () => {
       if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current)
+        clearTimeout(searchTimeoutRef.current);
       }
-    }
-  }, [searchQuery])
+    };
+  }, [searchQuery]);
 
   // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = event => {
       if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
-        setShowSuggestions(false)
+        setShowSuggestions(false);
       }
-    }
+    };
 
-    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [])
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const searchAddress = async query => {
-    setLoading(true)
+    setLoading(true);
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&q=${encodeURIComponent(query)}`
-      )
-      const data = await response.json()
-      setSuggestions(data)
-      setShowSuggestions(true)
+      );
+      const data = await response.json();
+      setSuggestions(data);
+      setShowSuggestions(true);
     } catch (error) {
-      console.error('Error searching address:', error)
-      setSuggestions([])
+      console.error('Error searching address:', error);
+      setSuggestions([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSuggestionClick = suggestion => {
-    const address = suggestion.address || {}
+    const address = suggestion.address || {};
 
     // Parse the display name to get address components
-    const displayName = suggestion.display_name
-    const addressParts = displayName.split(', ')
+    const displayName = suggestion.display_name;
+    const addressParts = displayName.split(', ');
 
     // Extract address components from the suggestion
     const addressLine1 =
-      [address.house_number, address.road || address.street].filter(Boolean).join(' ') || addressParts[0] || ''
+      [address.house_number, address.road || address.street].filter(Boolean).join(' ') || addressParts[0] || '';
 
-    const addressLine2 = address.suburb || address.neighbourhood || ''
+    const addressLine2 = address.suburb || address.neighbourhood || '';
 
-    const city = address.city || address.town || address.village || address.municipality || ''
+    const city = address.city || address.town || address.village || address.municipality || '';
 
-    const state = address.state || address.province || address.region || ''
+    const state = address.state || address.province || address.region || '';
 
-    const postalCode = address.postcode || ''
+    const postalCode = address.postcode || '';
 
-    const country = address.country || ''
+    const country = address.country || '';
 
-    const lat = suggestion.lat || ''
-    const long = suggestion.lon || ''
+    const lat = suggestion.lat || '';
+    const long = suggestion.lon || '';
 
     // Set all address fields
-    setValue('address.addressLine1', addressLine1)
-    setValue('address.addressLine2', addressLine2)
-    setValue('address.city', city)
-    setValue('address.state', state)
-    setValue('address.postalCode', postalCode)
-    setValue('address.country', country)
-    setValue('address.lat', lat)
-    setValue('address.long', long)
+    setValue('address.addressLine1', addressLine1);
+    setValue('address.addressLine2', addressLine2);
+    setValue('address.city', city);
+    setValue('address.state', state);
+    setValue('address.postalCode', postalCode);
+    setValue('address.country', country);
+    setValue('address.lat', lat);
+    setValue('address.long', long);
 
     // Update search query with selected address
-    setSearchQuery(displayName)
-    setShowSuggestions(false)
-  }
+    setSearchQuery(displayName);
+    setShowSuggestions(false);
+  };
 
   const clearSearch = () => {
-    setSearchQuery('')
-    setSuggestions([])
-    setShowSuggestions(false)
+    setSearchQuery('');
+    setSuggestions([]);
+    setShowSuggestions(false);
     // Clear all address fields
-    setValue('address.addressLine1', '')
-    setValue('address.addressLine2', '')
-    setValue('address.city', '')
-    setValue('address.state', '')
-    setValue('address.postalCode', '')
-    setValue('address.country', '')
-    setValue('address.lat', '')
-    setValue('address.long', '')
-  }
+    setValue('address.addressLine1', '');
+    setValue('address.addressLine2', '');
+    setValue('address.city', '');
+    setValue('address.state', '');
+    setValue('address.postalCode', '');
+    setValue('address.country', '');
+    setValue('address.lat', '');
+    setValue('address.long', '');
+  };
 
   return (
     <div className='relative' ref={suggestionsRef}>
@@ -213,8 +213,8 @@ const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your add
         </Paper>
       )}
     </div>
-  )
-}
+  );
+};
 
 const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
   const formatInitialData = data => ({
@@ -242,9 +242,8 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
       long: data?.addresses?.long || '',
       type: data?.addresses?.type || ''
     }
-  })
+  });
 
-  console.log('isAdminisAdminisAdminisAdmin', isAdmin);
 
 
   const {
@@ -256,19 +255,19 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
     formState: { errors }
   } = useForm({
     defaultValues: formatInitialData(data)
-  })
+  });
 
   useEffect(() => {
     if (data) {
-      reset(formatInitialData(data))
+      reset(formatInitialData(data));
     }
-  }, [data, reset])
+  }, [data, reset]);
 
   const handleClose = () => {
-    setOpen(false)
+    setOpen(false);
     // setRefresh(false);
-    reset(formatInitialData(data))
-  }
+    reset(formatInitialData(data));
+  };
 
   const onSubmit = async formValues => {
     try {
@@ -292,33 +291,33 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
         status: formValues.status,
         business_status: formValues.businessStatus,
         accept_term: 1
-      }
+      };
 
-      const response = await updateTradeProfessional(data._id, requestData)
+      const response = await updateTradeProfessional(data._id, requestData);
 
-      const isSuccess = response?.statusCode === 200 || response?.statusCode === 201
+      const isSuccess = response?.statusCode === 200 || response?.statusCode === 201;
 
       if (isSuccess) {
-        toast.success(response?.message || 'Operation successful')
-        setRefresh(true)
-        handleClose()
-        reset()
-        return
+        toast.success(response?.message || 'Operation successful');
+        setRefresh(true);
+        handleClose();
+        reset();
+        return;
       }
 
-      const fieldErrors = response?.data?.errors
+      const fieldErrors = response?.data?.errors;
       if (fieldErrors) {
         Object.entries(fieldErrors).forEach(([fieldName, messages]) => {
-          setError(fieldName, { message: messages?.[0] || 'Invalid value' })
-        })
+          setError(fieldName, { message: messages?.[0] || 'Invalid value' });
+        });
       } else {
-        toast.error(response?.message || 'Something went wrong.')
+        toast.error(response?.message || 'Something went wrong.');
       }
     } catch (error) {
-      console.error('User update failed:', error)
-      toast.error('Unexpected error occurred. Please try again.')
+      console.error('User update failed:', error);
+      toast.error('Unexpected error occurred. Please try again.');
     }
-  }
+  };
 
   //console.log('formatInitialDataformatInitialData', data);
 
@@ -538,7 +537,7 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
         </DialogActions>
       </form>
     </Dialog>
-  )
-}
+  );
+};
 
-export default EditUserInfo
+export default EditUserInfo;
