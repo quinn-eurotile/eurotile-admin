@@ -19,6 +19,7 @@ import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
+const constants = require('../../../configs/constant');
 
 // Third-party Imports
 import { signOut, useSession } from 'next-auth/react'
@@ -87,7 +88,7 @@ const UserDropdown = () => {
      <Typography className='cursor-pointer hover:text-red-800' onClick={() => {
             router.push('/admin/support-tickets/view')
           }} >
-            <i class="ri-message-2-line mt-2"></i>
+            <i className="ri-message-2-line mt-2"></i>
           </Typography>
       <Badge
         ref={anchorRef}
@@ -137,9 +138,8 @@ const UserDropdown = () => {
                     className='gap-3'
                     onClick={() => {
                       const roleId = session?.user?.roles?.[0]?._id
-                      console.log(roleId,'roleIdroleIdroleId')
                       const route =
-                        roleId === '6819ce06bb8f30e6c73eba48' ? '/trade-professional/profile' : '/pages/user-profile'
+                        roleId === constants.tradeProfessionalRole.id ? '/trade-professional/profile' : '/admin/profile'
                       router.push(route)
                     }}
                   >

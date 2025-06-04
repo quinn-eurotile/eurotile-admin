@@ -1,39 +1,38 @@
 // MUI Imports
-import Button from '@mui/material/Button'
-import InitColorSchemeScript from '@mui/material/InitColorSchemeScript'
+import Button from '@mui/material/Button';
+import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 
 // Third-party Imports
-import 'react-perfect-scrollbar/dist/css/styles.css'
+import 'react-perfect-scrollbar/dist/css/styles.css';
 
 // Context Imports
-import { IntersectionProvider } from '@/contexts/intersectionContext'
+import { IntersectionProvider } from '@/contexts/intersectionContext';
 
-import '@fontsource/montserrat'
 
 // Component Imports
-import Providers from '@components/Providers'
-import BlankLayout from '@layouts/BlankLayout'
-import FrontLayout from '@components/layout/front-pages'
-import ScrollToTop from '@core/components/scroll-to-top'
+import Providers from '@components/Providers';
+import BlankLayout from '@layouts/BlankLayout';
+import FrontLayout from '@components/layout/front-pages';
+import ScrollToTop from '@core/components/scroll-to-top';
 
 // Util Imports
-import { getSystemMode } from '@core/utils/serverHelpers'
+import { getSystemMode } from '@core/utils/serverHelpers';
 
 // Style Imports
-import '@/app/globals.css'
+import '@/app/globals.css';
 
 // Generated Icon CSS Imports
-import '@assets/iconify-icons/generated-icons.css'
+import '@assets/iconify-icons/generated-icons.css';
 
 export const metadata = {
   title: 'Euro Tile',
   description:
     'Euro Tile'
-}
+};
 
 const Layout = async ({ children }) => {
   // Vars
-  const systemMode = await getSystemMode()
+  const systemMode = await getSystemMode();
 
   return (
     <html id='__next' suppressHydrationWarning>
@@ -58,7 +57,7 @@ const Layout = async ({ children }) => {
         </Providers>
       </body>
     </html>
-  )
-}
+  );
+};
 
-export default Layout
+export default Layout;

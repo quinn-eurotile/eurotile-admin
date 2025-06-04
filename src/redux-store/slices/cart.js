@@ -1,5 +1,7 @@
 // Third-party Imports
-import { createSlice } from '@reduxjs/toolkit';
+
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+
 
 const initialState = {
   items: [],
@@ -8,29 +10,46 @@ const initialState = {
   loading: false,
   error: null
 };
-
+export const fetchCart = createAsyncThunk(
+  'cart/fetchCart',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await getCart(userId); // adjust to match your API
+      return response; // Should return { items: [...], totalItems, totalAmount }
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
 export const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
+
     addToCart: (state, action) => {
-      const { product } = action.payload;
-      const existingItem = state.items.find(item => item.id === product.id);
+        const newItem = action.payload;
 
-      if (existingItem) {
-        existingItem.quantity += 1;
-        existingItem.totalPrice = existingItem.quantity * existingItem.price;
-      } else {
-        state.items.push({
-          ...product,
-          quantity: 1,
-          totalPrice: product.price
-        });
-      }
+        console.log(newItem,'chek');
 
-      state.totalItems += 1;
-      state.totalAmount = state.items.reduce((total, item) => total + item.totalPrice, 0);
-    },
+
+        const existingItem = state.items.find(item => item.productId === newItem.productId && item.variationId === newItem.variationId);
+
+        if (existingItem) {
+          // If adding more of the same variation, update quantity and totalPrice
+          existingItem.quantity += newItem.quantity;
+          existingItem.totalPrice = existingItem.quantity * existingItem.price;
+        } else {
+          // Add as new item
+          state.items.push({
+            ...newItem,
+            totalPrice: newItem.quantity * newItem.price
+          });
+        }
+
+        // Recalculate totals
+        state.totalItems = state.items.reduce((total, item) => total + item.quantity, 0);
+        state.totalAmount = state.items.reduce((total, item) => total + item.totalPrice, 0);
+      },
 
     removeFromCart: (state, action) => {
       const { productId } = action.payload;
@@ -70,16 +89,33 @@ export const cartSlice = createSlice({
     setError: (state, action) => {
       state.error = action.payload;
     }
+  },
+  extraReducers: builder => {
+    builder
+      .addCase(fetchCart.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCart.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload.items || []; // ensure safe fallback
+        state.totalItems = action.payload.totalItems || 0;
+        state.totalAmount = action.payload.totalAmount || 0;
+      })
+      .addCase(fetchCart.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to load cart';
+      });
   }
 });
 
-export const { 
-  addToCart, 
-  removeFromCart, 
-  updateQuantity, 
-  clearCart, 
-  setLoading, 
-  setError 
+export const {
+  addToCart,
+  removeFromCart,
+  updateQuantity,
+  clearCart,
+  setLoading,
+  setError
 } = cartSlice.actions;
 
 export default cartSlice.reducer;

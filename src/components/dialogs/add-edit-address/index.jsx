@@ -2,6 +2,7 @@
 
 // React Imports
 import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 // MUI Imports
 import Dialog from '@mui/material/Dialog'
@@ -23,6 +24,8 @@ import { styled } from '@mui/material/styles'
 
 // Component Imports
 import CustomInputHorizontal from '@core/components/custom-inputs/Horizontal'
+import AddressSearch from '@/views/pages/wizard-examples/checkout/AddressSearch'
+import { addAddress, updateAddress } from '@/app/server/actions'
 
 // Vars
 const countries = ['Select Country', 'France', 'Russia', 'China', 'UK', 'US']
@@ -49,53 +52,195 @@ const Title = styled(Typography, {
 }))
 
 const customInputData = [
+  // {
+  //   title: (
+  //     <Title component='div' className='flex items-center gap-1'>
+  //       <i className='ri-home-4-line text-xl text-textPrimary' />
+  //       <Typography color='text.primary' className='font-medium'>
+  //         Home
+  //       </Typography>
+  //     </Title>
+  //   ),
+  //   content: 'Delivery Time (7am - 9pm)',
+  //   value: 'home',
+  //   isSelected: true
+  // },
+  // {
+  //   title: (
+  //     <Title component='div' className='flex items-center gap-1'>
+  //       <i className='ri-building-4-line text-xl text-textPrimary' />
+  //       <Typography color='text.primary' className='font-medium'>
+  //         Office
+  //       </Typography>
+  //     </Title>
+  //   ),
+  //   content: 'Delivery Time (10am - 6pm)',
+  //   value: 'office'
+  // },
   {
     title: (
       <Title component='div' className='flex items-center gap-1'>
-        <i className='ri-home-4-line text-xl text-textPrimary' />
+        <i className='ri-warehouse-line text-xl text-textPrimary' />
         <Typography color='text.primary' className='font-medium'>
-          Home
+          Warehouse
         </Typography>
       </Title>
     ),
-    content: 'Delivery Time (7am - 9pm)',
-    value: 'home',
-    isSelected: true
+    content: 'Delivery Time (8am - 8pm)',
+    value: 'Warehouse'
   },
   {
     title: (
       <Title component='div' className='flex items-center gap-1'>
-        <i className='ri-building-4-line text-xl text-textPrimary' />
+        <i className='ri-file-text-line text-xl text-textPrimary' />
         <Typography color='text.primary' className='font-medium'>
-          Office
+          Billing
         </Typography>
       </Title>
     ),
-    content: 'Delivery Time (10am - 6pm)',
-    value: 'office'
+    content: 'Delivery Time (9am - 5pm)',
+    value: 'Billing'
+  },
+  {
+    title: (
+      <Title component='div' className='flex items-center gap-1'>
+        <i className='ri-truck-line text-xl text-textPrimary' />
+        <Typography color='text.primary' className='font-medium'>
+          Shipping
+        </Typography>
+      </Title>
+    ),
+    content: 'Delivery Time (7am - 10pm)',
+    value: 'Shipping'
   }
-]
+];
+
 
 const AddEditAddress = ({ open, setOpen, data }) => {
-  // Vars
   const initialSelected = customInputData?.find(item => item.isSelected)?.value || ''
 
-  // States
+  console.log(initialSelected, 'initialSelectedinitialSelected');
+
   const [selected, setSelected] = useState(initialSelected)
-  const [addressData, setAddressData] = useState(initialAddressData)
+  const [addressData, setAddressData] = useState(data)
+
 
   const handleChange = prop => {
+
+
+
     if (typeof prop === 'string') {
+      setValue('address.type', prop)
       setSelected(prop)
     } else {
       setSelected(prop.target.value)
+      setValue('address.type', prop.target.value)
     }
   }
 
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors }
+  } = useForm({
+    defaultValues: {
+      address: {
+        name: '',
+        phone: '',
+        addressLine1: '',
+        addressLine2: '',
+        street: '',
+        city: '',
+        state: '',
+        postalCode: '',
+        country: '',
+        type: 'Warehouse',
+        isDefault: false,
+        label: 'General',
+        lat: '',
+        long: ''
+      }
+    }
+  })
+
   useEffect(() => {
-    setAddressData(data ?? initialAddressData)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+    if (data) {
+      reset({
+        address: {
+          _id: data._id,
+          // id: data._id,
+          name: data.name,
+          phone: data.phone,
+          addressLine1: data.addressLine1,
+          addressLine2: data.addressLine2,
+          street: data.street,
+          city: data.city,
+          state: data.state,
+          postalCode: data.postalCode,
+          country: data.country,
+          type: data.type,
+          isDefault: data.isDefault,
+          label: data.label,
+          lat: data.lat,
+          long: data.long
+        }
+
+      })
+      setSelected(data.type)
+    }
+  }, [data, reset])
+
+  const handleAddressSelect = (selectedAddress) => {
+
+    setValue('address.addressLine1', selectedAddress.addressLine1)
+    setValue('address.addressLine2', selectedAddress.addressLine2)
+    setValue('address.city', selectedAddress.city)
+    setValue('address.state', selectedAddress.state)
+    setValue('address.postalCode', selectedAddress.postalCode)
+    setValue('address.country', selectedAddress.country)
+    setValue('address.lat', selectedAddress.lat)
+    setValue('address.long', selectedAddress.long)
+    setValue('address.street', selectedAddress.addressLine1) // Using addressLine1 as street
+  }
+
+  const onSubmit = async (formData) => {
+    try {
+      console.log(formData, 'formDataformDataformData');
+      let resp;
+      const updatedFormData = {
+        address: {
+          ...formData.address,
+          location: {
+            type: 'Point',
+            coordinates: [
+              parseFloat(formData.address.long),
+              parseFloat(formData.address.lat)
+            ]
+          }
+        }
+      };
+      console.log(updatedFormData, 'updatedFormDataupdatedFormDataupdatedFormData');
+      if (formData?.address?._id) {
+        resp = await updateAddress(formData?.address?._id, updatedFormData);
+
+      } else {
+        resp = await addAddress(updatedFormData);
+
+      }
+
+      console.log(resp, 'respresprespresp');
+
+      // setOpen(false)
+    } catch (error) {
+      console.error('Error saving address:', error)
+    }
+  }
+  console.log(JSON.stringify(data), 'datadatadata');
+
 
   return (
     <Dialog
@@ -114,14 +259,14 @@ const AddEditAddress = ({ open, setOpen, data }) => {
           {data ? 'Edit Address for future billing' : 'Add address for billing address'}
         </Typography>
       </DialogTitle>
-      <form onSubmit={e => e.preventDefault()}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent className='pbs-0 sm:pli-16'>
           <IconButton onClick={() => setOpen(false)} className='absolute block-start-4 inline-end-4'>
             <i className='ri-close-line text-textSecondary' />
           </IconButton>
           <Grid container spacing={5}>
             {customInputData.map((item, index) => (
-              <Grid size={{ xs: 12, sm: 6 }} key={index}>
+              <Grid size={{ xs: 12, sm: 4 }} key={index}>
                 <CustomInputHorizontal
                   key={index}
                   type='radio'
@@ -134,130 +279,135 @@ const AddEditAddress = ({ open, setOpen, data }) => {
             ))}
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
+                {...register('address.name', { required: 'Name is required' })}
+                error={Boolean(errors?.address?.name)}
+                helperText={errors?.address?.name?.message}
                 fullWidth
-                label='First Name'
-                name='firstName'
-                variant='outlined'
+                label='Full Name'
                 placeholder='John'
-                value={addressData?.firstName}
-                onChange={e => setAddressData({ ...addressData, firstName: e.target.value })}
               />
+
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
+                {...register('address.phone', { required: 'Phone is required' })}
+                error={Boolean(errors?.address?.phone)}
+                helperText={errors?.address?.phone?.message}
                 fullWidth
-                label='Last Name'
-                name='lastName'
-                variant='outlined'
-                placeholder='Doe'
-                value={addressData?.lastName}
-                onChange={e => setAddressData({ ...addressData, lastName: e.target.value })}
+                label='Phone Number'
               />
             </Grid>
-            <Grid size={{ xs: 12 }}>
-              <FormControl fullWidth>
-                <InputLabel>Country</InputLabel>
-                <Select
-                  label='Country'
-                  name='country'
-                  variant='outlined'
-                  value={addressData?.country?.toLowerCase().replace(/\s+/g, '-') || ''}
-                  onChange={e => setAddressData({ ...addressData, country: e.target.value })}
-                >
-                  {countries.map((item, index) => (
-                    <MenuItem key={index} value={item.toLowerCase().replace(/\s+/g, '-')}>
-                      {item}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+            <Grid size={{ xs: 12, sm: 12 }}>
+              <AddressSearch onAddressSelect={handleAddressSelect} />
             </Grid>
-            <Grid size={{ xs: 12 }}>
+
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
+                {...register('address.addressLine1', { required: 'Address Line 1 is required' })}
+                error={Boolean(errors?.address?.addressLine1)}
+                helperText={errors?.address?.addressLine1?.message}
                 fullWidth
                 label='Address Line 1'
-                name='address1'
-                variant='outlined'
-                placeholder='12, Business Park'
-                value={addressData?.address1}
-                onChange={e => setAddressData({ ...addressData, address1: e.target.value })}
+                placeholder='Street address'
+                InputLabelProps={{
+                  shrink: Boolean(watch('address.addressLine1')) // Float label only if there's a value
+                }}
               />
             </Grid>
-            <Grid size={{ xs: 12 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
+                {...register('address.addressLine2')}
+                error={Boolean(errors?.address?.addressLine2)}
+                helperText={errors?.address?.addressLine2?.message}
                 fullWidth
                 label='Address Line 2'
-                name='address1'
-                variant='outlined'
-                placeholder='Mall Road'
-                value={addressData?.address2}
-                onChange={e => setAddressData({ ...addressData, address2: e.target.value })}
+                placeholder='Apartment, suite, etc. (optional)'
+                InputLabelProps={{
+                  shrink: Boolean(watch('address.addressLine2')) // Float label only if there's a value
+                }}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
-                fullWidth
-                label='Landmark'
-                name='landmark'
-                variant='outlined'
-                placeholder='Nr. Hard Rock Cafe'
-                value={addressData?.landmark}
-                onChange={e => setAddressData({ ...addressData, landmark: e.target.value })}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
+                {...register('address.city', { required: 'City is required' })}
+                error={Boolean(errors?.address?.city)}
+                helperText={errors?.address?.city?.message}
                 fullWidth
                 label='City'
-                name='city'
-                variant='outlined'
-                placeholder='Los Angeles'
-                value={addressData?.city}
-                onChange={e => setAddressData({ ...addressData, city: e.target.value })}
+                placeholder='City'
+                InputLabelProps={{
+                  shrink: Boolean(watch('address.city')) // Float label only if there's a value
+                }}
               />
             </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField
+                {...register('address.state', { required: 'State is required' })}
+                error={Boolean(errors?.address?.state)}
+                helperText={errors?.address?.state?.message}
+                fullWidth
+                label='State/Province'
+                placeholder='State or Province'
+                InputLabelProps={{
+                  shrink: Boolean(watch('address.state')) // Float label only if there's a value
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField
+                {...register('address.postalCode', { required: 'Postal code is required' })}
+                error={Boolean(errors?.address?.postalCode)}
+                helperText={errors?.address?.postalCode?.message}
+                fullWidth
+                label='Postal Code'
+                placeholder='Postal/ZIP code'
+                InputLabelProps={{
+                  shrink: Boolean(watch('address.postalCode')) // Float label only if there's a value
+                }}
+              />
+            </Grid>
+
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
+                {...register('address.country', { required: 'Country is required' })}
+                error={Boolean(errors?.address?.country)}
+                helperText={errors?.address?.country?.message}
                 fullWidth
-                label='State'
-                name='state'
-                variant='outlined'
-                placeholder='California'
-                value={addressData?.state}
-                onChange={e => setAddressData({ ...addressData, state: e.target.value })}
+                label='Country'
+                placeholder='Country'
+                InputLabelProps={{
+                  shrink: Boolean(watch('address.country')) // Float label only if there's a value
+                }}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                label='Zip Code'
-                type='number'
-                name='zipCode'
-                variant='outlined'
-                placeholder='99950'
-                value={addressData?.zipCode}
-                onChange={e => setAddressData({ ...addressData, zipCode: e.target.value })}
-              />
-            </Grid>
+
             <Grid size={{ xs: 12 }}>
-              <FormControlLabel control={<Switch defaultChecked />} label='Make this default shipping address' />
+              <FormControlLabel
+                control={
+                  <Switch
+                    {...register('address.isDefault')}
+                    defaultChecked={watch('address.isDefault')}
+                  />
+                }
+                label='Set as default address'
+              />
             </Grid>
           </Grid>
+
+
+          <Grid container spacing={2}>
+
+
+
+          </Grid>
         </DialogContent>
-        <DialogActions className='justify-center pbs-0 sm:pbe-16 sm:pli-16'>
-          <Button variant='contained' onClick={() => setOpen(false)} type='submit'>
-            {data ? 'Update' : 'Submit'}
-          </Button>
-          <Button
-            variant='outlined'
-            color='secondary'
-            onClick={() => {
-              setOpen(false)
-              setSelected(initialSelected)
-            }}
-            type='reset'
-          >
+        <DialogActions>
+          <Button onClick={() => setOpen(false)} variant='outlined' color='secondary'>
             Cancel
+          </Button>
+          <Button type='submit' variant='contained'>
+            {data ? 'Update' : 'Save'} Address
           </Button>
         </DialogActions>
       </form>
@@ -266,3 +416,6 @@ const AddEditAddress = ({ open, setOpen, data }) => {
 }
 
 export default AddEditAddress
+
+
+

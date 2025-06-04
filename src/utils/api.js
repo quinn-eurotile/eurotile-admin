@@ -13,7 +13,7 @@ const getCommonHeaders = async () => {
 
   const headers = {
     authorization: session?.access_token ? `Bearer ${session.access_token}` : "",
-    'Accept': 'application/json'
+    'Accept': 'application/json',
   };
 
 

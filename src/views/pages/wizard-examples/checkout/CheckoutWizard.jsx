@@ -1,7 +1,7 @@
 "use client"
 
 // React Imports
-import { useState, useEffect, createContext } from "react"
+import { useState, useEffect, createContext, useCallback } from "react"
 
 // Next Auth Import
 import { useSession } from "next-auth/react"
@@ -35,13 +35,14 @@ export const CheckoutContext = createContext({
   selectedShipping: "standard",
   orderSummary: {},
   user: null,
-  setCartItems: () => {},
-  setAddresses: () => {},
-  setSelectedAddress: () => {},
-  setSelectedShipping: () => {},
-  setOrderSummary: () => {},
+  setCartItems: () => { },
+  setAddresses: () => { },
+  setSelectedAddress: () => { },
+  setSelectedShipping: () => { },
+  setOrderSummary: () => { },
   isStepValid: () => false,
-  setStepValid: () => {},
+  setStepValid: () => { },
+  setStepValid: () => { },
   loading: false,
 })
 
@@ -177,11 +178,11 @@ const Stepper = styled(MuiStepper)(({ theme }) => ({
 const getStepContent = (step, handleNext, checkoutData) => {
   switch (step) {
     case 0:
-      return <StepCart handleNext={handleNext} />
+      return <StepCart handleNext={handleNext}  {...checkoutData} />
     case 1:
-      return <StepAddress handleNext={handleNext} />
+      return <StepAddress handleNext={handleNext}   {...checkoutData} />
     case 2:
-      return <StepPayment handleNext={handleNext} />
+      return <StepPayment handleNext={handleNext}  {...checkoutData} />
     case 3:
       return <StepConfirmation />
     default:
@@ -192,6 +193,7 @@ const getStepContent = (step, handleNext, checkoutData) => {
 const CheckoutWizard = ({ initialData }) => {
   // Get user session
   const { data: session, status } = useSession()
+  // console.log(initialData, 'initialDatainitialDatainitialData');
 
   // States
   const [activeStep, setActiveStep] = useState(0)
@@ -206,6 +208,7 @@ const CheckoutWizard = ({ initialData }) => {
       total: 0,
     },
   )
+  // console.log(initialData, 'orderSummaryorderSummary9999999');
 
   const [loading, setLoading] = useState(false)
   const [stepValidation, setStepValidation] = useState({
@@ -218,12 +221,18 @@ const CheckoutWizard = ({ initialData }) => {
   const isStepValid = (step) => stepValidation[step]
 
   // Function to set step validation
-  const setStepValid = (step, isValid) => {
-    setStepValidation((prev) => ({
-      ...prev,
-      [step]: isValid,
-    }))
-  }
+
+  const setStepValid = useCallback((step, isValid) => {
+    setStepValidation(prev => {
+      // Only update if the value actually changed
+      if (prev[step] === isValid) return prev;
+
+      return {
+        ...prev,
+        [step]: isValid,
+      };
+    });
+  }, []);
 
   // Handle next step with validation
   const handleNext = () => {
@@ -247,22 +256,27 @@ const CheckoutWizard = ({ initialData }) => {
         setActiveStep(Number.parseInt(savedStep, 10))
       }
     }
-
+    // Set initial validations based on data
+    const initialValidations = {}
     // Set initial validations based on data
     if (cartItems.length > 0) {
-      setStepValid(0, true)
+      initialValidations[0] = true
     }
 
-    if (addresses.length > 0) {
+    if (addresses?.length > 0) {
       const defaultAddress = addresses.find((addr) => addr.isDefault)
       if (defaultAddress) {
         setSelectedAddress(defaultAddress.id)
-        setStepValid(1, true)
+        initialValidations[1] = true
       } else {
         setSelectedAddress(addresses[0].id)
-        setStepValid(1, true)
+        initialValidations[1] = true
       }
     }
+    setStepValidation(prev => ({
+      ...prev,
+      ...initialValidations
+    }))
   }, [cartItems, addresses])
 
   // Checkout context value

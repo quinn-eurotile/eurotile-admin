@@ -1,21 +1,21 @@
-'use client'
+'use client';
 
 // React Imports
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react';
 
 // MUI Imports
-import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
-import Divider from '@mui/material/Divider'
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
-import TablePagination from '@mui/material/TablePagination'
-import Grid from '@mui/material/Grid2'
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import Divider from '@mui/material/Divider';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import TablePagination from '@mui/material/TablePagination';
+import Grid from '@mui/material/Grid2';
 // Third-party Imports
-import classnames from 'classnames'
-import { rankItem } from '@tanstack/match-sorter-utils'
+import classnames from 'classnames';
+import { rankItem } from '@tanstack/match-sorter-utils';
 import {
   createColumnHelper,
   flexRender,
@@ -27,10 +27,10 @@ import {
   getFacetedMinMaxValues,
   getPaginationRowModel,
   getSortedRowModel
-} from '@tanstack/react-table'
+} from '@tanstack/react-table';
 
 // Style Imports
-import tableStyles from '@core/styles/table.module.css'
+import tableStyles from '@core/styles/table.module.css';
 import {
   Chip,
   Dialog,
@@ -41,66 +41,66 @@ import {
   FormGroup,
   Stack,
   Switch
-} from '@mui/material'
-import TableFilters from './TableFilters'
-import { useRouter, useParams } from 'next/navigation'
-import CircularLoader from '@/components/common/CircularLoader'
-import { toast } from 'react-toastify'
+} from '@mui/material';
+import TableFilters from './TableFilters';
+import { useRouter, useParams } from 'next/navigation';
+import CircularLoader from '@/components/common/CircularLoader';
+import { toast } from 'react-toastify';
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value)
+  const itemRank = rankItem(row.getValue(columnId), value);
 
   // Store the itemRank info
   addMeta({
     itemRank
-  })
+  });
 
   // Return if the item should be filtered in/out
-  return itemRank.passed
-}
+  return itemRank.passed;
+};
 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
   // States
-  const [value, setValue] = useState(initialValue)
+  const [value, setValue] = useState(initialValue);
 
   useEffect(() => {
-    setValue(initialValue)
-  }, [initialValue])
+    setValue(initialValue);
+  }, [initialValue]);
   useEffect(() => {
     const timeout = setTimeout(() => {
-      onChange(value)
-    }, debounce)
+      onChange(value);
+    }, debounce);
 
-    return () => clearTimeout(timeout)
+    return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
+  }, [value]);
 
-  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
-}
+  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />;
+};
 
 // Column Definitions
-const columnHelper = createColumnHelper()
+const columnHelper = createColumnHelper();
 
 const TradeProfessionalsList = ({ fetchList, deleteTeamMember, updateStatus }) => {
   // States
-  const [rowSelection, setRowSelection] = useState({})
-  const [loading, setLoading] = useState(false)
+  const [rowSelection, setRowSelection] = useState({});
+  const [loading, setLoading] = useState(false);
 
   // Initialize data state properly with empty array
-  const [data, setData] = useState([])
+  const [data, setData] = useState([]);
 
-  const [filteredData, setFilteredData] = useState(null)
-  const [globalFilter, setGlobalFilter] = useState('')
-  const [search, setSearch] = useState('')
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false) // State for dialog
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [totalRecords, setTotalRecords] = useState(0)
+  const [filteredData, setFilteredData] = useState(null);
+  const [globalFilter, setGlobalFilter] = useState('');
+  const [search, setSearch] = useState('');
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false); // State for dialog
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
   // Menu state
-  const [selectedMemberId, setSelectedMemberId] = useState(null)
+  const [selectedMemberId, setSelectedMemberId] = useState(null);
 
-  const router = useRouter()
+  const router = useRouter();
 
   const columns = useMemo(
     () => [
@@ -139,18 +139,18 @@ const TradeProfessionalsList = ({ fetchList, deleteTeamMember, updateStatus }) =
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => {
-          const userStatus = row.original.status
+          const userStatus = row.original.status;
 
           // If status is 4 (Rejected), show plain text instead of switch
           if (userStatus === 2) {
             return (
-               <Chip label="Pending" color='info' size='small' variant='tonal' />
-            )
+              <Chip label="Pending" color='info' size='small' variant='tonal' />
+            );
           }
           if (userStatus === 4) {
             return (
-               <Chip label="Rejected" color='error' size='small' variant='tonal' />
-            )
+              <Chip label="Rejected" color='error' size='small' variant='tonal' />
+            );
           }
 
           // Render switch for other statuses (1 = Active, 0 = Inactive)
@@ -160,12 +160,12 @@ const TradeProfessionalsList = ({ fetchList, deleteTeamMember, updateStatus }) =
                 <FormControlLabel
                   control={
                     <Switch
-                      checked={userStatus === 1 || userStatus === 3 }
+                      checked={userStatus === 1 || userStatus === 3}
                       onChange={async event => {
-                        const newStatus = event.target.checked ? 1 : 0
-                        const rowData = row.original
-                        await updateStatus(rowData._id, 'status', { status: newStatus })
-                        refreshTradeProfessionalList()
+                        const newStatus = event.target.checked ? 1 : 0;
+                        const rowData = row.original;
+                        await updateStatus(rowData._id, 'status', { status: newStatus });
+                        refreshTradeProfessionalList();
                       }}
                     />
                   }
@@ -175,7 +175,7 @@ const TradeProfessionalsList = ({ fetchList, deleteTeamMember, updateStatus }) =
                 />
               </FormGroup>
             </Stack>
-          )
+          );
         }
       }),
 
@@ -198,7 +198,7 @@ const TradeProfessionalsList = ({ fetchList, deleteTeamMember, updateStatus }) =
       })
     ],
     [data]
-  )
+  );
 
   const table = useReactTable({
     data,
@@ -220,62 +220,62 @@ const TradeProfessionalsList = ({ fetchList, deleteTeamMember, updateStatus }) =
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
     onRowSelectionChange: setRowSelection
-  })
+  });
 
   // Fetch members on page or rowsPerPage change
   useEffect(() => {
-    if (!filteredData || filteredData.length === 0) return
+    if (!filteredData || filteredData.length === 0) return;
     const fetchData = async () => {
-      setLoading(true)
+      setLoading(true);
       if (search || filteredData) {
         try {
-          const data = await fetchList(page + 1, rowsPerPage, search, filteredData)
+          const data = await fetchList(page + 1, rowsPerPage, search, filteredData);
           // Update your state with the fetched data
-          setData(data?.data?.docs ?? [])
-          setTotalRecords(data?.data?.totalDocs)
-          setPage(page)
-          setRowsPerPage(rowsPerPage)
+          setData(data?.data?.docs ?? []);
+          setTotalRecords(data?.data?.totalDocs);
+          setPage(page);
+          setRowsPerPage(rowsPerPage);
         } catch (error) {
-          console.error('Failed to fetch data:', error)
+          console.error('Failed to fetch data:', error);
         } finally {
-          setLoading(false) // Stop loading
+          setLoading(false); // Stop loading
         }
       }
-    }
+    };
 
-    fetchData() // Call the async function
-  }, [page, rowsPerPage, search, filteredData])
+    fetchData(); // Call the async function
+  }, [page, rowsPerPage, search, filteredData]);
 
-  const handleChangePage = (event, newPage) => setPage(newPage)
+  const handleChangePage = (event, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = event => {
-    table.setPageSize(parseInt(event.target.value))
-    setRowsPerPage(parseInt(event.target.value, 10))
-    setPage(0)
-  }
+    table.setPageSize(parseInt(event.target.value));
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
-  const { lang: locale } = useParams()
+  const { lang: locale } = useParams();
 
   // Handle Delete (show confirmation dialog)
   const handleDelete = async () => {
     try {
-      const response = await deleteTeamMember(selectedMemberId)
+      const response = await deleteTeamMember(selectedMemberId);
       if (response.success) {
-        refreshTradeProfessionalList()
+        refreshTradeProfessionalList();
       } else {
-        toast.error(response.message || 'Failed to delete.')
+        toast.error(response.message || 'Failed to delete.');
       }
-      setOpenConfirmDialog(false) // Close the dialog after deletion
+      setOpenConfirmDialog(false); // Close the dialog after deletion
     } catch (error) {
-      console.error('Error deleting supplier:', error)
-      setOpenConfirmDialog(false) // Close the dialog on error as well
+      console.error('Error deleting supplier:', error);
+      setOpenConfirmDialog(false); // Close the dialog on error as well
     }
-  }
+  };
 
   const refreshTradeProfessionalList = async () => {
-    const updatedResult = await fetchList(page + 1, rowsPerPage, search, filteredData)
-    setData(updatedResult?.data?.docs ?? [])
-    setTotalRecords(updatedResult?.data?.totalDocs)
-  }
+    const updatedResult = await fetchList(page + 1, rowsPerPage, search, filteredData);
+    setData(updatedResult?.data?.docs ?? []);
+    setTotalRecords(updatedResult?.data?.totalDocs);
+  };
 
   return (
     <>
@@ -286,31 +286,6 @@ const TradeProfessionalsList = ({ fetchList, deleteTeamMember, updateStatus }) =
             <CardHeader title='Filters' />
             <TableFilters setFilters={setFilteredData} />
             <Divider />
-            {/* <div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
-           <Button
-              color='secondary'
-              variant='outlined'
-              startIcon={<i className='ri-upload-2-line text-xl' />}
-              className='max-sm:is-full'
-            >
-              Export
-            </Button>
-            <div className='flex items-end gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
-              <DebouncedInput
-                value={globalFilter ?? ''}
-                onChange={value => setSearch(String(value))}
-                placeholder='Search Supplier'
-                className='max-sm:is-full'
-              />
-              <Button
-                variant='contained'
-                onClick={() => router.push(`/${locale}/supplier/new`)}
-                className='max-sm:is-full'
-              >
-                Add New Supplier
-              </Button>
-            </div>
-          </div> */}
             <div className='flex justify-end p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
               <div className='flex items-end gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
                 <DebouncedInput
@@ -414,7 +389,7 @@ const TradeProfessionalsList = ({ fetchList, deleteTeamMember, updateStatus }) =
         </Grid>
       </Grid>
     </>
-  )
-}
+  );
+};
 
-export default TradeProfessionalsList
+export default TradeProfessionalsList;

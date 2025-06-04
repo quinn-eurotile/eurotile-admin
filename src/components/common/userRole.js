@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import { getSession } from 'next-auth/react';
 import { adminRole } from '@configs/constant';
 
