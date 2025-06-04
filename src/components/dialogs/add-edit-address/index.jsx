@@ -26,6 +26,7 @@ import { styled } from '@mui/material/styles'
 import CustomInputHorizontal from '@core/components/custom-inputs/Horizontal'
 import AddressSearch from '@/views/pages/wizard-examples/checkout/AddressSearch'
 import { addAddress, updateAddress } from '@/app/server/actions'
+import { fetchUserAddresses } from '@/app/front-pages/checkout/page'
 
 // Vars
 const countries = ['Select Country', 'France', 'Russia', 'China', 'UK', 'US']
@@ -223,7 +224,6 @@ const AddEditAddress = ({ open, setOpen, data }) => {
           }
         }
       };
-      console.log(updatedFormData, 'updatedFormDataupdatedFormDataupdatedFormData');
       if (formData?.address?._id) {
         resp = await updateAddress(formData?.address?._id, updatedFormData);
 

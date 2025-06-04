@@ -15,7 +15,7 @@ import frontCommonStyles from "./styles.module.css"
 
 const CheckoutPage = ({ initialData, session }) => {
 
-console.log(initialData,'initialData');
+
 
   return (
     <SessionProvider session={session}>

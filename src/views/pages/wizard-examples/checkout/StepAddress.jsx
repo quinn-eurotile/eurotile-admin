@@ -29,6 +29,7 @@ import OpenDialogOnElementClick from "@components/dialogs/OpenDialogOnElementCli
 
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard"
+import { deleteAddresses } from "@/app/server/actions"
 
 // Styled Components
 const HorizontalContent = styled(Typography, {
@@ -141,7 +142,6 @@ const StepAddress = ({ handleNext }) => {
 
   // Edit address
   const handleEditAddress = (address) => {
-    alert('hkk');
     setAddressData(address); // set the address you want to edit
     setOpen(true); // open the dialog
   };
@@ -154,29 +154,29 @@ const StepAddress = ({ handleNext }) => {
   // Delete address
   const deleteAddress = async () => {
     if (!addressToDelete) return
+    console.log(addressToDelete, 'addraddraddraddraddr');
 
     setIsUpdating(true)
     try {
-      const response = await fetch(`/api/user/addresses/${addressToDelete}`, {
-        method: "DELETE",
-      })
+      const responce = await deleteAddresses(addressToDelete)
+      console.log(responce, 'responceresponce66666666');
 
-      if (response.ok) {
-        // Update local state
-        const updatedAddresses = addresses?.filter((addr) => addr.id !== addressToDelete)
-        setAddresses(updatedAddresses)
+      // if (response.ok) {
+      //   // Update local state
+      //   const updatedAddresses = addresses?.filter((addr) => addr.id !== addressToDelete)
+      //   setAddresses(updatedAddresses)
 
-        // If deleted address was selected, select another one if available
-        if (selectedAddress === addressToDelete) {
-          if (updatedAddresses.length > 0) {
-            setSelectedAddress(updatedAddresses[0].id)
-            setStepValid(1, true)
-          } else {
-            setSelectedAddress(null)
-            setStepValid(1, false)
-          }
-        }
-      }
+      //   // If deleted address was selected, select another one if available
+      //   if (selectedAddress === addressToDelete) {
+      //     if (updatedAddresses.length > 0) {
+      //       setSelectedAddress(updatedAddresses[0].id)
+      //       setStepValid(1, true)
+      //     } else {
+      //       setSelectedAddress(null)
+      //       setStepValid(1, false)
+      //     }
+      //   }
+      // }
     } catch (error) {
       console.error("Error deleting address:", error)
     } finally {
@@ -226,7 +226,6 @@ const StepAddress = ({ handleNext }) => {
       </HorizontalContent>
     ),
   })) ?? {};
-  console.log(formattedAddresses, 'formattedAddresses');
 
   // Check if address is selected and update validation
   useEffect(() => {

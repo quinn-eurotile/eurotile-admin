@@ -160,6 +160,9 @@ export const updateAddress = async (id ,data) => {
 export const getAddresses = async (id) => {
      return await addressService.getById(id);
 }
+export const deleteAddresses = async (id) => {
+     return await addressService.delete(id);
+}
 
 
 
