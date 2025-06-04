@@ -24,7 +24,7 @@ import CustomAvatar from '@core/components/mui/Avatar';
 import { updateStatus } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/list/page';
 import { toast } from 'react-toastify';
 import AlertDialog from '@/components/common/AlertDialog';
-import EditUserInfo from '../user-left-overview/editUserInfo';
+import EditUserInfo from './editUserInfo';
 import { fetchById } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/view/[id]/page';
 import { updateBusinessStatus, updateProfile } from '@/app/server/trade-professional';
 import { checkUserRoleIsAdmin } from '@/components/common/userRole';
@@ -41,7 +41,8 @@ const UserDetails = ({ data }) => {
   const [anchorEl, setAnchorEl] = useState(null); // for edit menu anchor
   const inputFileRef = useRef(null);
   const { data: session, status } = useSession()
-
+  console.log('session', session);
+  console.log('userData', userData);
 
 
   const [isAdmin, setIsAdmin] = useState(false);
@@ -391,87 +392,9 @@ const UserDetails = ({ data }) => {
           </div>
         )}
 
-        <div>Business Status: <Chip
-          label={statusDetails.label}
-          color={statusDetails.color}
-          variant='outlined'
-        />
-
-        </div>
-
-
-        {isAdmin && (
-          <div className='flex gap-4 justify-center'>
-            <Button
-              variant='outlined'
-              color='success'
-              disabled={userData?.business?.status === 1} // Disable if already approved
-              onClick={() =>
-                openConfirmationDialog({
-                  title: 'Approve Business',
-                  description: 'Are you sure you want to approve the Business?',
-                  confirmText: 'Approve',
-                  cancelText: 'Cancel',
-                  confirmColor: 'success',
-                  cancelColor: 'inherit',
-                  status: 1,
-                  showInput: false
-                })
-              }
-            >
-              Approve Business
-            </Button>
-
-            <Button
-              variant='outlined'
-              color='error'
-              disabled={userData?.business?.status === 0} // Disable if already rejected
-              onClick={() =>
-                openConfirmationDialog({
-                  title: 'Reject Business',
-                  description: 'Are you sure you want to reject the Business?',
-                  confirmText: 'Reject',
-                  cancelText: 'Cancel',
-                  confirmColor: 'error',
-                  cancelColor: 'inherit',
-                  status: 0,
-                  showInput: true
-                })
-              }
-            >
-              Reject Business
-            </Button>
-          </div>
-        )}
-
         {/* <Chip label='Status Disabled' color='error' size='small' variant='tonal' /> */}
 
-        <OpenDialogOnElementClick
-          element={Button}
-          elementProps={buttonProps('Edit', 'primary', 'contained')}
-          dialog={EditUserInfo}
-          dialogProps={{ data: userData, setRefresh: setRefresh, isAdmin: isAdmin }}
-        />
       </CardContent>
-
-      <AlertDialog
-        open={dialogOpen}
-        title={dialogConfig.title}
-        description={dialogConfig.description}
-        confirmText={dialogConfig.confirmText}
-        cancelText={dialogConfig.cancelText}
-        confirmColor={dialogConfig.confirmColor}
-        cancelColor={dialogConfig.cancelColor}
-        onConfirm={dialogConfig.onConfirm}
-        onCancel={() => {
-          setDialogOpen(false);
-          setRejectionReasonText('');
-        }}
-        isLoading={isLoading}
-        showInput={showInput}
-        rejectionReasonText={rejectionReasonText}
-        setRejectionReasonText={setRejectionReasonText}
-      />
     </Card>
   );
 };

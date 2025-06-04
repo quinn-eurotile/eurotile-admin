@@ -13,11 +13,11 @@ import { authOptions } from '@/libs/auth';
 // Data Imports
 import { getOrderHistory } from '@/app/server/actions'
 import UserLeftOverview from '@/views/admin/trade-professionals/view/user-left-overview'
-import UserRight from '@/views/admin/trade-professionals/view/user-right'
+import UserRight from '@/views/admin/trade-professionals/view/admin-right'
 import { tradeProfessionalService } from '@/services/trade-professionals'
 
-import OverViewTab from '@/views/admin/trade-professionals/view/user-right/overview'
-import OrderList from '@/views/admin/trade-professionals/view/user-right/orders/list';
+// import OverViewTab from '@/views/admin/trade-professionals/view/user-right/overview'
+// import OrderList from '@/views/admin/trade-professionals/view/user-right/orders/list';
 const SecurityTab = dynamic(() => import('@/views/admin/trade-professionals/view/user-right/security'))
 const BillingPlans = dynamic(() => import('@views/apps/user/view/user-right/billing-plans'))
 const NotificationsTab = dynamic(() => import('@views/apps/user/view/user-right/notifications'))
@@ -71,17 +71,11 @@ const Profile = async props => {
   const userId = session?.user?.id
 
   const response = await fetchById(userId)
+
   const data = response?.data
 
-  console.log('asdasdasdasd32432423423',data);
-
-
-  const overviewTab = await OverViewTab({ data, params })
-
   const tabContentList = {
-    overview: overviewTab,
     security: <SecurityTab userId={userId} data={data}/>,
-    orders: <OrderList />,
   }
 
   return (

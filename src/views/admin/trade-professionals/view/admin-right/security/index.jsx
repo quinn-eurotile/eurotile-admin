@@ -6,12 +6,9 @@ import ChangePassword from './ChangePassword';
 import AddBankAccount from './AddBankAccount';
 import AdminSettings from './AdminSettings';
 import { checkUserRoleIsAdmin } from '@/components/common/userRole';
-import { useSession } from 'next-auth/react'
 
-const SecurityTab = ({ userId, data }) => {
-
+const SecurityTab = ({ userId }) => {
   const [isAdmin, setIsAdmin] = useState(false);
-  const { data: session, status } = useSession()
 
   useEffect(() => {
     const verifyRole = async () => {
@@ -24,7 +21,7 @@ const SecurityTab = ({ userId, data }) => {
 
   return (
     <Grid container spacing={6}>
-      {isAdmin && session?.user?._id == data?._id && (
+      {isAdmin && (
         <Grid size={{ xs: 12 }}>
           <AdminSettings />
         </Grid>

@@ -1,7 +1,7 @@
 'use server';
 
 import { tradeProfessionalServices } from "@/services/trade-professional-services/trade-professional-endpoint";
-import { tradeProfessionalService, userTradeProfessionalBusiness, userTradeProfessionalBusinessProfile, userTradeProfessionalPassword, userTradeProfessionalProfile, userTradeProfessionalService } from "@/services/trade-professionals";
+import { tradeProfessionalService, userProfile, userTradeProfessionalBusiness, userTradeProfessionalBusinessProfile, userTradeProfessionalPassword, userTradeProfessionalService } from "@/services/trade-professionals";
 
 export const getTradeProfessionalDetails = async (userId) => {
      return await tradeProfessionalService.getById(userId);
@@ -10,10 +10,6 @@ export const getTradeProfessionalDetails = async (userId) => {
 export const createTradeProfessional = async (data) => {
      return await userTradeProfessionalService.create(data);
 };
-
-// export const createClient = async (data) => {
-//      return await userTradeProfessionalService.create(data);
-// };
 
 export const updateTradeProfessional = async (id, data) => {
      return await userTradeProfessionalService.update(id, data);
@@ -41,7 +37,7 @@ export const changeTradeProfessionalPassword = async (id, data) => {
 };
 
 export const updateProfile = async (id, data) => {
-     return await userTradeProfessionalProfile.update(id, data);
+     return await userProfile.update(id, data);
 };
 
 export const addBankAccountForTradeProfessional = async (data) => {

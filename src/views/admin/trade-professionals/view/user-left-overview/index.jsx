@@ -1,16 +1,39 @@
-// MUI Imports
-import Grid from '@mui/material/Grid2';
+'use client'
+
+import Grid from '@mui/material/Grid2'
 
 // Component Imports
-import UserDetails from './UserDetails';
+import { useEffect, useRef, useState } from 'react'
+import UserDetails from './UserDetails'
+import AdminDetails from './AdminDetails'
+import { useSession } from 'next-auth/react'
+import { checkUserRoleIsAdmin } from '@/components/common/userRole'
 const UserLeftOverview = ({ data }) => {
-  return (
-    <Grid container spacing={6}>
-      <Grid size={{ xs: 12 }}>
-        <UserDetails data={data} />
-      </Grid>
-    </Grid>
-  );
-};
+  const [isAdmin, setIsAdmin] = useState(false)
+  const { data: session, status } = useSession()
 
-export default UserLeftOverview;
+  useEffect(() => {
+    const verifyRole = async () => {
+      const isAdminUser = await checkUserRoleIsAdmin()
+      if (isAdminUser) {
+        setIsAdmin(true)
+      } else {
+        setIsAdmin(false)
+      }
+    }
+
+    verifyRole()
+  }, [])
+
+  return (
+    <>
+        {isAdmin && session?.user?._id == data._id ? (
+          <AdminDetails data={data} />
+        ) : (
+          <UserDetails data={data} />
+        )}
+        </>
+  )
+}
+
+export default UserLeftOverview
