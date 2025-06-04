@@ -1,7 +1,14 @@
 'use server';
 
-import { tradeProfessionalServices } from "@/services/trade-professional-services/trade-professional-endpoint";
-import { tradeProfessionalService, userProfile, userTradeProfessionalBusiness, userTradeProfessionalBusinessProfile, userTradeProfessionalPassword, userTradeProfessionalService } from "@/services/trade-professionals";
+import {
+     tradeProfessionalService,
+     userTradeProfessionalBusiness,
+     userTradeProfessionalBusinessProfile,
+     userTradeProfessionalClientService,
+     userTradeProfessionalPassword,
+     userProfile,
+     userTradeProfessionalService
+} from "@/services/trade-professionals";
 
 export const getTradeProfessionalDetails = async (userId) => {
      return await tradeProfessionalService.getById(userId);
@@ -21,15 +28,15 @@ export const verifyTradProfessionalEmail = async (token, subPath, data) => {
 
 export const updateBusinessProfileStatus = async (id, subPath, data) => {
      return await userTradeProfessionalBusinessProfile.patch(id, subPath, data);
-}
+};
 
 export const updateBusinessStatus = async (id, subPath, data) => {
      return await userTradeProfessionalBusiness.patch(id, subPath, data);
-}
+};
 
 /* API for B2B Trade Professionals */
 export const fetchDashboardData = async () => {
-     return await tradeProfessionalServices.getRawData();
+     return await userTradeProfessionalService.getRawData();
 
 };
 export const changeTradeProfessionalPassword = async (id, data) => {
@@ -43,3 +50,24 @@ export const updateProfile = async (id, data) => {
 export const addBankAccountForTradeProfessional = async (data) => {
      return await userTradeProfessionalService.addBankAccountForTradeProfessional(data);
 };
+
+
+/* API for B2C Trade Professionals  Client */
+
+export const createTradeProfessionalClient = async (data) => {
+     return await userTradeProfessionalClientService.create(data);
+};
+
+export const getTradeProfessionalClientList = async (currentPage, rowsPerPage, searchTerm, filteredData) => {
+     return await userTradeProfessionalClientService.get(currentPage, rowsPerPage, searchTerm, filteredData);
+};
+
+export const deleteTradeProfessionalClient = async (id) => {
+     return await userTradeProfessionalClientService.delete(id);
+};
+
+export const updateTradeProfessionalClient = async (id, data) => {
+     return await userTradeProfessionalClientService.update(id, data);
+};
+
+/** End API for B2C Trade Professionals  Client */
