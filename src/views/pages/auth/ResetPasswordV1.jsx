@@ -58,6 +58,8 @@ const ResetPasswordV1 = ({ mode }) => {
     }
 
     try {
+      console.log('token , password', token, password);
+
       // Sending password reset request
         const response = await resetPasswordApi({ token , password });
 

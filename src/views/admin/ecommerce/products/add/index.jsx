@@ -188,20 +188,20 @@ const AddProduct = () => {
       const missingFields = []
 
       // Validate all product variations
-      formDataValues.productVariations?.forEach((variation, index) => {
-        if (!variation.regularPriceB2B) missingFields.push('B2B Regular Price')
-        if (!variation.regularPriceB2C) missingFields.push('B2C Regular Price')
-        if (!variation.salePrice) missingFields.push('Sale Price')
-        if (!variation.purchasedPrice) missingFields.push('Purchased Price')
-        if (!variation.weight) missingFields.push('Weight')
-        if (!variation.numberOfTiles) missingFields.push('Number of Tiles')
-        if (!variation.boxSize) missingFields.push('Box Size')
-        if (!variation.palletSize) missingFields.push('Pallet Size')
+      // formDataValues.productVariations?.forEach((variation, index) => {
+      //   if (!variation.regularPriceB2B) missingFields.push('B2B Regular Price')
+      //   if (!variation.regularPriceB2C) missingFields.push('B2C Regular Price')
+      //   if (!variation.salePrice) missingFields.push('Sale Price')
+      //   if (!variation.purchasedPrice) missingFields.push('Purchased Price')
+      //   if (!variation.weight) missingFields.push('Weight')
+      //   if (!variation.numberOfTiles) missingFields.push('Number of Tiles')
+      //   if (!variation.boxSize) missingFields.push('Box Size')
+      //   if (!variation.palletSize) missingFields.push('Pallet Size')
 
-        if (!variation.variationImages || variation.variationImages.length === 0) {
-          missingFields.push('Variation Images')
-        }
-      })
+      //   if (!variation.variationImages || variation.variationImages.length === 0) {
+      //     missingFields.push('Variation Images')
+      //   }
+      // })
 
       // Stop submission and show error if any required fields are missing
       if (missingFields.length > 0) {
@@ -287,7 +287,7 @@ const AddProduct = () => {
       console.log('API Response:', response)
 
       if (response.success) {
-        // router.push(`/${locale}/admin/ecommerce/products/list`)
+        router.push(`/${locale}/admin/ecommerce/products/list`)
         toast.success(response.message || 'Product created successfully')
       } else {
         toast.error(response.message || 'Failed to save product')
