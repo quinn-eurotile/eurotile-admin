@@ -11,6 +11,10 @@ export const createTradeProfessional = async (data) => {
      return await userTradeProfessionalService.create(data);
 };
 
+// export const createClient = async (data) => {
+//      return await userTradeProfessionalService.create(data);
+// };
+
 export const updateTradeProfessional = async (id, data) => {
      return await userTradeProfessionalService.update(id, data);
 };

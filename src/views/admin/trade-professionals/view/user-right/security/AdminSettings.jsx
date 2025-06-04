@@ -12,9 +12,9 @@ import { toast } from 'react-toastify';
 import { updateAdminSetting, getAdminSettingDetail } from '@/app/server/actions';
 import { callCommonAction } from '@/redux-store/slices/common';
 import { useDispatch } from 'react-redux';
+import { adminSettingId } from '@/configs/constant';
 
-const AdminSettingsForm = ({ userId }) => {
-    const adminSettingId = `683eaa785fabaae3a4c5de04`;
+const AdminSettingsForm = () => {
     const dispatch = useDispatch();
 
     const {
