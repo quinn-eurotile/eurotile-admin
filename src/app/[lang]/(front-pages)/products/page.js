@@ -12,7 +12,7 @@ import ProductGrid from "@/views/front-pages/product/product-grid"
 
 /* import ProductGrid from "@/components/product-grid"
 import FilterSidebar from "@/components/filter-sidebar"
-import Pagination from "@/components/pagination" 
+import Pagination from "@/components/pagination"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"*/
 
 export default function ProductsPage() {
@@ -56,25 +56,25 @@ export default function ProductsPage() {
         const searchTrigger = document.querySelector(".search-trigger")
         const searchOverlay = document.querySelector(".search-overlay")
         const closeSearch = document.querySelector(".search-overlay button")
-    
+
         if (searchTrigger && searchOverlay && closeSearch) {
           searchTrigger.addEventListener("click", () => {
             searchOverlay.classList.remove("hidden")
             searchOverlay.classList.add("flex")
           })
-    
+
           closeSearch.addEventListener("click", () => {
             searchOverlay.classList.add("hidden")
             searchOverlay.classList.remove("flex")
           })
         }
-    
+
         // Mobile menu
         const menuTrigger = document.querySelector(".menu-trigger")
         const mobileMenu = document.querySelector(".mobile-menu")
         const mobileMenuClose = document.querySelector(".mobile-menu-close")
         const mobileMenuContent = document.querySelector(".mobile-menu > div")
-    
+
         if (menuTrigger && mobileMenu && mobileMenuClose && mobileMenuContent) {
           menuTrigger.addEventListener("click", () => {
             mobileMenu.classList.remove("hidden")
@@ -83,7 +83,7 @@ export default function ProductsPage() {
               mobileMenuContent.classList.remove("translate-x-[-100%]")
             }, 10)
           })
-    
+
           mobileMenuClose.addEventListener("click", () => {
             mobileMenuContent.classList.add("translate-x-[-100%]")
             setTimeout(() => {
@@ -91,7 +91,7 @@ export default function ProductsPage() {
               mobileMenu.classList.remove("flex")
             }, 300)
           })
-    
+
           mobileMenu.addEventListener("click", (e) => {
             if (e.target === mobileMenu) {
               mobileMenuContent.classList.add("translate-x-[-100%]")
@@ -102,7 +102,7 @@ export default function ProductsPage() {
             }
           })
         }
-    
+
         // Mobile submenu
         const mobileSubmenuTriggers = document.querySelectorAll(".mobile-submenu-trigger")
         mobileSubmenuTriggers.forEach((trigger) => {
@@ -113,25 +113,25 @@ export default function ProductsPage() {
             icon.classList.toggle("rotate-90")
           })
         })
-    
+
         // Account dropdown
         const accountTrigger = document.querySelector(".account-trigger")
         const accountDropdown = document.querySelector(".account-dropdown")
-    
+
         if (accountTrigger && accountDropdown) {
           accountTrigger.addEventListener("click", () => {
             accountDropdown.classList.toggle("hidden")
           })
-    
+
           document.addEventListener("click", (e) => {
             if (!accountTrigger.contains(e.target) && !accountDropdown.contains(e.target)) {
               accountDropdown.classList.add("hidden")
             }
           })
         }
-    
-      
-    
+
+
+
         return () => {
           if (searchTrigger && closeSearch) {
             searchTrigger.removeEventListener("click", () => { })
@@ -158,12 +158,12 @@ export default function ProductsPage() {
           }
           document.removeEventListener("click", () => { })
         }
-        
+
       }, [])
 
   return (
     <div className="min-h-screen flex flex-col">
-     
+
 {/* ----------------------  Header Start ---------------------- */}
       <header className="bg-darkGrey text-white py-6">
         <div className="container mx-auto px-4 flex items-center justify-between">
@@ -187,7 +187,7 @@ export default function ProductsPage() {
               <div className="relative group">
                 <button className="flex items-center text-white bg-transparent font-montserrat text-15">
                   Products {/* <ChevronRight className="h-4 w-4 ml-1 transform rotate-90" /> */}
-                  <i class="ri-arrow-down-s-line text-sm"></i>
+                  <i className="ri-arrow-down-s-line text-sm"></i>
                 </button>
                 <div className="absolute left-0 w-48 bg-white text-black rounded-md shadow-lg py-1 z-10 hidden group-hover:block">
                   <Link href="/products/kitchen" className="block px-4 py-2 text-sm hover:bg-gray-100">
@@ -216,21 +216,21 @@ export default function ProductsPage() {
             </nav>
             <div className="flex items-center space-x-4">
               <button className="md:hidden menu-trigger text-white bg-transparent">
-                <i class="ri-menu-line text-sm text-18"></i>
+                <i className="ri-menu-line text-sm text-18"></i>
               </button>
               <button className="search-trigger text-white bg-transparent">
-                <i class="ri-search-line text-18"></i>
+                <i className="ri-search-line text-18"></i>
               </button>
 
               <button className="text-white hover:text-gray-300 relative bg-transparent" onClick={() => setCartOpen(true)}>
-                <i class="ri-shopping-cart-line text-18"></i>
+                <i className="ri-shopping-cart-line text-18"></i>
                 <span className="absolute -top-2 -right-2 bg-red-800 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
                   3
                 </span>
               </button>
               <div className="relative">
                 <button className="flex items-center account-trigger text-white bg-transparent">
-                  <i class="ri-user-line text-18"></i>
+                  <i className="ri-user-line text-18"></i>
                 </button>
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden account-dropdown">
                   <Link href="/account" className="block px-4 py-2 text-xs text-gray-700 hover:bg-redText hover:text-white">
@@ -284,7 +284,7 @@ export default function ProductsPage() {
               <li>
                 <button className="flex items-center justify-between w-full py-2 text-lg mobile-submenu-trigger bg-transparent">
                   Products
-                   <i class="ri-arrow-down-s-line text-sm"></i>
+                   <i className="ri-arrow-down-s-line text-sm"></i>
                 </button>
                 <ul className="pl-4 mt-2 space-y-2 hidden mobile-submenu">
                   <li>
@@ -329,7 +329,7 @@ export default function ProductsPage() {
         </div>
       </div>
 
-    
+
       {/* ----------------------  Header End ---------------------- */}
 
         {/* Search Overlay */}
@@ -351,7 +351,7 @@ export default function ProductsPage() {
             />
             <button className="absolute right-0 top-0 h-full px-4 text-red-800">
               <i className="ri-search-line h-6 w-6"></i>
-            </button>          
+            </button>
           </div>
         </div>
       </div>
@@ -480,7 +480,7 @@ export default function ProductsPage() {
                 }}
               />
               <Button size="small" className="bg-red-800 hover:bg-red-900 text-white px-0 rounded w-[40px] min-w-[40px]">
-                 < i class="ri-send-plane-fill"></i> 
+                 < i className="ri-send-plane-fill"></i>
               </Button>
             </div>
           </div>
