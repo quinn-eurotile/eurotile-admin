@@ -93,7 +93,6 @@ const UserDetails = ({ data }) => {
 
     try {
       const response = await updateBusinessStatus(userData?.business?._id, 'status', requestData);
-      console.log(response, 'responseresponseresponseresponse');
       toast.success(`User ${status === 3 ? 'approved' : 'rejected'} successfully.`);
       refreshUserDetails(userData._id);
       setDialogOpen(false);

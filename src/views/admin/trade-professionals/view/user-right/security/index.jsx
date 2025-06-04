@@ -1,27 +1,41 @@
-// MUI Imports
-import Grid from '@mui/material/Grid2';
+'use client'
 
-// Component Imports
-import ChangePassword from './ChangePassword';
-import AddBankAccount from './AddBankAccount';
-import AdminSettings from './AdminSettings';
-import TwoStepVerification from './TwoStepVerification';
-import RecentDevice from './RecentDevice';
+import Grid from '@mui/material/Grid2'
+import { useEffect, useState } from 'react'
+import ChangePassword from './ChangePassword'
+import AddBankAccount from './AddBankAccount'
+import AdminSettings from './AdminSettings'
+import { checkUserRoleIsAdmin } from '@/components/common/userRole'
 
-const SecurityTab = async ({ userId }) => {
+const SecurityTab = ({ userId }) => {
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    const verifyRole = async () => {
+      const isAdminUser = await checkUserRoleIsAdmin()
+      setIsAdmin(isAdminUser)
+    }
+
+    verifyRole()
+  }, [])
+
   return (
     <Grid container spacing={6}>
-      <Grid size={{ xs: 12 }}>
-        <AdminSettings userId={userId} />
-      </Grid>
-      <Grid size={{ xs: 12 }}>
-        <AddBankAccount userId={userId} />
-      </Grid>
-      <Grid size={{ xs: 12 }}>
+      {isAdmin && (
+        <Grid size={{xs:12}}>
+          <AdminSettings />
+        </Grid>
+      )}
+      {!isAdmin && (
+        <Grid size={{xs:12}}>
+          <AddBankAccount />
+        </Grid>
+      )}
+      <Grid size={{xs:12}}>
         <ChangePassword userId={userId} />
       </Grid>
     </Grid>
-  );
-};
+  )
+}
 
-export default SecurityTab;
+export default SecurityTab

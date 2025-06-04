@@ -22,7 +22,7 @@ import { toast } from 'react-toastify';
 // Replace this with actual API call
 import { addBankAccountForTradeProfessional } from '@/app/server/trade-professional';
 
-const AddBankAccount = ({ userId }) => {
+const AddBankAccount = () => {
     const {
         register,
         handleSubmit,
@@ -38,7 +38,6 @@ const AddBankAccount = ({ userId }) => {
     const onSubmit = async (data) => {
         try {
             const response = await addBankAccountForTradeProfessional(data);
-            console.log(response, 'res');
             if (response.success) {
                 setValue('sortCode', '');
                 setValue('accountNumber', '');

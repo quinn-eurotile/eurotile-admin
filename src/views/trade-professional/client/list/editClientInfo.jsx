@@ -216,33 +216,36 @@ const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your add
   )
 }
 
-const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
-  const formatInitialData = data => ({
-    fullName: data?.name || '',
-    email: data?.email || '',
-    phone: data?.phone || '',
-    role: data?.roles?.[0]?.name || '',
-    status: data?.status ?? '',
-    businessId: data?.business?._id || '',
-    businessName: data?.business?.name || '',
-    businessEmail: data?.business?.email || '',
-    businessPhone: data?.business?.phone || '',
-    businessStatus: data?.business?.status ?? '',
-    businessCreatedAt: data?.business?.createdAt || '',
-    businessUpdatedAt: data?.business?.updatedAt || '',
-
-    address: {
-      addressLine1: data?.addresses?.addressLine1 || '',
-      addressLine2: data?.addresses?.addressLine2 || '',
-      city: data?.addresses?.city || '',
-      state: data?.addresses?.state || '',
-      postalCode: data?.addresses?.postalCode || '',
-      country: data?.addresses?.country || '',
-      lat: data?.addresses?.lat || '',
-      long: data?.addresses?.long || '',
-      type: data?.addresses?.type || ''
+const EditClientInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
+const formatInitialData = data => ({
+  name: data?.name || '',
+  email: data?.email || '',
+  phone: data?.phone || '',
+  address: {
+    name: data?.address?.name || '',
+    phone: data?.address?.phone || '',
+    addressLine1: data?.address?.addressLine1 || '',
+    addressLine2: data?.address?.addressLine2 || '',
+    street: data?.address?.street || '',
+    city: data?.address?.city || '',
+    state: data?.address?.state || '',
+    postalCode: data?.address?.postalCode || '',
+    country: data?.address?.country || '',
+    type: data?.address?.type || '',
+    isDefault: data?.address?.isDefault ?? true,
+    label: data?.address?.label || '',
+    lat: data?.address?.lat || '',
+    long: data?.address?.long || '',
+    location: {
+      type: 'Point',
+      coordinates: [
+        data?.address?.lat || '',
+        data?.address?.long || ''
+      ]
     }
-  })
+  }
+})
+
 
   console.log('isAdminisAdminisAdminisAdmin', isAdmin);
 
@@ -270,65 +273,63 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
     reset(formatInitialData(data))
   }
 
-  const onSubmit = async formValues => {
-    try {
-      const requestData = {
-        name: formValues.fullName,
-        email: formValues.email,
-        phone: formValues.phone,
-        address: {
-          addressLine1: formValues.address?.addressLine1 || '',
-          addressLine2: formValues.address?.addressLine2 || '',
-          city: formValues.address?.city || '',
-          state: formValues.address?.state || '',
-          postalCode: formValues.address?.postalCode || '',
-          country: formValues.address?.country || '',
-          lat: formValues.address?.lat || '',
-          long: formValues.address?.long || ''
-        },
-        business_name: formValues.businessName,
-        business_email: formValues.businessEmail,
-        business_phone: formValues.businessPhone,
-        status: formValues.status,
-        business_status: formValues.businessStatus,
-        accept_term: 1
+const onSubmit = async formValues => {
+
+  const lat = formValues.address?.lat || ''
+  const long = formValues.address?.long || ''
+
+  const requestData = {
+    name: formValues.name,
+    email: formValues.email,
+    phone: formValues.phone,
+    address: {
+      name: formValues.address?.name || '',
+      phone: formValues.address?.phone || '',
+      addressLine1: formValues.address?.addressLine1 || '',
+      addressLine2: formValues.address?.addressLine2 || '',
+      street: formValues.address?.street || '',
+      city: formValues.address?.city || '',
+      state: formValues.address?.state || '',
+      postalCode: formValues.address?.postalCode || '',
+      country: formValues.address?.country || '',
+      type: formValues.address?.type || '',
+      isDefault: formValues.address?.isDefault ?? true,
+      label: formValues.address?.label || '',
+      lat,
+      long,
+      location: {
+        type: 'Point',
+        coordinates: [lat, long]
       }
-
-      const response = await updateTradeProfessional(data._id, requestData)
-
-      const isSuccess = response?.statusCode === 200 || response?.statusCode === 201
-
-      if (isSuccess) {
-        toast.success(response?.message || 'Operation successful')
-        setRefresh(true)
-        handleClose()
-        reset()
-        return
-      }
-
-      const fieldErrors = response?.data?.errors
-      if (fieldErrors) {
-        Object.entries(fieldErrors).forEach(([fieldName, messages]) => {
-          setError(fieldName, { message: messages?.[0] || 'Invalid value' })
-        })
-      } else {
-        toast.error(response?.message || 'Something went wrong.')
-      }
-    } catch (error) {
-      console.error('User update failed:', error)
-      toast.error('Unexpected error occurred. Please try again.')
     }
   }
+  console.log('requestData',requestData )
 
-  //console.log('formatInitialDataformatInitialData', data);
+  try {
+    const response = await updateTradeProfessional(data._id, requestData)
+
+    if (response?.statusCode === 200 || response?.statusCode === 201) {
+      toast.success(response?.message || 'Operation successful')
+      setRefresh(true)
+      handleClose()
+      reset()
+    } else {
+      const fieldErrors = response?.data?.errors
+      if (fieldErrors) {
+        // handle errors
+      }
+    }
+  } catch (error) {
+    console.error('Update failed', error)
+    toast.error('Something went wrong while updating')
+  }
+}
+
 
   return (
     <Dialog fullWidth open={open} onClose={handleClose} maxWidth='md' scroll='body'>
       <DialogTitle variant='h4' className='flex gap-0 flex-col items-center sm:pbs-16 sm:pbe-6 sm:pli-16 mb-3'>
-        <div className='max-sm:is-[80%] max-sm:text-center'>Edit Trade Professional</div>
-        <Typography component='span' className='flex flex-col text-center'>
-          Updating this user will trigger a privacy audit.
-        </Typography>
+        <div className='max-sm:is-[80%] max-sm:text-center'>{data.length > 0 ? 'Edit Client' : 'Add Client'}</div>
       </DialogTitle>
 
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -339,7 +340,7 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
 
           <Grid container spacing={5}>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Full Name' {...register('fullName')} />
+              <TextField fullWidth label='Full Name' {...register('name')} />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
               <TextField fullWidth label='Email' type='email' {...register('email')} />
@@ -347,28 +348,6 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
             <Grid size={{ xs: 12, md: 4 }}>
               <TextField fullWidth label='Phone' {...register('phone')} />
             </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Role' disabled {...register('role')} />
-            </Grid>
-            {isAdmin && (
-              <Grid size={{ xs: 12, md: 4 }}>
-                <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    label='Status'
-                    {...register('status')}
-                    value={watch('status')}
-                    onChange={e => setValue('status', e.target.value)}
-                  >
-                    {statusOptions.map(status => (
-                      <MenuItem key={status.value} value={status.value}>
-                        {status.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-            )}
 
             {/* Address Search Section */}
             <Grid size={{ xs: 12 }}>
@@ -466,65 +445,6 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
             {/* Hidden fields for coordinates */}
             <input type='hidden' {...register('address.lat')} />
             <input type='hidden' {...register('address.long')} />
-
-            {/* Business Info Fields */}
-            <Grid size={{ xs: 12 }}>
-              <Typography
-                variant='h5'
-                className='mb-2'
-                sx={{ borderBottom: '1px solid #ebebeb', paddingBottom: '8px' }}
-              >
-                Business Information
-              </Typography>
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Business Name' {...register('businessName')} />
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Business Email' {...register('businessEmail')} />
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Business Phone' {...register('businessPhone')} />
-            </Grid>
-
-            {isAdmin && (
-              <Grid size={{ xs: 12, md: 4 }}>
-                <FormControl fullWidth>
-                  <InputLabel>Business Status</InputLabel>
-                  <Select
-                    label='Business Status'
-                    {...register('businessStatus')}
-                    value={watch('businessStatus')}
-                    onChange={e => setValue('businessStatus', e.target.value)}
-                  >
-                    {statusOptions.map(status => (
-                      <MenuItem key={status.value} value={status.value}>
-                        {status.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-            )}
-
-            {/* Read-only business metadata */}
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField
-                fullWidth
-                label='Business Created At'
-                value={new Date(watch('businessCreatedAt')).toLocaleString()}
-                disabled
-              />
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField
-                fullWidth
-                label='Business Updated At'
-                value={new Date(watch('businessUpdatedAt')).toLocaleString()}
-                disabled
-              />
-            </Grid>
           </Grid>
         </DialogContent>
 
@@ -541,4 +461,4 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
   )
 }
 
-export default EditUserInfo
+export default EditClientInfo
