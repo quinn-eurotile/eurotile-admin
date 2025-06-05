@@ -29,6 +29,8 @@ import OpenDialogOnElementClick from "@components/dialogs/OpenDialogOnElementCli
 
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard"
+import { deleteAddresses, getAddresses } from "@/app/server/actions"
+import { cartApi } from "@/services/cart"
 
 // Styled Components
 const HorizontalContent = styled(Typography, {
@@ -66,6 +68,7 @@ const StepAddress = ({ handleNext }) => {
   const [addressToDelete, setAddressToDelete] = useState(null)
   const [open, setOpen] = useState(false);
   const [addressData, setAddressData] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false)  // Add loading state
 
   // Button props for add address
   const buttonProps = {
@@ -73,6 +76,7 @@ const StepAddress = ({ handleNext }) => {
     children: "Add New Address",
     className: "self-start",
   }
+
 
   // Shipping options
   const shippingOptions = [
@@ -124,24 +128,29 @@ const StepAddress = ({ handleNext }) => {
   }
 
   // Handle shipping option change
-  const handleShippingChange = (value) => {
-    setSelectedShipping(value)
-
-    // Update order summary with shipping cost
-    let shippingCost = 0
-    if (value === "express") shippingCost = 10
-    if (value === "overnight") shippingCost = 15
-
-    setOrderSummary((prev) => ({
-      ...prev,
-      shipping: shippingCost,
-      total: prev.subtotal + shippingCost,
-    }))
+  const handleShippingChange = async (value) => {
+    setIsUpdating(true)
+    try {
+      const response = await cartApi.updateShippingMethod(user._id, value)
+      
+      if (response.success) {
+        setSelectedShipping(value)
+        setOrderSummary((prev) => ({
+          ...prev,
+          shipping: response.data.shipping,
+          total: response.data.total
+        }))
+      }
+    } catch (error) {
+      console.error("Error updating shipping method:", error)
+      // You might want to show an error message to the user
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
   // Edit address
   const handleEditAddress = (address) => {
-    alert('hkk');
     setAddressData(address); // set the address you want to edit
     setOpen(true); // open the dialog
   };
@@ -157,19 +166,17 @@ const StepAddress = ({ handleNext }) => {
 
     setIsUpdating(true)
     try {
-      const response = await fetch(`/api/user/addresses/${addressToDelete}`, {
-        method: "DELETE",
-      })
-
-      if (response.ok) {
+      const response = await deleteAddresses(addressToDelete)
+      
+      if (response.success) {
         // Update local state
-        const updatedAddresses = addresses?.filter((addr) => addr.id !== addressToDelete)
+        const updatedAddresses = addresses?.filter((addr) => addr._id !== addressToDelete)
         setAddresses(updatedAddresses)
 
         // If deleted address was selected, select another one if available
         if (selectedAddress === addressToDelete) {
           if (updatedAddresses.length > 0) {
-            setSelectedAddress(updatedAddresses[0].id)
+            setSelectedAddress(updatedAddresses[0]._id)
             setStepValid(1, true)
           } else {
             setSelectedAddress(null)
@@ -186,8 +193,41 @@ const StepAddress = ({ handleNext }) => {
     }
   }
 
+  // Handle successful address add/edit
+  const handleAddressSuccess = async (response) => {
+    try {
+      const addressesResponse = await getAddresses(user?._id)
+      if (addressesResponse.success) {
+        setAddresses(addressesResponse.data)
+        
+        if (!selectedAddress && addressesResponse.data.length > 0) {
+          setSelectedAddress(addressesResponse.data[0]._id)
+          setStepValid(1, true)
+        }
 
+        // Close dialog only if operation was successful
+        handleClose()
+      }
+    } catch (error) {
+      console.error("Error fetching addresses:", error)
+    }
+  }
 
+  // Handle dialog close
+  const handleClose = () => {
+    setOpen(false)
+    setAddressData(null)
+  }
+
+  // Dialog props for AddEditAddress
+  const dialogProps = {
+    onClose: handleClose,
+    onSuccess: handleAddressSuccess,
+    data: addressData,
+    setOpen: setOpen, // Pass setOpen to control dialog visibility
+    isSubmitting,
+    setIsSubmitting
+  }
 
   // Format addresses for custom input component
   const formattedAddresses = addresses?.map((address) => ({
@@ -226,7 +266,6 @@ const StepAddress = ({ handleNext }) => {
       </HorizontalContent>
     ),
   })) ?? {};
-  console.log(formattedAddresses, 'formattedAddresses');
 
   // Check if address is selected and update validation
   useEffect(() => {
@@ -256,24 +295,23 @@ const StepAddress = ({ handleNext }) => {
               <Grid container spacing={6} className="is-full">
                 {formattedAddresses?.map((item, index) => (
                   <CustomInputHorizontal
-                    type="radio"
                     key={index}
-                    data={item}
-                    gridProps={{
-                      size: {
-                        sm: 6,
-                        xs: 12,
-                      },
-                    }}
+                    type='radio'
+                    name='addressType'
                     selected={selectedAddress}
-                    name="address-selection"
+                    data={item}
                     handleChange={handleAddressChange}
                   />
                 ))}
               </Grid>
             )}
 
-            <OpenDialogOnElementClick element={Button} elementProps={buttonProps} dialog={AddEditAddress} />
+            <OpenDialogOnElementClick 
+              element={Button} 
+              elementProps={buttonProps} 
+              dialog={AddEditAddress}
+              dialogProps={dialogProps}
+            />
           </div>
 
           <div className="flex flex-col gap-4">
@@ -321,7 +359,7 @@ const StepAddress = ({ handleNext }) => {
                     <img
                       width={60}
                       height={60}
-                      src={item.imgSrc || "/placeholder.svg?height=60&width=60"}
+                      src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item.imgSrc}` || "/placeholder.svg?height=60&width=60"} 
                       alt={item.imgAlt || item.productName}
                     />
                     <div>
@@ -405,6 +443,10 @@ const StepAddress = ({ handleNext }) => {
           open={open}
           setOpen={setOpen}
           data={addressData}
+          onClose={handleClose}
+          onSuccess={handleAddressSuccess}
+          isSubmitting={isSubmitting}
+          setIsSubmitting={setIsSubmitting}
         />
       }
 

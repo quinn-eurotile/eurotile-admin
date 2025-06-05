@@ -27,6 +27,10 @@ import DirectionalIcon from "@components/DirectionalIcon"
 
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard"
+import { cartApi } from "@/services/cart/index"
+
+// API Import
+ 
 
 const StepCart = ({ handleNext }) => {
   // States
@@ -34,10 +38,10 @@ const StepCart = ({ handleNext }) => {
   const [openFade, setOpenFade] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
   const [promoCode, setPromoCode] = useState("")
+  const [error, setError] = useState("")
 
   // Context
-  const { cartItems, setCartItems, orderSummary, setOrderSummary, setStepValid, loading } = useContext(CheckoutContext)
-
+  const { cartItems, setCartItems, orderSummary, setOrderSummary, setStepValid, loading, user } = useContext(CheckoutContext)
 
   useEffect(() => {
     if (!openFade) {
@@ -52,30 +56,20 @@ const StepCart = ({ handleNext }) => {
     if (newQuantity < 1) return
 
     setIsUpdating(true)
+    setError("")
     try {
-      const response = await fetch("/api/cart/update", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ itemId, quantity: newQuantity }),
-      })
-
-      if (response.ok) {
-        // Update local state
-        const updatedItems = cartItems.map((item) => (item._id === itemId ? { ...item, count: newQuantity } : item))
-        setCartItems(updatedItems)
-
-        // Recalculate order summary
-        const subtotal = updatedItems.reduce((sum, item) => sum + item.price * item.count, 0)
-        setOrderSummary((prev) => ({
-          ...prev,
-          subtotal,
-          total: subtotal + prev.shipping,
-        }))
+      const response = await cartApi.updateCartItem(itemId, newQuantity)
+      console.log(itemId, newQuantity, 'response updateCartItem');
+      if (response.success) {
+        const { items, orderSummary: newOrderSummary } = response.data
+        setCartItems(items)
+        setOrderSummary(newOrderSummary)
+      } else {
+        setError(response.message || "Error updating cart")
       }
     } catch (error) {
       console.error("Error updating cart:", error)
+      setError("Failed to update cart item")
     } finally {
       setIsUpdating(false)
     }
@@ -84,33 +78,21 @@ const StepCart = ({ handleNext }) => {
   // Remove item from cart
   const removeItem = async (itemId) => {
     setIsUpdating(true)
+    setError("")
     try {
-      const response = await fetch("/api/cart/remove", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ itemId }),
-      })
+      const response = await cartApi.removeCartItem(itemId)
 
-      if (response.ok) {
-        // Update local state
-        const updatedItems = cartItems.filter((item) => item._id !== itemId)
-        setCartItems(updatedItems)
-
-        // Recalculate order summary
-        const subtotal = updatedItems.reduce((sum, item) => sum + item.price * item.count, 0)
-        setOrderSummary((prev) => ({
-          ...prev,
-          subtotal,
-          total: subtotal + prev.shipping,
-        }))
-
-        // Update step validation
-        setStepValid(0, updatedItems.length > 0)
+      if (response.success) {
+        const { items, orderSummary: newOrderSummary } = response.data
+        setCartItems(items)
+        setOrderSummary(newOrderSummary)
+        setStepValid(0, items.length > 0)
+      } else {
+        setError(response.message || "Error removing item")
       }
     } catch (error) {
       console.error("Error removing item from cart:", error)
+      setError("Failed to remove item from cart")
     } finally {
       setIsUpdating(false)
     }
@@ -119,59 +101,47 @@ const StepCart = ({ handleNext }) => {
   // Move item to wishlist
   const moveToWishlist = async (itemId) => {
     setIsUpdating(true)
+    setError("")
     try {
-      const response = await fetch("/api/wishlist/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ itemId }),
-      })
+      const response = await cartApi.addToWishlist(itemId)
 
-      if (response.ok) {
+      if (response.success) {
         // Remove from cart after adding to wishlist
         await removeItem(itemId)
+      } else {
+        setError(response.message || "Error moving item to wishlist")
       }
     } catch (error) {
       console.error("Error moving item to wishlist:", error)
+      setError("Failed to move item to wishlist")
     } finally {
       setIsUpdating(false)
     }
   }
 
   // Apply promo code
-  const applyPromoCode = async () => {
+  const handleApplyPromoCode = async () => {
     if (!promoCode.trim()) return
 
     setIsUpdating(true)
+    setError("")
     try {
-      const response = await fetch("/api/promo/apply", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          code: promoCode,
-          cartTotal: orderSummary.subtotal,
-        }),
-      })
+      const response = await cartApi.applyPromoCode(promoCode)
 
-      if (response.ok) {
-        const { discount, newTotal } = await response.json()
-        setOrderSummary((prev) => ({
-          ...prev,
-          discount,
-          total: newTotal,
-        }))
+      if (response.success) {
+        const { orderSummary: newOrderSummary } = response.data
+        setOrderSummary(newOrderSummary)
         setPromoCode("")
+      } else {
+        setError(response.message || "Invalid promo code")
       }
     } catch (error) {
       console.error("Error applying promo code:", error)
+      setError("Failed to apply promo code")
     } finally {
       setIsUpdating(false)
     }
   }
-
 
   // Check if cart is empty and update validation
   useEffect(() => {
@@ -185,11 +155,17 @@ const StepCart = ({ handleNext }) => {
       </div>
     )
   }
-
+  console.log(JSON.stringify(orderSummary, null, 2), 'orderSummary');
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-4">
-        <Collapse in={openCollapse}>
+        {error && (
+          <Alert severity="error" onClose={() => setError("")}>
+            {error}
+          </Alert>
+        )}
+        
+        {/* <Collapse in={openCollapse}>
           <Fade in={openFade} timeout={{ exit: 300 }}>
             <Alert
               icon={<i className="ri-percent-line" />}
@@ -215,7 +191,7 @@ const StepCart = ({ handleNext }) => {
               </Typography>
             </Alert>
           </Fade>
-        </Collapse>
+        </Collapse> */}
 
         <Typography className="rounded" variant="h5">
           My Shopping Bag ({cartItems.length} {cartItems.length === 1 ? "Item" : "Items"})
@@ -262,17 +238,16 @@ const StepCart = ({ handleNext }) => {
                         <Chip size="small" variant="tonal" color="error" label="Out of Stock" />
                       )}
                     </div>
-                    <Rating name={`product-rating-${product._id}`} value={product.rating || 0} readOnly />
-                    {/* <TextField
+                    <Rating name={`product-rating-${product.id}`} value={product.rating || 0} readOnly />
+                    <TextField
                       size="small"
                       type="number"
                       value={product?.count}
-                      onChange={(e) => updateItemQuantity(product._id, Number.parseInt(e.target.value), 10)}
+                      onChange={(e) => updateItemQuantity(product.id, Number.parseInt(e.target.value), 10)}
                       className="block max-is-[100px]"
                       disabled={isUpdating}
                       inputProps={{ min: 1, step: 1 }}
-
-                    /> */}
+                    />
                   </div>
                   <div className="flex flex-col justify-between items-center mt-4 gap-1 sm:items-end">
                     <div className="flex">
@@ -287,7 +262,7 @@ const StepCart = ({ handleNext }) => {
                     <Button
                       variant="outlined"
                       size="small"
-                      onClick={() => moveToWishlist(product._id)}
+                      onClick={() => moveToWishlist(product.id)}
                       disabled={isUpdating}
                     >
                       Move to wishlist
@@ -317,44 +292,6 @@ const StepCart = ({ handleNext }) => {
 
       <Grid size={{ xs: 12, lg: 4 }} className="flex flex-col gap-2">
         <div className="border rounded">
-          <CardContent className="flex flex-col gap-4">
-            <Typography className="font-medium" color="text.primary">
-              Offer
-            </Typography>
-            {/* <div className="flex gap-4">
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Enter Promo Code"
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value)}
-              />
-              <Button
-                variant="outlined"
-                className="normal-case"
-                onClick={applyPromoCode}
-                disabled={isUpdating || !promoCode.trim()}
-              >
-                Apply
-              </Button>
-            </div> */}
-            <div className="flex flex-col gap-2 p-5 rounded bg-actionHover">
-              <Typography className="font-medium" color="text.primary">
-                Buying gift for a loved one?
-              </Typography>
-              <Typography>Gift wrap and personalized message on card, Only for $2.</Typography>
-              <Typography
-                href="/"
-                component={Link}
-                onClick={(e) => e.preventDefault()}
-                color="primary.main"
-                className="font-medium"
-              >
-                Add a gift wrap
-              </Typography>
-            </div>
-          </CardContent>
-          <Divider />
           <CardContent className="flex gap-4 flex-col">
             <Typography className="font-medium" color="text.primary">
               Price Details

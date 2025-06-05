@@ -17,11 +17,7 @@ export async function fetchCartData(userId) {
 
     const cartData = response?.data || {};
 
-    return {
-      items: cartData?.items || [],
-      subtotal: cartData?.subtotal || 0,
-      total: cartData?.total || 0
-    }
+    return cartData;
   } catch (error) {
     console.error('Failed to fetch cart data:', error)
     return { items: [], subtotal: 0, total: 0 }
@@ -47,9 +43,11 @@ const CheckoutPage = async () => {
     addresses: [],
     user: null,
     orderSummary: {
-      subtotal: 0,
+      discount: 0,
       shipping: 0,
+      subtotal: 0,
       total: 0
+     
     }
   }
 
@@ -60,20 +58,16 @@ const CheckoutPage = async () => {
       fetchCartData(session.user._id),
       fetchUserAddresses(session.user._id),
       fetchUserProfile(session.user._id)
-    ])
-    console.log(cartData, 'cartDatacartData');
+    ]) 
 
     initialData = {
       cartItems: cartData.items,
       addresses: addresses,
       user: userProfile || session.user,
-      orderSummary: {
-        subtotal: cartData.subtotal,
-        shipping: 0,
-        total: cartData.total
-      }
+      orderSummary: cartData.orderSummary
     }
   }
+  console.log(initialData, 'initialData');
   return <>
     <Checkout initialData={initialData} session={session} />
   </>

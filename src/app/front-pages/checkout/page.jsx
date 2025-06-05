@@ -12,7 +12,7 @@ export async function fetchCartData(userId) {
   try {
     const cartData = await cartServices.getById(userId)
 
-    console.log(cartData,'cartData hello');
+    console.log(cartData, 'cartData hello');
 
     return {
       items: cartData?.items || [],
@@ -28,7 +28,7 @@ export async function fetchCartData(userId) {
 export async function fetchUserAddresses(userId) {
   try {
     const addresses = await addressService.getById(userId)
-    return addresses || []
+    return addresses.data || []
   } catch (error) {
     console.error("Failed to fetch user addresses:", error)
     return []
