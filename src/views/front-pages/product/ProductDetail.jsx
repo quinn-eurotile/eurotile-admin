@@ -1,25 +1,25 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import Link from "next/link"
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
-import Select from '@mui/material/Select'
-import { useEffect, useState } from "react"
-import { Divider, FormControl, Grid2, InputLabel, MenuItem } from "@mui/material"
-import Tab from '@mui/material/Tab'
-import TabList from '@mui/lab/TabList'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
-import Typography from '@mui/material/Typography'
-import ColorSelector from "./ColorSelector"
-import RelatedProductGrid from "./related-product"
-import { addCart, getProductDetails } from "@/app/server/actions"
-import { useParams } from "next/navigation"
-import { useDispatch, useSelector } from "react-redux"
-import { addToCart } from "@/redux-store/slices/cart"
+import Image from "next/image";
+import Link from "next/link";
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Select from '@mui/material/Select';
+import { useEffect, useState } from "react";
+import { Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid2, InputLabel, MenuItem } from "@mui/material";
+import Tab from '@mui/material/Tab';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
+import TabContext from '@mui/lab/TabContext';
+import Typography from '@mui/material/Typography';
+import ColorSelector from "./ColorSelector";
+import RelatedProductGrid from "./related-product";
+import { addCart, getProductDetails } from "@/app/server/actions";
+import { useParams } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart } from "@/redux-store/slices/cart";
 
-import { getSession } from "next-auth/react"
+import { getSession } from "next-auth/react";
 
 
 
@@ -35,57 +35,57 @@ import { getSession } from "next-auth/react"
 export default function ProductDetailPage() {
 
   const { lang: locale, id: productId } = useParams();
-  const [product, setProduct] = useState(null)
+  const [product, setProduct] = useState(null);
 
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
-  const [quantity, setQuantity] = useState("1")
-  const [tiles, setTiles] = useState("10")
-  const [pallets, setPallets] = useState("1")
-  const [selectedSize, setSelectedSize] = useState("")
-  const [selectedFinish, setSelectedFinish] = useState("")
-  const [pricingTier, setPricingTier] = useState("Tier 5")
-  const [selectedVariation, setSelectedVariation] = useState(null)
-  const [selectedAttributes, setSelectedAttributes] = useState({})
-  const [error, setError] = useState('')
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [quantity, setQuantity] = useState("1");
+  const [tiles, setTiles] = useState("10");
+  const [pallets, setPallets] = useState("1");
+  const [selectedSize, setSelectedSize] = useState("");
+  const [selectedFinish, setSelectedFinish] = useState("");
+  const [pricingTier, setPricingTier] = useState("Tier 5");
+  const [selectedVariation, setSelectedVariation] = useState(null);
+  const [selectedAttributes, setSelectedAttributes] = useState({});
+  const [error, setError] = useState('');
   const [calculatedValues, setCalculatedValues] = useState({
     sqm: 0,
     tiles: 0,
     pallets: 0
-  })
-  const [value, setValue] = useState('1')
-  const [Tabvalue, setTabValue] = useState('1')
-  const dispatch = useDispatch()
+  });
+  const [value, setValue] = useState('1');
+  const [Tabvalue, setTabValue] = useState('1');
+  const dispatch = useDispatch();
   const cart = useSelector(state => state.cartReducer);
-  const [isClientOrder, setIsClientOrder] = useState(false)
-  const [openPriceDialog, setOpenPriceDialog] = useState(false)
-  const [customPrice, setCustomPrice] = useState("")
-  const [priceError, setPriceError] = useState("")
+  const [isClientOrder, setIsClientOrder] = useState(false);
+  const [openPriceDialog, setOpenPriceDialog] = useState(false);
+  const [customPrice, setCustomPrice] = useState("");
+  const [priceError, setPriceError] = useState("");
   const [selectedVariations, setSelectedVariations] = useState([]);
 
   console.log('Current cart state:', cart);
   const fetchProductDetails = async () => {
     try {
-      const response = await getProductDetails(productId)
+      const response = await getProductDetails(productId);
       if (response?.success && response?.data) {
-        setProduct(response.data)
+        setProduct(response.data);
       }
     } catch (error) {
-      console.error('Failed to fetch product details:', error)
+      console.error('Failed to fetch product details:', error);
     }
-  }
+  };
   const userId = '680b8ce6e2f902abe9cc790b'; // get it from auth/user context if dynamic
 
 
   useEffect(() => {
     if (productId) {
-      fetchProductDetails()
+      fetchProductDetails();
     }
-  }, [productId])
+  }, [productId]);
   useEffect(() => {
     if (product?.productVariations?.length > 0) {
-      setSelectedVariation(product.productVariations[0])
+      setSelectedVariation(product.productVariations[0]);
     }
-  }, [product])
+  }, [product]);
 
   const handleVariationChange = (attributeId, variationId) => {
     // Step 1: Update the selectedAttributes with the selected variationId
@@ -118,7 +118,7 @@ export default function ProductDetailPage() {
     } else {
       setSelectedVariation(null);
     }
-  }
+  };
 
 
   // Update product images to use variation images
@@ -131,45 +131,45 @@ export default function ProductDetailPage() {
 
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % productImages.length)
-  }
+    setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
+  };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length)
-  }
+    setCurrentImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length);
+  };
 
   const selectImage = (index) => {
-    setCurrentImageIndex(index)
-  }
+    setCurrentImageIndex(index);
+  };
 
   // Update pricing tier based on quantity
   const updatePricingTier = (qty) => {
-    const numQty = Number.parseInt(qty) || 0
+    const numQty = Number.parseInt(qty) || 0;
 
     if (numQty < 30) {
-      setPricingTier("Tier 5")
+      setPricingTier("Tier 5");
     } else if (numQty < 75) {
-      setPricingTier("Tier 4")
+      setPricingTier("Tier 4");
     } else if (numQty < 150) {
-      setPricingTier("Tier 3")
+      setPricingTier("Tier 3");
     } else if (numQty < 1500) {
-      setPricingTier("Tier 2")
+      setPricingTier("Tier 2");
     } else {
-      setPricingTier("Tier 1")
+      setPricingTier("Tier 1");
     }
-  }
+  };
 
 
 
 
   const handleChange = (event, newValue) => {
-    setValue(newValue)
-  }
+    setValue(newValue);
+  };
 
 
   const handleTab = (event, newValue) => {
-    setTabValue(newValue)
-  }
+    setTabValue(newValue);
+  };
   // Update price display
   const displayPrice = selectedVariation ? {
     minPrice: selectedVariation.regularPriceB2B,
@@ -177,9 +177,9 @@ export default function ProductDetailPage() {
   } : {
     minPrice: product?.minPriceB2B,
     maxPrice: product?.maxPriceB2B
-  }
+  };
   if (!product) {
-    return <div>Loading product details...</div>
+    return <div>Loading product details...</div>;
   }
   // Map of tiers to human-friendly names and quantity ranges
   const tierData = [
@@ -281,34 +281,34 @@ export default function ProductDetailPage() {
   };
 
   const handleQuantityChange = (e) => {
-    const values = calculateValues('sqm', e.target.value)
+    const values = calculateValues('sqm', e.target.value);
 
     console.log(values, 'values');
 
     if (values) {
-      setQuantity(e.target.value)
-      setTiles(values.tiles.toString())
-      setPallets(values.pallets.toString())
+      setQuantity(e.target.value);
+      setTiles(values.tiles.toString());
+      setPallets(values.pallets.toString());
     }
-  }
+  };
 
   const handleTilesChange = (e) => {
-    const values = calculateValues('tiles', e.target.value)
+    const values = calculateValues('tiles', e.target.value);
     if (values) {
-      setQuantity(values.sqm.toString())
-      setTiles(e.target.value)
-      setPallets(values.pallets.toString())
+      setQuantity(values.sqm.toString());
+      setTiles(e.target.value);
+      setPallets(values.pallets.toString());
     }
-  }
+  };
 
   const handlePalletsChange = (e) => {
-    const values = calculateValues('pallets', e.target.value)
+    const values = calculateValues('pallets', e.target.value);
     if (values) {
-      setQuantity(values.sqm.toString())
-      setTiles(values.tiles.toString())
-      setPallets(e.target.value)
+      setQuantity(values.sqm.toString());
+      setTiles(values.tiles.toString());
+      setPallets(e.target.value);
     }
-  }
+  };
 
   const handleAddVariation = () => {
     if (!selectedVariation) {
@@ -387,7 +387,7 @@ export default function ProductDetailPage() {
     try {
       // Prepare cart items
       let cartItems = [];
-      
+
       // Add saved variations
       selectedVariations.forEach(variation => {
         cartItems.push({
@@ -414,11 +414,11 @@ export default function ProductDetailPage() {
         });
       }
 
-      const response = await addCart({ 
+      const response = await addCart({
         items: cartItems,
         userId: session?.user?.id
       });
-      
+
       if (response.success) {
         dispatch(addToCart(response.data));
         toast.success('Products added to cart successfully');
@@ -648,7 +648,7 @@ export default function ProductDetailPage() {
                           ))}
                         </Select>
                       </FormControl>
-                    )
+                    );
                   })}
 
 
@@ -733,8 +733,8 @@ export default function ProductDetailPage() {
                             <p className="text-sm text-gray-600">Pallets: {item.numberOfPallets}</p>
                             <p className="text-sm text-red-800">£{item.price}/SQ.M</p>
                           </div>
-                          <Button 
-                            variant="outlined" 
+                          <Button
+                            variant="outlined"
                             color="error"
                             onClick={() => handleRemoveVariation(index)}
                           >
@@ -747,15 +747,15 @@ export default function ProductDetailPage() {
                 )}
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Button 
-                    className="flex-1 bg-red-800 hover:bg-red-900 text-white" 
+                  <Button
+                    className="flex-1 bg-red-800 hover:bg-red-900 text-white"
                     onClick={handleAddVariation}
                   >
                     <i className="ri-add-line me-2 text-lg"></i>
                     Add Variation
                   </Button>
-                  <Button 
-                    className="flex-1 bg-red-800 hover:bg-red-900 text-white" 
+                  <Button
+                    className="flex-1 bg-red-800 hover:bg-red-900 text-white"
                     onClick={handleAddToCart}
                   >
                     <i className="ri-shopping-cart-line me-2 text-lg"></i>
@@ -1148,8 +1148,8 @@ export default function ProductDetailPage() {
             fullWidth
             value={customPrice}
             onChange={(e) => {
-              setCustomPrice(e.target.value)
-              setPriceError("")
+              setCustomPrice(e.target.value);
+              setPriceError("");
             }}
             error={!!priceError}
             helperText={priceError}
@@ -1166,6 +1166,6 @@ export default function ProductDetailPage() {
       </Dialog>
 
     </div>
-  )
+  );
 }
 
