@@ -6,7 +6,7 @@ import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Select from '@mui/material/Select'
 import { useEffect, useState } from "react"
-import { Divider, FormControl, Grid2, InputLabel, MenuItem } from "@mui/material"
+import { Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid2, InputLabel, MenuItem } from "@mui/material"
 import Tab from '@mui/material/Tab'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
@@ -19,7 +19,9 @@ import { useParams } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
 import { addToCart } from "@/redux-store/slices/cart"
 
-import { getSession } from "next-auth/react"
+import { getSession, useSession } from "next-auth/react"
+import { toast } from "react-toastify"
+import { useRouter } from "next/navigation"
 
 
 
@@ -34,8 +36,10 @@ import { getSession } from "next-auth/react"
 
 export default function ProductDetailPage() {
 
+  const router = useRouter();
   const { lang: locale, id: productId } = useParams();
   const [product, setProduct] = useState(null)
+  const { data: session, status } = useSession()
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [quantity, setQuantity] = useState("1")
@@ -422,6 +426,8 @@ export default function ProductDetailPage() {
       if (response.success) {
         dispatch(addToCart(response.data));
         toast.success('Products added to cart successfully');
+
+        router.push('/'+locale+'/checkout');
         setSelectedVariations([]); // Clear selections after successful add
       } else {
         setError(response.message || 'Failed to add items to cart');
