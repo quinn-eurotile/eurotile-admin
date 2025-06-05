@@ -35,10 +35,13 @@ import OpenDialogOnElementClick from "@components/dialogs/OpenDialogOnElementCli
 
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard"
-import { deleteAddresses, getAddresses, getAllClients } from "@/app/server/actions"
+import { addCart, deleteAddresses, getAddresses, getAllClients } from "@/app/server/actions"
 import { cartApi } from "@/services/cart"
 import { tradeProfessionalsApi } from "@/services/trade-professionals"
 import { FormControl } from "@mui/material"
+import { getSession, useSession } from "next-auth/react"
+import { addToCart } from "@/redux-store/slices/cart"
+import { useDispatch } from "react-redux"
 
 // Styled Components
 const HorizontalContent = styled(Typography, {
@@ -77,12 +80,23 @@ const StepAddress = ({ handleNext }) => {
   const [open, setOpen] = useState(false);
   const [addressData, setAddressData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false)  // Add loading state
-  const [isClientOrder, setIsClientOrder] = useState(false)
+  //const [isClientOrder, setIsClientOrder] = useState(false)
+  const [isClientOrder, setIsClientOrder] = useState(() => {
+    const stored = sessionStorage.getItem('isClientOrder');
+    return stored ? JSON.parse(stored) : false;
+  });
   const [clients, setClients] = useState([])
-  const [selectedClient, setSelectedClient] = useState(null)
+  //const [selectedClient, setSelectedClient] = useState(null)
+  const [selectedClient, setSelectedClient] = useState(() => {
+    const storedClient = sessionStorage.getItem('selectedClient');
+    return storedClient ? JSON.parse(storedClient) : null;
+  });
   const [priceDialogOpen, setPriceDialogOpen] = useState(false)
   const [modifiedPrices, setModifiedPrices] = useState({})
   const [clientLoading, setClientLoading] = useState(false)
+  const { data: session, status } = useSession()
+  const dispatch = useDispatch();
+//console.log(isClientOrder, 'isClientOrder');
 
   // Button props for add address
   const buttonProps = {
@@ -265,43 +279,141 @@ const StepAddress = ({ handleNext }) => {
     setIsSubmitting
   }
 
+  useEffect(() => {
+    if (selectedClient?.addressDetails) {
+      const clientAddress = {
+        id: selectedClient.addressDetails._id,
+        type: selectedClient.addressDetails.type || "Client",
+        name: selectedClient.addressDetails.name,
+        street: selectedClient.addressDetails.addressLine1 || '',
+        addressLine2: selectedClient.addressDetails.addressLine2 || '',
+        city: selectedClient.addressDetails.city || '',
+        state: selectedClient.addressDetails.state || '',
+        zipCode: selectedClient.addressDetails.postalCode || '',
+        country: selectedClient.addressDetails.country || '',
+        phone: selectedClient.addressDetails.phone || '',
+        isDefault: selectedClient.addressDetails.isDefault,
+        label: selectedClient.addressDetails.label || '',
+        tags: selectedClient.addressDetails.tags || []
+      }
+
+      // Update addresses state with client address
+      setAddresses([clientAddress])
+      
+      // Set this address as selected
+      setSelectedAddress(clientAddress.id)
+      setStepValid(1, true)
+    } 
+
+    //setPriceDialogOpen(true)
+  }, [selectedClient])
+
+  // Handle client selection
+  const handleClientSelect = (event) => {
+    const client = clients.find(c => c._id === event.target.value)
+    setSelectedClient(client)
+    sessionStorage.setItem('selectedClient', JSON.stringify(client));
+
+    // Format and set client address if available
+    if (client?.addressDetails) {
+      const clientAddress = {
+        id: client.addressDetails._id,
+        type: client.addressDetails.type || "Client",
+        name: client.addressDetails.name,
+        street: client.addressDetails.addressLine1 || '',
+        addressLine2: client.addressDetails.addressLine2 || '',
+        city: client.addressDetails.city || '',
+        state: client.addressDetails.state || '',
+        zipCode: client.addressDetails.postalCode || '',
+        country: client.addressDetails.country || '',
+        phone: client.addressDetails.phone || '',
+        isDefault: client.addressDetails.isDefault,
+        label: client.addressDetails.label || '',
+        tags: client.addressDetails.tags || []
+      }
+
+      // Update addresses state with client address
+      setAddresses([clientAddress])
+      
+      // Set this address as selected
+      setSelectedAddress(clientAddress.id)
+      setStepValid(1, true)
+    } else {
+      // If client has no address, reset addresses
+      setAddresses([])
+      setSelectedAddress(null)
+      setStepValid(1, false)
+      toast.warning('Selected client has no address. Please add an address to continue.')
+    }
+
+    setPriceDialogOpen(true)
+  }
+
   // Format addresses for custom input component
-  const formattedAddresses = addresses?.map((address) => ({
-    title: `${address.name} ${address.isDefault ? "(Default)" : ""}`,
+  const formattedAddresses = (isClientOrder ? addresses : addresses)?.map((address) => ({
+    title: `${address.name} ${address.isDefault ? "(Default)" : ""} ${address.label ? `- ${address.label}` : ''}`,
     meta: (
-      <Chip size="small" variant="tonal" label={address.type} color={address.type === "Home" ? "primary" : "success"} />
+      <div className="flex gap-2">
+        <Chip 
+          size="small" 
+          variant="tonal" 
+          label={address.type} 
+          color={address.type === "Warehouse" ? "warning" : address.type === "Home" ? "primary" : "success"} 
+        />
+        {address.tags?.map((tag, index) => (
+          <Chip 
+            key={index}
+            size="small" 
+            variant="tonal" 
+            label={tag}
+            color="default"
+          />
+        ))}
+      </div>
     ),
     value: address.id,
     isSelected: address.id === selectedAddress,
     content: (
       <HorizontalContent component="div" className="flex flex-col bs-full gap-3">
         <Typography variant="body2">
-          {address.street}, {address.city}, {address.state}, {address.zipCode}.
+          {[
+            address.street,
+            address.addressLine2,
+            address.city,
+            address.state,
+            address.zipCode,
+            address.country
+          ].filter(Boolean).join(', ')}.
           <br />
-          Mobile: {address.phone} Cash / Card on delivery available
+          {address.phone && `Mobile: ${address.phone}`}
+          {address.type === "Warehouse" ? " (Warehouse Address)" : " Cash / Card on delivery available"}
         </Typography>
         <Divider />
         <div className="flex items-center gap-4 mbs-0.5">
-          <Typography
-            component="button"
-            onClick={() => handleEditAddress(address)}
-            color="primary.main"
-            className="cursor-pointer"
-          >
-            Edit
-          </Typography>
-          <Typography
-            component="button"
-            onClick={() => confirmDeleteAddress(address.id)}
-            color="primary.main"
-            className="cursor-pointer"
-          >
-            Remove
-          </Typography>
+          {!isClientOrder && (
+            <>
+              <Typography
+                component="button"
+                onClick={() => handleEditAddress(address)}
+                color="primary.main"
+                className="cursor-pointer"
+              >
+                Edit
+              </Typography>
+              <Typography
+                component="button"
+                onClick={() => confirmDeleteAddress(address.id)}
+                color="primary.main"
+                className="cursor-pointer"
+              >
+                Remove
+              </Typography>
+            </>
+          )}
         </div>
       </HorizontalContent>
     ),
-  })) ?? {};
+  })) ?? [];
 
   // Check if address is selected and update validation
   useEffect(() => {
@@ -327,20 +439,20 @@ const StepAddress = ({ handleNext }) => {
 
   // Handle client order toggle
   const handleClientOrderToggle = (event) => {
-    setIsClientOrder(event.target.checked)
-    if (event.target.checked) {
-      fetchClients()
+    const checked = event.target.checked;
+    setIsClientOrder(checked)
+    sessionStorage.setItem('isClientOrder', JSON.stringify(checked));
+    if (checked) {
+      fetchClients();
     } else {
-      setSelectedClient(null)
+      setSelectedClient(null);
+      sessionStorage.removeItem('selectedClient');
     }
   }
 
-  // Handle client selection
-  const handleClientSelect = (event) => {
-    const client = clients.find(c => c._id === event.target.value)
-    setSelectedClient(client)
-    setPriceDialogOpen(true)
-  }
+  useEffect(() => {
+    fetchClients();
+  }, [isClientOrder])
 
   // Handle price modification
   const handlePriceChange = (itemId, newPrice) => {
@@ -358,13 +470,25 @@ const StepAddress = ({ handleNext }) => {
   }
 
   // Handle price dialog save
-  const handlePriceDialogSave = () => {
+  const handlePriceDialogSave = async () => {
     // Update cart items with modified prices
     const updatedCartItems = cartItems.map(item => ({
       ...item,
+      productId: item?.product?.id,       // Add productId as key
+      variationId: item?.variation?.id,   // Add variationId as key
       price: modifiedPrices[item._id] || item.price
     }))
-    
+
+    //console.log('updatedCartItems', cartItems, updatedCartItems, session?.user?.id);
+    //return false;
+
+    const response = await addCart({
+      items: updatedCartItems,
+      userId: session?.user?.id
+    });
+   
+      dispatch(addToCart(response.data));
+      toast.success('Products added to cart successfully'); 
     // Update context or state with new prices
     // This depends on how your cart state is managed
     
@@ -378,12 +502,45 @@ const StepAddress = ({ handleNext }) => {
       </div>
     )
   }
-console.log(JSON.stringify(orderSummary), 'orderSummary 282');
-
+ 
   return (
     <>
       <Grid container spacing={6}>
         <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-6">
+                  {/* Client Order Switch */}
+                  <div className="flex flex-col gap-4">
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isClientOrder}
+                  onChange={handleClientOrderToggle}
+                  color="primary"
+                />
+              }
+              label="Place Orders on Behalf of Clients"
+            />
+
+            {/* Client Selection */}
+            {isClientOrder && (
+              <FormControl fullWidth>
+                <Select
+                  value={selectedClient?._id || ''}
+                  onChange={handleClientSelect}
+                  displayEmpty
+                  disabled={clientLoading}
+                >
+                  <MenuItem value="" disabled>
+                    {clientLoading ? 'Loading clients...' : 'Select a client'}
+                  </MenuItem>
+                  {clients.map((client) => (
+                    <MenuItem key={client._id} value={client._id}>
+                      {client.name} ({client.email})
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+          </div>
           <div className="flex flex-col gap-4">
             <Typography color="text.primary" className="font-medium self-start">
               Select your preferable address
@@ -413,6 +570,7 @@ console.log(JSON.stringify(orderSummary), 'orderSummary 282');
               dialogProps={dialogProps}
             />
           </div>
+          
 
           <div className="flex flex-col gap-4">
             <Typography color="text.primary" className="font-medium self-start">
@@ -446,40 +604,7 @@ console.log(JSON.stringify(orderSummary), 'orderSummary 282');
             </Grid>
           </div>
 
-          {/* Client Order Switch */}
-          <div className="flex flex-col gap-4">
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isClientOrder}
-                  onChange={handleClientOrderToggle}
-                  color="primary"
-                />
-              }
-              label="Place Orders on Behalf of Clients"
-            />
-
-            {/* Client Selection */}
-            {isClientOrder && (
-              <FormControl fullWidth>
-                <Select
-                  value={selectedClient?._id || ''}
-                  onChange={handleClientSelect}
-                  displayEmpty
-                  disabled={clientLoading}
-                >
-                  <MenuItem value="" disabled>
-                    {clientLoading ? 'Loading clients...' : 'Select a client'}
-                  </MenuItem>
-                  {clients.map((client) => (
-                    <MenuItem key={client._id} value={client._id}>
-                      {client.name} ({client.email})
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            )}
-          </div>
+  
         </Grid>
 
         <Grid size={{ xs: 12, lg: 4 }} className="flex flex-col gap-4">

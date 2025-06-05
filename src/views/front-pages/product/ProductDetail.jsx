@@ -96,22 +96,21 @@ export default function ProductDetailPage() {
     const newAttributes = { ...selectedAttributes, [attributeId]: variationId };
     setSelectedAttributes(newAttributes);
 
-    console.log('Updated selected attributes:', newAttributes);
-
     // Step 2: Find the matching variation
-    const matchingVariation = product.productVariations.find(variation => {
+    const matchingVariation = product?.productVariations?.find(variation => {
       const variationAttributes = variation.attributes;
-      const selectedAttributeIds = Object.keys(newAttributes);
-
+      const selectedAttributeIds = Object.keys(newAttributes); 
       if (variationAttributes.length !== selectedAttributeIds.length) {
-        return false;
+        return true;
       }
-
+      
       return variationAttributes.every(attrId => {
         const selectedVariationId = newAttributes[attrId];
         return variation.attributeVariations.includes(selectedVariationId);
       });
     });
+   
+    
 
     if (matchingVariation) {
       setSelectedVariation(matchingVariation);
