@@ -22,6 +22,7 @@ import { productFrontListServices, productServices } from '@/services/product';
 import {  cartServices } from '@/services/cart'
 import { addressService } from '@/services/address'
 import { adminSettingServices } from '@/services/adminSetting';
+import { cartApi } from '@/services/cart/index';
 
 export const getEcommerceData = async () => {
   return eCommerceData;
@@ -164,6 +165,38 @@ export const deleteAddresses = async (id) => {
      return await addressService.delete(id);
 }
 
+// Cart Actions
+export const updateCartItem = async (data) => {
+  return await cartApi.updateCartItem(data.id, data);
+};
 
+export const removeCartItem = async (id) => {
+  return await cartApi.removeCartItem(id);
+};
+
+export const addToWishlist = async (data) => {
+  return await cartServices.addToWishlist(data);
+};
+
+export const applyPromoCode = async (code) => {
+  return await cartServices.applyPromo(code);
+};
+
+// Payment Actions
+export const createPaymentIntent = async (data) => {
+  return await cartServices.createPaymentIntent(data);
+};
+
+export const createKlarnaSession = async (data) => {
+  return await cartServices.createKlarnaSession(data);
+};
+
+export const verifyStripePayment = async (paymentIntentId) => {
+  return await cartServices.verifyStripePayment(paymentIntentId);
+};
+
+export const verifyKlarnaPayment = async (orderId) => {
+  return await cartServices.verifyKlarnaPayment(orderId);
+};
 
 

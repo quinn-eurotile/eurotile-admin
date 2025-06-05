@@ -5,7 +5,7 @@ import { getSession } from "next-auth/react";
 import { authOptions } from "@/libs/auth";
 
 // Base API URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 // Get common headers including Authorization
 const getCommonHeaders = async () => {

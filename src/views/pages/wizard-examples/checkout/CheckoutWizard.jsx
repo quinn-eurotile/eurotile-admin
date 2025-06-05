@@ -1,7 +1,7 @@
 "use client"
 
 // React Imports
-import { useState, useEffect, createContext, useCallback } from "react"
+import { useState, useEffect, createContext, useCallback, useContext } from "react"
 
 // Next Auth Import
 import { useSession } from "next-auth/react"
@@ -23,6 +23,7 @@ import StepAddress from "./StepAddress"
 import StepPayment from "./StepPayment"
 import StepConfirmation from "./StepConfirmation"
 import DirectionalIcon from "@components/DirectionalIcon"
+import AddEditAddress from "@components/dialogs/add-edit-address"
 
 // Styled Component Imports
 import StepperWrapper from "@core/styles/stepper"
@@ -175,14 +176,23 @@ const Stepper = styled(MuiStepper)(({ theme }) => ({
   },
 }))
 
-const getStepContent = (step, handleNext, checkoutData) => {
+const getStepContent = (step, handleNext, handleBack, checkoutData) => {
   switch (step) {
     case 0:
       return <StepCart handleNext={handleNext}  {...checkoutData} />
     case 1:
       return <StepAddress handleNext={handleNext}   {...checkoutData} />
     case 2:
-      return <StepPayment handleNext={handleNext}  {...checkoutData} />
+      return (
+        <StepPayment 
+          handleNext={handleNext}
+          handleBack={handleBack}
+          cartItems={checkoutData.cartItems}
+          orderSummary={checkoutData.orderSummary}
+          selectedAddress={checkoutData.selectedAddress}
+          addresses={checkoutData.addresses}
+        />
+      )
     case 3:
       return <StepConfirmation />
     default:
@@ -193,108 +203,123 @@ const getStepContent = (step, handleNext, checkoutData) => {
 const CheckoutWizard = ({ initialData }) => {
   // Get user session
   const { data: session, status } = useSession()
-  // console.log(initialData, 'initialDatainitialDatainitialData');
-
+  console.log(initialData, 'initialData 314');
   // States
   const [activeStep, setActiveStep] = useState(0)
   const [cartItems, setCartItems] = useState(initialData?.cartItems || [])
   const [addresses, setAddresses] = useState(initialData?.addresses || [])
   const [selectedAddress, setSelectedAddress] = useState(null)
-  const [selectedShipping, setSelectedShipping] = useState("standard")
-  const [orderSummary, setOrderSummary] = useState(
-    initialData?.orderSummary || {
-      subtotal: 0,
-      shipping: 0,
-      total: 0,
-    },
-  )
-  // console.log(initialData, 'orderSummaryorderSummary9999999');
-
-  const [loading, setLoading] = useState(false)
-  const [stepValidation, setStepValidation] = useState({
-    0: false, // Cart step
-    1: false, // Address step
-    2: false, // Payment step
+  const [selectedShipping, setSelectedShipping] = useState('standard')
+  const [orderSummary, setOrderSummary] = useState(initialData?.orderSummary || {
+    subtotal: 0,
+    shipping: 0,
+    total: 0
   })
+  const [stepValidation, setStepValidation] = useState({
+    0: cartItems.length > 0, // Cart step is valid if there are items
+    1: false, // Address step requires selection
+    2: false, // Payment step requires valid payment
+    3: true // Confirmation step is always valid
+  })
+  const [loading, setLoading] = useState(false)
+  const [open, setOpen] = useState(false)
+  const [addressData, setAddressData] = useState(null)
 
-  // Function to check if current step is valid
+  // Check if step is valid
   const isStepValid = (step) => stepValidation[step]
 
-  // Function to set step validation
-
+  // Set step validation with side effects
   const setStepValid = useCallback((step, isValid) => {
-    setStepValidation(prev => {
-      // Only update if the value actually changed
-      if (prev[step] === isValid) return prev;
-
-      return {
-        ...prev,
-        [step]: isValid,
-      };
-    });
-  }, []);
-
-  // Handle next step with validation
-  const handleNext = () => {
-    if (isStepValid(activeStep)) {
-      const nextStep = activeStep + 1
-      setActiveStep(nextStep)
-
-      // Save current step to localStorage for persistence
-      if (typeof window !== "undefined") {
-        localStorage.setItem("checkoutStep", nextStep.toString())
-      }
-    }
-  }
-
-  // Initialize component with server data
-  useEffect(() => {
-    // Restore step from localStorage if available
-    if (typeof window !== "undefined") {
-      const savedStep = localStorage.getItem("checkoutStep")
-      if (savedStep && Number.parseInt(savedStep, 10) <= 3) {
-        setActiveStep(Number.parseInt(savedStep, 10))
-      }
-    }
-    // Set initial validations based on data
-    const initialValidations = {}
-    // Set initial validations based on data
-    if (cartItems.length > 0) {
-      initialValidations[0] = true
-    }
-
-    if (addresses?.length > 0) {
-      const defaultAddress = addresses.find((addr) => addr.isDefault)
-      if (defaultAddress) {
-        setSelectedAddress(defaultAddress.id)
-        initialValidations[1] = true
-      } else {
-        setSelectedAddress(addresses[0].id)
-        initialValidations[1] = true
-      }
+    if (step < 0 || step > 3) {
+      console.error('Invalid step number:', step)
+      return
     }
     setStepValidation(prev => ({
       ...prev,
-      ...initialValidations
+      [step]: isValid
     }))
-  }, [cartItems, addresses])
+  }, [])
 
-  // Checkout context value
-  const checkoutData = {
+  // Effect to validate steps when dependencies change
+  useEffect(() => {
+    // Validate cart step
+    setStepValid(0, cartItems.length > 0)
+  }, [cartItems, setStepValid])
+
+  useEffect(() => {
+    // Validate address step
+    setStepValid(1, selectedAddress !== null)
+  }, [selectedAddress, setStepValid])
+
+  useEffect(() => {
+    // Validate payment step (you can add more conditions)
+    setStepValid(2, false) // Set this based on your payment validation logic
+  }, [setStepValid])
+
+  // Handle next step with validation
+  const handleNext = async () => {
+    if (isStepValid(activeStep)) {
+      // Perform any necessary actions before moving to next step
+      switch (activeStep) {
+        case 0: // Cart
+          if (cartItems.length === 0) {
+            return
+          }
+          break
+          
+        case 1: // Address
+          if (!selectedAddress) {
+            return
+          }
+          break
+          
+        case 2: // Payment
+          // Add your payment validation logic here
+          break
+          
+        default:
+          break
+      }
+      
+      setActiveStep(prev => {
+        const nextStep = prev + 1
+        return Math.min(nextStep, 3)
+      })
+    }
+  }
+
+  // Handle back step
+  const handleBack = () => {
+    setActiveStep(prev => prev - 1)
+  }
+
+  // Handle address success
+  const handleAddressSuccess = (address) => {
+    setAddresses([...addresses, address])
+    setSelectedAddress(address)
+  }
+
+  // Handle address close
+  const handleClose = () => {
+    setOpen(false)
+  }
+
+  // Context value
+  const contextValue = {
     cartItems,
-    addresses,
-    selectedAddress,
-    selectedShipping,
-    orderSummary,
-    user: session?.user || initialData?.user,
     setCartItems,
+    addresses,
     setAddresses,
+    selectedAddress,
     setSelectedAddress,
+    selectedShipping,
     setSelectedShipping,
+    orderSummary,
     setOrderSummary,
     isStepValid,
     setStepValid,
     loading,
+    user: session?.user
   }
 
   if (status === "loading") {
@@ -308,49 +333,41 @@ const CheckoutWizard = ({ initialData }) => {
   }
 
   return (
-    <CheckoutContext.Provider value={checkoutData}>
+    <CheckoutContext.Provider value={contextValue}>
       <Card>
         <CardContent>
           <StepperWrapper>
-            <Stepper
-              className="gap-10 md:gap-4"
-              activeStep={activeStep}
-              connector={
-                <DirectionalIcon
-                  ltrIconClass="ri-arrow-right-s-line"
-                  rtlIconClass="ri-arrow-left-s-line"
-                  className="mli-12 hidden md:block text-lg text-textDisabled"
-                />
-              }
-            >
-              {steps.map((step, index) => {
-                return (
-                  <Step
-                    key={index}
-                    onClick={() => {
-                      // Only allow going back to previous steps or current step
-                      if (index <= activeStep) {
-                        setActiveStep(index)
-                        if (typeof window !== "undefined") {
-                          localStorage.setItem("checkoutStep", index.toString())
-                        }
-                      }
-                    }}
-                  >
-                    <StepLabel icon={<></>} className="text-center">
-                      {step.icon}
-                      <Typography className="step-title">{step.title}</Typography>
-                    </StepLabel>
-                  </Step>
-                )
-              })}
+            <Stepper activeStep={activeStep} connector={<DirectionalIcon />}>
+              {steps.map((step, index) => (
+                <Step key={index}>
+                  <StepLabel icon={step.icon}>{step.title}</StepLabel>
+                </Step>
+              ))}
             </Stepper>
           </StepperWrapper>
         </CardContent>
+
         <Divider />
 
-        <CardContent>{getStepContent(activeStep, handleNext, checkoutData)}</CardContent>
+        <CardContent>
+          {getStepContent(activeStep, handleNext, handleBack, {
+            handleBack,
+            cartItems,
+            addresses,
+            selectedAddress,
+            selectedShipping,
+            orderSummary
+          })}
+        </CardContent>
       </Card>
+
+      <AddEditAddress 
+        open={open}
+        setOpen={setOpen}
+        data={addressData}
+        onClose={handleClose}
+        onSuccess={handleAddressSuccess}
+      />
     </CheckoutContext.Provider>
   )
 }

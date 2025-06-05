@@ -117,19 +117,13 @@ const customInputData = [
 ];
 
 
-const AddEditAddress = ({ open, setOpen, data }) => {
+const AddEditAddress = ({ open, setOpen, data, onClose, onSuccess }) => {
   const initialSelected = customInputData?.find(item => item.isSelected)?.value || ''
-
-  console.log(initialSelected, 'initialSelectedinitialSelected');
-
   const [selected, setSelected] = useState(initialSelected)
-  const [addressData, setAddressData] = useState(data)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-
+  // Handle address type change
   const handleChange = prop => {
-
-
-
     if (typeof prop === 'string') {
       setValue('address.type', prop)
       setSelected(prop)
@@ -138,7 +132,6 @@ const AddEditAddress = ({ open, setOpen, data }) => {
       setValue('address.type', prop.target.value)
     }
   }
-
 
   const {
     register,
@@ -173,7 +166,6 @@ const AddEditAddress = ({ open, setOpen, data }) => {
       reset({
         address: {
           _id: data._id,
-          // id: data._id,
           name: data.name,
           phone: data.phone,
           addressLine1: data.addressLine1,
@@ -189,29 +181,24 @@ const AddEditAddress = ({ open, setOpen, data }) => {
           lat: data.lat,
           long: data.long
         }
-
       })
       setSelected(data.type)
     }
   }, [data, reset])
 
-  const handleAddressSelect = (selectedAddress) => {
-
-    setValue('address.addressLine1', selectedAddress.addressLine1)
-    setValue('address.addressLine2', selectedAddress.addressLine2)
-    setValue('address.city', selectedAddress.city)
-    setValue('address.state', selectedAddress.state)
-    setValue('address.postalCode', selectedAddress.postalCode)
-    setValue('address.country', selectedAddress.country)
-    setValue('address.lat', selectedAddress.lat)
-    setValue('address.long', selectedAddress.long)
-    setValue('address.street', selectedAddress.addressLine1) // Using addressLine1 as street
+  const handleClose = () => {
+    reset()
+    if (onClose) {
+      onClose()
+    }
+    setOpen(false)
   }
 
   const onSubmit = async (formData) => {
     try {
-      console.log(formData, 'formDataformDataformData');
-      let resp;
+      setIsSubmitting(true)
+      let response
+
       const updatedFormData = {
         address: {
           ...formData.address,
@@ -223,35 +210,51 @@ const AddEditAddress = ({ open, setOpen, data }) => {
             ]
           }
         }
-      };
-      if (formData?.address?._id) {
-        resp = await updateAddress(formData?.address?._id, updatedFormData);
-
-      } else {
-        resp = await addAddress(updatedFormData);
-
       }
 
-      console.log(resp, 'respresprespresp');
+      if (formData.address._id) {
+        // Update existing address
+        response = await updateAddress(formData.address._id, updatedFormData)
+      } else {
+        // Create new address
+        response = await addAddress(updatedFormData)
+      }
 
-      // setOpen(false)
+      if (response.success) {
+        if (onSuccess) {
+          await onSuccess(response)
+        }
+        setOpen(false);
+      }
     } catch (error) {
       console.error('Error saving address:', error)
+    } finally {
+      setIsSubmitting(false)
     }
   }
-  console.log(JSON.stringify(data), 'datadatadata');
 
+  const handleAddressSelect = (selectedAddress) => {
+    setValue('address.addressLine1', selectedAddress.addressLine1)
+    setValue('address.addressLine2', selectedAddress.addressLine2)
+    setValue('address.city', selectedAddress.city)
+    setValue('address.state', selectedAddress.state)
+    setValue('address.postalCode', selectedAddress.postalCode)
+    setValue('address.country', selectedAddress.country)
+    setValue('address.lat', selectedAddress.lat)
+    setValue('address.long', selectedAddress.long)
+    setValue('address.street', selectedAddress.addressLine1) // Using addressLine1 as street
+  }
+
+  console.log(JSON.stringify(data), 'datadatadata');
 
   return (
     <Dialog
       open={open}
+      onClose={handleClose}
       maxWidth='md'
+      fullWidth
       scroll='body'
-      onClose={() => {
-        setOpen(false)
-        setSelected(initialSelected)
-      }}
-      closeAfterTransition={false}
+      TransitionProps={{ unmountOnExit: true }}
     >
       <DialogTitle variant='h4' className='flex gap-2 flex-col text-center sm:pbs-16 sm:pbe-6 sm:pli-16'>
         {data ? 'Edit Address' : 'Add New Address'}
@@ -261,7 +264,7 @@ const AddEditAddress = ({ open, setOpen, data }) => {
       </DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent className='pbs-0 sm:pli-16'>
-          <IconButton onClick={() => setOpen(false)} className='absolute block-start-4 inline-end-4'>
+          <IconButton onClick={handleClose} className='absolute block-start-4 inline-end-4'>
             <i className='ri-close-line text-textSecondary' />
           </IconButton>
           <Grid container spacing={5}>
@@ -403,11 +406,11 @@ const AddEditAddress = ({ open, setOpen, data }) => {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)} variant='outlined' color='secondary'>
+          <Button onClick={handleClose} variant='outlined' color='secondary' disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button type='submit' variant='contained'>
-            {data ? 'Update' : 'Save'} Address
+          <Button type='submit' variant='contained' disabled={isSubmitting}>
+            {isSubmitting ? 'Saving...' : data ? 'Update' : 'Save'} Address
           </Button>
         </DialogActions>
       </form>
