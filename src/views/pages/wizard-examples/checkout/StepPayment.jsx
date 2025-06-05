@@ -54,14 +54,16 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, or
 
     setIsProcessing(true);
     setPaymentError(null);
-
+    console.log('orderSummary', orderSummary);
     try {
       // Create payment intent using our API
       const response = await createPaymentIntent({
-        amount: Math.round(orderSummary.total * 100), // Convert to cents
+        // amount: Math.round(orderSummary.total * 100), // Convert to cents
+        amount: Math.round(12 * 100), // Convert to cents
         currency: "usd",
         saveCard,
         customerId: user?.id,
+        cartItems: JSON.stringify(cartItems),
       });
       console.log("response:", response); // Add this line to see the paymentIntent object
 
@@ -73,7 +75,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, or
       const { clientSecret } = response.data;
 
       // Confirm payment with Stripe
-      const { error: confirmError, paymentIntent } = await confirmCardPayment(clientSecret, {
+      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
           card: elements.getElement(CardElement),
           billing_details: {
@@ -102,6 +104,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, or
         }
       }
     } catch (error) {
+      console.error("Stripe payment error:", error);
       setPaymentError("An unexpected error occurred.");
     } finally {
       setIsProcessing(false);
