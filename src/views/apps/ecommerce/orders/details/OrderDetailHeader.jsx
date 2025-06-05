@@ -6,21 +6,12 @@ import Typography from '@mui/material/Typography'
 // Component Imports
 import ConfirmationDialog from '@components/dialogs/confirmation-dialog'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
+import { paymentStatus, statusChipColor } from '@/components/common/common';
+import moment from 'moment';
 
-export const paymentStatus = {
-  1: { text: 'Paid', color: 'success' },
-  2: { text: 'Pending', color: 'warning' },
-  3: { text: 'Cancelled', color: 'secondary' },
-  4: { text: 'Failed', color: 'error' }
-}
-export const statusChipColor = {
-  Delivered: { color: 'success' },
-  'Out for Delivery': { color: 'primary' },
-  'Ready to Pickup': { color: 'info' },
-  Dispatched: { color: 'warning' }
-}
+const OrderDetailHeader = ({ orderData, order, data }) => {
 
-const OrderDetailHeader = ({ orderData, order }) => {
+  console.log(data,'orderDataorderDataorderData')
   // Vars
   const buttonProps = (children, color, variant) => ({
     children,
@@ -34,19 +25,19 @@ const OrderDetailHeader = ({ orderData, order }) => {
         <div className='flex items-center gap-2'>
           <Typography variant='h5'>{`Order #${order}`}</Typography>
           <Chip
+            label={statusChipColor[data?.orderStatus]?.text}
+            color={statusChipColor[data?.orderStatus]?.color}
             variant='tonal'
-            label={orderData?.status}
-            color={statusChipColor[orderData?.status || ''].color}
             size='small'
           />
           <Chip
             variant='tonal'
-            label={paymentStatus[orderData?.payment ?? 0].text}
-            color={paymentStatus[orderData?.payment ?? 0].color}
+            label={paymentStatus[data?.paymentStatus ?? 0]?.text}
+            color={paymentStatus[data?.paymentStatus ?? 0]?.color}
             size='small'
           />
         </div>
-        <Typography>{`${new Date(orderData?.date ?? '').toDateString()}, ${orderData?.time} (ET)`}</Typography>
+        <Typography>{moment(data?.updatedAt).format('MMMM Do YYYY, h:mm:ss a')}</Typography>
       </div>
       <OpenDialogOnElementClick
         element={Button}

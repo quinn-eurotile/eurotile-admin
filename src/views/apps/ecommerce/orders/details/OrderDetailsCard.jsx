@@ -83,11 +83,12 @@ const orderData = [
 // Column Definitions
 const columnHelper = createColumnHelper()
 
-const OrderTable = () => {
+const OrderTable = ({orderedProduct}) => {
+  console.log(orderedProduct?.orderDetails,'orderedProductorderedProduct')
   // States
   const [rowSelection, setRowSelection] = useState({})
 
-  const [data, setData] = useState(...[orderData])
+  const [data, setData] = useState(orderedProduct?.orderDetails)
   const [globalFilter, setGlobalFilter] = useState('')
 
   const columns = useMemo(
@@ -145,34 +146,16 @@ const OrderTable = () => {
     []
   )
 
-  const table = useReactTable({
-    data: data,
+ const table = useReactTable({
+    data,
     columns,
-    filterFns: {
-      fuzzy: fuzzyFilter
-    },
-    state: {
-      rowSelection,
-      globalFilter
-    },
-    initialState: {
-      pagination: {
-        pageSize: 10
-      }
-    },
-    enableRowSelection: true, //enable row selection for all rows
-    // enableRowSelection: row => row.original.age > 18, // or enable row selection conditionally per row
-    globalFilterFn: fuzzyFilter,
-    onRowSelectionChange: setRowSelection,
+    state: { rowSelection },
     getCoreRowModel: getCoreRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues()
-  })
+    onRowSelectionChange: setRowSelection
+  });
 
   return (
     <div className='overflow-x-auto'>
@@ -204,7 +187,7 @@ const OrderTable = () => {
             </tr>
           ))}
         </thead>
-        {table.getFilteredRowModel().rows.length === 0 ? (
+        {table.getFilteredRowModel()?.rows?.length === 0 ? (
           <tbody>
             <tr>
               <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
@@ -235,18 +218,19 @@ const OrderTable = () => {
   )
 }
 
-const OrderDetailsCard = () => {
+const OrderDetailsCard = ({data}) => {
+  console.log(data,'')
   return (
     <Card>
       <CardHeader
         title='Order Details'
-        action={
-          <Typography component={Link} color='primary.main' className='font-medium'>
-            Edit
-          </Typography>
-        }
+        // action={
+        //   <Typography component={Link} color='primary.main' className='font-medium'>
+        //     Edit
+        //   </Typography>
+        // }
       />
-      <OrderTable />
+      <OrderTable orderedProduct={data}/>
       <CardContent className='flex justify-end'>
         <div>
           <div className='flex items-center gap-12'>
