@@ -73,11 +73,14 @@ const Profile = async props => {
   const response = await fetchById(userId)
   const data = response?.data
 
+  console.log('asdasdasdasd32432423423',data);
+
+
   const overviewTab = await OverViewTab({ data, params })
 
   const tabContentList = {
     overview: overviewTab,
-    security: <SecurityTab userId={userId}/>,
+    security: <SecurityTab userId={userId} data={data}/>,
     orders: <OrderList />,
   }
 

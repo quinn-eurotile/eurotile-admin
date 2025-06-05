@@ -72,7 +72,7 @@ const UserViewTab = async props => {
 
   const tabContentList = {
     overview: overviewTab,
-    security: <SecurityTab />,
+    //security: <SecurityTab userId={userId} data={data} />,
     orders: <OrderList />,
   };
 
@@ -82,7 +82,7 @@ const UserViewTab = async props => {
         <UserLeftOverview data={data} />
       </Grid>
       <Grid size={{ xs: 12, lg: 8, md: 7 }}>
-        <UserRight tabContentList={tabContentList} />
+        <UserRight tabContentList={tabContentList} data={data}/>
       </Grid>
     </Grid>
   );

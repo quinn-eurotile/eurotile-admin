@@ -39,7 +39,6 @@ export const createApiService = (baseEndpoint, customMethods = {}) => {
 
     // Get item by ID
     getById: async (id) => {
-      console.log('baseEndpoint', baseEndpoint);
       return api.get(`${baseEndpoint}/${id}`, {}, false);
     },
 

@@ -46,7 +46,8 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
   const roles = user?.roles || []
   const roleId = !roles.length ? '' : roles[0]?._id
   //console.log('useruseruser', roleId);
-
+  const role =
+    roleId == '680f110aa6224872fab09569' || roleId == '680f606cb47c317ad30841b5' ? 'admin' : 'trade-professional'
   return (
     // eslint-disable-next-line lines-around-comment
     /* Custom scrollbar instead of browser scroll, remove if you want browser scroll only */
@@ -71,35 +72,18 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
       >
         <MenuSection label={'Pages'}>
-
           {/* Dashboard For Admin and Team Member*/}
           {roleId !== '' && (roleId == '680f110aa6224872fab09569' || roleId == '680f606cb47c317ad30841b5') && (
-            <MenuItem
-              href={`/${locale}/admin/dashboards/crm`}
-              exactMatch={false}
-              activeUrl='/admin/dashboards/crm'
-              icon={<i className='ri-home-smile-line' />}
-            >
-              Dashboard
-            </MenuItem>
-          )}
-           {/*End Dashboard For Admin and Team Member*/}
-
-          {/* Dashboard For Trade Professional*/}
-          {roleId !== '' && roleId == '6819ce06bb8f30e6c73eba48' && (
-            <MenuItem
-              href={`/${locale}/trade-professional/dashboard`}
-              exactMatch={false}
-              activeUrl='/trade-professional/dashboard'
-              icon={<i className='ri-home-smile-line' />}
-            >
-              Dashboard
-            </MenuItem>
-          )}
-           {/*End Dashboard For Trade Professional*/}
-
-          {roleId !== '' && (roleId === '680f110aa6224872fab09569' || roleId === '680f606cb47c317ad30841b5') && (
             <>
+              <MenuItem
+                href={`/${locale}/${role}/dashboards/crm`}
+                exactMatch={false}
+                activeUrl='/admin/dashboards/crm'
+                icon={<i className='ri-home-smile-line' />}
+              >
+                Dashboard
+              </MenuItem>
+
               {roleId !== '' && roleId === '680f110aa6224872fab09569' && (
                 <MenuItem
                   href={`/${locale}/admin/team-members/list`}
@@ -110,6 +94,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
                   Team Management
                 </MenuItem>
               )}
+
               <MenuItem
                 href={`/${locale}/admin/supplier/list`}
                 exactMatch={false}
@@ -144,18 +129,40 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
               </SubMenu>
             </>
           )}
+          {/*End Dashboard For Admin and Team Member*/}
+
+          {/* Dashboard For Trade Professional*/}
+          {roleId !== '' && roleId == '6819ce06bb8f30e6c73eba48' && (
+            <>
+            <MenuItem
+              href={`/${locale}/trade-professional/dashboard`}
+              exactMatch={false}
+              activeUrl='/trade-professional/dashboard'
+              icon={<i className='ri-home-smile-line' />}
+            >
+              Dashboard
+            </MenuItem>
+             <MenuItem
+              href={`/${locale}/trade-professional/client/list`}
+              exactMatch={false}
+              activeUrl='/trade-professional/client/list'
+              icon={<i className='ri-group-fill' />}
+            >
+              Client
+            </MenuItem>
+            </>
+          )}
+          {/*End Dashboard For Trade Professional*/}
+
+          <MenuItem
+            href={`/${locale}/${role}/support-tickets/list`}
+            exactMatch={false}
+            activeUrl={`/${role}/support-tickets/list`}
+            icon={<i className='ri-store-3-line'></i>}
+          >
+            Support tickets
+          </MenuItem>
         </MenuSection>
-
-        <MenuItem
-          href={`/${locale}/admin/support-tickets/list`}
-          exactMatch={false}
-          activeUrl='/admin/support-tickets/list'
-          icon={<i className='ri-store-3-line'></i>}
-        >
-          Support tickets
-        </MenuItem>
-
-        {/* Start Trade Professional Menus */}
 
         {/* End Trade Professional Menus */}
       </Menu>

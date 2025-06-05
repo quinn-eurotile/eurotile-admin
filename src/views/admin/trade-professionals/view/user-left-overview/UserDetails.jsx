@@ -28,6 +28,7 @@ import EditUserInfo from '../user-left-overview/editUserInfo';
 import { fetchById } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/view/[id]/page';
 import { updateBusinessStatus, updateProfile } from '@/app/server/trade-professional';
 import { checkUserRoleIsAdmin } from '@/components/common/userRole';
+import { useSession } from "next-auth/react"
 
 const UserDetails = ({ data }) => {
   const [userData, setUserData] = useState(data ?? []);
@@ -39,6 +40,9 @@ const UserDetails = ({ data }) => {
   const [refresh, setRefresh] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null); // for edit menu anchor
   const inputFileRef = useRef(null);
+  const { data: session, status } = useSession()
+
+
 
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -93,7 +97,6 @@ const UserDetails = ({ data }) => {
 
     try {
       const response = await updateBusinessStatus(userData?.business?._id, 'status', requestData);
-      console.log(response, 'responseresponseresponseresponse');
       toast.success(`User ${status === 3 ? 'approved' : 'rejected'} successfully.`);
       refreshUserDetails(userData._id);
       setDialogOpen(false);

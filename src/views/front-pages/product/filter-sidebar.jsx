@@ -249,7 +249,7 @@ export default function FilterSidebar({
           }}
           className='border-gray-400 text-black capitalize font-montserrat'
         >
-          <i class='ri-close-line text-16 me-1'></i> Clear
+          <i className='ri-close-line text-16 me-1'></i> Clear
         </Button>
       </div>
     </>
@@ -304,7 +304,7 @@ export default function FilterSidebar({
             }}
             className='border-gray-400 text-black capitalize font-montserrat'
           >
-            <i class='ri-close-line text-16 me-1'></i> Clear
+            <i className='ri-close-line text-16 me-1'></i> Clear
           </Button>
         </div> */}
       </div>
