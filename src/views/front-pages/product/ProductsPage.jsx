@@ -127,7 +127,7 @@ export default function ProductsPage() {
     <div className='min-h-screen flex flex-col'>
       {/* Navigation */}
 
-      <section className='relative h-[311px]'>
+      <section className='relative h-[150px]'>
         <div className='slider-container relative h-full overflow-hidden'>
           <div className='flex h-full transition-transform duration-500'>
             <div className='min-w-full h-full relative'>
@@ -140,10 +140,10 @@ export default function ProductsPage() {
               />
               <div className='absolute inset-0 flex flex-col items-center justify-center text-white text-center'>
                 <div className='relative w-full'>
-                  <h3 className='text-[196px] absolute uppercase left-0 right-0  -top-28 m-auto opacity-15'>
+                  <h3 className='text-[120px] absolute uppercase left-0 right-0  -top-16 m-auto opacity-15'>
                     EuroTile
                   </h3>
-                  <h1 className='text-4xl md:text-6xl font-light mb-4'>Products</h1>
+                  <h1 className='text-3xl md:text-5xl font-light mb-4'>Products</h1>
                 </div>
               </div>
             </div>
@@ -161,7 +161,7 @@ export default function ProductsPage() {
             </div>
 
             {/* Mobile Filter Sidebar */}
-            {/* <FilterSidebar isMobile={true} isOpen={filterOpen} onClose={() => setFilterOpen(false)} /> */}
+            <FilterSidebar reawFilterData={reawFilterData} setFilter={setFilter} filter={filter} isMobile={true} isOpen={filterOpen} onClose={() => setFilterOpen(false)} /> 
 
             {loading ? (
               <div className='flex-1 flex items-center justify-center min-h-[300px]'>
