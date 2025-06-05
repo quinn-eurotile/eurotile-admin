@@ -134,22 +134,30 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
           {/* Dashboard For Trade Professional*/}
           {roleId !== '' && roleId == '6819ce06bb8f30e6c73eba48' && (
             <>
-            <MenuItem
-              href={`/${locale}/trade-professional/dashboard`}
-              exactMatch={false}
-              activeUrl='/trade-professional/dashboard'
-              icon={<i className='ri-home-smile-line' />}
-            >
-              Dashboard
-            </MenuItem>
-             <MenuItem
-              href={`/${locale}/trade-professional/client/list`}
-              exactMatch={false}
-              activeUrl='/trade-professional/client/list'
-              icon={<i className='ri-group-fill' />}
-            >
-              Client
-            </MenuItem>
+              <MenuItem
+                href={`/${locale}/trade-professional/dashboard`}
+                exactMatch={false}
+                activeUrl='/trade-professional/dashboard'
+                icon={<i className='ri-home-smile-line' />}
+              >
+                Dashboard
+              </MenuItem>
+              <MenuItem
+                href={`/${locale}/trade-professional/client/list`}
+                exactMatch={false}
+                activeUrl='/trade-professional/client/list'
+                icon={<i className='ri-group-fill' />}
+              >
+                Client
+              </MenuItem>
+              <MenuItem
+                href={`/${locale}/${role}/orders/list`}
+                exactMatch={false}
+                activeUrl={`/${role}/orders/list`}
+                icon={<i className='ri-store-3-line'></i>}
+              >
+                Orders
+              </MenuItem>
             </>
           )}
           {/*End Dashboard For Trade Professional*/}

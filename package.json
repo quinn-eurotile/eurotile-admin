@@ -85,6 +85,7 @@
     "recharts": "2.15.0",
     "server-only": "0.0.1",
     "socket.io-client": "^4.8.1",
+    "stripe": "^18.2.1",
     "valibot": "0.42.1"
   },
   "devDependencies": {

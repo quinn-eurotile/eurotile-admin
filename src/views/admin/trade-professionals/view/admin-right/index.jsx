@@ -15,7 +15,6 @@ import { useSession } from 'next-auth/react'
 import { checkUserRoleIsAdmin } from '@/components/common/userRole'
 
 const UserRight = ({ tabContentList, data }) => {
-  console.log('datadatadata', data);
 
 
    const [isAdmin, setIsAdmin] = useState(false)

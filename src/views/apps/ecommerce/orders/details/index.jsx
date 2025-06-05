@@ -1,3 +1,5 @@
+'use client'
+
 // MUI Imports
 import Grid from '@mui/material/Grid2'
 
@@ -8,8 +10,34 @@ import ShippingActivity from './ShippingActivityCard'
 import CustomerDetails from './CustomerDetailsCard'
 import ShippingAddress from './ShippingAddressCard'
 import BillingAddress from './BillingAddressCard'
+import { useEffect, useState } from 'react';
+import { callCommonAction } from '@/redux-store/slices/common';
+import { useDispatch } from 'react-redux';
+import { getOrderDetails } from '@/app/server/order';
 
 const OrderDetails = ({ orderData, order }) => {
+  const dispatch = useDispatch();
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    fetchSupportTickets(order);
+  }, [order]);
+
+  const fetchSupportTickets = async (orderId) => {
+    try {
+      dispatch(callCommonAction({ loading: true }));
+      const response = await getOrderDetails(orderId);
+      console.log(response,'responseresponseresponse');
+      dispatch(callCommonAction({ loading: false }));
+      if (response.statusCode === 200 && response.data) {
+          setData(response.data)
+      }
+    } catch (error) {
+      dispatch(callCommonAction({ loading: false }));
+      console.error('Failed to fetch team members', error);
+    }
+  };
+
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>

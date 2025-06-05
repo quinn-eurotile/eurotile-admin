@@ -62,7 +62,6 @@ const Orders = ({ statusSummary }) => {
       <CardHeader
         title='Order Summary'
       //action={<OptionMenu iconClassName='text-textPrimary' options={[]} />}
-
       />
       <CardContent>
         <Grid container spacing={2}>
