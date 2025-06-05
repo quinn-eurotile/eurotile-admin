@@ -239,7 +239,6 @@ const AddEditAddress = ({ open, setOpen, data }) => {
       console.error('Error saving address:', error)
     }
   }
-  console.log(JSON.stringify(data), 'datadatadata');
 
 
   return (
