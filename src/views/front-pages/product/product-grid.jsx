@@ -2,110 +2,34 @@ import Image from 'next/image'
 import Link from 'next/link'
 import Button from '@mui/material/Button'
 
-// const products = [
-//   {
-//     id: 1,
-//     name: "Metal Tiles",
-//     price: 45.0,
-//     rating: 5,
-//     image: "/images/pages/product-img4.jpg",
-//     slug: "product-detail",
-//   },
-//   {
-//     id: 2,
-//     name: "Rock Pattern Tiles",
-//     price: 45.0,
-//     rating: 5,
-//     image: "/images/pages/product-img4.jpg",
-//     slug: "../product-detail",
-//   },
-//   {
-//     id: 3,
-//     name: "BIANCO CROSS CUT",
-//     price: 45.0,
-//     rating: 5,
-//     image: "/images/pages/product-img4.jpg",
-//     slug: "../product-detail",
-//   },
-//   {
-//     id: 4,
-//     name: "Metal Tiles",
-//     price: 45.0,
-//     rating: 5,
-//     image: "/images/pages/product-img4.jpg",
-//     slug: "../product-detail",
-//   },
-//   {
-//     id: 5,
-//     name: "Rock Pattern Tiles",
-//     price: 45.0,
-//     rating: 5,
-//     image: "/images/pages/product-img4.jpg",
-//     slug: "../product-detail",
-//   },
-//   {
-//     id: 6,
-//     name: "BIANCO CROSS CUT",
-//     price: 45.0,
-//     rating: 5,
-//     image: "/images/pages/product-img4.jpg",
-//     slug: "../product-detail",
-//   },
-//   {
-//     id: 7,
-//     name: "Metal Tiles",
-//     price: 45.0,
-//     rating: 5,
-//     image: "/images/pages/product-img4.jpg",
-//     slug: "../product-detail",
-//   },
-//   {
-//     id: 8,
-//     name: "Rock Pattern Tiles",
-//     price: 45.0,
-//     rating: 5,
-//     image: "/images/pages/product-img4.jpg",
-//     slug: "../product-detail",
-//   },
-//   {
-//     id: 9,
-//     name: "BIANCO CROSS CUT",
-//     price: 45.0,
-//     rating: 5,
-//     image: "/images/pages/product-img4.jpg",
-//     slug: "../product-detail",
-//   },
-// ]
-
 export default function ProductGrid({ products }) {
 
   console.log(products,'productsproducts');
 
   return (
     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-      {products?.map(product => (
-        <div key={product.id} className='group'>
-          <Link href={`/products/${product?.id}`} className='block p-2 bg-bgLight rounded-lg mb-3'>
-            <div className='relative aspect-square overflow-hidden rounded-md'>
-              {product.avatar ? (
+      {products?.map((product, index) => (
+        <div key={`${product.variationId}`} className='group'>
+          <Link href={`/products/${product?.id}?vid=${product?.variationId}`}>
+            <div className='p-2 bg-bgLight rounded-lg mb-3'>
+              <div className='relative aspect-square overflow-hidden rounded-md'>
                 <Image
-                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product.avatar}` || '/placeholder.svg'}
-                  alt={product.name}
+                  src={
+                    product.avatar && product.avatar.trim()
+                      ? `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product.avatar}`
+                      : '/placeholder.svg'
+                  }
+                  alt={product.name || 'Product'}
                   fill
                   className='object-cover group-hover:scale-105 transition-transform duration-300'
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  priority={index < 6} // Optional performance improvement
                 />
-              ) : (
-                <Image
-                  src={'/placeholder.svg'}
-                  alt={product.name}
-                  fill
-                  className='object-cover group-hover:scale-105 transition-transform duration-300'
-                />
-              )}
+              </div>
             </div>
           </Link>
           <div className='text-center'>
-            <Link href={`/products/${product.id}`} className='block'>
+            <Link href={`/products/${product?.id}?vid=${product?.variationId}`}>
               <h3 className='font-normal text-16'>{product.name}</h3>
               <p className='text-red-800 my-1'>£{product.price ? parseFloat(product.price).toFixed(2) : '0.00'}</p>
             </Link>
@@ -117,14 +41,6 @@ export default function ProductGrid({ products }) {
                 />
               ))}
             </div>
-            {/* <div className="flex mt-4 mb-4 justify-center gap-3">
-              <Link href={``} className="hover:no-underline text-sm text-redText underline flex gap-1 hover:text-darkGrey">
-
-                <i className="ri-box-3-line text-xl"></i>  Add Sample</Link>
-              <Link href={``} className="text-sm hover:no-underline text-redText underline flex gap-1 hover:text-darkGrey">
-                <i className="ri-discount-percent-line text-xl"></i>  Bulk Discounts</Link>
-            </div> */}
-            {/* <Button variant='outlined' className="capitalize border-red-800 !rounded-[4px] text-darkGrey hover:bg-darkGrey hover:text-white hover:border-darkGrey font-montserrat">Add To Cart <i className="ri-shopping-cart-line ms-2 text-16"></i></Button> */}
           </div>
         </div>
       ))}

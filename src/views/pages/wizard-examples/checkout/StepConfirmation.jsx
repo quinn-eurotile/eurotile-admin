@@ -155,7 +155,7 @@ const StepConfirmation = () => {
               <img
                 height={80}
                 width={80}
-                src={product.imgSrc || "/placeholder.svg?height=80&width=80"}
+                src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product.imgSrc}` || "/placeholder.svg?height=80&width=80"} 
                 alt={product.imgAlt || product.productName}
               />
               <div className="flex justify-between is-full p-5 flex-col sm:flex-row items-center sm:items-start">

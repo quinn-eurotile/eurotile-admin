@@ -24,28 +24,40 @@ import IconButton from "@mui/material/IconButton"
 import Collapse from "@mui/material/Collapse"
 import Fade from "@mui/material/Fade"
 import CircularProgress from "@mui/material/CircularProgress"
+import Radio from "@mui/material/Radio"
+import RadioGroup from "@mui/material/RadioGroup"
+import FormControl from "@mui/material/FormControl"
+import TextField from "@mui/material/TextField"
 
 // Component Imports
 import CustomTabList from "@core/components/mui/TabList"
 
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard"
+import { toast } from "react-toastify"
 
 // Stripe and Klarna imports (you'll need to install these)
 import { loadStripe } from "@stripe/stripe-js"
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js"
+import { createPaymentIntent, createKlarnaSession, verifyKlarnaPayment, verifyStripePayment } from "@/app/server/actions"
+import { paymentApi } from "@/services/payment"
+import dynamic from "next/dynamic"
+
+// Dynamically import StripeWrapper with no SSR
+const StripeWrapper = dynamic(
+  () => import('@/components/payment/StripeWrapper'),
+  { ssr: false }
+)
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
 // Stripe Payment Form Component
-const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing }) => {
+const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, orderSummary, user }) => {
   const stripe = useStripe()
   const elements = useElements()
   const [saveCard, setSaveCard] = useState(true)
   const [paymentError, setPaymentError] = useState(null)
-
-  const { orderSummary, user } = useContext(CheckoutContext)
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -57,34 +69,26 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing }) 
     setIsProcessing(true)
     setPaymentError(null)
 
-    const cardElement = elements.getElement(CardElement)
-
     try {
-      // Create payment intent
-      const response = await fetch("/api/payment/create-intent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount: Math.round(orderSummary.total * 100), // Convert to cents
-          currency: "usd",
-          saveCard,
-          customerId: user?.id,
-        }),
+      // Create payment intent using our API
+      const response = await createPaymentIntent({
+        amount: Math.round(orderSummary.total * 100), // Convert to cents
+        currency: "usd",
+        saveCard,
+        customerId: user?.id,
       })
 
-      const { clientSecret, error } = await response.json()
-
-      if (error) {
-        setPaymentError(error)
+      if (!response.success) {
+        setPaymentError(response.message || "Failed to create payment intent")
         return
       }
 
-      // Confirm payment
-      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      const { clientSecret } = response.data
+
+      // Confirm payment with Stripe
+      const { error: confirmError, paymentIntent } = await confirmCardPayment(clientSecret, {
         payment_method: {
-          card: cardElement,
+          card: elements.getElement(CardElement),
           billing_details: {
             name: user?.name || "",
             email: user?.email || "",
@@ -95,10 +99,18 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing }) 
       if (confirmError) {
         setPaymentError(confirmError.message)
       } else if (paymentIntent.status === "succeeded") {
-        onPaymentSuccess({
-          paymentIntentId: paymentIntent.id,
-          paymentMethod: "stripe",
-        })
+        // Verify payment with our API
+        const verifyResponse = await  verifyStripePayment(paymentIntent.id)
+        
+        if (verifyResponse.success) {
+          onPaymentSuccess({
+            paymentIntentId: paymentIntent.id,
+            paymentMethod: "stripe",
+            status: verifyResponse.data.status
+          })
+        } else {
+          setPaymentError("Payment verification failed. Please contact support.")
+        }
       }
     } catch (error) {
       setPaymentError("An unexpected error occurred.")
@@ -148,52 +160,123 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing }) 
   )
 }
 
-const StepPayment = ({ handleNext }) => {
+const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, addresses }) => {
   // Context
-  const { orderSummary, selectedAddress, addresses, setStepValid } = useContext(CheckoutContext)
-
-  // States
+  const { setStepValid, loading, setOrderData } = useContext(CheckoutContext)
+  const [mounted, setMounted] = useState(false)
   const [value, setValue] = useState("stripe")
-  const [openCollapse, setOpenCollapse] = useState(true)
-  const [openFade, setOpenFade] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentData, setPaymentData] = useState(null)
+  const [error, setError] = useState("")
+  const [paymentMethod, setPaymentMethod] = useState("card")
+  const [cardDetails, setCardDetails] = useState({
+    cardNumber: "",
+    cardName: "",
+    expiry: "",
+    cvv: ""
+  })
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
+    // Reset any previous payment data and errors
+    setPaymentData(null)
+    setError("")
   }
 
-  useEffect(() => {
-    if (!openFade) {
-      setTimeout(() => {
-        setOpenCollapse(false)
-      }, 300)
+  // Calculate totals
+  const calculateTotals = () => {
+    const subtotal = cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+    const shippingCost = selectedAddress?.shipping === "express" ? 10 : selectedAddress?.shipping === "overnight" ? 15 : 0;
+    const total = subtotal + shippingCost;
+
+    return {
+      subtotal,
+      shipping: shippingCost,
+      total
+    };
+  };
+
+  const totals = calculateTotals();
+
+  const handlePaymentMethodChange = (event) => {
+    setPaymentMethod(event.target.value)
+  }
+
+  const handleCardDetailsChange = (e) => {
+    const { name, value } = e.target
+    setCardDetails(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const validateCardDetails = () => {
+    if (paymentMethod === "card") {
+      if (!cardDetails.cardNumber.trim()) return "Card number is required";
+      if (!cardDetails.cardName.trim()) return "Cardholder name is required";
+      if (!cardDetails.expiry.trim()) return "Expiry date is required";
+      if (!cardDetails.cvv.trim()) return "CVV is required";
+      
+      // Basic validation
+      if (!/^\d{16}$/.test(cardDetails.cardNumber.replace(/\s/g, ''))) {
+        return "Invalid card number";
+      }
+      if (!/^\d{3,4}$/.test(cardDetails.cvv)) {
+        return "Invalid CVV";
+      }
+      // Add more validations as needed
     }
-  }, [openFade])
+    return null;
+  }
 
   // Handle Klarna payment
   const handleKlarnaPayment = async () => {
     setIsProcessing(true)
+    setError("")
     try {
-      const response = await fetch("/api/payment/klarna/create-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount: Math.round(orderSummary.total * 100),
-          currency: "USD",
-        }),
+      const response = await  createKlarnaSession({
+        amount: Math.round(orderSummary.total * 100),
+        currency: "USD",
+        order_lines: cartItems.map(item => ({
+          name: item.productName,
+          quantity: item.quantity,
+          unit_price: Math.round(item.price * 100),
+          total_amount: Math.round(item.price * item.quantity * 100)
+        })),
+        shipping_address: {
+          given_name: selectedAddress?.name?.split(' ')[0] || '',
+          family_name: selectedAddress?.name?.split(' ').slice(1).join(' ') || '',
+          email: selectedAddress?.email,
+          street_address: selectedAddress?.street,
+          city: selectedAddress?.city,
+          postal_code: selectedAddress?.zipCode,
+          country: 'US',
+          phone: selectedAddress?.phone
+        }
       })
 
-      const { session_id, redirect_url } = await response.json()
-
-      if (redirect_url) {
+      if (response.success && response.data.redirect_url) {
+        // Save payment method before redirect
+        setPaymentData({
+          paymentMethod: "klarna",
+          sessionId: response.data.session_id
+        })
+        
+        // Store session ID in localStorage for verification after redirect
+        localStorage.setItem('klarnaSessionId', response.data.session_id)
+        
         // Redirect to Klarna checkout
-        window.location.href = redirect_url
+        window.location.href = response.data.redirect_url
+      } else {
+        setError(response.message || "Failed to initialize Klarna payment")
       }
     } catch (error) {
       console.error("Klarna payment error:", error)
+      setError("Failed to initialize Klarna payment. Please try again.")
     } finally {
       setIsProcessing(false)
     }
@@ -203,50 +286,101 @@ const StepPayment = ({ handleNext }) => {
   const handleCashOnDelivery = () => {
     setPaymentData({
       paymentMethod: "cash_on_delivery",
+      details: {
+        deliveryAddress: selectedAddress,
+        amount: orderSummary.total
+      }
     })
-    handleNext()
-  }
-
-  // Handle successful payment
-  const handlePaymentSuccess = (data) => {
-    setPaymentData(data)
     setStepValid(2, true)
     handleNext()
   }
 
+  // Handle successful payment
+  const handlePaymentSuccess = async (data) => {
+    const paymentDetails = {
+      ...data,
+      details: {
+        deliveryAddress: selectedAddress,
+        amount: orderSummary.total
+      }
+    }
+
+    // For Klarna, verify the payment status
+    if (data.paymentMethod === 'klarna' && data.sessionId) {
+      const verifyResponse = await verifyKlarnaPayment(data.sessionId)
+      if (!verifyResponse.success) {
+        setError("Payment verification failed. Please contact support.")
+        return
+      }
+      paymentDetails.status = verifyResponse.data.status
+    }
+
+    setPaymentData(paymentDetails)
+    setStepValid(2, true)
+    handleNext()
+  }
+
+  // Check for Klarna redirect
+  useEffect(() => {
+    const checkKlarnaPayment = async () => {
+      const sessionId = localStorage.getItem('klarnaSessionId')
+      const isKlarnaRedirect = new URLSearchParams(window.location.search).get('klarna_order_id')
+      
+      if (sessionId && isKlarnaRedirect) {
+        setIsProcessing(true)
+        try {
+          const response = await verifyKlarnaPayment(sessionId)
+          if (response.success) {
+            handlePaymentSuccess({
+              paymentMethod: 'klarna',
+              sessionId,
+              status: response.data.status
+            })
+          } else {
+            setError("Klarna payment verification failed. Please try again.")
+          }
+        } catch (error) {
+          setError("Failed to verify Klarna payment. Please contact support.")
+        } finally {
+          setIsProcessing(false)
+          localStorage.removeItem('klarnaSessionId')
+        }
+      }
+    }
+
+    checkKlarnaPayment()
+  }, [])
+
   // Get selected address details
-  const selectedAddressDetails = addresses.find((addr) => addr.id === selectedAddress)
+  const selectedAddressDetails = addresses?.find((addr) => addr.id === selectedAddress)
+
+  const handlePaymentComplete = (paymentData) => {
+    // Store payment data for order completion
+    setOrderData(prev => ({
+      ...prev,
+      payment: paymentData
+    }));
+    
+    // Move to confirmation step
+    handleNext();
+  };
+
+  if (!mounted || loading) {
+    return (
+      <div className="flex justify-center items-center py-10">
+        <CircularProgress />
+      </div>
+    )
+  }
 
   return (
     <Grid container spacing={6}>
-      <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-5">
-        <Collapse in={openCollapse}>
-          <Fade in={openFade} timeout={{ exit: 300 }}>
-            <Alert
-              icon={<i className="ri-percent-line" />}
-              action={
-                <IconButton
-                  aria-label="close"
-                  color="inherit"
-                  size="small"
-                  onClick={() => {
-                    setOpenFade(false)
-                  }}
-                >
-                  <i className="ri-close-line" />
-                </IconButton>
-              }
-            >
-              <AlertTitle>Available Offers</AlertTitle>
-              <Typography color="success.main">
-                - 10% Instant Discount on Bank of America Corp Bank Debit and Credit cards
-              </Typography>
-              <Typography color="success.main">
-                - 25% Cashback Voucher of up to $60 on first ever PayPal transaction. TCA
-              </Typography>
-            </Alert>
-          </Fade>
-        </Collapse>
+      <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-6">
+        {error && (
+          <Alert severity="error" onClose={() => setError("")}>
+            {error}
+          </Alert>
+        )}
 
         <TabContext value={value}>
           <CustomTabList
@@ -264,13 +398,15 @@ const StepPayment = ({ handleNext }) => {
           <Grid container>
             <Grid size={{ xs: 12, md: 8 }}>
               <TabPanel value="stripe" className="p-0">
-                <Elements stripe={stripePromise}>
+                <StripeWrapper>
                   <StripePaymentForm
                     onPaymentSuccess={handlePaymentSuccess}
                     isProcessing={isProcessing}
                     setIsProcessing={setIsProcessing}
+                    orderSummary={orderSummary}
+                    // user={user}
                   />
-                </Elements>
+                </StripeWrapper>
               </TabPanel>
 
               <TabPanel value="klarna" className="p-0">
@@ -299,73 +435,126 @@ const StepPayment = ({ handleNext }) => {
             </Grid>
           </Grid>
         </TabContext>
+
+        <div className="flex justify-between mt-6">
+          <Button variant="outlined" onClick={handleBack} disabled={isProcessing}>
+            Back
+          </Button>
+          {value === 'cash-on-delivery' && (
+            <Button 
+              variant="contained" 
+              onClick={handleCashOnDelivery}
+              disabled={isProcessing}
+            >
+              Confirm Order
+            </Button>
+          )}
+        </div>
       </Grid>
 
       <Grid size={{ xs: 12, lg: 4 }}>
         <div className="border rounded">
           <CardContent>
-            <Typography className="font-medium mbe-4" color="text.primary">
-              Price Details
+            <Typography variant="h6" className="font-medium mb-4">
+              Order Summary
             </Typography>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between gap-2">
-                <Typography color="text.primary">Order Total</Typography>
-                <Typography>${orderSummary.subtotal?.toFixed(2) || "0.00"}</Typography>
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                <Typography color="text.primary">Delivery Charges</Typography>
-                <div className="flex gap-2">
-                  {orderSummary.shipping === 0 ? (
-                    <>
-                      <Typography color="text.disabled" className="line-through">
-                        $5.00
-                      </Typography>
-                      <Chip variant="tonal" size="small" color="success" label="Free" />
-                    </>
-                  ) : (
-                    <Typography>${orderSummary.shipping?.toFixed(2) || "0.00"}</Typography>
-                  )}
+            
+            {/* Cart Items */}
+            <div className="space-y-4 mb-4">
+              {cartItems && cartItems.map((item, index) => (
+                <div key={index} className="flex items-center gap-4">
+                  <img
+                    width={64}
+                    height={64}
+                    alt={item.productName}
+                    className="object-cover rounded"
+                    src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item.imgSrc}` || "/placeholder.svg"}
+                  />
+                  <div className="flex-grow">
+                    <Typography variant="body2" className="font-medium">
+                      {item.productName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {item.quantity} × £{item.price.toFixed(2)}
+                    </Typography>
+                    <Typography variant="body2" className="font-medium">
+                      £{(item.quantity * item.price).toFixed(2)}
+                    </Typography>
+                  </div>
                 </div>
+              ))}
+            </div>
+
+            <Divider />
+            
+            {/* Price Summary */}
+            <div className="py-4 space-y-2">
+              <div className="flex justify-between">
+                <Typography color="text.secondary">Subtotal</Typography>
+                <Typography>£{totals.subtotal.toFixed(2)}</Typography>
+              </div>
+              <div className="flex justify-between">
+                <Typography color="text.secondary">Shipping</Typography>
+                {totals.shipping === 0 ? (
+                  <Typography color="success.main">Free</Typography>
+                ) : (
+                  <Typography>£{totals.shipping.toFixed(2)}</Typography>
+                )}
+              </div>
+              <Divider />
+              <div className="flex justify-between pt-2">
+                <Typography variant="h6">Total</Typography>
+                <Typography variant="h6">£{totals.total.toFixed(2)}</Typography>
               </div>
             </div>
-          </CardContent>
-          <Divider />
-          <CardContent className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between gap-2">
-                <Typography className="font-medium" color="text.primary">
-                  Total
-                </Typography>
-                <Typography className="font-medium">${orderSummary.total?.toFixed(2) || "0.00"}</Typography>
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                <Typography className="font-medium" color="text.primary">
-                  Deliver to:
-                </Typography>
-                <Chip variant="tonal" size="small" color="primary" label={selectedAddressDetails?.type || "Home"} />
-              </div>
+
+            <Divider />
+
+            {/* Delivery Details */}
+            <div className="pt-4 space-y-4">
+              <Typography variant="h6" className="font-medium">
+                Delivery Details
+              </Typography>
+              
+              {selectedAddressDetails && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Typography variant="body2" color="text.secondary">
+                      Address Type
+                    </Typography>
+                    <Chip 
+                      variant="tonal" 
+                      size="small" 
+                      color="primary" 
+                      label={selectedAddressDetails?.type || "Home"} 
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Typography className="font-medium">
+                      {selectedAddressDetails.name}
+                      {selectedAddressDetails.isDefault && (
+                        <Chip 
+                          size="small" 
+                          color="info" 
+                          label="Default" 
+                          className="ml-2"
+                        />
+                      )}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {selectedAddressDetails.street}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {selectedAddressDetails.city}, {selectedAddressDetails.state} {selectedAddressDetails.zipCode}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Phone: {selectedAddressDetails.phone}
+                    </Typography>
+                  </div>
+                </div>
+              )}
             </div>
-            {selectedAddressDetails && (
-              <div>
-                <Typography className="font-medium" color="text.primary">
-                  {selectedAddressDetails.name} {selectedAddressDetails.isDefault ? "(Default)" : ""},
-                </Typography>
-                <Typography>{selectedAddressDetails.street},</Typography>
-                <Typography>
-                  {selectedAddressDetails.city}, {selectedAddressDetails.state}, {selectedAddressDetails.zipCode}.
-                </Typography>
-                <Typography>Mobile: {selectedAddressDetails.phone}</Typography>
-              </div>
-            )}
-            <Typography
-              href="/"
-              component={Link}
-              onClick={(e) => e.preventDefault()}
-              className="font-medium"
-              color="primary.main"
-            >
-              Change address
-            </Typography>
           </CardContent>
         </div>
       </Grid>

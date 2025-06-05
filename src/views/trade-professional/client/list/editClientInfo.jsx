@@ -72,7 +72,6 @@ const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your add
       setSuggestions(data);
       setShowSuggestions(true);
     } catch (error) {
-      console.error('Address search error:', error);
       setSuggestions([]);
     } finally {
       setLoading(false);
@@ -166,9 +165,6 @@ const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your add
 const EditClientInfo = ({ open, setOpen, data = null, setRefresh }) => {
   const isEditMode = data !== null ? true : false;
 
-  console.log('isEditMode', isEditMode);
-  console.log('data', data);
-
   const formatInitialData = data => ({
     name: data?.name || '',
     email: data?.email || '',
@@ -214,7 +210,6 @@ const EditClientInfo = ({ open, setOpen, data = null, setRefresh }) => {
   };
 
   const onSubmit = async formValues => {
-    console.log('Form Values:', formValues);
     const lat = formValues.address?.lat || '';
     const long = formValues.address?.long || '';
 
@@ -250,7 +245,6 @@ const EditClientInfo = ({ open, setOpen, data = null, setRefresh }) => {
         toast.error(response?.message || 'Something went wrong');
       }
     } catch (error) {
-      console.error('Submit failed:', error);
       toast.error('Something went wrong');
     }
   };

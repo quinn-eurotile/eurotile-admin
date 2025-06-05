@@ -121,8 +121,6 @@ const ClientListTable = () => {
   }, [page, rowsPerPage, search, filter]);
 
   useEffect(() => {
-    console.log('refreshrefresh', refresh);
-
     if (refresh) {
       refreshList();
       setRefresh(false);
@@ -133,7 +131,6 @@ const ClientListTable = () => {
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await getTradeProfessionalClientList(currentPage, pageSize, search, filter);
-      console.log('response', response);
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
         const formatted = response?.data?.docs?.map(user => ({
@@ -161,7 +158,6 @@ const ClientListTable = () => {
       }
     } catch (error) {
       dispatch(callCommonAction({ loading: false }));
-      console.error('Failed to fetch team members', error);
     }
   };
 

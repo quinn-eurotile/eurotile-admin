@@ -42,7 +42,7 @@ const ResetPasswordV1 = ({ mode }) => {
   const lightImg = '/images/pages/auth-v1-mask-light.png'
 
   // Hooks
-  const { lang: locale,token } = useParams()
+  const { lang: locale, token } = useParams()
   const router = useRouter()
 
   const authBackground = useImageVariant(mode, lightImg, darkImg)
@@ -58,22 +58,17 @@ const ResetPasswordV1 = ({ mode }) => {
     }
 
     try {
-      console.log('token , password', token, password);
-
       // Sending password reset request
-        const response = await resetPasswordApi({ token , password });
+      const response = await resetPasswordApi({ token, password });
 
       // Handling response from server
-      if (response.statusCode === 200) {
-          setMessage({ type: 'success', content:  response.message  })
-
-        router.replace(getLocalizedUrl('/login', locale))
+      if (response.success) {
+        setMessage({ type: 'success', content: response.message })
+        router.replace(`${process.env.NEXT_PUBLIC_APP_URL}${getLocalizedUrl('/login', locale)}`);
       } else {
         setMessage({ type: 'failure', content: response.message })
       }
     } catch (error) {
-
-
       setMessage({ type: 'failure', content: 'An error occurred while resetting password.' })
     }
   }
@@ -86,7 +81,7 @@ const ResetPasswordV1 = ({ mode }) => {
             <Logo />
           </Link>
           <Typography variant='h4'>Reset Password 🔒</Typography>
-             {/* Show success or failure message */}
+          {/* Show success or failure message */}
           {message.content && (
             <Typography color={message.type === 'success' ? 'green' : 'red'}>{message.content}</Typography>
           )}

@@ -17,9 +17,15 @@ import Dialog from "@mui/material/Dialog"
 import DialogTitle from "@mui/material/DialogTitle"
 import DialogContent from "@mui/material/DialogContent"
 import DialogActions from "@mui/material/DialogActions"
+import FormControlLabel from "@mui/material/FormControlLabel"
+import Switch from "@mui/material/Switch"
+import Select from "@mui/material/Select"
+import MenuItem from "@mui/material/MenuItem"
+import TextField from "@mui/material/TextField"
 
 // Third-party Imports
 import classnames from "classnames"
+import { toast } from "react-toastify"
 
 // Component Imports
 import CustomInputHorizontal from "@core/components/custom-inputs/Horizontal"
@@ -29,6 +35,10 @@ import OpenDialogOnElementClick from "@components/dialogs/OpenDialogOnElementCli
 
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard"
+import { deleteAddresses, getAddresses, getAllClients } from "@/app/server/actions"
+import { cartApi } from "@/services/cart"
+import { tradeProfessionalsApi } from "@/services/trade-professionals"
+import { FormControl } from "@mui/material"
 
 // Styled Components
 const HorizontalContent = styled(Typography, {
@@ -66,6 +76,13 @@ const StepAddress = ({ handleNext }) => {
   const [addressToDelete, setAddressToDelete] = useState(null)
   const [open, setOpen] = useState(false);
   const [addressData, setAddressData] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false)  // Add loading state
+  const [isClientOrder, setIsClientOrder] = useState(false)
+  const [clients, setClients] = useState([])
+  const [selectedClient, setSelectedClient] = useState(null)
+  const [priceDialogOpen, setPriceDialogOpen] = useState(false)
+  const [modifiedPrices, setModifiedPrices] = useState({})
+  const [clientLoading, setClientLoading] = useState(false)
 
   // Button props for add address
   const buttonProps = {
@@ -73,6 +90,7 @@ const StepAddress = ({ handleNext }) => {
     children: "Add New Address",
     className: "self-start",
   }
+
 
   // Shipping options
   const shippingOptions = [
@@ -124,24 +142,51 @@ const StepAddress = ({ handleNext }) => {
   }
 
   // Handle shipping option change
-  const handleShippingChange = (value) => {
-    setSelectedShipping(value)
+  const handleShippingChange = async (value) => {
+    setIsUpdating(true)
+    try {
+      // Calculate shipping cost based on selected method
+      const shippingCost = value === 'express' ? 10 : value === 'overnight' ? 15 : 0;
+      
+      // Calculate new total with shipping
+      const subtotal = cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+      const total = subtotal + shippingCost;
 
-    // Update order summary with shipping cost
-    let shippingCost = 0
-    if (value === "express") shippingCost = 10
-    if (value === "overnight") shippingCost = 15
+      // Update shipping method and costs in context
+      setSelectedShipping(value);
+      setOrderSummary(prev => ({
+        ...prev,
+        shipping: shippingCost,
+        total: total
+      }));
 
-    setOrderSummary((prev) => ({
-      ...prev,
-      shipping: shippingCost,
-      total: prev.subtotal + shippingCost,
-    }))
+      // Update cart with new shipping method
+      const response = await cartApi.updateCart({
+        userId: user?._id,
+        shippingMethod: value,
+        shippingCost: shippingCost,
+        total: total
+      });
+
+      if (!response.success) {
+        // Revert changes if API call fails
+        setSelectedShipping(prev => prev);
+        setOrderSummary(prev => prev);
+        toast.error(response.message || 'Failed to update shipping method');
+      }
+    } catch (error) {
+      console.error("Error updating shipping method:", error);
+      toast.error('Failed to update shipping method');
+      // Revert changes on error
+      setSelectedShipping(prev => prev);
+      setOrderSummary(prev => prev);
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
   // Edit address
   const handleEditAddress = (address) => {
-    alert('hkk');
     setAddressData(address); // set the address you want to edit
     setOpen(true); // open the dialog
   };
@@ -157,19 +202,17 @@ const StepAddress = ({ handleNext }) => {
 
     setIsUpdating(true)
     try {
-      const response = await fetch(`/api/user/addresses/${addressToDelete}`, {
-        method: "DELETE",
-      })
-
-      if (response.ok) {
+      const response = await deleteAddresses(addressToDelete)
+      
+      if (response.success) {
         // Update local state
-        const updatedAddresses = addresses?.filter((addr) => addr.id !== addressToDelete)
+        const updatedAddresses = addresses?.filter((addr) => addr._id !== addressToDelete)
         setAddresses(updatedAddresses)
 
         // If deleted address was selected, select another one if available
         if (selectedAddress === addressToDelete) {
           if (updatedAddresses.length > 0) {
-            setSelectedAddress(updatedAddresses[0].id)
+            setSelectedAddress(updatedAddresses[0]._id)
             setStepValid(1, true)
           } else {
             setSelectedAddress(null)
@@ -186,8 +229,41 @@ const StepAddress = ({ handleNext }) => {
     }
   }
 
+  // Handle successful address add/edit
+  const handleAddressSuccess = async (response) => {
+    try {
+      const addressesResponse = await getAddresses(user?._id)
+      if (addressesResponse.success) {
+        setAddresses(addressesResponse.data)
+        
+        if (!selectedAddress && addressesResponse.data.length > 0) {
+          setSelectedAddress(addressesResponse.data[0]._id)
+          setStepValid(1, true)
+        }
 
+        // Close dialog only if operation was successful
+        handleClose()
+      }
+    } catch (error) {
+      console.error("Error fetching addresses:", error)
+    }
+  }
 
+  // Handle dialog close
+  const handleClose = () => {
+    setOpen(false)
+    setAddressData(null)
+  }
+
+  // Dialog props for AddEditAddress
+  const dialogProps = {
+    onClose: handleClose,
+    onSuccess: handleAddressSuccess,
+    data: addressData,
+    setOpen: setOpen, // Pass setOpen to control dialog visibility
+    isSubmitting,
+    setIsSubmitting
+  }
 
   // Format addresses for custom input component
   const formattedAddresses = addresses?.map((address) => ({
@@ -226,12 +302,74 @@ const StepAddress = ({ handleNext }) => {
       </HorizontalContent>
     ),
   })) ?? {};
-  console.log(formattedAddresses, 'formattedAddresses');
 
   // Check if address is selected and update validation
   useEffect(() => {
     setStepValid(1, selectedAddress !== null)
   }, [selectedAddress, setStepValid])
+
+  // Fetch clients
+  const fetchClients = async () => {
+    setClientLoading(true)
+    try {
+      const response = await getAllClients();
+      console.log(response,'response 55 getAllClients');
+      
+      if (response.success) {
+        setClients(response.data)
+      }
+    } catch (error) {
+      console.error('Error fetching clients:', error)
+    } finally {
+      setClientLoading(false)
+    }
+  }
+
+  // Handle client order toggle
+  const handleClientOrderToggle = (event) => {
+    setIsClientOrder(event.target.checked)
+    if (event.target.checked) {
+      fetchClients()
+    } else {
+      setSelectedClient(null)
+    }
+  }
+
+  // Handle client selection
+  const handleClientSelect = (event) => {
+    const client = clients.find(c => c._id === event.target.value)
+    setSelectedClient(client)
+    setPriceDialogOpen(true)
+  }
+
+  // Handle price modification
+  const handlePriceChange = (itemId, newPrice) => {
+    setModifiedPrices(prev => ({
+      ...prev,
+      [itemId]: newPrice
+    }))
+  }
+
+  // Validate price is within range
+  const validatePrice = (item, price) => {
+    const minPrice = item.variation?.regularPriceB2B || 0
+    const maxPrice = item.variation?.regularPriceB2C || 0
+    return price >= minPrice && price <= maxPrice
+  }
+
+  // Handle price dialog save
+  const handlePriceDialogSave = () => {
+    // Update cart items with modified prices
+    const updatedCartItems = cartItems.map(item => ({
+      ...item,
+      price: modifiedPrices[item._id] || item.price
+    }))
+    
+    // Update context or state with new prices
+    // This depends on how your cart state is managed
+    
+    setPriceDialogOpen(false)
+  }
 
   if (loading) {
     return (
@@ -240,6 +378,7 @@ const StepAddress = ({ handleNext }) => {
       </div>
     )
   }
+console.log(JSON.stringify(orderSummary), 'orderSummary 282');
 
   return (
     <>
@@ -256,24 +395,23 @@ const StepAddress = ({ handleNext }) => {
               <Grid container spacing={6} className="is-full">
                 {formattedAddresses?.map((item, index) => (
                   <CustomInputHorizontal
-                    type="radio"
                     key={index}
-                    data={item}
-                    gridProps={{
-                      size: {
-                        sm: 6,
-                        xs: 12,
-                      },
-                    }}
+                    type='radio'
+                    name='addressType'
                     selected={selectedAddress}
-                    name="address-selection"
+                    data={item}
                     handleChange={handleAddressChange}
                   />
                 ))}
               </Grid>
             )}
 
-            <OpenDialogOnElementClick element={Button} elementProps={buttonProps} dialog={AddEditAddress} />
+            <OpenDialogOnElementClick 
+              element={Button} 
+              elementProps={buttonProps} 
+              dialog={AddEditAddress}
+              dialogProps={dialogProps}
+            />
           </div>
 
           <div className="flex flex-col gap-4">
@@ -282,8 +420,7 @@ const StepAddress = ({ handleNext }) => {
             </Typography>
             <Grid container spacing={6} className="is-full">
               {shippingOptions.map((item, index) => {
-                let asset
-
+                let asset;
                 if (item.asset && typeof item.asset === "string") {
                   asset = <i className={classnames(item.asset, "text-[28px]")} />
                 }
@@ -302,10 +439,46 @@ const StepAddress = ({ handleNext }) => {
                     name="shipping-option"
                     handleChange={handleShippingChange}
                     data={typeof item.asset === "string" ? { ...item, asset } : item}
+                    disabled={isUpdating}
                   />
                 )
               })}
             </Grid>
+          </div>
+
+          {/* Client Order Switch */}
+          <div className="flex flex-col gap-4">
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isClientOrder}
+                  onChange={handleClientOrderToggle}
+                  color="primary"
+                />
+              }
+              label="Place Orders on Behalf of Clients"
+            />
+
+            {/* Client Selection */}
+            {isClientOrder && (
+              <FormControl fullWidth>
+                <Select
+                  value={selectedClient?._id || ''}
+                  onChange={handleClientSelect}
+                  displayEmpty
+                  disabled={clientLoading}
+                >
+                  <MenuItem value="" disabled>
+                    {clientLoading ? 'Loading clients...' : 'Select a client'}
+                  </MenuItem>
+                  {clients.map((client) => (
+                    <MenuItem key={client._id} value={client._id}>
+                      {client.name} ({client.email})
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
           </div>
         </Grid>
 
@@ -321,11 +494,14 @@ const StepAddress = ({ handleNext }) => {
                     <img
                       width={60}
                       height={60}
-                      src={item.imgSrc || "/placeholder.svg?height=60&width=60"}
-                      alt={item.imgAlt || item.productName}
+                      src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=60&width=60"} 
+                      alt={item?.product?.name || 'Product Image'}
                     />
                     <div>
-                      <Typography>{item.productName}</Typography>
+                      <Typography>{item?.product?.name}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Quantity: {item.quantity} SQ.M
+                      </Typography>
                       <Typography className="font-medium">
                         {selectedShipping === "overnight"
                           ? "1 day delivery"
@@ -345,20 +521,24 @@ const StepAddress = ({ handleNext }) => {
               <div className="flex flex-col gap-2">
                 <div className="flex gap-2 justify-between flex-wrap">
                   <Typography color="text.primary">Order Total</Typography>
-                  <Typography>${orderSummary.subtotal?.toFixed(2) || "0.00"}</Typography>
+                  <Typography>£{cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2) || "0.00"}</Typography>
                 </div>
                 <div className="flex justify-between flex-wrap">
                   <Typography color="text.primary">Delivery Charges</Typography>
                   <div className="flex gap-2">
-                    {orderSummary.shipping === 0 ? (
+                    {selectedShipping === "standard" ? (
                       <>
                         <Typography color="text.disabled" className="line-through">
-                          $5.00
+                          £5.00
                         </Typography>
                         <Chip size="small" variant="tonal" color="success" label="Free" />
                       </>
+                    ) : selectedShipping === "express" ? (
+                      <Typography>£10.00</Typography>
+                    ) : selectedShipping === "overnight" ? (
+                      <Typography>£15.00</Typography>
                     ) : (
-                      <Typography>${orderSummary.shipping?.toFixed(2) || "0.00"}</Typography>
+                      <Typography>£0.00</Typography>
                     )}
                   </div>
                 </div>
@@ -367,10 +547,13 @@ const StepAddress = ({ handleNext }) => {
             <Divider />
             <CardContent className="flex items-center justify-between flex-wrap">
               <Typography className="font-medium" color="text.primary">
-                Total
+                Total Amount
               </Typography>
               <Typography className="font-medium" color="text.primary">
-                ${orderSummary.total?.toFixed(2) || "0.00"}
+                £{(
+                  cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0) + 
+                  (selectedShipping === "express" ? 10 : selectedShipping === "overnight" ? 15 : 0)
+                ).toFixed(2) || "0.00"}
               </Typography>
             </CardContent>
           </div>
@@ -380,8 +563,14 @@ const StepAddress = ({ handleNext }) => {
               variant="contained"
               onClick={handleNext}
               disabled={!selectedAddress || isUpdating}
+              sx={{
+                backgroundColor: '#991b1b',
+                '&:hover': {
+                  backgroundColor: '#7f1d1d',
+                },
+              }}
             >
-              {isUpdating ? <CircularProgress size={24} /> : "Place Order"}
+              {isUpdating ? <CircularProgress size={24} /> : "Continue to Payment"}
             </Button>
           </div>
         </Grid>
@@ -405,8 +594,60 @@ const StepAddress = ({ handleNext }) => {
           open={open}
           setOpen={setOpen}
           data={addressData}
+          onClose={handleClose}
+          onSuccess={handleAddressSuccess}
+          isSubmitting={isSubmitting}
+          setIsSubmitting={setIsSubmitting}
         />
       }
+
+      {/* Price Modification Dialog */}
+      <Dialog 
+        open={priceDialogOpen} 
+        onClose={() => setPriceDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Modify Prices for Client Order</DialogTitle>
+        <DialogContent>
+          <div className="space-y-4 mt-4">
+            {cartItems?.map((item) => (
+              <div key={item._id} className="flex items-center gap-4 p-4 border rounded">
+                <img
+                  width={60}
+                  height={60}
+                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg"}
+                  alt={item?.product?.name}
+                  className="rounded"
+                />
+                <div className="flex-grow">
+                  <Typography variant="subtitle1">{item?.product?.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Quantity: {item.quantity} SQ.M
+                  </Typography>
+                  <div className="flex items-center gap-4 mt-2">
+                    <TextField
+                      label="Price per SQ.M"
+                      type="number"
+                      value={modifiedPrices[item._id] || item.price}
+                      onChange={(e) => handlePriceChange(item._id, Number(e.target.value))}
+                      error={!validatePrice(item, modifiedPrices[item._id] || item.price)}
+                      helperText={`Price range: £${item.variation?.regularPriceB2B} - £${item.variation?.regularPriceB2C}`}
+                      size="small"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPriceDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handlePriceDialogSave} variant="contained" color="primary">
+            Save Prices
+          </Button>
+        </DialogActions>
+      </Dialog>
 
     </>
   )
