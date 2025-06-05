@@ -913,7 +913,7 @@ export default function ProductDetailPage() {
                 </div>
                 <div>
                   <h3 className="font-medium mb-4 text-redText">Product Variations</h3>
-                  {product.productVariations.map((variation) => (
+                  {Array.isArray(product?.productVariations) && product.productVariations.map((variation) => (
                     <div key={variation._id} className="mb-4 border p-2 rounded">
                       <p><span className="font-medium">Description:</span> {variation.description}</p>
                       <p><span className="font-medium">Stock Quantity:</span> {variation.stockQuantity}</p>
@@ -924,12 +924,13 @@ export default function ProductDetailPage() {
                       <p><span className="font-medium">Pallet Size:</span> {variation.palletSize}</p>
                       <p><span className="font-medium">Box Size:</span> {variation.boxSize}</p>
                       <p><span className="font-medium">Number of Tiles:</span> {variation.numberOfTiles}</p>
-                      <p><span className="font-medium">Dimensions (L×W×H):</span> {variation.dimensions.length}×{variation.dimensions.width}×{variation.dimensions.height}</p>
-                      {variation.variationImages.length > 0 && (
+                      <p><span className="font-medium">Dimensions (L×W×H):</span> {variation.dimensions?.length}×{variation.dimensions?.width}×{variation.dimensions?.height}</p>
+
+                      {Array.isArray(variation.variationImages) && variation.variationImages.length > 0 && (
                         <div className="mt-2">
                           <span className="font-medium">Variation Image:</span>
                           <img
-                            src={variation.variationImages[0].filePath}
+                            src={variation.variationImages[0]?.filePath}
                             alt="Variation"
                             className="mt-1 w-32 h-32 object-cover rounded border"
                           />
@@ -940,8 +941,8 @@ export default function ProductDetailPage() {
 
                   <h3 className="font-medium mb-4 text-redText">Applications</h3>
                   <ul className="text-sm space-y-4 list-none p-0">
-                    {product.categories.map((category) => (
-                      <li key={category._id} >{category?.name}</li>
+                    {Array.isArray(product?.categories) && product.categories.map((category) => (
+                      <li key={category._id}>{category?.name}</li>
                     ))}
                   </ul>
                 </div>
