@@ -16,7 +16,7 @@ import { db as faqData } from '@/fake-db/pages/faq';
 import { db as pricingData } from '@/fake-db/pages/pricing';
 import { db as cartData } from '@/fake-db/pages/cart';
 import { db as statisticsData } from '@/fake-db/pages/widgetExamples';
-import { tradeProfessionalService } from '@/services/trade-professionals';
+import { tradeProfessionalService, userTradeProfessionalService } from '@/services/trade-professionals';
 import { productRawDataServices } from '@/services/product-raw-data';
 import { productFrontListServices, productServices } from '@/services/product';
 import {  cartServices } from '@/services/cart'
@@ -169,6 +169,11 @@ export const deleteAddresses = async (id) => {
 export const updateCartItem = async (itemId ,data) => {
   return await cartApi.updateCartItem(itemId, data);
 };
+export const getAllClients = async () => {
+  console.log('getAllClients 222');
+  return await userTradeProfessionalService.getAllClients();
+};
+
 
 export const removeCartItem = async (id) => {
   return await cartApi.removeCartItem(id);
