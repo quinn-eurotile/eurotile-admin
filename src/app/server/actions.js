@@ -18,8 +18,7 @@ import { db as cartData } from '@/fake-db/pages/cart';
 import { db as statisticsData } from '@/fake-db/pages/widgetExamples';
 import { tradeProfessionalService, userTradeProfessionalService } from '@/services/trade-professionals';
 import { productRawDataServices } from '@/services/product-raw-data';
-import { productFrontListServices, productServices } from '@/services/product';
-import {  cartServices } from '@/services/cart'
+import { productFrontListServices, productServices } from '@/services/product'; 
 import { addressService } from '@/services/address'
 import { adminSettingServices } from '@/services/adminSetting';
 import { cartApi } from '@/services/cart/index';
@@ -149,7 +148,7 @@ export const getCartData = async (userId) => {
   };
 };
 export const addCart = async (data) => {
-     return await cartServices.create(data);
+     return await cartApi.create(data);
 }
 
 export const addAddress = async (data) => {
@@ -180,28 +179,28 @@ export const removeCartItem = async (id) => {
 };
 
 export const addToWishlist = async (data) => {
-  return await cartServices.addToWishlist(data);
+  return await cartApi.addToWishlist(data);
 };
 
 export const applyPromoCode = async (code) => {
-  return await cartServices.applyPromo(code);
+  return await cartApi.applyPromo(code);
 };
 
 // Payment Actions
 export const createPaymentIntent = async (data) => {
-  return await cartServices.createPaymentIntent(data);
+  return await cartApi.createPaymentIntent(data);
 };
 
 export const createKlarnaSession = async (data) => {
-  return await cartServices.createKlarnaSession(data);
+  return await cartApi.createKlarnaSession(data);
 };
 
 export const verifyStripePayment = async (paymentIntentId) => {
-  return await cartServices.verifyStripePayment(paymentIntentId);
+  return await cartApi.verifyStripePayment(paymentIntentId);
 };
 
 export const verifyKlarnaPayment = async (orderId) => {
-  return await cartServices.verifyKlarnaPayment(orderId);
+  return await cartApi.verifyKlarnaPayment(orderId);
 };
 
 

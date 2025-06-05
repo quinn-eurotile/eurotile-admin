@@ -1,7 +1,7 @@
 import { api } from "@/utils/api"; 
 import { createApiService } from "../commonService";
  const CART_API = '/cart';
-
+ const PAYMENT_ENDPOINT = '/payment';
 export const cartApi = createApiService(CART_API ,  {
   // Get user's cart
   getCart: async (userId) => {
@@ -81,5 +81,22 @@ export const cartApi = createApiService(CART_API ,  {
       console.error('Error updating shipping method:', error);
       throw error;
     }
+  },
+   // Payment methods
+   createPaymentIntent: async (data) => {
+
+    console.log('createPaymentIntent 332555', data);
+    return await api.post(`${PAYMENT_ENDPOINT}/stripe/create-payment-intent`, data)
+  },
+  verifyStripePayment: async (paymentIntentId) => {
+    return await api.get(`${PAYMENT_ENDPOINT}/stripe/verify/${paymentIntentId}`)
+  },
+  
+  createKlarnaSession: async (data) => {
+    return await api.post(`${PAYMENT_ENDPOINT}/klarna/create-session`, data)
+  },
+  verifyKlarnaPayment: async (orderId) => {
+    return await api.get(`${PAYMENT_ENDPOINT}/klarna/verify/${orderId}`)
   }
+  
 }); 
