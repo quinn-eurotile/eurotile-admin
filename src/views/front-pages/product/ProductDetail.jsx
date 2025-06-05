@@ -56,6 +56,11 @@ export default function ProductDetailPage() {
   const [Tabvalue, setTabValue] = useState('1')
   const dispatch = useDispatch()
   const cart = useSelector(state => state.cartReducer);
+  const [isClientOrder, setIsClientOrder] = useState(false)
+  const [openPriceDialog, setOpenPriceDialog] = useState(false)
+  const [customPrice, setCustomPrice] = useState("")
+  const [priceError, setPriceError] = useState("")
+  const [selectedVariations, setSelectedVariations] = useState([]);
 
   console.log('Current cart state:', cart);
   const fetchProductDetails = async () => {
@@ -305,42 +310,128 @@ export default function ProductDetailPage() {
     }
   }
 
-  const handleAddToCart = async () => {
+  const handleAddVariation = () => {
     if (!selectedVariation) {
-      setError('Please select product variation')
-      return
+      setError('Please select product variation');
+      return;
     }
 
     if (!calculatedValues.sqm) {
-      setError('Please enter quantity')
-      return
+      setError('Please enter quantity');
+      return;
     }
 
     if (calculatedValues.sqm > selectedVariation.stockQuantity) {
-      setError('Not enough stock available')
-      return
+      setError('Not enough stock available');
+      return;
     }
 
-    const cartItem = {
-      productId: product.id,
-      variationId: selectedVariation.id,
+    // Create new variation entry
+    const newVariation = {
+      variation: selectedVariation,
       quantity: calculatedValues.sqm,
       numberOfTiles: calculatedValues.tiles,
       numberOfPallets: calculatedValues.pallets,
       attributes: selectedAttributes,
-      price: selectedVariation.regularPriceB2B // Or use appropriate price based on tier
-    }
+      price: selectedVariation.regularPriceB2C
+    };
 
-    const response = await addCart({
-      items: cartItem,
-      userId: "680b8ce6e2f902abe9cc790b" // Include user ID if needed
+    setSelectedVariations([...selectedVariations, newVariation]);
+
+    // Reset form
+    setQuantity("1");
+    setTiles("10");
+    setPallets("1");
+    setSelectedAttributes({});
+    setCalculatedValues({
+      sqm: 0,
+      tiles: 0,
+      pallets: 0
     });
-    if (response.success) {
-      dispatch(addToCart(response.data))
-    }
-    console.log('API Response:', response);
+    setError('');
+  };
 
-  }
+  const handleRemoveVariation = (index) => {
+    const newVariations = [...selectedVariations];
+    newVariations.splice(index, 1);
+    setSelectedVariations(newVariations);
+  };
+
+  const handleAddToCart = async () => {
+    if (selectedVariations.length === 0 && !selectedVariation) {
+      setError('Please select at least one variation');
+      return;
+    }
+
+    // If there are no saved variations but current selection exists
+    if (selectedVariations.length === 0 && selectedVariation) {
+      if (!calculatedValues.sqm) {
+        setError('Please enter quantity');
+        return;
+      }
+
+      if (calculatedValues.sqm > selectedVariation.stockQuantity) {
+        setError('Not enough stock available');
+        return;
+      }
+    }
+
+    // If client order is enabled, show price dialog
+    if (isClientOrder) {
+      setCustomPrice(selectedVariation.regularPriceB2C.toString());
+      setPriceError("");
+      setOpenPriceDialog(true);
+      return;
+    }
+
+    try {
+      // Prepare cart items
+      let cartItems = [];
+      
+      // Add saved variations
+      selectedVariations.forEach(variation => {
+        cartItems.push({
+          productId: product._id,
+          variationId: variation.variation._id,
+          quantity: variation.quantity,
+          numberOfTiles: variation.numberOfTiles,
+          numberOfPallets: variation.numberOfPallets,
+          attributes: variation.attributes,
+          price: variation.price
+        });
+      });
+
+      // Add current selection if exists
+      if (selectedVariation && calculatedValues.sqm) {
+        cartItems.push({
+          productId: product._id,
+          variationId: selectedVariation._id,
+          quantity: calculatedValues.sqm,
+          numberOfTiles: calculatedValues.tiles,
+          numberOfPallets: calculatedValues.pallets,
+          attributes: selectedAttributes,
+          price: selectedVariation.regularPriceB2C
+        });
+      }
+
+      const response = await addCart({ 
+        items: cartItems,
+        userId: session?.user?.id
+      });
+      
+      if (response.success) {
+        dispatch(addToCart(response.data));
+        toast.success('Products added to cart successfully');
+        setSelectedVariations([]); // Clear selections after successful add
+      } else {
+        setError(response.message || 'Failed to add items to cart');
+      }
+    } catch (err) {
+      setError('Error adding items to cart');
+      console.error(err);
+    }
+  };
+
   // const cart = useSelector(state => state.cartReducer);
   // console.log('Current Cart:', cart);
   // 🟩 Calculate thresholds and map them to discounts
@@ -510,6 +601,18 @@ export default function ProductDetailPage() {
               <div className="my-6">
                 <h3 className="font-normal mb-4">Create Order Here</h3>
 
+                {/* <FormControlLabel
+                  control={
+                    <Switch
+                      checked={isClientOrder}
+                      onChange={(e) => setIsClientOrder(e.target.checked)}
+                      color="primary"
+                    />
+                  }
+                  label="Create Order for Client"
+                  className="mb-4"
+                /> */}
+
                 {/* <div>
                   <ColorSelector />
                 </div> */}
@@ -616,15 +719,55 @@ export default function ProductDetailPage() {
                   </div>
                 </div> */}
 
+                {/* Add Selected Variations List */}
+                {selectedVariations.length > 0 && (
+                  <div className="my-6">
+                    <h3 className="font-normal mb-4">Selected Variations</h3>
+                    <div className="space-y-4">
+                      {selectedVariations.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between bg-bgLight p-4 rounded-md">
+                          <div>
+                            <p className="font-medium">{item.variation.description || 'Variation'}</p>
+                            <p className="text-sm text-gray-600">Quantity: {item.quantity} SQ.M</p>
+                            <p className="text-sm text-gray-600">Tiles: {item.numberOfTiles}</p>
+                            <p className="text-sm text-gray-600">Pallets: {item.numberOfPallets}</p>
+                            <p className="text-sm text-red-800">£{item.price}/SQ.M</p>
+                          </div>
+                          <Button 
+                            variant="outlined" 
+                            color="error"
+                            onClick={() => handleRemoveVariation(index)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Button className="flex-1 bg-red-800 hover:bg-red-900 text-white" onClick={handleAddToCart}>
+                  <Button 
+                    className="flex-1 bg-red-800 hover:bg-red-900 text-white" 
+                    onClick={handleAddVariation}
+                  >
+                    <i className="ri-add-line me-2 text-lg"></i>
+                    Add Variation
+                  </Button>
+                  <Button 
+                    className="flex-1 bg-red-800 hover:bg-red-900 text-white" 
+                    onClick={handleAddToCart}
+                  >
                     <i className="ri-shopping-cart-line me-2 text-lg"></i>
                     Add To Cart
                   </Button>
-                  <Button variant='outlined' className="flex-1 border border-red-800 text-red-800 hover:bg-red-50">
+                  {/* <Button 
+                    variant='outlined' 
+                    className="flex-1 border border-red-800 text-red-800 hover:bg-red-50"
+                  >
                     <i className="ri-heart-line me-2 text-lg"></i>
                     Add To Wishlist
-                  </Button>
+                  </Button> */}
                 </div>
 
                 <div className="flex items-center gap-4 mt-4 text-sm">
@@ -989,6 +1132,38 @@ export default function ProductDetailPage() {
         </div>
 
       </main>
+
+      {/* Custom Price Dialog */}
+      <Dialog open={openPriceDialog} onClose={() => setOpenPriceDialog(false)}>
+        <DialogTitle>Set Custom Price</DialogTitle>
+        <DialogContent>
+          <div className="mt-2 mb-4 text-sm text-gray-600">
+            Price range: £{selectedVariation?.regularPriceB2B} - £{selectedVariation?.regularPriceB2C}
+          </div>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Custom Price"
+            type="number"
+            fullWidth
+            value={customPrice}
+            onChange={(e) => {
+              setCustomPrice(e.target.value)
+              setPriceError("")
+            }}
+            error={!!priceError}
+            helperText={priceError}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenPriceDialog(false)} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleAddToCart} color="primary">
+            Add to Cart
+          </Button>
+        </DialogActions>
+      </Dialog>
 
     </div>
   )

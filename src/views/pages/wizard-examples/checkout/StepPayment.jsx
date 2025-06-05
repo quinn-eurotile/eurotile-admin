@@ -24,12 +24,17 @@ import IconButton from "@mui/material/IconButton"
 import Collapse from "@mui/material/Collapse"
 import Fade from "@mui/material/Fade"
 import CircularProgress from "@mui/material/CircularProgress"
+import Radio from "@mui/material/Radio"
+import RadioGroup from "@mui/material/RadioGroup"
+import FormControl from "@mui/material/FormControl"
+import TextField from "@mui/material/TextField"
 
 // Component Imports
 import CustomTabList from "@core/components/mui/TabList"
 
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard"
+import { toast } from "react-toastify"
 
 // Stripe and Klarna imports (you'll need to install these)
 import { loadStripe } from "@stripe/stripe-js"
@@ -163,6 +168,13 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentData, setPaymentData] = useState(null)
   const [error, setError] = useState("")
+  const [paymentMethod, setPaymentMethod] = useState("card")
+  const [cardDetails, setCardDetails] = useState({
+    cardNumber: "",
+    cardName: "",
+    expiry: "",
+    cvv: ""
+  })
 
   useEffect(() => {
     setMounted(true)
@@ -173,6 +185,52 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
     // Reset any previous payment data and errors
     setPaymentData(null)
     setError("")
+  }
+
+  // Calculate totals
+  const calculateTotals = () => {
+    const subtotal = cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+    const shippingCost = selectedAddress?.shipping === "express" ? 10 : selectedAddress?.shipping === "overnight" ? 15 : 0;
+    const total = subtotal + shippingCost;
+
+    return {
+      subtotal,
+      shipping: shippingCost,
+      total
+    };
+  };
+
+  const totals = calculateTotals();
+
+  const handlePaymentMethodChange = (event) => {
+    setPaymentMethod(event.target.value)
+  }
+
+  const handleCardDetailsChange = (e) => {
+    const { name, value } = e.target
+    setCardDetails(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const validateCardDetails = () => {
+    if (paymentMethod === "card") {
+      if (!cardDetails.cardNumber.trim()) return "Card number is required";
+      if (!cardDetails.cardName.trim()) return "Cardholder name is required";
+      if (!cardDetails.expiry.trim()) return "Expiry date is required";
+      if (!cardDetails.cvv.trim()) return "CVV is required";
+      
+      // Basic validation
+      if (!/^\d{16}$/.test(cardDetails.cardNumber.replace(/\s/g, ''))) {
+        return "Invalid card number";
+      }
+      if (!/^\d{3,4}$/.test(cardDetails.cvv)) {
+        return "Invalid CVV";
+      }
+      // Add more validations as needed
+    }
+    return null;
   }
 
   // Handle Klarna payment
@@ -317,7 +375,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
 
   return (
     <Grid container spacing={6}>
-      <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-5">
+      <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-6">
         {error && (
           <Alert severity="error" onClose={() => setError("")}>
             {error}
@@ -397,76 +455,106 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
       <Grid size={{ xs: 12, lg: 4 }}>
         <div className="border rounded">
           <CardContent>
-            <Typography className="font-medium mbe-4" color="text.primary">
+            <Typography variant="h6" className="font-medium mb-4">
               Order Summary
             </Typography>
-            {cartItems && cartItems.map((item, index) => (
-              <div key={index} className="flex items-center gap-4 mb-4">
-                <img
-                  width={64}
-                  height={64}
-                  alt={item.productName}
-                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item.imgSrc}` || "/placeholder.svg"}
-                />
-                <div>
-                  <Typography variant="body2">{item.productName}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Qty: {item.quantity} × ${item.price}
-                  </Typography>
+            
+            {/* Cart Items */}
+            <div className="space-y-4 mb-4">
+              {cartItems && cartItems.map((item, index) => (
+                <div key={index} className="flex items-center gap-4">
+                  <img
+                    width={64}
+                    height={64}
+                    alt={item.productName}
+                    className="object-cover rounded"
+                    src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item.imgSrc}` || "/placeholder.svg"}
+                  />
+                  <div className="flex-grow">
+                    <Typography variant="body2" className="font-medium">
+                      {item.productName}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {item.quantity} × £{item.price.toFixed(2)}
+                    </Typography>
+                    <Typography variant="body2" className="font-medium">
+                      £{(item.quantity * item.price).toFixed(2)}
+                    </Typography>
+                  </div>
                 </div>
+              ))}
+            </div>
+
+            <Divider />
+            
+            {/* Price Summary */}
+            <div className="py-4 space-y-2">
+              <div className="flex justify-between">
+                <Typography color="text.secondary">Subtotal</Typography>
+                <Typography>£{totals.subtotal.toFixed(2)}</Typography>
               </div>
-            ))}
-            <Divider className="my-4" />
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between gap-2">
-                <Typography color="text.primary">Order Total</Typography>
-                <Typography>${orderSummary.subtotal?.toFixed(2) || "0.00"}</Typography>
+              <div className="flex justify-between">
+                <Typography color="text.secondary">Shipping</Typography>
+                {totals.shipping === 0 ? (
+                  <Typography color="success.main">Free</Typography>
+                ) : (
+                  <Typography>£{totals.shipping.toFixed(2)}</Typography>
+                )}
               </div>
-              <div className="flex items-center justify-between gap-2">
-                <Typography color="text.primary">Delivery Charges</Typography>
-                <div className="flex gap-2">
-                  {orderSummary.shipping === 0 ? (
-                    <>
-                      <Typography color="text.disabled" className="line-through">
-                        $5.00
-                      </Typography>
-                      <Chip variant="tonal" size="small" color="success" label="Free" />
-                    </>
-                  ) : (
-                    <Typography>${orderSummary.shipping?.toFixed(2) || "0.00"}</Typography>
-                  )}
-                </div>
+              <Divider />
+              <div className="flex justify-between pt-2">
+                <Typography variant="h6">Total</Typography>
+                <Typography variant="h6">£{totals.total.toFixed(2)}</Typography>
               </div>
             </div>
-          </CardContent>
-          <Divider />
-          <CardContent className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between gap-2">
-                <Typography className="font-medium" color="text.primary">
-                  Total Amount
-                </Typography>
-                <Typography className="font-medium">${orderSummary.total?.toFixed(2) || "0.00"}</Typography>
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                <Typography className="font-medium" color="text.primary">
-                  Deliver to:
-                </Typography>
-                <Chip variant="tonal" size="small" color="primary" label={selectedAddressDetails?.type || "Home"} />
-              </div>
+
+            <Divider />
+
+            {/* Delivery Details */}
+            <div className="pt-4 space-y-4">
+              <Typography variant="h6" className="font-medium">
+                Delivery Details
+              </Typography>
+              
+              {selectedAddressDetails && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Typography variant="body2" color="text.secondary">
+                      Address Type
+                    </Typography>
+                    <Chip 
+                      variant="tonal" 
+                      size="small" 
+                      color="primary" 
+                      label={selectedAddressDetails?.type || "Home"} 
+                    />
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <Typography className="font-medium">
+                      {selectedAddressDetails.name}
+                      {selectedAddressDetails.isDefault && (
+                        <Chip 
+                          size="small" 
+                          color="info" 
+                          label="Default" 
+                          className="ml-2"
+                        />
+                      )}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {selectedAddressDetails.street}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {selectedAddressDetails.city}, {selectedAddressDetails.state} {selectedAddressDetails.zipCode}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Phone: {selectedAddressDetails.phone}
+                    </Typography>
+                  </div>
+                </div>
+              )}
             </div>
-            {selectedAddressDetails && (
-              <div>
-                <Typography className="font-medium" color="text.primary">
-                  {selectedAddressDetails.name} {selectedAddressDetails.isDefault ? "(Default)" : ""}
-                </Typography>
-                <Typography>{selectedAddressDetails.street},</Typography>
-                <Typography>
-                  {selectedAddressDetails.city}, {selectedAddressDetails.state}, {selectedAddressDetails.zipCode}
-                </Typography>
-                <Typography>Mobile: {selectedAddressDetails.phone}</Typography>
-              </div>
-            )}
           </CardContent>
         </div>
       </Grid>

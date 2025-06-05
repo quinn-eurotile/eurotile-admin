@@ -166,8 +166,8 @@ export const deleteAddresses = async (id) => {
 }
 
 // Cart Actions
-export const updateCartItem = async (data) => {
-  return await cartApi.updateCartItem(data.id, data);
+export const updateCartItem = async (itemId ,data) => {
+  return await cartApi.updateCartItem(itemId, data);
 };
 
 export const removeCartItem = async (id) => {

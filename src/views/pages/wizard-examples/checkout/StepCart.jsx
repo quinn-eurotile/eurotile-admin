@@ -21,6 +21,7 @@ import CardContent from "@mui/material/CardContent"
 import Collapse from "@mui/material/Collapse"
 import Fade from "@mui/material/Fade"
 import CircularProgress from "@mui/material/CircularProgress"
+ 
 
 // Component Imports
 import DirectionalIcon from "@components/DirectionalIcon"
@@ -28,6 +29,8 @@ import DirectionalIcon from "@components/DirectionalIcon"
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard"
 import { cartApi } from "@/services/cart/index"
+import { updateCartItem } from "@/app/server/actions"
+import { toast } from "react-toastify"
 
 // API Import
  
@@ -39,6 +42,8 @@ const StepCart = ({ handleNext }) => {
   const [isUpdating, setIsUpdating] = useState(false)
   const [promoCode, setPromoCode] = useState("")
   const [error, setError] = useState("")
+  const [couponCode, setCouponCode] = useState("")
+  const [showCouponInput, setShowCouponInput] = useState(false)
 
   // Context
   const { cartItems, setCartItems, orderSummary, setOrderSummary, setStepValid, loading, user } = useContext(CheckoutContext)
@@ -51,6 +56,33 @@ const StepCart = ({ handleNext }) => {
     }
   }, [openFade])
 
+  // Calculate cart totals
+  const calculateTotals = () => {
+    if (!cartItems || cartItems.length === 0) return {
+      subtotal: 0,
+      discount: 0,
+      shipping: 0,
+      total: 0
+    };
+
+    const subtotal = cartItems.reduce((sum, item) => {
+      return sum + (item.price * item.quantity);
+    }, 0);
+
+    const discount = orderSummary?.discount || 0;
+    const shipping = orderSummary?.shipping || 0;
+    const total = subtotal - discount + shipping;
+
+    return {
+      subtotal,
+      discount,
+      shipping,
+      total
+    };
+  };
+
+  const totals = calculateTotals();
+
   // Update cart item quantity
   const updateItemQuantity = async (itemId, newQuantity) => {
     if (newQuantity < 1) return
@@ -58,8 +90,8 @@ const StepCart = ({ handleNext }) => {
     setIsUpdating(true)
     setError("")
     try {
-      const response = await cartApi.updateCartItem(itemId, newQuantity)
-      console.log(itemId, newQuantity, 'response updateCartItem');
+      const response = await updateCartItem(itemId, newQuantity)
+      console.log(response, 'response updateCartItem');
       if (response.success) {
         const { items, orderSummary: newOrderSummary } = response.data
         setCartItems(items)
@@ -119,29 +151,34 @@ const StepCart = ({ handleNext }) => {
     }
   }
 
-  // Apply promo code
-  const handleApplyPromoCode = async () => {
-    if (!promoCode.trim()) return
+  // Handle apply coupon
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setError("Please enter a coupon code");
+      return;
+    }
 
-    setIsUpdating(true)
-    setError("")
+    setIsUpdating(true);
+    setError("");
     try {
-      const response = await cartApi.applyPromoCode(promoCode)
+      const response = await cartApi.applyPromoCode(couponCode);
 
       if (response.success) {
-        const { orderSummary: newOrderSummary } = response.data
-        setOrderSummary(newOrderSummary)
-        setPromoCode("")
+        const { orderSummary: newOrderSummary } = response.data;
+        setOrderSummary(newOrderSummary);
+        setCouponCode("");
+        setShowCouponInput(false);
+        toast.success("Coupon applied successfully!");
       } else {
-        setError(response.message || "Invalid promo code")
+        setError(response.message || "Invalid coupon code");
       }
     } catch (error) {
-      console.error("Error applying promo code:", error)
-      setError("Failed to apply promo code")
+      console.error("Error applying coupon:", error);
+      setError("Failed to apply coupon");
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
   // Check if cart is empty and update validation
   useEffect(() => {
@@ -209,8 +246,9 @@ const StepCart = ({ handleNext }) => {
                 <img
                   height={140}
                   width={140}
-                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product.imgSrc}` || "/placeholder.svg?height=140&width=140"}
-                  alt={product.imgAlt || product.productName}
+                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=140&width=140"}
+                  alt={product?.product?.name || 'Product Image'}
+                  className="object-cover rounded-lg"
                 />
                 <IconButton
                   size="small"
@@ -220,50 +258,88 @@ const StepCart = ({ handleNext }) => {
                 >
                   <i className="ri-close-line text-lg" />
                 </IconButton>
-                <div className="flex flex-col sm:flex-row items-center sm:justify-between is-full">
+                <div className="flex flex-col sm:flex-row items-center sm:justify-between w-full">
                   <div className="flex flex-col gap-2 items-center sm:items-start">
-                    <Typography className="font-medium" color="text.primary">
-                      {product.productName}
+                    <Typography className="font-medium text-lg" color="text.primary">
+                      {product?.product?.name}
                     </Typography>
+                    
+                    {/* Variation Details */}
+                    <div className="flex flex-col gap-1">
+                      <Typography color="text.secondary" className="text-sm">
+                        Variation: {product?.variation?.description || 'Standard'}
+                      </Typography>
+                      {product?.attributes && Object.entries(product.attributes).map(([key, value]) => (
+                        <Typography key={key} color="text.secondary" className="text-sm">
+                          {key}: {value}
+                        </Typography>
+                      ))}
+                      <Typography color="text.secondary" className="text-sm">
+                        Tiles: {product?.numberOfTiles || 0}
+                      </Typography>
+                      <Typography color="text.secondary" className="text-sm">
+                        Pallets: {product?.numberOfPallets || 0}
+                      </Typography>
+                    </div>
+
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-1">
-                        <Typography color="text.disabled">Sold By:</Typography>
-                        <Typography href="/" component={Link} onClick={(e) => e.preventDefault()} color="primary.main">
-                          {product.soldBy}
+                        <Typography color="text.disabled">Supplier:</Typography>
+                        <Typography color="primary.main">
+                          {product?.product?.supplier?.companyName || 'N/A'}
                         </Typography>
                       </div>
-                      {product.inStock ? (
-                        <Chip size="small" variant="tonal" color="success" label="In Stock" />
+                      {product?.variation?.stockQuantity > 0 ? (
+                        <Chip 
+                          size="small" 
+                          variant="tonal" 
+                          color="success" 
+                          label={`In Stock (${product.variation.stockQuantity} SQ.M)`} 
+                        />
                       ) : (
                         <Chip size="small" variant="tonal" color="error" label="Out of Stock" />
                       )}
                     </div>
-                    <Rating name={`product-rating-${product.id}`} value={product.rating || 0} readOnly />
-                    <TextField
-                      size="small"
-                      type="number"
-                      value={product?.count}
-                      onChange={(e) => updateItemQuantity(product.id, Number.parseInt(e.target.value), 10)}
-                      className="block max-is-[100px]"
-                      disabled={isUpdating}
-                      inputProps={{ min: 1, step: 1 }}
-                    />
+
+                    <div className="flex items-center gap-4 mt-2">
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={product?.quantity || 0}
+                        onChange={(e) => updateItemQuantity(product._id, Number(e.target.value))}
+                        className="block max-w-[100px]"
+                        disabled={isUpdating}
+                        inputProps={{ min: 1, step: 1 }}
+                        label="SQ.M"
+                      />
+                    </div>
                   </div>
-                  <div className="flex flex-col justify-between items-center mt-4 gap-1 sm:items-end">
-                    <div className="flex">
-                      <Typography color="primary.main">{`$${product.price}`}</Typography>
-                      {product.originalPrice && (
-                        <>
-                          <span className="text-textSecondary">/</span>
-                          <Typography className="line-through">{`$${product.originalPrice}`}</Typography>
-                        </>
+
+                  <div className="flex flex-col justify-between items-center mt-4 gap-3 sm:items-end">
+                    <div className="flex flex-col items-end">
+                      <Typography variant="h6" color="primary.main" className="font-semibold">
+                        £{(product?.price || 0).toFixed(2)}/SQ.M
+                      </Typography>
+                      <Typography color="text.secondary" className="text-sm">
+                        Total: £{((product?.price || 0) * (product?.quantity || 0)).toFixed(2)}
+                      </Typography>
+                      {product?.isCustomPrice && (
+                        <Chip 
+                          size="small" 
+                          variant="tonal" 
+                          color="info" 
+                          label="Custom Price" 
+                          className="mt-1"
+                        />
                       )}
                     </div>
+                    
                     <Button
                       variant="outlined"
                       size="small"
-                      onClick={() => moveToWishlist(product.id)}
+                      onClick={() => moveToWishlist(product._id)}
                       disabled={isUpdating}
+                      className="mt-2"
                     >
                       Move to wishlist
                     </Button>
@@ -296,47 +372,103 @@ const StepCart = ({ handleNext }) => {
             <Typography className="font-medium" color="text.primary">
               Price Details
             </Typography>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center flex-wrap justify-between">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
                 <Typography color="text.primary">Bag Total</Typography>
-                <Typography>${orderSummary.subtotal?.toFixed(2) || "0.00"}</Typography>
+                <Typography>£{totals.subtotal.toFixed(2)}</Typography>
               </div>
-              <div className="flex items-center flex-wrap justify-between">
-                <Typography color="text.primary">Coup Discount</Typography>
-                <Typography href="/" component={Link} onClick={(e) => e.preventDefault()} color="primary.main">
-                  Apply Coupon
-                </Typography>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <Typography color="text.primary">Coupon Discount</Typography>
+                  {!showCouponInput ? (
+                    <Button
+                      color="primary"
+                      onClick={() => setShowCouponInput(true)}
+                      disabled={isUpdating}
+                    >
+                      Apply Coupon
+                    </Button>
+                  ) : (
+                    <Typography color="success.main">
+                      -£{totals.discount.toFixed(2)}
+                    </Typography>
+                  )}
+                </div>
+
+                {showCouponInput && (
+                  <div className="flex gap-2">
+                    <TextField
+                      size="small"
+                      fullWidth
+                      placeholder="Enter coupon code"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      disabled={isUpdating}
+                    />
+                    <Button
+                      variant="contained"
+                      onClick={handleApplyCoupon}
+                      disabled={isUpdating || !couponCode.trim()}
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center flex-wrap justify-between">
-                <Typography color="text.primary">Order Total</Typography>
-                <Typography>${orderSummary.subtotal?.toFixed(2) || "0.00"}</Typography>
-              </div>
-              <div className="flex items-center flex-wrap justify-between">
-                <Typography color="text.primary">Delivery Charges</Typography>
+
+              <div className="flex items-center justify-between">
+                <Typography color="text.primary">Shipping Charges</Typography>
                 <div className="flex items-center gap-2">
-                  <Typography color="text.disabled" className="line-through">
-                    $5.00
-                  </Typography>
-                  <Chip variant="tonal" size="small" color="success" label="Free" />
+                  {totals.shipping > 0 ? (
+                    <Typography>£{totals.shipping.toFixed(2)}</Typography>
+                  ) : (
+                    <>
+                      <Typography color="text.disabled" className="line-through">
+                        £5.00
+                      </Typography>
+                      <Chip variant="tonal" size="small" color="success" label="Free" />
+                    </>
+                  )}
                 </div>
               </div>
+
+              {error && (
+                <Alert severity="error" onClose={() => setError("")}>
+                  {error}
+                </Alert>
+              )}
             </div>
           </CardContent>
           <Divider />
           <CardContent>
-            <div className="flex items-center flex-wrap justify-between">
+            <div className="flex items-center justify-between">
               <Typography className="font-medium" color="text.primary">
-                Total
+                Total Amount
               </Typography>
               <Typography className="font-medium" color="text.primary">
-                ${orderSummary.total?.toFixed(2) || "0.00"}
+                £{totals.total.toFixed(2)}
               </Typography>
             </div>
           </CardContent>
         </div>
+
         <div className="flex justify-normal sm:justify-end xl:justify-normal">
-          <Button fullWidth variant="contained" onClick={handleNext} disabled={cartItems.length === 0 || isUpdating}>
-            {isUpdating ? <CircularProgress size={24} /> : "Place Order"}
+          <Button 
+            fullWidth 
+            variant="contained" 
+            onClick={handleNext} 
+            disabled={cartItems.length === 0 || isUpdating}
+            className="bg-red-800 hover:bg-red-900"
+          >
+            {isUpdating ? (
+              <CircularProgress size={24} />
+            ) : (
+              <>
+                Proceed to Checkout
+                <i className="ri-arrow-right-line ml-2"></i>
+              </>
+            )}
           </Button>
         </div>
       </Grid>
