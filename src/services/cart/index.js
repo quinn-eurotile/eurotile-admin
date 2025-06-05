@@ -23,6 +23,8 @@ export const cartApi = createApiService(CART_API ,  {
         id: itemId,
         quantity
       });
+      console.log(response, 'response.data 317');
+      
       return response.data;
     } catch (error) {
       console.error('Error updating cart item:', error);

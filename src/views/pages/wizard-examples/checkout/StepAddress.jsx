@@ -279,6 +279,7 @@ const StepAddress = ({ handleNext }) => {
       </div>
     )
   }
+console.log(JSON.stringify(orderSummary), 'orderSummary 282');
 
   return (
     <>
@@ -359,11 +360,14 @@ const StepAddress = ({ handleNext }) => {
                     <img
                       width={60}
                       height={60}
-                      src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item.imgSrc}` || "/placeholder.svg?height=60&width=60"} 
-                      alt={item.imgAlt || item.productName}
+                      src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=60&width=60"} 
+                      alt={item?.product?.name || 'Product Image'}
                     />
                     <div>
-                      <Typography>{item.productName}</Typography>
+                      <Typography>{item?.product?.name}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Quantity: {item.quantity} SQ.M
+                      </Typography>
                       <Typography className="font-medium">
                         {selectedShipping === "overnight"
                           ? "1 day delivery"
@@ -383,20 +387,24 @@ const StepAddress = ({ handleNext }) => {
               <div className="flex flex-col gap-2">
                 <div className="flex gap-2 justify-between flex-wrap">
                   <Typography color="text.primary">Order Total</Typography>
-                  <Typography>${orderSummary.subtotal?.toFixed(2) || "0.00"}</Typography>
+                  <Typography>£{cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2) || "0.00"}</Typography>
                 </div>
                 <div className="flex justify-between flex-wrap">
                   <Typography color="text.primary">Delivery Charges</Typography>
                   <div className="flex gap-2">
-                    {orderSummary.shipping === 0 ? (
+                    {selectedShipping === "standard" ? (
                       <>
                         <Typography color="text.disabled" className="line-through">
-                          $5.00
+                          £5.00
                         </Typography>
                         <Chip size="small" variant="tonal" color="success" label="Free" />
                       </>
+                    ) : selectedShipping === "express" ? (
+                      <Typography>£10.00</Typography>
+                    ) : selectedShipping === "overnight" ? (
+                      <Typography>£15.00</Typography>
                     ) : (
-                      <Typography>${orderSummary.shipping?.toFixed(2) || "0.00"}</Typography>
+                      <Typography>£0.00</Typography>
                     )}
                   </div>
                 </div>
@@ -405,10 +413,13 @@ const StepAddress = ({ handleNext }) => {
             <Divider />
             <CardContent className="flex items-center justify-between flex-wrap">
               <Typography className="font-medium" color="text.primary">
-                Total
+                Total Amount
               </Typography>
               <Typography className="font-medium" color="text.primary">
-                ${orderSummary.total?.toFixed(2) || "0.00"}
+                £{(
+                  cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0) + 
+                  (selectedShipping === "express" ? 10 : selectedShipping === "overnight" ? 15 : 0)
+                ).toFixed(2) || "0.00"}
               </Typography>
             </CardContent>
           </div>
@@ -418,8 +429,14 @@ const StepAddress = ({ handleNext }) => {
               variant="contained"
               onClick={handleNext}
               disabled={!selectedAddress || isUpdating}
+              sx={{
+                backgroundColor: '#991b1b',
+                '&:hover': {
+                  backgroundColor: '#7f1d1d',
+                },
+              }}
             >
-              {isUpdating ? <CircularProgress size={24} /> : "Place Order"}
+              {isUpdating ? <CircularProgress size={24} /> : "Continue to Payment"}
             </Button>
           </div>
         </Grid>
