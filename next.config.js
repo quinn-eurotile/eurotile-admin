@@ -5,7 +5,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['localhost','eurotiles-admin.myfileshosting.com', 'eurotiles-be.myfileshosting.com', 'myfileshosting.com'],
+    domains: ['localhost', 'localhost:3001','eurotiles-admin.myfileshosting.com', 'eurotiles-be.myfileshosting.com', 'myfileshosting.com'],
   },
 };
 

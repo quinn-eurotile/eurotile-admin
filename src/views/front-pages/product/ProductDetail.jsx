@@ -6,7 +6,7 @@ import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Select from '@mui/material/Select'
 import { useEffect, useState } from "react"
-import { Divider, FormControl, Grid2, InputLabel, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Switch, FormControlLabel } from "@mui/material"
+import { Divider, FormControl, Grid2, InputLabel, MenuItem } from "@mui/material"
 import Tab from '@mui/material/Tab'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
@@ -19,8 +19,7 @@ import { useParams } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
 import { addToCart } from "@/redux-store/slices/cart"
 
-import { getSession, useSession } from "next-auth/react"
-import { toast } from "react-toastify"
+import { getSession } from "next-auth/react"
 
 
 
@@ -37,7 +36,7 @@ export default function ProductDetailPage() {
 
   const { lang: locale, id: productId } = useParams();
   const [product, setProduct] = useState(null)
-  const { data: session, status } = useSession()
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [quantity, setQuantity] = useState("1")
   const [tiles, setTiles] = useState("10")
@@ -57,10 +56,6 @@ export default function ProductDetailPage() {
   const [Tabvalue, setTabValue] = useState('1')
   const dispatch = useDispatch()
   const cart = useSelector(state => state.cartReducer);
-  const [isClientOrder, setIsClientOrder] = useState(false)
-  const [openPriceDialog, setOpenPriceDialog] = useState(false)
-  const [customPrice, setCustomPrice] = useState("")
-  const [priceError, setPriceError] = useState("")
 
   console.log('Current cart state:', cart);
   const fetchProductDetails = async () => {
@@ -326,85 +321,26 @@ export default function ProductDetailPage() {
       return
     }
 
-    // If client order is enabled, show price dialog instead of adding to cart directly
-    if (isClientOrder) {
-      setCustomPrice(selectedVariation.regularPriceB2C.toString())
-      setPriceError("")
-      setOpenPriceDialog(true)
-      return
-    }
-
     const cartItem = {
-      productId: product._id,
-      variationId: selectedVariation._id,
+      productId: product.id,
+      variationId: selectedVariation.id,
       quantity: calculatedValues.sqm,
       numberOfTiles: calculatedValues.tiles,
       numberOfPallets: calculatedValues.pallets,
       attributes: selectedAttributes,
-      price: selectedVariation.regularPriceB2C
+      price: selectedVariation.regularPriceB2B // Or use appropriate price based on tier
     }
 
-    try {
-      const response = await addCart({ 
-        items: cartItem,
-        userId: session?.user?.id
-      });
-      
-      if (response.success) {
-        dispatch(addToCart(response.data))
-        toast.success('Product added to cart successfully')
-      } else {
-        setError(response.message || 'Failed to add item to cart')
-      }
-    } catch (err) {
-      setError('Error adding item to cart')
-      console.error(err)
+    const response = await addCart({
+      items: cartItem,
+      userId: "680b8ce6e2f902abe9cc790b" // Include user ID if needed
+    });
+    if (response.success) {
+      dispatch(addToCart(response.data))
     }
+    console.log('API Response:', response);
+
   }
-
-  const handleCustomPriceSubmit = async () => {
-    const price = parseFloat(customPrice)
-    
-    // Validate price is within B2B and B2C range
-    // if (price < selectedVariation.regularPriceB2B) {
-    //   setPriceError(`Price cannot be lower than £${selectedVariation.regularPriceB2B}`)
-    //   return
-    // }
-    // if (price > selectedVariation.regularPriceB2C) {
-    //   setPriceError(`Price cannot be higher than £${selectedVariation.regularPriceB2C}`)
-    //   return
-    // }
-
-    const cartItem = {
-      productId: product._id,
-      variationId: selectedVariation._id,
-      quantity: calculatedValues.sqm,
-      numberOfTiles: calculatedValues.tiles,
-      numberOfPallets: calculatedValues.pallets,
-      attributes: selectedAttributes,
-      price: price,
-      isCustomPrice: true
-    }
-
-    try {
-      const response = await addCart({ 
-        items: cartItem,
-        userId: session?.user?.id
-      });
-      
-      if (response.success) {
-        dispatch(addToCart(response.data))
-        toast.success('Product added to cart successfully')
-        setOpenPriceDialog(false)
-      } else {
-        setError(response.message || 'Failed to add item to cart')
-      }
-    } catch (err) {
-      setError('Error adding item to cart')
-      console.error(err)
-    }
-  }
-
   // const cart = useSelector(state => state.cartReducer);
   // console.log('Current Cart:', cart);
   // 🟩 Calculate thresholds and map them to discounts
@@ -574,62 +510,43 @@ export default function ProductDetailPage() {
               <div className="my-6">
                 <h3 className="font-normal mb-4">Create Order Here</h3>
 
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={isClientOrder}
-                      onChange={(e) => setIsClientOrder(e.target.checked)}
-                      color="primary"
-                    />
-                  }
-                  label="Create Order for Client"
-                  className="mb-4"
-                />
-
                 {/* <div>
                   <ColorSelector />
                 </div> */}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                {product?.attributes?.map(attributeId => {
-                  // Get ALL variations for this attributeId
-                  const attributeVariations = product.attributeVariations.filter(
-                    av => av.productAttribute === attributeId
-                  );
+                  {product?.attributes?.map(attributeId => {
+                    // Get ALL variations for this attributeId
+                    const attributeVariations = product.attributeVariations.filter(
+                      av => av.productAttribute === attributeId
+                    );
 
-                  if (attributeVariations.length === 0) return null;
+                    if (attributeVariations.length === 0) return null;
 
-                  // Use the first variation to get the label (like 'size' or 'color')
-                  const label = attributeVariations[0].metaKey;
+                    // Use the first variation to get the label (like 'size' or 'color')
+                    const label = attributeVariations[0].metaKey;
 
-                  return (
-                    <div key={attributeId} className="flex flex-col mb-4">
-                      <label htmlFor={`attribute-${attributeId}`} className="text-sm font-medium text-gray-700 mb-1">
-                        {label}
-                      </label>
-                      <Select
-                        id={`attribute-${attributeId}`}
-                        value={selectedAttributes[attributeId] || ''}
-                        onChange={(e) => handleVariationChange(attributeId, e.target.value)}
-                        displayEmpty
-                        sx={{
-                          backgroundColor: '#f4f0ed',
-                          borderRadius: '10px'
-                        }}
-                      >
-                        <MenuItem value="" disabled>
-                          Select {label}
-                        </MenuItem>
-                        {attributeVariations.map(variation => (
-                          <MenuItem key={variation._id} value={variation._id}>
-                            {variation.metaValue}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </div>
-                  );
-                })}
-
+                    return (
+                      <FormControl fullWidth key={attributeId} className="mb-4">
+                        <InputLabel>{label}</InputLabel>
+                        <Select
+                          value={selectedAttributes[attributeId] || ''}
+                          onChange={(e) => handleVariationChange(attributeId, e.target.value)}
+                          label={label}
+                          sx={{
+                            backgroundColor: '#f4f0ed',
+                            borderRadius: '10px'
+                          }}
+                        >
+                          {attributeVariations.map(variation => (
+                            <MenuItem key={variation._id} value={variation._id}>
+                              {variation.metaValue}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )
+                  })}
 
 
 
@@ -638,61 +555,73 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="flex flex-col">
-                  <label htmlFor="quantity" className="text-sm font-medium text-gray-700 mb-1">Quantity / SQ.M</label>
-                  <input
-                    id="quantity"
-                    type="text"
-                    value={quantity}
-                    placeholder="Enter SQ.M"
-                    className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
-                    onChange={handleQuantityChange}
-                  />
-                </div>
+                  <div className="rounded-md">
+                    <input
+                      type="text"
+                      value={quantity}
+                      placeholder="Quantity / Enter SQ.M"
+                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
+                      onChange={handleQuantityChange}
+                    />
+                  </div>
 
-                <div className="flex flex-col">
-                  <label htmlFor="tiles" className="text-sm font-medium text-gray-700 mb-1">No. Of Tiles</label>
-                  <input
-                    id="tiles"
-                    type="text"
-                    value={tiles}
-                    className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
-                    onChange={handleTilesChange}
-                    placeholder="No. Of Tiles"
-                  />
-                </div>
+                  <div className="rounded-md">
+                    <input
+                      type="text"
+                      value={tiles}
+                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
+                      onChange={handleTilesChange}
+                      placeholder="No. Of Tiles"
+                    />
+                  </div>
 
-                <div className="flex flex-col">
-                  <label htmlFor="pallets" className="text-sm font-medium text-gray-700 mb-1">No. Of Pallets</label>
-                  <input
-                    id="pallets"
-                    type="text"
-                    className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
-                    value={pallets}
-                    onChange={handlePalletsChange}
-                    placeholder="No. Of Pallets"
-                  />
+                  <div className="rounded-md">
+                    <input
+                      type="text"
+                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
+                      value={pallets}
+                      onChange={handlePalletsChange}
+                      placeholder="No. Of Pallets"
+                    />
+                  </div>
                 </div>
-              </div>
-
 
                 {error && (
                   <div className="text-red-500 mb-4">{error}</div>
                 )}
-      
+                {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+
+                  <div className="rounded-md">
+                    <input type="text" placeholder="Quantity / Enter SQ.M" className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black" onChange={handleQuantityChange} />
+                  </div>
+
+                  <div className="rounded-md">
+                    <input
+                      type="text"
+                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
+                      onChange={(e) => setTiles(e.target.value)}
+                      placeholder="No. Of Tiles"
+                    />
+                  </div>
+
+                  <div className="rounded-md">
+
+                    <input
+                      type="text"
+                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
+                      value={pallets}
+                      onChange={(e) => setPallets(e.target.value)}
+                      placeholder="No. Of Pallets"
+                    />
+                  </div>
+                </div> */}
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Button 
-                    className="flex-1 bg-red-800 hover:bg-red-900 text-white" 
-                    onClick={handleAddToCart}
-                  >
+                  <Button className="flex-1 bg-red-800 hover:bg-red-900 text-white" onClick={handleAddToCart}>
                     <i className="ri-shopping-cart-line me-2 text-lg"></i>
-                    {isClientOrder ? 'Create Client Order' : 'Add To Cart'}
+                    Add To Cart
                   </Button>
-                  <Button 
-                    variant='outlined' 
-                    className="flex-1 border border-red-800 text-red-800 hover:bg-red-50"
-                  >
+                  <Button variant='outlined' className="flex-1 border border-red-800 text-red-800 hover:bg-red-50">
                     <i className="ri-heart-line me-2 text-lg"></i>
                     Add To Wishlist
                   </Button>
@@ -855,8 +784,96 @@ export default function ProductDetailPage() {
             <TabPanel value='1' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-4">
 
               {product?.description ?? ''}
-              
-              
+              {/* <p className="text-sm leading-relaxed">
+                The Timeless Modernity Of Travertine And Its Harmonious Elegance Are Expressed In An Extremely Versatile
+                Collection Available In Terms Of Colours, Which Range From Cool Tones To Warmer, Enveloping Nuances.
+                Appearance And Surface Variation Travertine Reveals Different Textures Depending On Its Cuts.
+              </p>
+              <p className="text-sm leading-relaxed mt-4">
+                The Cross Cut Technology Reproduces The Cloudy Aesthetics Achieved By Cutting Perpendicular To The
+                Direction Of Layering Of The Stone, Resulting In A Homogeneous And Balanced Overall Effect.
+              </p> */}
+
+              {/* <div className="mt-6">
+                <h3 className="font-normal mb-2 text-sm">Need A Sample?</h3>
+                <p className="text-sm text-gray-600 mb-3">20x20cm Sample Delivered In 3-5 Working Days</p>
+
+                <Select className="mt-4">
+                  <SelectTrigger className="max-w-xs w-full md:w-1/4 mt-3 bg-bgLight">
+                    <SelectValue placeholder="£9.99 CHOOSE FINISH" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="polished">Polished</SelectItem>
+                    <SelectItem value="matte">Matte</SelectItem>
+                    <SelectItem value="honed">Honed</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <FormControl fullWidth className="max-w-xs w-full md:w-1/4 mt-3 bg-bgLight  rounded-md">
+                  <InputLabel id='choose-finish-label'>£9.99 CHOOSE FINISH</InputLabel>
+                  <Select label='£9.99 CHOOSE FINISH' labelId='choose-finish-label' id='choose-finish' defaultValue=''
+                    sx={{
+                      backgroundColor: '#f4f0ed',
+                      borderRadius: '10px',
+                      '&:hover .MuiSelect-filled:not(.Mui-disabled)::before': {
+                        borderBottom: 'none',
+                      },
+                      '& .MuiSelect-filled::before': {
+                        borderBottom: 'none',
+                      },
+                      '& .MuiSelect-filled::after': {
+                        borderBottom: 'none',
+                      },
+                    }}
+                  >
+                    <MenuItem value=''>
+                      <em>None</em>
+                    </MenuItem>
+                    <MenuItem value={10}>Polished</MenuItem>
+                    <MenuItem value={20}>Matte</MenuItem>
+                    <MenuItem value={30}>Honed</MenuItem>
+                  </Select>
+                </FormControl>
+
+              </div> */}
+
+              {/* <div className="mt-6">
+                <h3 className="font-normal mb-2">High Res Images Pack</h3>
+
+                 <Select className="max-w-xs">
+                  <SelectTrigger className="max-w-xs w-full md:w-1/4 mt-3 bg-bgLight">
+                    <SelectValue placeholder="DOWNLOAD (5.8MB)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="download">Download Now</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <FormControl fullWidth className="max-w-xs w-full md:w-1/4 mt-3 bg-bgLight rounded-md">
+                  <InputLabel id='download-label'>DOWNLOAD (5.8MB)</InputLabel>
+                  <Select label='DOWNLOAD (5.8MB)' labelId='download-label' id='download' defaultValue=''
+                    sx={{
+                      backgroundColor: '#f4f0ed',
+                      borderRadius: '10px',
+                      '&:hover .MuiSelect-filled:not(.Mui-disabled)::before': {
+                        borderBottom: 'none',
+                      },
+                      '& .MuiSelect-filled::before': {
+                        borderBottom: 'none',
+                      },
+                      '& .MuiSelect-filled::after': {
+                        borderBottom: 'none',
+                      },
+                    }}
+                  >
+                    <MenuItem value=''>
+                      <em>None</em>
+                    </MenuItem>
+                    <MenuItem value={10}>Download Now</MenuItem>
+                  </Select>
+                </FormControl>
+
+              </div> */}
 
             </TabPanel>
             <TabPanel value='2' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-4">
@@ -885,18 +902,18 @@ export default function ProductDetailPage() {
                     <li>
                       <span className="font-medium">Max Price (B2B):</span> {product.maxPriceB2B}
                     </li>
-                    {/* <li>
+                    <li>
                       <span className="font-medium">Min Price (B2C):</span> {product.minPriceB2C}
                     </li>
                     <li>
                       <span className="font-medium">Max Price (B2C):</span> {product.maxPriceB2C}
-                    </li> */}
+                    </li>
 
                   </ul>
                 </div>
                 <div>
                   <h3 className="font-medium mb-4 text-redText">Product Variations</h3>
-                  {Array.isArray(product?.productVariations) && product.productVariations.map((variation) => (
+                  {product.productVariations.map((variation) => (
                     <div key={variation._id} className="mb-4 border p-2 rounded">
                       <p><span className="font-medium">Description:</span> {variation.description}</p>
                       <p><span className="font-medium">Stock Quantity:</span> {variation.stockQuantity}</p>
@@ -907,13 +924,12 @@ export default function ProductDetailPage() {
                       <p><span className="font-medium">Pallet Size:</span> {variation.palletSize}</p>
                       <p><span className="font-medium">Box Size:</span> {variation.boxSize}</p>
                       <p><span className="font-medium">Number of Tiles:</span> {variation.numberOfTiles}</p>
-                      <p><span className="font-medium">Dimensions (L×W×H):</span> {variation.dimensions?.length}×{variation.dimensions?.width}×{variation.dimensions?.height}</p>
-
-                      {Array.isArray(variation.variationImages) && variation.variationImages.length > 0 && (
+                      <p><span className="font-medium">Dimensions (L×W×H):</span> {variation.dimensions.length}×{variation.dimensions.width}×{variation.dimensions.height}</p>
+                      {variation.variationImages.length > 0 && (
                         <div className="mt-2">
                           <span className="font-medium">Variation Image:</span>
                           <img
-                            src={variation.variationImages[0]?.filePath}
+                            src={variation.variationImages[0].filePath}
                             alt="Variation"
                             className="mt-1 w-32 h-32 object-cover rounded border"
                           />
@@ -924,8 +940,8 @@ export default function ProductDetailPage() {
 
                   <h3 className="font-medium mb-4 text-redText">Applications</h3>
                   <ul className="text-sm space-y-4 list-none p-0">
-                    {Array.isArray(product?.categories) && product.categories.map((category) => (
-                      <li key={category._id}>{category?.name}</li>
+                    {product.categories.map((category) => (
+                      <li key={category._id} >{category?.name}</li>
                     ))}
                   </ul>
                 </div>
@@ -973,38 +989,6 @@ export default function ProductDetailPage() {
         </div>
 
       </main>
-
-      {/* Custom Price Dialog */}
-      <Dialog open={openPriceDialog} onClose={() => setOpenPriceDialog(false)}>
-        <DialogTitle>Set Custom Price</DialogTitle>
-        <DialogContent>
-          <div className="mt-2 mb-4 text-sm text-gray-600">
-            Price range: £{selectedVariation?.regularPriceB2B} - £{selectedVariation?.regularPriceB2C}
-          </div>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Custom Price"
-            type="number"
-            fullWidth
-            value={customPrice}
-            onChange={(e) => {
-              setCustomPrice(e.target.value)
-              setPriceError("")
-            }}
-            error={!!priceError}
-            helperText={priceError}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenPriceDialog(false)} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleCustomPriceSubmit} color="primary">
-            Add to Cart
-          </Button>
-        </DialogActions>
-      </Dialog>
 
     </div>
   )
