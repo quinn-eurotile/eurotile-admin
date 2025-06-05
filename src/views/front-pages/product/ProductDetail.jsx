@@ -761,8 +761,8 @@ export default function ProductDetailPage() {
                     <i className="ri-shopping-cart-line me-2 text-lg"></i>
                     Add To Cart
                   </Button>
-                  {/* <Button 
-                    variant='outlined' 
+                  {/* <Button
+                    variant='outlined'
                     className="flex-1 border border-red-800 text-red-800 hover:bg-red-50"
                   >
                     <i className="ri-heart-line me-2 text-lg"></i>
@@ -1056,7 +1056,7 @@ export default function ProductDetailPage() {
                 </div>
                 <div>
                   <h3 className="font-medium mb-4 text-redText">Product Variations</h3>
-                  {product.productVariations.map((variation) => (
+                  {product?.productVariations?.map((variation) => (
                     <div key={variation._id} className="mb-4 border p-2 rounded">
                       <p><span className="font-medium">Description:</span> {variation.description}</p>
                       <p><span className="font-medium">Stock Quantity:</span> {variation.stockQuantity}</p>
@@ -1083,7 +1083,7 @@ export default function ProductDetailPage() {
 
                   <h3 className="font-medium mb-4 text-redText">Applications</h3>
                   <ul className="text-sm space-y-4 list-none p-0">
-                    {product.categories.map((category) => (
+                    {product?.categories?.map((category) => (
                       <li key={category._id} >{category?.name}</li>
                     ))}
                   </ul>
