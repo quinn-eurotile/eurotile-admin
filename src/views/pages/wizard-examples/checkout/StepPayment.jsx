@@ -63,7 +63,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, or
         currency: "usd",
         saveCard,
         customerId: user?.id,
-        cartItems: JSON.stringify(cartItems),
+        cartItems: cartItems,
       });
       console.log("response:", response); // Add this line to see the paymentIntent object
 
@@ -90,9 +90,6 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, or
       if (confirmError) {
         setPaymentError(confirmError.message);
       } else if (paymentIntent.status === "succeeded") {
-        // Verify payment with our API
-        const verifyResponse = await verifyStripePayment(paymentIntent.id);
-
         if (verifyResponse.success) {
           onPaymentSuccess({
             paymentIntentId: paymentIntent.id,
