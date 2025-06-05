@@ -90,58 +90,15 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, or
       if (confirmError) {
         setPaymentError(confirmError.message);
       } else if (paymentIntent.status === "succeeded") {
-        console.log('return false called');
-        return false;
-        // Call your backend to save the order
-        // const orderPayload = {
-        //   shippingAddress: '682eadb0aab42e3f5afe51c8',
-        //   paymentMethod: 'stripe',
-        //   subtotal: 100,
-        //   shipping: 10,
-        //   discount: 1,
-        //   total: paymentIntent.amount,
-        //   promoCode: null,
-        //   shippingMethod: 'standard',
-        //   orderItems: cartItems.map(item => ({
-        //     productId: item.productId,
-        //     variationId: item.variationId,
-        //     productDetail: item.detail,
-        //   })),
-        //   paymentInfo: {
-        //     order: null, // Will be updated in backend
-        //     stripePaymentId: paymentIntent.id,
-        //     amount: paymentIntent.amount,
-        //     amountReceived: paymentIntent.amount_received,
-        //     currency: paymentIntent.currency,
-        //     status: paymentIntent.status,
-        //     clientSecret: paymentIntent.client_secret,
-        //     paymentMethodTypes: paymentIntent.payment_method_types,
-        //     paymentMethod: paymentIntent.payment_method,
-        //     receiptEmail: paymentIntent.receipt_email,
-        //     livemode: paymentIntent.livemode,
-        //     metadata: paymentIntent.metadata,
-        //     description: paymentIntent.description,
-        //   }
-        // };
-
-        // const saveOrderResponse = await axios.post('/api/orders/create', orderPayload);
-
-        // if (saveOrderResponse.data.success) {
-        //   // success toast, redirect to success page
-        // }
-
-        // Verify payment with our API
-        // const verifyResponse = await verifyStripePayment(paymentIntent.id);
-
-        // if (verifyResponse.success) {
-        //   onPaymentSuccess({
-        //     paymentIntentId: paymentIntent.id,
-        //     paymentMethod: "stripe",
-        //     status: verifyResponse.data.status
-        //   });
-        // } else {
-        //   setPaymentError("Payment verification failed. Please contact support.");
-        // }
+        if (verifyResponse.success) {
+          onPaymentSuccess({
+            paymentIntentId: paymentIntent.id,
+            paymentMethod: "stripe",
+            status: verifyResponse.data.status
+          });
+        } else {
+          setPaymentError("Payment verification failed. Please contact support.");
+        }
       }
     } catch (error) {
       console.error("Stripe payment error:", error);
