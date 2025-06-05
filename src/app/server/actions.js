@@ -18,8 +18,8 @@ import { db as cartData } from '@/fake-db/pages/cart';
 import { db as statisticsData } from '@/fake-db/pages/widgetExamples';
 import { tradeProfessionalService, userTradeProfessionalService } from '@/services/trade-professionals';
 import { productRawDataServices } from '@/services/product-raw-data';
-import { productFrontListServices, productServices } from '@/services/product'; 
-import { addressService } from '@/services/address'
+import { productFrontListServices, productServices } from '@/services/product';
+import { addressService } from '@/services/address';
 import { adminSettingServices } from '@/services/adminSetting';
 import { cartApi } from '@/services/cart/index';
 
@@ -148,24 +148,24 @@ export const getCartData = async (userId) => {
   };
 };
 export const addCart = async (data) => {
-     return await cartApi.create(data);
-}
+  return await cartApi.create(data);
+};
 
 export const addAddress = async (data) => {
-     return await addressService.create(data);
-}
-export const updateAddress = async (id ,data) => {
-     return await addressService.update(id,data);
-}
+  return await addressService.create(data);
+};
+export const updateAddress = async (id, data) => {
+  return await addressService.update(id, data);
+};
 export const getAddresses = async (id) => {
-     return await addressService.getById(id);
-}
+  return await addressService.getById(id);
+};
 export const deleteAddresses = async (id) => {
-     return await addressService.delete(id);
-}
+  return await addressService.delete(id);
+};
 
 // Cart Actions
-export const updateCartItem = async (itemId ,data) => {
+export const updateCartItem = async (itemId, data) => {
   return await cartApi.updateCartItem(itemId, data);
 };
 export const getAllClients = async () => {
