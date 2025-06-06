@@ -9,6 +9,7 @@ import { getServerSession } from 'next-auth';
 
 // Server-side data fetching functions
 export async function fetchCartData(userId) {
+
   try {
 
     //  const response = await getCartData();;
@@ -59,15 +60,17 @@ const CheckoutPage = async () => {
       fetchUserAddresses(session.user._id),
       fetchUserProfile(session.user._id)
     ]) 
+    console.log(cartData, 'cartData');
+    
 
     initialData = {
       cartItems: cartData.items,
       addresses: addresses,
       user: userProfile || session.user,
-      orderSummary: cartData.orderSummary
+      orderSummary: cartData.orderSummary,
+      cartData: cartData
     }
   }
-  console.log(initialData, 'initialData');
   return <>
     <Checkout initialData={initialData} session={session} />
   </>

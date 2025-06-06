@@ -6,6 +6,7 @@ import { useKeenSlider } from 'keen-slider/react';
 import { calculateTierValue } from '@/components/common/helper';
 
 const ProductVariationView = ({ variation }) => {
+  console.log(variation, "variationvariation");
     if (!variation) return null;
 
     const images = variation.variationImages || [];

@@ -55,6 +55,7 @@ export default function ProductsPage() {
 
   const fetchProductList = async (currentPage = 1, pageSize = rowsPerPage) => {
     try {
+
       const response = await getFrontProductList(currentPage, pageSize, filter?.search_string, {
         attributeVariations: JSON.stringify(filter.attributeVariations),
         search_string: filter.search_string,
@@ -161,7 +162,7 @@ export default function ProductsPage() {
             </div>
 
             {/* Mobile Filter Sidebar */}
-            <FilterSidebar reawFilterData={reawFilterData} setFilter={setFilter} filter={filter} isMobile={true} isOpen={filterOpen} onClose={() => setFilterOpen(false)} /> 
+            <FilterSidebar reawFilterData={reawFilterData} setFilter={setFilter} filter={filter} isMobile={true} isOpen={filterOpen} onClose={() => setFilterOpen(false)} />
 
             {loading ? (
               <div className='flex-1 flex items-center justify-center min-h-[300px]'>

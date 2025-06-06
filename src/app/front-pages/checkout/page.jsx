@@ -86,6 +86,7 @@ const CheckoutServerPage = async () => {
       },
     }
   }
+  
 
   return <CheckoutPage initialData={initialData} session={session} />
 }

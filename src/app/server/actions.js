@@ -18,8 +18,8 @@ import { db as cartData } from '@/fake-db/pages/cart';
 import { db as statisticsData } from '@/fake-db/pages/widgetExamples';
 import { tradeProfessionalService, userTradeProfessionalService } from '@/services/trade-professionals';
 import { productRawDataServices } from '@/services/product-raw-data';
-import { productFrontListServices, productServices } from '@/services/product';
-import { addressService } from '@/services/address';
+import { productExportServices, productFrontListServices, productServices } from '@/services/product';
+import { addressService } from '@/services/address'
 import { adminSettingServices } from '@/services/adminSetting';
 import { cartApi } from '@/services/cart/index';
 
@@ -84,6 +84,10 @@ export const getProductRawData = async () => {
 
 export const getProductList = async (currentPage, rowsPerPage, searchTerm, filteredData) => {
   return await productServices.get(currentPage, rowsPerPage, searchTerm, filteredData);
+};
+
+export const getAllProductList = async () => {
+  return await productExportServices.getAll();
 };
 
 export const getFrontProductList = async (currentPage, rowsPerPage, searchTerm, filteredData) => {
@@ -169,7 +173,6 @@ export const updateCartItem = async (itemId, data) => {
   return await cartApi.updateCartItem(itemId, data);
 };
 export const getAllClients = async () => {
-  console.log('getAllClients 222');
   return await userTradeProfessionalService.getAllClients();
 };
 

@@ -21,7 +21,7 @@ import SupplierList from '@/views/admin/supplier/list';
   return res.json()
 } */
 
-export async function fetchSupplierList (currentPage = 1,rowsPerPage = 10, searchTerm = '', filteredData=null) {
+export async function fetchSupplierList(currentPage = 1, rowsPerPage = 10, searchTerm = '', filteredData = null) {
   try {
     return await supplierService.get(currentPage, rowsPerPage, searchTerm, filteredData);
   } catch (error) {
@@ -29,7 +29,7 @@ export async function fetchSupplierList (currentPage = 1,rowsPerPage = 10, searc
   }
 };
 
-export async function fetchSupplierById (id) {
+export async function fetchSupplierById(id) {
   try {
     return await supplierService.getById(id);
   } catch (error) {
@@ -37,7 +37,7 @@ export async function fetchSupplierById (id) {
   }
 };
 
-export async function updateSupplier (id, finalPayload) {
+export async function updateSupplier(id, finalPayload) {
   try {
     return await supplierService.update(id, finalPayload);
   } catch (error) {
@@ -45,7 +45,7 @@ export async function updateSupplier (id, finalPayload) {
   }
 };
 
-export async function createSupplier (finalPayload) {
+export async function createSupplier(finalPayload) {
   try {
     return await supplierService.create(finalPayload);
   } catch (error) {
@@ -61,15 +61,25 @@ export async function deleteTeamMember(id) {
     return { success: false };
   }
 }
+export async function updateStatus(id, data) {
+  console.log(id, data);
+  try {
+    return await supplierService.updateStatus(id, data);
+  } catch (error) {
+    console.error('Error updating Status:', error);
+    return { success: false };
+  }
+}
 
 const SupplierListApp = async () => {
 
-    const initialData = await fetchSupplierList();
+  const initialData = await fetchSupplierList();
   return <SupplierList
-          initialData={initialData}
-          fetchSupplierList={fetchSupplierList}
-          deleteTeamMember={deleteTeamMember}
-        />
+    initialData={initialData}
+    fetchSupplierList={fetchSupplierList}
+    deleteTeamMember={deleteTeamMember}
+    updateStatus={updateStatus}
+  />
 }
 
 export default SupplierListApp
