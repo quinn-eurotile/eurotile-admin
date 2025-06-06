@@ -1,5 +1,5 @@
 
-import OrderDetails from '@/views/admin/ecommerce/orders/details';
+import Preview from '@/views/admin/ecommerce/orders/preview';
 
 /**
  * ! If you need data using an API call, uncomment the below API code, update the `process.env.API_URL` variable in the
@@ -17,10 +17,9 @@ import OrderDetails from '@/views/admin/ecommerce/orders/details';
 
   return res.json()
 } */
-const OrderDetailsPage = async props => {
+const InvoicePreviewPage = async props => {
   const params = await props.params
-
-  return <OrderDetails orderId={params.id} />
+ return <Preview orderId={params.id}/>
 }
 
-export default OrderDetailsPage
+export default InvoicePreviewPage
