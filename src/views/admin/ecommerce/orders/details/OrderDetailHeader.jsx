@@ -11,7 +11,7 @@ import moment from 'moment'
 import { useParams, useRouter } from 'next/navigation'
 
 const OrderDetailHeader = ({ order, data }) => {
-  //console.log(data, 'orderDataorderDataorderData')
+  //// console.log(data, 'orderDataorderDataorderData')
   // Vars
 
 

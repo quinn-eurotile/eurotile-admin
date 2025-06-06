@@ -62,7 +62,7 @@ export async function deleteTeamMember(id) {
   }
 }
 export async function updateStatus(id, data) {
-  console.log(id, data);
+  // console.log(id, data);
   try {
     return await supplierService.updateStatus(id, data);
   } catch (error) {

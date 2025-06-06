@@ -79,7 +79,7 @@ const fuzzyFilter = (row, columnId, value, addMeta) => {
 const columnHelper = createColumnHelper()
 
 const OrderTable = ({ orderedProduct }) => {
-  console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct')
+  // console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct')
 
   // States
   const [rowSelection, setRowSelection] = useState({})
@@ -134,7 +134,6 @@ const OrderTable = ({ orderedProduct }) => {
 
           return (
             <div className='flex items-center gap-3'>
-              {console.log(productDetail, 'Parsed productDetail')}
               {getAvatar({
                   avatar: `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/fjdkfj`,
                   customer: data?.createdBy?.name ?? ''

@@ -24,7 +24,7 @@ const getCommonHeaders = async () => {
 const apiRequest = async (endpoint, method, data = null, customHeaders = {}, showToastOnError = true) => {
   try {
 
-    console.log(endpoint, 'endpoint');
+    // console.log(endpoint, 'endpoint');
 
     const headers = {
       ...(await getCommonHeaders()), // 👈 Skip Content-Type if FormData
@@ -46,9 +46,9 @@ const apiRequest = async (endpoint, method, data = null, customHeaders = {}, sho
       delete config.data;
     }
 
-    // console.log('.......headers test', headers);
-    // console.log(REQUEST_URL, 'REQUEST_URLREQUEST_URL');
-    // console.log(data, 'data');
+    // // console.log('.......headers test', headers);
+    // // console.log(REQUEST_URL, 'REQUEST_URLREQUEST_URL');
+    // // console.log(data, 'data');
 
     const response = await axios(config);
 

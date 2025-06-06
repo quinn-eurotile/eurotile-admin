@@ -104,7 +104,7 @@ const SupplierMemberList = ({ initialData, fetchSupplierList, deleteTeamMember, 
     0: 'Inactive'
   }
   const handleSupplierStatusToggle = async rowData => {
-    console.log("rowDatarowData", rowData)
+    // console.log("rowDatarowData", rowData)
     const currentStatus = rowData.status
     const newStatus = currentStatus === 1 ? 0 : 1
     await updateStatus(rowData.id, newStatus)
@@ -133,11 +133,11 @@ const SupplierMemberList = ({ initialData, fetchSupplierList, deleteTeamMember, 
       // },
       columnHelper.accessor('id', {
         header: 'Supplier ID',
-        cell: ({ row }) => <Typography onClick={() => router.push(`/${locale}/admin/supplier/view/${row.original._id}`)} class="cursor-pointer">{row?.original?.supplierId}</Typography>
+        cell: ({ row }) => <Typography onClick={() => router.push(`/${locale}/admin/supplier/view/${row.original._id}`)} className="cursor-pointer">{row?.original?.supplierId}</Typography>
       }),
       columnHelper.accessor('companyName', {
         header: 'Company Name',
-        cell: ({ row }) => <Typography onClick={() => router.push(`/${locale}/admin/supplier/view/${row.original._id}`)} class="cursor-pointer">{row?.original?.companyName}</Typography>
+        cell: ({ row }) => <Typography onClick={() => router.push(`/${locale}/admin/supplier/view/${row.original._id}`)} className="cursor-pointer">{row?.original?.companyName}</Typography>
       }),
 
       columnHelper.accessor('email', {

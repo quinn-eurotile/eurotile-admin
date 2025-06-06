@@ -186,7 +186,7 @@ const AddProduct = () => {
   }, [productId]);
 
   const onSubmit = async formDataValues => {
-    console.log(formDataValues, 'formDataValuesformDataValuesformDataValues');
+    // console.log(formDataValues, 'formDataValuesformDataValuesformDataValues');
     // return;
     try {
       const missingFields = [];
@@ -276,7 +276,7 @@ const AddProduct = () => {
 
       // Debug: log formData keys and values
       // for (let [key, value] of formData.entries()) {
-      //   console.log(`${key}:`, value);
+      //   // console.log(`${key}:`, value);
       // }
 
       // Call appropriate API
@@ -287,7 +287,7 @@ const AddProduct = () => {
         response = await createProduct(formData);
       }
 
-      console.log('API Response:', response);
+      // console.log('API Response:', response);
 
       if (response.success) {
         // router.push(`/${locale}/admin/ecommerce/products/list`);

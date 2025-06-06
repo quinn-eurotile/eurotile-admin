@@ -96,7 +96,7 @@ const StepAddress = ({ handleNext }) => {
   const [clientLoading, setClientLoading] = useState(false);
   const { data: session, status } = useSession();
   const dispatch = useDispatch();
-  //console.log(isClientOrder, 'isClientOrder');
+  //// console.log(isClientOrder, 'isClientOrder');
 
   // Button props for add address
   const buttonProps = {
@@ -425,7 +425,7 @@ const StepAddress = ({ handleNext }) => {
     setClientLoading(true);
     try {
       const response = await getAllClients();
-      // console.log(response, 'response 55 getAllClients');
+      // // console.log(response, 'response 55 getAllClients');
 
       if (response.success) {
         setClients(response.data);
@@ -480,7 +480,7 @@ const StepAddress = ({ handleNext }) => {
       price: modifiedPrices[item._id] || item.price
     }));
 
-    //console.log('updatedCartItems', cartItems, updatedCartItems, session?.user?.id);
+    //// console.log('updatedCartItems', cartItems, updatedCartItems, session?.user?.id);
     //return false;
 
     const response = await addCart({
@@ -507,7 +507,7 @@ const StepAddress = ({ handleNext }) => {
 
   };
 
-  // console.log(clients, 'kkkk');
+  // // console.log(clients, 'kkkk');
 
   return (
     <>

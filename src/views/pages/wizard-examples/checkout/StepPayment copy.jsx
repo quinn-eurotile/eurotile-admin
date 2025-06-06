@@ -74,7 +74,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, or
         customerId: user?.id,
         cartItems: cartItems,
       });
-      // console.log("response:", response); // Add this line to see the paymentIntent object
+      // // console.log("response:", response); // Add this line to see the paymentIntent object
 
       if (!response.success) {
         setPaymentError(response.message || "Failed to create payment intent");
@@ -159,10 +159,10 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, or
 
 const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, addresses, user }) => {
 
-  // console.log("cartItems:", cartItems);
-  // console.log("orderSummary:", orderSummary);
-  // console.log("selectedAddress:", selectedAddress);
-  // console.log("addresses:", addresses);
+  // // console.log("cartItems:", cartItems);
+  // // console.log("orderSummary:", orderSummary);
+  // // console.log("selectedAddress:", selectedAddress);
+  // // console.log("addresses:", addresses);
 
   // Context
   const { setStepValid, loading, setOrderData } = useContext(CheckoutContext);

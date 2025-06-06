@@ -35,7 +35,7 @@ const AddBankAccount = () => {
     const onSubmit = async (data) => {
         try {
             const response = await addBankAccountForTradeProfessional(data);
-            console.log('Response:', response);
+            // console.log('Response:', response);
             if (response.success) {
                 setValue('sortCode', '');
                 setValue('accountNumber', '');

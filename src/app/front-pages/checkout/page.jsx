@@ -12,7 +12,7 @@ export async function fetchCartData(userId) {
   try {
     const cartData = await cartServices.getById(userId)
 
-    console.log(cartData, 'cartData hello');
+    // console.log(cartData, 'cartData hello');
 
     return {
       items: cartData?.items || [],
@@ -86,7 +86,7 @@ const CheckoutServerPage = async () => {
       },
     }
   }
-  
+
 
   return <CheckoutPage initialData={initialData} session={session} />
 }

@@ -41,8 +41,8 @@ const UserDetails = ({ data }) => {
   const [anchorEl, setAnchorEl] = useState(null); // for edit menu anchor
   const inputFileRef = useRef(null);
   const { data: session, status } = useSession()
-  console.log('session', session);
-  console.log('userData', userData);
+  // console.log('session', session);
+  // console.log('userData', userData);
 
 
   const [isAdmin, setIsAdmin] = useState(false);

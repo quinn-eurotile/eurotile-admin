@@ -268,7 +268,7 @@ const CheckoutWizard = () => {
           // Set cart step validation based on items
           setStepValid(0, cartData.items.length > 0);
         }
-        // console.log(session?.user, 'session?.user')
+        // // console.log(session?.user, 'session?.user')
         // Fetch user addresses if logged in
         if (session?.user) {
 

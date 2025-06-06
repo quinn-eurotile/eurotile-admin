@@ -68,7 +68,7 @@ export default function ProductDetailPage() {
 
   const [openSampleDialog, setOpenSampleDialog] = useState(false);
 
-  console.log('Current cart state:', cart);
+  // console.log('Current cart state:', cart);
   const fetchProductDetails = async () => {
     try {
       const response = await getProductDetails(productId);
@@ -134,8 +134,8 @@ export default function ProductDetailPage() {
         ? [product.productFeaturedImage.filePath]
         : ["/images/pages/product-img1.jpg"]);
 
-  console.log('selectedVariation', selectedVariation);
-  console.log('productImages', productImages);
+  // console.log('selectedVariation', selectedVariation);
+  // console.log('productImages', productImages);
   // Update product images to use variation images
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
@@ -290,7 +290,7 @@ export default function ProductDetailPage() {
   const handleQuantityChange = (e) => {
     const values = calculateValues('sqm', e.target.value);
 
-    console.log(values, 'values');
+    // console.log(values, 'values');
 
     if (values) {
       setQuantity(e.target.value);
@@ -442,7 +442,7 @@ export default function ProductDetailPage() {
   };
 
   // const cart = useSelector(state => state.cartReducer);
-  // console.log('Current Cart:', cart);
+  // // console.log('Current Cart:', cart);
   // 🟩 Calculate thresholds and map them to discounts
   const getDynamicTierData = () => {
     // const { tierDiscount } = selectedVariation;

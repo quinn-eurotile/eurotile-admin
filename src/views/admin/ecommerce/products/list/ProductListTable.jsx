@@ -388,7 +388,7 @@ const ProductListTable = () => {
     try {
       setIsExporting(true)
       const response = await getAllProductList();
-      console.log('suppliers', response);
+      // console.log('suppliers', response);
 
       const headers = [
         "SKU",

@@ -172,7 +172,7 @@ const RegisterMultiSteps = () => {
       }
 
       const response = await createTradeProfessional(formData)
-      console.log(response, 'responseresponse')
+      // console.log(response, 'responseresponse')
 
       if (response.success) {
         toast.success('Registration successful!')

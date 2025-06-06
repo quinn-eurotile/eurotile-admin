@@ -30,7 +30,7 @@ const OrderDetails = ({ orderId }) => {
       dispatch(callCommonAction({ loading: true }))
       const response = await getOrderDetails(orderId)
 
-      console.log('response',response)
+      // console.log('response',response)
       dispatch(callCommonAction({ loading: false }))
       if (response.statusCode === 200 && response.data) {
         setData(response.data)

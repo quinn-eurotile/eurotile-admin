@@ -69,7 +69,7 @@ export default function ProductsPage() {
 
       //dispatch(callCommonAction({ loading: false }))
       if (response.statusCode === 200 && response.data) {
-        //console.log('response?.data?.docs', response?.data?.docs);
+        //// console.log('response?.data?.docs', response?.data?.docs);
 
         const formatted = response?.data?.docs?.map(item => ({
           id: item?.productDetail?._id,

@@ -8,7 +8,7 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get("userId");
 
-  console.log("userId", userId);
+  // console.log("userId", userId);
 
   // Dummy cart data (replace with db if needed)
   const cartItems = db;

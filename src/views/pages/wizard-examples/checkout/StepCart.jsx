@@ -91,7 +91,7 @@ const StepCart = ({ handleNext }) => {
     setError("");
     try {
       const response = await updateCartItem(itemId, newQuantity);
-      // console.log(response, 'response updateCartItem');
+      // // console.log(response, 'response updateCartItem');
       if (response.success) {
         const { items, orderSummary: newOrderSummary } = response.data;
         setCartItems(items);
@@ -192,7 +192,7 @@ const StepCart = ({ handleNext }) => {
       </div>
     );
   }
-  // console.log(JSON.stringify(orderSummary, null, 2), 'orderSummary');
+  // // console.log(JSON.stringify(orderSummary, null, 2), 'orderSummary');
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-4">

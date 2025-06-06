@@ -73,7 +73,7 @@ const Profile = async props => {
   const response = await fetchById(userId)
   const data = response?.data
 
-  console.log('asdasdasdasd32432423423',data);
+  // console.log('asdasdasdasd32432423423',data);
 
 
   const overviewTab = await OverViewTab({ data, params })

@@ -35,7 +35,7 @@ const SampleOrder = ({ rawProductData }) => {
     }
   }, [rawProductData]);
 
-  console.log(watch('allowSample'), '...........');
+  // console.log(watch('allowSample'), '...........');
 
 
   return (

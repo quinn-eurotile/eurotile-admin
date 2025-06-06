@@ -2,7 +2,7 @@ import { useParams } from 'next/navigation';
 import { NextResponse } from 'next/server'
 
 export function middleware(request) {
-  console.log('Middleware executed for:', request.nextUrl.pathname)
+  // console.log('Middleware executed for:', request.nextUrl.pathname)
    return new NextResponse('Middleware is working!')
   const { lang: locale } = useParams()
 

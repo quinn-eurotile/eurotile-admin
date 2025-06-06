@@ -84,7 +84,7 @@ const fuzzyFilter = (row, columnId, value, addMeta) => {
 const columnHelper = createColumnHelper();
 
 const OrderTable = ({ orderedProduct }) => {
-  console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct');
+  // console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct');
 
   // States
   const [rowSelection, setRowSelection] = useState({});
@@ -139,7 +139,6 @@ const OrderTable = ({ orderedProduct }) => {
 
           return (
             <div className='flex items-center gap-3'>
-              {console.log(`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${productDetail?.variationImages?.[0]?.filePath}`, 'Parsed image')}
               {getAvatar({
                 avatar: `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${productDetail?.variationImages?.[0]?.filePath}`,
                 customer: data?.createdBy?.name ?? ''
@@ -281,7 +280,7 @@ const OrderDetailsCard = ({ data }) => {
     setPayoutAmount(''); // Reset input on close
   };
 
-  console.log('data comming', data);
+  // console.log('data comming', data);
 
   return (
     <Card>
@@ -350,7 +349,7 @@ const OrderDetailsCard = ({ data }) => {
               color: theme => theme.palette.grey[500]
             }}
           >
-            <i class="ri-close-large-line"></i>
+            <i className="ri-close-large-line"></i>
           </IconButton>
         </DialogTitle>
         <DialogContent>
