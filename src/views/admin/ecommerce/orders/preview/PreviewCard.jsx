@@ -1,33 +1,33 @@
 // MUI Imports
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Typography from '@mui/material/Typography'
-import Grid from '@mui/material/Grid2'
-import Divider from '@mui/material/Divider'
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid2';
+import Divider from '@mui/material/Divider';
 
 // Component Imports
-import Logo from '@components/layout/shared/Logo'
+import Logo from '@components/layout/shared/Logo';
 
 // Style Imports
-import tableStyles from '@core/styles/table.module.css'
-import './print.css'
+import tableStyles from '@core/styles/table.module.css';
+import './print.css';
 
 const PreviewCard = ({ invoiceData }) => {
 
-  const customer = invoiceData?.createdBy
-  const shippingAddress = invoiceData?.shippingAddress
+  const customer = invoiceData?.createdBy;
+  const shippingAddress = invoiceData?.shippingAddress;
 
   // Parse product details from JSON string in orderDetails
   const orderItems = invoiceData?.orderDetails?.map(detail => {
-    const productDetail = JSON.parse(detail.productDetail || '{}')
+    const productDetail = JSON.parse(detail.productDetail || '{}');
     return {
       name: productDetail?.product?.name || 'N/A',
       description: productDetail?.description || 'N/A',
       price: Number(detail.price || 0),
       quantity: Number(detail.quantity || 0),
       total: Number(detail.price || 0) * Number(detail.quantity || 0)
-    }
-  }) || []
+    };
+  }) || [];
 
   return (
     <Card className='previewCard'>
@@ -38,7 +38,7 @@ const PreviewCard = ({ invoiceData }) => {
             <div className='p-6 bg-actionHover rounded bg-red-800'>
               <div className='flex justify-between gap-y-4 flex-col sm:flex-row items-center'>
                 <div className='flex flex-col gap-6'>
-                  <Logo/>
+                  <Logo />
                 </div>
                 <div className='flex flex-col gap-0'>
                   <Typography variant='h5' className='text-white'>{`Invoice #${invoiceData?.orderId}`}</Typography>
@@ -156,7 +156,7 @@ const PreviewCard = ({ invoiceData }) => {
         </Grid>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default PreviewCard
+export default PreviewCard;

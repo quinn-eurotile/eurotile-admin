@@ -489,6 +489,7 @@ export default function ProductDetailPage() {
           <div className="grid md:grid-cols-2 gap-8 mb-5">
             {/* Product Images */}
             <div>
+              {/* {`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${productImages[currentImageIndex]}`} */}
               <div className="mb-4 relative p-4 bg-bgLight rounded-lg">
                 <div className="relative aspect-square">
                   <Image

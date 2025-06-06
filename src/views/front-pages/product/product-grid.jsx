@@ -1,16 +1,17 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import Button from '@mui/material/Button'
+import Image from 'next/image';
+import Link from 'next/link';
+import Button from '@mui/material/Button';
 
 export default function ProductGrid({ products }) {
 
-  console.log(products,'productsproducts');
+  console.log(products, 'productsproducts');
 
   return (
     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
       {products?.map((product, index) => (
         <div key={`${product.variationId}`} className='group'>
-          <Link href={`/products/${product?.id}?vid=${product?.variationId}`}>
+          {/* <Link href={`/products/${product?.id}?vid=${product?.variationId}`}> */}
+          <Link href={`/products/${product?.id}`}>
             <div className='p-2 bg-bgLight rounded-lg mb-3'>
               <div className='relative aspect-square overflow-hidden rounded-md'>
                 <Image
@@ -45,5 +46,5 @@ export default function ProductGrid({ products }) {
         </div>
       ))}
     </div>
-  )
+  );
 }
