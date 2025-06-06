@@ -14,6 +14,8 @@ import { useEffect, useState } from 'react'
 import { callCommonAction } from '@/redux-store/slices/common'
 import { useDispatch } from 'react-redux'
 import { getOrderDetails } from '@/app/server/order'
+import CircularProgress from '@mui/material/CircularProgress'
+import { Box } from '@mui/material';
 
 const OrderDetails = ({ orderData, order }) => {
   const dispatch = useDispatch()
@@ -40,7 +42,11 @@ const OrderDetails = ({ orderData, order }) => {
 
 
   if (data.length === 0) {
-    return 'No Data'
+    return (
+      <Box display='flex' justifyContent='center' alignItems='center' height={200}>
+        <CircularProgress />
+      </Box>
+    )
   } else {
     return (
       <Grid container spacing={6}>
@@ -52,18 +58,18 @@ const OrderDetails = ({ orderData, order }) => {
             <Grid size={{ xs: 12 }}>
               <OrderDetailsCard data={data} />
             </Grid>
-            <Grid size={{ xs: 12 }}>
+            {/* <Grid size={{ xs: 12 }}>
               <ShippingActivity order={order} />
-            </Grid>
+            </Grid> */}
           </Grid>
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
           <Grid container spacing={6}>
             <Grid size={{ xs: 12 }}>
-              <CustomerDetails orderData={orderData} />
+              <CustomerDetails orderData={orderData} data={data}/>
             </Grid>
             <Grid size={{ xs: 12 }}>
-              <ShippingAddress />
+              <ShippingAddress data={data}/>
             </Grid>
             <Grid size={{ xs: 12 }}>
               <BillingAddress />

@@ -31,6 +31,7 @@ import Link from '@components/Link'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
+import { Avatar } from '@mui/material';
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   // Rank the item
@@ -45,51 +46,62 @@ const fuzzyFilter = (row, columnId, value, addMeta) => {
   return itemRank.passed
 }
 
-const orderData = [
-  {
-    productName: 'OnePlus 7 Pro',
-    productImage: '/images/apps/ecommerce/product-21.png',
-    brand: 'OnePluse',
-    price: 799,
-    quantity: 1,
-    total: 799
-  },
-  {
-    productName: 'Magic Mouse',
-    productImage: '/images/apps/ecommerce/product-22.png',
-    brand: 'Google',
-    price: 89,
-    quantity: 1,
-    total: 89
-  },
-  {
-    productName: 'Wooden Chair',
-    productImage: '/images/apps/ecommerce/product-23.png',
-    brand: 'Insofar',
-    price: 289,
-    quantity: 2,
-    total: 578
-  },
-  {
-    productName: 'Air Jorden',
-    productImage: '/images/apps/ecommerce/product-24.png',
-    brand: 'Nike',
-    price: 299,
-    quantity: 2,
-    total: 598
-  }
-]
+// const orderData = [
+//   {
+//     productName: 'OnePlus 7 Pro',
+//     productImage: '/images/apps/ecommerce/product-21.png',
+//     brand: 'OnePluse',
+//     price: 799,
+//     quantity: 1,
+//     total: 799
+//   },
+//   {
+//     productName: 'Magic Mouse',
+//     productImage: '/images/apps/ecommerce/product-22.png',
+//     brand: 'Google',
+//     price: 89,
+//     quantity: 1,
+//     total: 89
+//   },
+//   {
+//     productName: 'Wooden Chair',
+//     productImage: '/images/apps/ecommerce/product-23.png',
+//     brand: 'Insofar',
+//     price: 289,
+//     quantity: 2,
+//     total: 578
+//   },
+//   {
+//     productName: 'Air Jorden',
+//     productImage: '/images/apps/ecommerce/product-24.png',
+//     brand: 'Nike',
+//     price: 299,
+//     quantity: 2,
+//     total: 598
+//   }
+// ]
 
 // Column Definitions
 const columnHelper = createColumnHelper()
 
-const OrderTable = ({orderedProduct}) => {
-  console.log(orderedProduct?.orderDetails,'orderedProductorderedProduct')
+const OrderTable = ({ orderedProduct }) => {
+  console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct')
+
   // States
   const [rowSelection, setRowSelection] = useState({})
 
   const [data, setData] = useState(orderedProduct?.orderDetails)
   const [globalFilter, setGlobalFilter] = useState('')
+
+  const getAvatar = params => {
+  const { avatar, customer } = params
+
+  if (avatar) {
+    return <Avatar src={avatar} />
+  } else {
+    return <Avatar>{getInitials(customer)}</Avatar>
+  }
+}
 
   const columns = useMemo(
     () => [
@@ -97,56 +109,86 @@ const OrderTable = ({orderedProduct}) => {
         id: 'select',
         header: ({ table }) => (
           <Checkbox
-            {...{
-              checked: table.getIsAllRowsSelected(),
-              indeterminate: table.getIsSomeRowsSelected(),
-              onChange: table.getToggleAllRowsSelectedHandler()
-            }}
+            checked={table.getIsAllRowsSelected()}
+            indeterminate={table.getIsSomeRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
           />
         ),
         cell: ({ row }) => (
           <Checkbox
-            {...{
-              checked: row.getIsSelected(),
-              disabled: !row.getCanSelect(),
-              indeterminate: row.getIsSomeSelected(),
-              onChange: row.getToggleSelectedHandler()
-            }}
+            checked={row.getIsSelected()}
+            disabled={!row.getCanSelect()}
+            indeterminate={row.getIsSomeSelected()}
+            onChange={row.getToggleSelectedHandler()}
           />
         )
       },
+
       columnHelper.accessor('productName', {
         header: 'Product',
-        cell: ({ row }) => (
-          <div className='flex items-center gap-3'>
-            <img src={row.original.productImage} alt={row.original.productName} height={34} className='rounded' />
-            <div className='flex flex-col items-start'>
-              <Typography color='text.primary' className='font-medium'>
-                {row.original.productName}
-              </Typography>
-              <Typography variant='body2'>{row.original.brand}</Typography>
+        cell: ({ row }) => {
+          let productDetail = {}
+
+          try {
+            productDetail =
+              typeof row.original.productDetail === 'string'
+                ? JSON.parse(row.original.productDetail)
+                : row.original.productDetail
+          } catch (error) {
+            console.error('Error parsing productDetail:', error)
+          }
+
+          return (
+            <div className='flex items-center gap-3'>
+              {console.log(productDetail, 'Parsed productDetail')}
+              {getAvatar({
+                  avatar: `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/fjdkfj`,
+                  customer: data?.createdBy?.name ?? ''
+                })
+              }
+              <div className='flex flex-col items-start'>
+                <Typography color='text.primary' className='font-medium'>
+                  {productDetail?.name || 'N/A'}
+                </Typography>
+                <Typography variant='body2'>{productDetail?.brand || 'Unknown'}</Typography>
+              </div>
             </div>
-          </div>
-        )
+          )
+        }
       }),
+
       columnHelper.accessor('price', {
         header: 'Price',
-        cell: ({ row }) => <Typography>{`$${row.original.price}`}</Typography>
+        cell: ({ row }) => {
+          const price = Number(row.original?.price) || 0
+          return <Typography>{`€${price.toFixed(2)}`}</Typography>
+        }
       }),
+
       columnHelper.accessor('quantity', {
         header: 'Qty',
-        cell: ({ row }) => <Typography>{`${row.original.quantity}`}</Typography>
+        cell: ({ row }) => {
+          const quantity = Number(row.original?.quantity) || 0
+          return <Typography>{quantity}</Typography>
+        }
       }),
+
       columnHelper.accessor('total', {
         header: 'Total',
-        cell: ({ row }) => <Typography>{`$${row.original.total}`}</Typography>
+        cell: ({ row }) => {
+          // Safely parse quantity and price as numbers; default to 0 if invalid
+          const quantity = Number(row.original?.quantity) || 0
+          const price = Number(row.original?.price) || 0
+
+          return <Typography>{(quantity * price).toFixed(2)}</Typography>
+        }
       })
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   )
 
- const table = useReactTable({
+  const table = useReactTable({
     data,
     columns,
     state: { rowSelection },
@@ -155,7 +197,7 @@ const OrderTable = ({orderedProduct}) => {
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onRowSelectionChange: setRowSelection
-  });
+  })
 
   return (
     <div className='overflow-x-auto'>
@@ -218,8 +260,10 @@ const OrderTable = ({orderedProduct}) => {
   )
 }
 
-const OrderDetailsCard = ({data}) => {
-  console.log(data,'')
+
+
+const OrderDetailsCard = ({ data }) => {
+
   return (
     <Card>
       <CardHeader
@@ -230,7 +274,7 @@ const OrderDetailsCard = ({data}) => {
         //   </Typography>
         // }
       />
-      <OrderTable orderedProduct={data}/>
+      <OrderTable orderedProduct={data} />
       <CardContent className='flex justify-end'>
         <div>
           <div className='flex items-center gap-12'>
@@ -238,7 +282,7 @@ const OrderDetailsCard = ({data}) => {
               Subtotal:
             </Typography>
             <Typography color='text.primary' className='font-medium'>
-              $2,093
+              €{data?.orderDetails?.subtotal ? data.orderDetails.subtotal.toFixed(2) : "0.00"}
             </Typography>
           </div>
           <div className='flex items-center gap-12'>
@@ -246,7 +290,15 @@ const OrderDetailsCard = ({data}) => {
               Shipping Fee:
             </Typography>
             <Typography color='text.primary' className='font-medium'>
-              $2
+               €{data?.orderDetails?.shipping ? data.orderDetails.shipping.toFixed(2) : "0.00"}
+            </Typography>
+          </div>
+           <div className='flex items-center gap-12'>
+            <Typography color='text.primary' className='min-is-[100px]'>
+              Discount:
+            </Typography>
+            <Typography color='text.primary' className='font-medium'>
+               €{data?.orderDetails?.discount ? data.orderDetails.discount.toFixed(2) : "0.00"}
             </Typography>
           </div>
           <div className='flex items-center gap-12'>
@@ -254,7 +306,7 @@ const OrderDetailsCard = ({data}) => {
               Tax:
             </Typography>
             <Typography color='text.primary' className='font-medium'>
-              $28
+               €{data?.orderDetails?.tax ? data.orderDetails.tax.toFixed(2) : "0.00"}
             </Typography>
           </div>
           <div className='flex items-center gap-12'>
@@ -262,7 +314,7 @@ const OrderDetailsCard = ({data}) => {
               Total:
             </Typography>
             <Typography color='text.primary' className='font-medium'>
-              $2113
+                €{data?.orderDetails?.total ? data.orderDetails.total.toFixed(2) : "0.00"}
             </Typography>
           </div>
         </div>

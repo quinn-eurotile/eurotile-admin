@@ -6,18 +6,23 @@ import Typography from '@mui/material/Typography'
 // Component Imports
 import ConfirmationDialog from '@components/dialogs/confirmation-dialog'
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick'
-import { paymentStatus, statusChipColor } from '@/components/common/common';
-import moment from 'moment';
+import { paymentStatus, statusChipColor } from '@/components/common/common'
+import moment from 'moment'
+import { useRouter } from 'next/navigation';
 
 const OrderDetailHeader = ({ orderData, order, data }) => {
-
-  console.log(data,'orderDataorderDataorderData')
+  console.log(data, 'orderDataorderDataorderData')
   // Vars
   const buttonProps = (children, color, variant) => ({
     children,
     color,
     variant
   })
+
+  const router = useRouter()
+  const handleBack = () => {
+    router.back()
+  }
 
   return (
     <div className='flex flex-wrap justify-between sm:items-center max-sm:flex-col gap-y-4'>
@@ -39,12 +44,15 @@ const OrderDetailHeader = ({ orderData, order, data }) => {
         </div>
         <Typography>{moment(data?.updatedAt).format('MMMM Do YYYY, h:mm:ss a')}</Typography>
       </div>
-      <OpenDialogOnElementClick
+      {/* <OpenDialogOnElementClick
         element={Button}
         elementProps={buttonProps('Delete Order', 'error', 'outlined')}
         dialog={ConfirmationDialog}
         dialogProps={{ type: 'delete-order' }}
-      />
+      /> */}
+      <Button variant='outlined' color='secondary' onClick={handleBack}>
+        Back
+      </Button>
     </div>
   )
 }

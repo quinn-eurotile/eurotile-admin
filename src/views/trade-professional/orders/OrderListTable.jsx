@@ -135,7 +135,7 @@ const OrderListTable = ({ orderData }) => {
         cell: ({ row }) => (
           <Typography
             component={Link}
-            href={getLocalizedUrl(`/apps/ecommerce/orders/details/${row.original.id}`, locale)}
+            href={getLocalizedUrl(`/trade-professional/orders/view/${row.original?.id}`, locale)}
             color='primary.main'
           >
             {`#${row.original.orderId}`}
@@ -150,14 +150,12 @@ const OrderListTable = ({ orderData }) => {
         header: 'Customers',
         cell: ({ row }) => (
           <div className='flex items-center gap-3'>
-            {getAvatar({ avatar: row.original.avatar, customer: row.original?.username })}
+            {getAvatar({
+                  avatar: `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/${row.original.avatar}`,
+                  customer: row.original?.username ?? ''
+                })}
             <div className='flex flex-col'>
-              <Typography
-                component={Link}
-                href={getLocalizedUrl('/apps/ecommerce/customers/details/879861', locale)}
-                color='text.primary'
-                className='font-medium hover:text-primary'
-              >
+              <Typography>
                 {row.original.username}
               </Typography>
               <Typography variant='body2'>{row.original.email}</Typography>
