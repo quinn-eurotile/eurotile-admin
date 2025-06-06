@@ -21,7 +21,7 @@ import CardContent from "@mui/material/CardContent"
 import Collapse from "@mui/material/Collapse"
 import Fade from "@mui/material/Fade"
 import CircularProgress from "@mui/material/CircularProgress"
- 
+
 
 // Component Imports
 import DirectionalIcon from "@components/DirectionalIcon"
@@ -29,11 +29,11 @@ import DirectionalIcon from "@components/DirectionalIcon"
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard"
 import { cartApi } from "@/services/cart/index"
-import { updateCartItem } from "@/app/server/actions"
+import { removeCartItem, updateCartItem } from "@/app/server/actions"
 import { toast } from "react-toastify"
 
 // API Import
- 
+
 
 const StepCart = ({ handleNext }) => {
   // States
@@ -112,7 +112,7 @@ const StepCart = ({ handleNext }) => {
     setIsUpdating(true)
     setError("")
     try {
-      const response = await cartApi.removeCartItem(itemId)
+      const response = await removeCartItem(itemId)
 
       if (response.success) {
         const { items, orderSummary: newOrderSummary } = response.data
@@ -201,7 +201,7 @@ const StepCart = ({ handleNext }) => {
             {error}
           </Alert>
         )}
-        
+
         {/* <Collapse in={openCollapse}>
           <Fade in={openFade} timeout={{ exit: 300 }}>
             <Alert
@@ -263,7 +263,7 @@ const StepCart = ({ handleNext }) => {
                     <Typography className="font-medium text-lg" color="text.primary">
                       {product?.product?.name}
                     </Typography>
-                    
+
                     {/* Variation Details */}
                     <div className="flex flex-col gap-1">
                       <Typography color="text.secondary" className="text-sm">
@@ -290,11 +290,11 @@ const StepCart = ({ handleNext }) => {
                         </Typography>
                       </div>
                       {product?.variation?.stockQuantity > 0 ? (
-                        <Chip 
-                          size="small" 
-                          variant="tonal" 
-                          color="success" 
-                          label={`In Stock (${product.variation.stockQuantity} SQ.M)`} 
+                        <Chip
+                          size="small"
+                          variant="tonal"
+                          color="success"
+                          label={`In Stock (${product.variation.stockQuantity} SQ.M)`}
                         />
                       ) : (
                         <Chip size="small" variant="tonal" color="error" label="Out of Stock" />
@@ -324,16 +324,16 @@ const StepCart = ({ handleNext }) => {
                         Total: £{((product?.price || 0) * (product?.quantity || 0)).toFixed(2)}
                       </Typography>
                       {product?.isCustomPrice && (
-                        <Chip 
-                          size="small" 
-                          variant="tonal" 
-                          color="info" 
-                          label="Custom Price" 
+                        <Chip
+                          size="small"
+                          variant="tonal"
+                          color="info"
+                          label="Custom Price"
                           className="mt-1"
                         />
                       )}
                     </div>
-                    
+
                     <Button
                       variant="outlined"
                       size="small"
@@ -454,10 +454,10 @@ const StepCart = ({ handleNext }) => {
         </div>
 
         <div className="flex justify-normal sm:justify-end xl:justify-normal">
-          <Button 
-            fullWidth 
-            variant="contained" 
-            onClick={handleNext} 
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleNext}
             disabled={cartItems.length === 0 || isUpdating}
             className="bg-red-800 hover:bg-red-900"
           >

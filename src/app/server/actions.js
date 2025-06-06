@@ -173,7 +173,6 @@ export const updateCartItem = async (itemId, data) => {
   return await cartApi.updateCartItem(itemId, data);
 };
 export const getAllClients = async () => {
-  console.log('getAllClients 222');
   return await userTradeProfessionalService.getAllClients();
 };
 
