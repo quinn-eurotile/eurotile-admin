@@ -37,7 +37,6 @@ import { Elements, CardElement, useStripe, useElements } from "@stripe/react-str
 import { createPaymentIntent, createKlarnaSession, verifyKlarnaPayment, verifyStripePayment } from "@/app/server/actions";
 import { paymentApi } from "@/services/payment";
 import dynamic from "next/dynamic";
-import { useSession } from "next-auth/react";
 
 // Dynamically import StripeWrapper with no SSR
 const StripeWrapper = dynamic(
@@ -49,11 +48,7 @@ const StripeWrapper = dynamic(
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 // Stripe Payment Form Component
-const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, selectedAddress,selectedShipping,orderSummary, user, cartItems }) => {
-
-  console.log( JSON.stringify( user),'user 317'); 
-  
-  
+const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, orderSummary, user, cartItems }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [saveCard, setSaveCard] = useState(true);
@@ -67,28 +62,17 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
     }
 
     setIsProcessing(true);
-    setPaymentError(null); 
- console.log("orderSummary:", orderSummary);
- 
- 
+    setPaymentError(null);
+
     try {
       // Create payment intent using our API
       const response = await createPaymentIntent({
-        amount: Math.round(orderSummary.total * 100), // Convert to cents
+        // amount: Math.round(orderSummary.total * 100), // Convert to cents
+        amount: Math.round(12 * 100), // Convert to cents
         currency: "usd",
         saveCard,
-        customerId: user?._id,
+        customerId: user?.id,
         cartItems: cartItems,
-        orderData: {
-          subtotal: orderSummary.subtotal,
-          shipping: orderSummary.shipping,
-          tax: orderSummary.tax || 0,
-          total: orderSummary.total,
-          shippingAddress: selectedAddress,
-          shippingMethod: selectedShipping,
-          paymentMethod: 'stripe',
-          userId: user?._id
-        }
       });
       console.log("response:", response); // Add this line to see the paymentIntent object
 
@@ -112,13 +96,18 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
 
       if (confirmError) {
         setPaymentError(confirmError.message);
-      } else
+      } else if (paymentIntent.status === "succeeded") {
+        // if (verifyResponse.success) {
         onPaymentSuccess({
           paymentIntentId: paymentIntent.id,
           paymentMethod: "stripe",
-          status: true
+          status: verifyResponse.data.status
         });
-      setPaymentError("Payment verification failed. Please contact support.");
+
+      }
+      else {
+        setPaymentError("Payment verification failed. Please contact support.");
+      }
     } catch (error) {
       console.error("Error creating payment intent:", error);
       setPaymentError("An unexpected error occurred.");
@@ -168,14 +157,13 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
   );
 };
 
-const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, selectedShipping, addresses, user }) => {
+const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, addresses, user }) => {
 
   console.log("cartItems:", cartItems);
   console.log("orderSummary:", orderSummary);
   console.log("selectedAddress:", selectedAddress);
-  console.log("selectedShipping:", selectedShipping);
   console.log("addresses:", addresses);
-  const { data: session, status } = useSession()
+
   // Context
   const { setStepValid, loading, setOrderData } = useContext(CheckoutContext);
   const [mounted, setMounted] = useState(false);
@@ -194,31 +182,6 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
     setPaymentData(null);
     setError("");
   };
-  const calculateTotals = () => {
-    if (!cartItems || cartItems.length === 0) return {
-      subtotal: 0,
-      discount: 0,
-      shipping: 0,
-      total: 0
-    };
-
-    const subtotal = cartItems.reduce((sum, item) => {
-      return sum + (item.price * item.quantity);
-    }, 0);
-
-    const discount = orderSummary?.discount || 0;
-    const shipping = orderSummary?.shipping || 0;
-    const total = subtotal - discount + shipping;
-
-    return {
-      subtotal,
-      discount,
-      shipping,
-      total
-    };
-  };
-
-  const totals = calculateTotals();
 
   // Handle Klarna payment
   const handleKlarnaPayment = async () => {
@@ -390,11 +353,10 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                     onPaymentSuccess={handlePaymentSuccess}
                     isProcessing={isProcessing}
                     setIsProcessing={setIsProcessing}
-                    orderSummary={totals}
-                    user={session?.user}
+                    orderSummary={orderSummary}
+                    user={user}
                     cartItems={cartItems}
-                    selectedAddress={selectedAddress}
-                    selectedShipping={selectedShipping} 
+                  // user={user}
                   />
                 </StripeWrapper>
               </TabPanel>
@@ -450,12 +412,11 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
             </Typography>
             {cartItems && cartItems.map((item, index) => (
               <div key={index} className="flex items-center gap-4 mb-4">
-                   <img
+                <img
                   width={64}
                   height={64}
-                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=140&width=140"}
-                  alt={item?.product?.name || 'Product Image'}
-                  className="object-cover rounded-lg"
+                  alt={item.productName}
+                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item.imgSrc}` || "/placeholder.svg"}
                 />
                 <div>
                   <Typography variant="body2">{item.productName}</Typography>
@@ -469,7 +430,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between gap-2">
                 <Typography color="text.primary">Order Total</Typography>
-                <Typography>${totals.subtotal?.toFixed(2) || "0.00"}</Typography>
+                <Typography>${orderSummary.subtotal?.toFixed(2) || "0.00"}</Typography>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <Typography color="text.primary">Delivery Charges</Typography>
@@ -495,7 +456,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                 <Typography className="font-medium" color="text.primary">
                   Total Amount
                 </Typography>
-                <Typography className="font-medium">${totals.total?.toFixed(2) || "0.00"}</Typography>
+                <Typography className="font-medium">${orderSummary.total?.toFixed(2) || "0.00"}</Typography>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <Typography className="font-medium" color="text.primary">

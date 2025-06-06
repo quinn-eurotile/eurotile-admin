@@ -210,6 +210,7 @@ const CheckoutWizard = ({ initialData }) => {
   const [cartData, setCartData] = useState(initialData?.cartData || [])
   const [addresses, setAddresses] = useState(initialData?.addresses || [])
   const [selectedAddress, setSelectedAddress] = useState(null)
+  const [user, setUser] = useState(session?.user)
   const [selectedShipping, setSelectedShipping] = useState('standard')
   const [orderSummary, setOrderSummary] = useState(initialData?.orderSummary || {
     subtotal: 0,
@@ -320,7 +321,7 @@ const CheckoutWizard = ({ initialData }) => {
     isStepValid,
     setStepValid,
     loading,
-    user: session?.user,
+    user,
     cartData,
     setCartData
   }

@@ -20,10 +20,7 @@ const TableFilters = ({ setFilter, filter }) => {
     { value: '4', label: 'Shipped' },
   ];
   return (
-    <CardContent>
-      <Grid container spacing={5}>
 
-        <Grid size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <InputLabel id='status-select'>Select Status</InputLabel>
             <Select
@@ -43,9 +40,6 @@ const TableFilters = ({ setFilter, filter }) => {
 
             </Select>
           </FormControl>
-        </Grid>
-      </Grid>
-    </CardContent>
   );
 };
 

@@ -96,7 +96,7 @@ const StepAddress = ({ handleNext }) => {
   const [clientLoading, setClientLoading] = useState(false)
   const { data: session, status } = useSession()
   const dispatch = useDispatch();
-//console.log(isClientOrder, 'isClientOrder');
+  //console.log(isClientOrder, 'isClientOrder');
 
   // Button props for add address
   const buttonProps = {
@@ -161,7 +161,7 @@ const StepAddress = ({ handleNext }) => {
     try {
       // Calculate shipping cost based on selected method
       const shippingCost = value === 'express' ? 10 : value === 'overnight' ? 15 : 0;
-      
+
       // Calculate new total with shipping
       const subtotal = cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
       const total = subtotal + shippingCost;
@@ -217,7 +217,7 @@ const StepAddress = ({ handleNext }) => {
     setIsUpdating(true)
     try {
       const response = await deleteAddresses(addressToDelete)
-      
+
       if (response.success) {
         // Update local state
         const updatedAddresses = addresses?.filter((addr) => addr._id !== addressToDelete)
@@ -249,7 +249,7 @@ const StepAddress = ({ handleNext }) => {
       const addressesResponse = await getAddresses(user?._id)
       if (addressesResponse.success) {
         setAddresses(addressesResponse.data)
-        
+
         if (!selectedAddress && addressesResponse.data.length > 0) {
           setSelectedAddress(addressesResponse.data[0]._id)
           setStepValid(1, true)
@@ -299,11 +299,11 @@ const StepAddress = ({ handleNext }) => {
 
       // Update addresses state with client address
       setAddresses([clientAddress])
-      
+
       // Set this address as selected
       setSelectedAddress(clientAddress.id)
       setStepValid(1, true)
-    } 
+    }
 
     //setPriceDialogOpen(true)
   }, [selectedClient])
@@ -334,7 +334,7 @@ const StepAddress = ({ handleNext }) => {
 
       // Update addresses state with client address
       setAddresses([clientAddress])
-      
+
       // Set this address as selected
       setSelectedAddress(clientAddress.id)
       setStepValid(1, true)
@@ -354,17 +354,17 @@ const StepAddress = ({ handleNext }) => {
     title: `${address.name} ${address.isDefault ? "(Default)" : ""} ${address.label ? `- ${address.label}` : ''}`,
     meta: (
       <div className="flex gap-2">
-        <Chip 
-          size="small" 
-          variant="tonal" 
-          label={address.type} 
-          color={address.type === "Warehouse" ? "warning" : address.type === "Home" ? "primary" : "success"} 
+        <Chip
+          size="small"
+          variant="tonal"
+          label={address.type}
+          color={address.type === "Warehouse" ? "warning" : address.type === "Home" ? "primary" : "success"}
         />
         {address.tags?.map((tag, index) => (
-          <Chip 
+          <Chip
             key={index}
-            size="small" 
-            variant="tonal" 
+            size="small"
+            variant="tonal"
             label={tag}
             color="default"
           />
@@ -425,8 +425,8 @@ const StepAddress = ({ handleNext }) => {
     setClientLoading(true)
     try {
       const response = await getAllClients();
-      console.log(response,'response 55 getAllClients');
-      
+      console.log(response, 'response 55 getAllClients');
+
       if (response.success) {
         setClients(response.data)
       }
@@ -469,6 +469,7 @@ const StepAddress = ({ handleNext }) => {
     return price >= minPrice && price <= maxPrice
   }
 
+
   // Handle price dialog save
   const handlePriceDialogSave = async () => {
     // Update cart items with modified prices
@@ -486,12 +487,12 @@ const StepAddress = ({ handleNext }) => {
       items: updatedCartItems,
       userId: session?.user?.id
     });
-   
-      dispatch(addToCart(response.data));
-      toast.success('Products added to cart successfully'); 
+
+    dispatch(addToCart(response.data));
+    toast.success('Products added to cart successfully');
     // Update context or state with new prices
     // This depends on how your cart state is managed
-    
+
     setPriceDialogOpen(false)
   }
 
@@ -502,13 +503,18 @@ const StepAddress = ({ handleNext }) => {
       </div>
     )
   }
- 
+  const sentClientToPayment = async () => {
+
+  }
+
+  console.log(clients, 'kkkk');
+
   return (
     <>
       <Grid container spacing={6}>
         <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-6">
-                  {/* Client Order Switch */}
-                  <div className="flex flex-col gap-4">
+          {/* Client Order Switch */}
+          <div className="flex flex-col gap-4">
             <FormControlLabel
               control={
                 <Switch
@@ -563,14 +569,14 @@ const StepAddress = ({ handleNext }) => {
               </Grid>
             )}
 
-            <OpenDialogOnElementClick 
-              element={Button} 
-              elementProps={buttonProps} 
+            <OpenDialogOnElementClick
+              element={Button}
+              elementProps={buttonProps}
               dialog={AddEditAddress}
               dialogProps={dialogProps}
             />
           </div>
-          
+
 
           <div className="flex flex-col gap-4">
             <Typography color="text.primary" className="font-medium self-start">
@@ -604,7 +610,7 @@ const StepAddress = ({ handleNext }) => {
             </Grid>
           </div>
 
-  
+
         </Grid>
 
         <Grid size={{ xs: 12, lg: 4 }} className="flex flex-col gap-4">
@@ -619,7 +625,7 @@ const StepAddress = ({ handleNext }) => {
                     <img
                       width={60}
                       height={60}
-                      src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=60&width=60"} 
+                      src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=60&width=60"}
                       alt={item?.product?.name || 'Product Image'}
                     />
                     <div>
@@ -676,17 +682,18 @@ const StepAddress = ({ handleNext }) => {
               </Typography>
               <Typography className="font-medium" color="text.primary">
                 £{(
-                  cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0) + 
+                  cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0) +
                   (selectedShipping === "express" ? 10 : selectedShipping === "overnight" ? 15 : 0)
                 ).toFixed(2) || "0.00"}
               </Typography>
             </CardContent>
           </div>
           <div className="flex justify-end">
-            <Button
+
+            {isClientOrder ? (<Button
               className="max-sm:is-full lg:is-full"
               variant="contained"
-              onClick={handleNext}
+              onClick={sentClientToPayment}
               disabled={!selectedAddress || isUpdating}
               sx={{
                 backgroundColor: '#991b1b',
@@ -695,8 +702,29 @@ const StepAddress = ({ handleNext }) => {
                 },
               }}
             >
-              {isUpdating ? <CircularProgress size={24} /> : "Continue to Payment"}
-            </Button>
+              {isUpdating ? <CircularProgress size={24} /> : "Send Payment to client"}
+            </Button>)
+
+              :
+              (<Button
+                className="max-sm:is-full lg:is-full"
+                variant="contained"
+                onClick={handleNext}
+                disabled={!selectedAddress || isUpdating}
+                sx={{
+                  backgroundColor: '#991b1b',
+                  '&:hover': {
+                    backgroundColor: '#7f1d1d',
+                  },
+                }}
+              >
+                {isUpdating ? <CircularProgress size={24} /> : "Continue to Payment"}
+              </Button>
+              )
+
+            }
+
+
           </div>
         </Grid>
       </Grid>
@@ -727,8 +755,8 @@ const StepAddress = ({ handleNext }) => {
       }
 
       {/* Price Modification Dialog */}
-      <Dialog 
-        open={priceDialogOpen} 
+      <Dialog
+        open={priceDialogOpen}
         onClose={() => setPriceDialogOpen(false)}
         maxWidth="md"
         fullWidth

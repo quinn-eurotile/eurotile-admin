@@ -19,15 +19,9 @@ import {
   getCoreRowModel,
   useReactTable,
   getFilteredRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFacetedMinMaxValues,
   getPaginationRowModel,
   getSortedRowModel
 } from '@tanstack/react-table'
-
-// Component Imports
-import Link from '@components/Link'
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css'
