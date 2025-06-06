@@ -71,7 +71,9 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, or
         currency: "usd",
         saveCard,
         customerId: user?.id,
-      })
+        cartItems: cartItems,
+      });
+      console.log("response:", response); // Add this line to see the paymentIntent object
 
       if (!response.success) {
         setPaymentError(response.message || "Failed to create payment intent")
@@ -94,9 +96,6 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, or
       if (confirmError) {
         setPaymentError(confirmError.message)
       } else if (paymentIntent.status === "succeeded") {
-        // Verify payment with our API
-        const verifyResponse = await  verifyStripePayment(paymentIntent.id)
-        
         if (verifyResponse.success) {
           onPaymentSuccess({
             paymentIntentId: paymentIntent.id,
@@ -180,7 +179,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
     setIsProcessing(true)
     setError("")
     try {
-      const response = await  createKlarnaSession({
+      const response = await createKlarnaSession({
         amount: Math.round(orderSummary.total * 100),
         currency: "USD",
         order_lines: cartItems.map(item => ({
@@ -207,10 +206,10 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
           paymentMethod: "klarna",
           sessionId: response.data.session_id
         })
-        
+
         // Store session ID in localStorage for verification after redirect
         localStorage.setItem('klarnaSessionId', response.data.session_id)
-        
+
         // Redirect to Klarna checkout
         window.location.href = response.data.redirect_url
       } else {
@@ -267,7 +266,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
     const checkKlarnaPayment = async () => {
       const sessionId = localStorage.getItem('klarnaSessionId')
       const isKlarnaRedirect = new URLSearchParams(window.location.search).get('klarna_order_id')
-      
+
       if (sessionId && isKlarnaRedirect) {
         setIsProcessing(true)
         try {
@@ -302,7 +301,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
       ...prev,
       payment: paymentData
     }));
-    
+
     // Move to confirmation step
     handleNext();
   };
@@ -346,7 +345,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                     isProcessing={isProcessing}
                     setIsProcessing={setIsProcessing}
                     orderSummary={orderSummary}
-                    // user={user}
+                  // user={user}
                   />
                 </StripeWrapper>
               </TabPanel>
@@ -383,8 +382,8 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
             Back
           </Button>
           {value === 'cash-on-delivery' && (
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               onClick={handleCashOnDelivery}
               disabled={isProcessing}
             >

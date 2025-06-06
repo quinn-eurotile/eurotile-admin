@@ -20,10 +20,10 @@ export async function getDashboardRedirectUrl() {
 
 
 export const paymentStatus = {
-  2: { text: 'Paid', color: 'success', colorClassName: 'text-success' },
-  1: { text: 'Pending', color: 'warning', colorClassName: 'text-warning' },
-  4: { text: 'Refunded', color: 'secondary', colorClassName: 'text-secondary' },
-  3: { text: 'Failed', color: 'error', colorClassName: 'text-error' }
+  paid : { text: 'paid', color: 'success', colorClassName: 'text-success' },
+  pending : { text: 'pending', color: 'warning', colorClassName: 'text-warning' },
+  refunded : { text: 'refunded', color: 'secondary', colorClassName: 'text-secondary' },
+  failed : { text: 'failed', color: 'error', colorClassName: 'text-error' }
 }
 
 export const statusChipColor = {

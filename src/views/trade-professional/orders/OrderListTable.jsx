@@ -89,18 +89,19 @@ const OrderListTable = ({ orderData }) => {
     try {
       dispatch(callCommonAction({ loading: true }))
       const response = await getOrderList(currentPage, pageSize, search, filter)
+      console.log(response,'responseresponseresponseresponse')
       dispatch(callCommonAction({ loading: false }))
 
       if (response.statusCode === 200 && response.data) {
         const formatted = response.data.docs.map(order => ({
           id: order?._id,
-          orderNumber: order?.orderNumber,
+          orderId: order?.orderId,
           createdAt: order?.createdAt,
           orderStatus: order?.orderStatus,
           commission: order?.commission,
           paymentStatus: order?.paymentStatus,
           sender: order?.sender,
-          totalAmount: order?.totalAmount,
+          total: order?.total,
           order: order?.order,
           updatedAt: order?.updatedAt,
           avatar: order?.createdByDetails?.userImage,
@@ -134,10 +135,10 @@ const OrderListTable = ({ orderData }) => {
         cell: ({ row }) => (
           <Typography
             component={Link}
-            href={getLocalizedUrl(`/apps/ecommerce/orders/details/${row.original.id}`, locale)}
+            href={getLocalizedUrl(`/trade-professional/orders/view/${row.original?.id}`, locale)}
             color='primary.main'
           >
-            {`#${row.original.orderNumber}`}
+            {`#${row.original.orderId}`}
           </Typography>
         )
       }),
@@ -149,14 +150,12 @@ const OrderListTable = ({ orderData }) => {
         header: 'Customers',
         cell: ({ row }) => (
           <div className='flex items-center gap-3'>
-            {getAvatar({ avatar: row.original.avatar, customer: row.original?.username })}
+            {getAvatar({
+                  avatar: `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/${row.original.avatar}`,
+                  customer: row.original?.username ?? ''
+                })}
             <div className='flex flex-col'>
-              <Typography
-                component={Link}
-                href={getLocalizedUrl('/apps/ecommerce/customers/details/879861', locale)}
-                color='text.primary'
-                className='font-medium hover:text-primary'
-              >
+              <Typography>
                 {row.original.username}
               </Typography>
               <Typography variant='body2'>{row.original.email}</Typography>
@@ -166,7 +165,7 @@ const OrderListTable = ({ orderData }) => {
       }),
       columnHelper.accessor('totalAmount', {
         header: 'Amount',
-        cell: ({ row }) => <Typography>€{parseFloat(row.original?.totalAmount).toFixed(2)}</Typography>
+        cell: ({ row }) => <Typography>€{parseFloat(row.original?.total).toFixed(2)}</Typography>
       }),
       columnHelper.accessor('commission', {
         header: 'Commission',
@@ -174,18 +173,16 @@ const OrderListTable = ({ orderData }) => {
       }),
       columnHelper.accessor('paymentStatus', {
         header: 'Payment',
+
         cell: ({ row }) => (
-          <div className='flex items-center gap-1'>
-            <i
-              className={classnames(
-                'ri-circle-fill bs-2.5 is-2.5',
-                paymentStatus[row.original?.paymentStatus]?.colorClassName
-              )}
-            />
-            <Typography color={`${paymentStatus[row.original?.paymentStatus]?.color}.main`} className='font-medium'>
-              {paymentStatus[row.original?.paymentStatus]?.text}
-            </Typography>
-          </div>
+          <>
+          <Chip
+            label={paymentStatus[row.original.paymentStatus]?.text}
+            color={paymentStatus[row.original.paymentStatus]?.color}
+            variant='tonal'
+            size='small'
+          />
+          </>
         )
       }),
       columnHelper.accessor('orderStatus', {

@@ -37,7 +37,8 @@ const userData = {
   useAsBillingAddress: true
 }
 
-const CustomerDetails = ({ orderData }) => {
+const CustomerDetails = ({ orderData, data }) => {
+  console.log(orderData, 'orderDataorderData')
   // Vars
   const typographyProps = (children, color, className) => ({
     children,
@@ -50,36 +51,40 @@ const CustomerDetails = ({ orderData }) => {
       <CardContent className='flex flex-col gap-6'>
         <Typography variant='h5'>Customer details</Typography>
         <div className='flex items-center gap-3'>
-          {getAvatar({ avatar: orderData?.avatar ?? '', customer: orderData?.customer ?? '' })}
+          {getAvatar({
+                  avatar: `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/${data.createdBy.userImage}`,
+                  customer: data?.createdBy?.name ?? ''
+                })
+              }
           <div className='flex flex-col'>
             <Typography color='text.primary' className='font-medium'>
-              {orderData?.customer}
+              {data?.createdBy?.name}
             </Typography>
-            <Typography>Customer ID: #47389</Typography>
+            <Typography>Customer ID: {data?.createdBy?.userId}</Typography>
           </div>
         </div>
-        <div className='flex items-center gap-3'>
+        {/* <div className='flex items-center gap-3'>
           <CustomAvatar skin='light' color='success' size={40}>
             <i className='ri-shopping-cart-2-line' />
           </CustomAvatar>
           <Typography color='text.primary' className='font-medium'>
             12 Orders
           </Typography>
-        </div>
+        </div> */}
         <div className='flex flex-col gap-1'>
           <div className='flex justify-between items-center'>
             <Typography color='text.primary' className='font-medium'>
               Contact info
             </Typography>
-            <OpenDialogOnElementClick
+            {/* <OpenDialogOnElementClick
               element={Typography}
               elementProps={typographyProps('Edit', 'primary', 'cursor-pointer font-medium')}
               dialog={EditUserInfo}
               dialogProps={{ data: userData }}
-            />
+            /> */}
           </div>
-          <Typography>Email: {orderData?.email}</Typography>
-          <Typography>Mobile: +1 (609) 972-22-22</Typography>
+          <Typography>Email: {data?.createdBy?.email}</Typography>
+          <Typography>Mobile: {data?.createdBy?.phone}</Typography>
         </div>
       </CardContent>
     </Card>
