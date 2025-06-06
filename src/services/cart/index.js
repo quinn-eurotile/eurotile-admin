@@ -17,7 +17,7 @@ export const cartApi = createApiService(CART_API, {
   },
 
   // Update cart item quantity
-updateCartItem: async (itemId, quantity) => {
+  updateCartItem: async (itemId, quantity) => {
     try {
       const response = await api.put(`${CART_API}/item`, {
         id: itemId,
@@ -42,7 +42,16 @@ updateCartItem: async (itemId, quantity) => {
       throw error;
     }
   },
-
+  // Remove item from cart
+  removeCart: async (itemId) => {
+    try {
+      const response = await api.delete(`${CART_API}/${itemId}`);
+      return response;
+    } catch (error) {
+      console.error('Error removing cart:', error);
+      throw error;
+    }
+  },
   // Add item to wishlist
   addToWishlist: async (itemId) => {
     try {

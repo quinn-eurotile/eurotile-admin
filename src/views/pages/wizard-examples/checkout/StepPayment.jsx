@@ -306,7 +306,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
     //   }
     //   paymentDetails.status = verifyResponse.data.status;
     // }
-    alert('hjkhjh');
+    // await removeCart();
     setPaymentData(paymentDetails);
     setStepValid(2, true);
     handleNext();
