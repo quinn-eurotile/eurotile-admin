@@ -1,126 +1,128 @@
-'use client'
+'use client';
 
 // React Imports
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 
 // Next Imports
-import Link from 'next/link'
-import Image from "next/image"
+import Link from 'next/link';
+import Image from "next/image";
+import { useSession } from "next-auth/react";
 
 
 const Header = ({ mode }) => {
 
-
-  const [cartOpen, setCartOpen] = useState(false)
+  const { data: session, status } = useSession();
+  const isLoggedIn = status === 'authenticated';
+  const [cartOpen, setCartOpen] = useState(false);
   useEffect(() => {
     // Search functionality
-    const searchTrigger = document.querySelector(".search-trigger")
-    const searchOverlay = document.querySelector(".search-overlay")
-    const closeSearch = document.querySelector(".search-overlay button")
+    const searchTrigger = document.querySelector(".search-trigger");
+    const searchOverlay = document.querySelector(".search-overlay");
+    const closeSearch = document.querySelector(".search-overlay button");
 
     if (searchTrigger && searchOverlay && closeSearch) {
       searchTrigger.addEventListener("click", () => {
-        searchOverlay.classList.remove("hidden")
-        searchOverlay.classList.add("flex")
-      })
+        searchOverlay.classList.remove("hidden");
+        searchOverlay.classList.add("flex");
+      });
 
       closeSearch.addEventListener("click", () => {
-        searchOverlay.classList.add("hidden")
-        searchOverlay.classList.remove("flex")
-      })
+        searchOverlay.classList.add("hidden");
+        searchOverlay.classList.remove("flex");
+      });
     }
 
     // Mobile menu
-    const menuTrigger = document.querySelector(".menu-trigger")
-    const mobileMenu = document.querySelector(".mobile-menu")
-    const mobileMenuClose = document.querySelector(".mobile-menu-close")
-    const mobileMenuContent = document.querySelector(".mobile-menu > div")
+    const menuTrigger = document.querySelector(".menu-trigger");
+    const mobileMenu = document.querySelector(".mobile-menu");
+    const mobileMenuClose = document.querySelector(".mobile-menu-close");
+    const mobileMenuContent = document.querySelector(".mobile-menu > div");
 
     if (menuTrigger && mobileMenu && mobileMenuClose && mobileMenuContent) {
       menuTrigger.addEventListener("click", () => {
-        mobileMenu.classList.remove("hidden")
-        mobileMenu.classList.add("flex")
+        mobileMenu.classList.remove("hidden");
+        mobileMenu.classList.add("flex");
         setTimeout(() => {
-          mobileMenuContent.classList.remove("translate-x-[-100%]")
-        }, 10)
-      })
+          mobileMenuContent.classList.remove("translate-x-[-100%]");
+        }, 10);
+      });
 
       mobileMenuClose.addEventListener("click", () => {
-        mobileMenuContent.classList.add("translate-x-[-100%]")
+        mobileMenuContent.classList.add("translate-x-[-100%]");
         setTimeout(() => {
-          mobileMenu.classList.add("hidden")
-          mobileMenu.classList.remove("flex")
-        }, 300)
-      })
+          mobileMenu.classList.add("hidden");
+          mobileMenu.classList.remove("flex");
+        }, 300);
+      });
 
       mobileMenu.addEventListener("click", (e) => {
         if (e.target === mobileMenu) {
-          mobileMenuContent.classList.add("translate-x-[-100%]")
+          mobileMenuContent.classList.add("translate-x-[-100%]");
           setTimeout(() => {
-            mobileMenu.classList.add("hidden")
-            mobileMenu.classList.remove("flex")
-          }, 300)
+            mobileMenu.classList.add("hidden");
+            mobileMenu.classList.remove("flex");
+          }, 300);
         }
-      })
+      });
     }
 
     // Mobile submenu
-    const mobileSubmenuTriggers = document.querySelectorAll(".mobile-submenu-trigger")
+    const mobileSubmenuTriggers = document.querySelectorAll(".mobile-submenu-trigger");
     mobileSubmenuTriggers.forEach((trigger) => {
       trigger.addEventListener("click", () => {
-        const submenu = trigger.nextElementSibling
-        submenu.classList.toggle("hidden")
-        const icon = trigger.querySelector("svg")
-        icon.classList.toggle("rotate-90")
-      })
-    })
+        const submenu = trigger.nextElementSibling;
+        submenu.classList.toggle("hidden");
+        const icon = trigger.querySelector("svg");
+        icon.classList.toggle("rotate-90");
+      });
+    });
 
     // Account dropdown
-    const accountTrigger = document.querySelector(".account-trigger")
-    const accountDropdown = document.querySelector(".account-dropdown")
+    const accountTrigger = document.querySelector(".account-trigger");
+    const accountDropdown = document.querySelector(".account-dropdown");
 
     if (accountTrigger && accountDropdown) {
       accountTrigger.addEventListener("click", () => {
-        accountDropdown.classList.toggle("hidden")
-      })
+        accountDropdown.classList.toggle("hidden");
+      });
 
       document.addEventListener("click", (e) => {
         if (!accountTrigger.contains(e.target) && !accountDropdown.contains(e.target)) {
-          accountDropdown.classList.add("hidden")
+          accountDropdown.classList.add("hidden");
         }
-      })
+      });
     }
 
 
 
     return () => {
       if (searchTrigger && closeSearch) {
-        searchTrigger.removeEventListener("click", () => { })
-        closeSearch.removeEventListener("click", () => { })
+        searchTrigger.removeEventListener("click", () => { });
+        closeSearch.removeEventListener("click", () => { });
       }
-      clearInterval(autoSlideInterval)
+      clearInterval(autoSlideInterval);
       if (sliderPrev && sliderNext) {
-        sliderPrev.removeEventListener("click", () => { })
-        sliderNext.removeEventListener("click", () => { })
+        sliderPrev.removeEventListener("click", () => { });
+        sliderNext.removeEventListener("click", () => { });
       }
       sliderDots.forEach((dot) => {
-        dot.removeEventListener("click", () => { })
-      })
+        dot.removeEventListener("click", () => { });
+      });
       if (productPrev && productNext) {
-        productPrev.removeEventListener("click", () => { })
-        productNext.removeEventListener("click", () => { })
+        productPrev.removeEventListener("click", () => { });
+        productNext.removeEventListener("click", () => { });
       }
       if (menuTrigger && mobileMenuClose) {
-        menuTrigger.removeEventListener("click", () => { })
-        mobileMenuClose.removeEventListener("click", () => { })
+        menuTrigger.removeEventListener("click", () => { });
+        mobileMenuClose.removeEventListener("click", () => { });
       }
       if (accountTrigger) {
-        accountTrigger.removeEventListener("click", () => { })
+        accountTrigger.removeEventListener("click", () => { });
       }
-      document.removeEventListener("click", () => { })
-    }
+      document.removeEventListener("click", () => { });
+    };
 
-  }, [])
+  }, []);
 
   return (<>
     {/* ----------------------  Header Start ---------------------- */}
@@ -200,15 +202,28 @@ const Header = ({ mode }) => {
                 <i className="ri-user-line text-18"></i>
               </button>
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden account-dropdown">
-                <Link href="/account" className="block px-4 py-2 text-xs text-gray-700 hover:bg-redText hover:text-white">
-                  My Account
-                </Link>
-                <Link href="/orders" className="block px-4 py-2 text-xs text-gray-700 hover:bg-redText hover:text-white">
-                  My Orders
-                </Link>
-                <Link href="/logout" className="block px-4 py-2 text-xs text-gray-700 hover:bg-redText hover:text-white">
-                  Logout
-                </Link>
+                {isLoggedIn ? (
+                  <>
+                    <Link href="/en/trade-professional/profile"
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className="block px-4 py-2 text-xs text-gray-700 hover:bg-redText hover:text-white">
+                      My Account
+                    </Link>
+                    <Link href="/en/trade-professional/orders/list" target='_blank'
+                      rel='noopener noreferrer' className="block px-4 py-2 text-xs text-gray-700 hover:bg-redText hover:text-white">
+                      My Orders
+                    </Link>
+                    {/* <Link href="/en/logout" className="block px-4 py-2 text-xs text-gray-700 hover:bg-redText hover:text-white">
+                      Logout
+                    </Link> */}
+                  </>
+                ) : (
+                  <Link href="/en/login" target='_blank'
+                    rel='noopener noreferrer' className="block px-4 py-2 text-xs text-gray-700 hover:bg-redText hover:text-white">
+                    Login
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -327,7 +342,7 @@ const Header = ({ mode }) => {
 
   </>
 
-  )
-}
+  );
+};
 
-export default Header
+export default Header;
