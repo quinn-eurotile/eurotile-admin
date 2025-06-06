@@ -123,6 +123,7 @@ export default function ProductDetailPage() {
     }
   };
 
+console.log(selectedVariation);
 
   // Update product images to use variation images
   const productImages =
@@ -132,7 +133,7 @@ export default function ProductDetailPage() {
         ? [product.productFeaturedImage.filePath]
         : ["/images/pages/product-img1.jpg"]);
 
-
+log
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
   };
