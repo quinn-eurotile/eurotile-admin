@@ -1,55 +1,81 @@
-"use client"
+"use client";
 
 // React Imports
-import { useContext } from "react"
+import { useContext } from "react";
 
 // Next Imports
-import Link from "next/link"
+import Link from "next/link";
 
 // MUI Imports
-import Grid from "@mui/material/Grid2"
-import Typography from "@mui/material/Typography"
-import Chip from "@mui/material/Chip"
-import Divider from "@mui/material/Divider"
-import CardContent from "@mui/material/CardContent"
+import Grid from "@mui/material/Grid2";
+import Typography from "@mui/material/Typography";
+import Chip from "@mui/material/Chip";
+import Divider from "@mui/material/Divider";
+import CardContent from "@mui/material/CardContent";
 
 // Context Import
-import { CheckoutContext } from "./CheckoutWizard"
+import { CheckoutContext } from "./CheckoutWizard";
 
 const StepConfirmation = () => {
-  const { cartItems, orderSummary, selectedAddress, addresses, selectedShipping, user } = useContext(CheckoutContext)
+  const { cartItems, orderSummary, selectedAddress, addresses, selectedShipping, user } = useContext(CheckoutContext);
 
   // Get selected address details
-  const selectedAddressDetails = addresses.find((addr) => addr.id === selectedAddress)
+  const selectedAddressDetails = addresses.find((addr) => addr.id === selectedAddress);
 
   // Generate order ID (in real app, this would come from the server)
-  const orderId = `#${Date.now().toString().slice(-8)}`
+  const orderId = `#${Date.now().toString().slice(-8)}`;
 
   // Get current date and time
-  const currentDate = new Date().toLocaleString()
+  const currentDate = new Date().toLocaleString();
 
   // Get shipping method details
   const getShippingMethodName = () => {
     switch (selectedShipping) {
       case "express":
-        return "Express Delivery"
+        return "Express Delivery";
       case "overnight":
-        return "Overnight Delivery"
+        return "Overnight Delivery";
       default:
-        return "Standard Delivery"
+        return "Standard Delivery";
     }
-  }
+  };
 
   const getShippingDescription = () => {
     switch (selectedShipping) {
       case "express":
-        return "(Normally 3-4 business days)"
+        return "(Normally 3-4 business days)";
       case "overnight":
-        return "(Next business day)"
+        return "(Next business day)";
       default:
-        return "(Normally 5-7 business days)"
+        return "(Normally 5-7 business days)";
     }
-  }
+  };
+  const calculateTotals = () => {
+    if (!cartItems || cartItems.length === 0) return {
+      subtotal: 0,
+      discount: 0,
+      shipping: 0,
+      total: 0
+    };
+
+    const subtotal = cartItems.reduce((sum, item) => {
+      return sum + (item.price * item.quantity);
+    }, 0);
+
+    const discount = orderSummary?.discount || 0;
+    const shipping = orderSummary?.shipping || 0;
+    const total = subtotal - discount + shipping;
+
+    return {
+      subtotal,
+      discount,
+      shipping,
+      total
+    };
+  };
+
+  const totals = calculateTotals();
+  console.log('cartItems', cartItems);
 
   return (
     <Grid container spacing={6}>
@@ -155,22 +181,22 @@ const StepConfirmation = () => {
               <img
                 height={80}
                 width={80}
-                src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product.imgSrc}` || "/placeholder.svg?height=80&width=80"} 
-                alt={product.imgAlt || product.productName}
+                src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=80&width=80"}
+                alt={product?.product?.name || 'Product Image'}
               />
               <div className="flex justify-between is-full p-5 flex-col sm:flex-row items-center sm:items-start">
                 <div className="flex flex-col gap-2 items-center sm:items-start">
                   <Typography className="font-medium" color="text.primary">
-                    {product.productName}
+                    {product?.product?.name}
                   </Typography>
                   <div className="flex items-center gap-1">
                     <Typography>Sold By:</Typography>
                     <Typography href="/" component={Link} onClick={(e) => e.preventDefault()} color="primary.main">
-                      {product.soldBy}
+                      {product?.product?.supplier?.companyName || 'N/A'}
                     </Typography>
                   </div>
                   {product.inStock && <Chip variant="tonal" size="small" color="success" label="In Stock" />}
-                  <Typography>Quantity: {product.count}</Typography>
+                  <Typography>Quantity: {product?.quantity}</Typography>
                 </div>
                 <div className="flex items-center">
                   <Typography color="primary.main">{`$${product.price}`}</Typography>
@@ -195,12 +221,12 @@ const StepConfirmation = () => {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between gap-2">
                 <Typography color="text.primary">Order Total</Typography>
-                <Typography>${orderSummary.subtotal?.toFixed(2) || "0.00"}</Typography>
+                <Typography>${totals.subtotal?.toFixed(2) || "0.00"}</Typography>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <Typography color="text.primary">Delivery Charges</Typography>
                 <div className="flex gap-2">
-                  {orderSummary.shipping === 0 ? (
+                  {totals.shipping === 0 ? (
                     <>
                       <Typography className="line-through" color="text.disabled">
                         $5.00
@@ -208,7 +234,7 @@ const StepConfirmation = () => {
                       <Chip variant="tonal" size="small" color="success" label="Free" />
                     </>
                   ) : (
-                    <Typography>${orderSummary.shipping?.toFixed(2) || "0.00"}</Typography>
+                    <Typography>${totals.shipping?.toFixed(2) || "0.00"}</Typography>
                   )}
                 </div>
               </div>
@@ -221,14 +247,14 @@ const StepConfirmation = () => {
                 Total
               </Typography>
               <Typography className="font-medium" color="text.primary">
-                ${orderSummary.total?.toFixed(2) || "0.00"}
+                ${totals.total?.toFixed(2) || "0.00"}
               </Typography>
             </div>
           </CardContent>
         </div>
       </Grid>
     </Grid>
-  )
-}
+  );
+};
 
-export default StepConfirmation
+export default StepConfirmation;

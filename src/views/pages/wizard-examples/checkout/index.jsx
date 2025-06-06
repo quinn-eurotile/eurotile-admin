@@ -1,31 +1,31 @@
-"use client"
+"use client";
 
 // React Imports
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 
 // MUI Imports
-import Card from "@mui/material/Card"
-import CardContent from "@mui/material/CardContent"
-import Step from "@mui/material/Step"
-import StepLabel from "@mui/material/StepLabel"
-import Typography from "@mui/material/Typography"
-import Divider from "@mui/material/Divider"
-import MuiStepper from "@mui/material/Stepper"
-import { styled } from "@mui/material/styles"
-import CircularProgress from "@mui/material/CircularProgress"
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Step from "@mui/material/Step";
+import StepLabel from "@mui/material/StepLabel";
+import Typography from "@mui/material/Typography";
+import Divider from "@mui/material/Divider";
+import MuiStepper from "@mui/material/Stepper";
+import { styled } from "@mui/material/styles";
+import CircularProgress from "@mui/material/CircularProgress";
 
 // Next Auth Import
-import { useSession } from "next-auth/react"
+import { useSession } from "next-auth/react";
 
 // Component Imports
-import StepCart from "./StepCart"
-import StepAddress from "./StepAddress"
-import StepPayment from "./StepPayment"
-import StepConfirmation from "./StepConfirmation"
-import DirectionalIcon from "@components/DirectionalIcon"
+import StepCart from "./StepCart";
+import StepAddress from "./StepAddress";
+import StepPayment from "./StepPayment";
+import StepConfirmation from "./StepConfirmation";
+import DirectionalIcon from "@components/DirectionalIcon";
 
 // Styled Component Imports
-import StepperWrapper from "@core/styles/stepper"
+import StepperWrapper from "@core/styles/stepper";
 
 // Vars
 const steps = [
@@ -114,7 +114,7 @@ const steps = [
       </svg>
     ),
   },
-]
+];
 
 // Styled Components
 const Stepper = styled(MuiStepper)(({ theme }) => ({
@@ -154,10 +154,10 @@ const Stepper = styled(MuiStepper)(({ theme }) => ({
       },
     },
   },
-}))
+}));
 
 // Context for sharing checkout data between steps
-import { createContext } from "react"
+import { createContext } from "react";
 
 export const CheckoutContext = createContext({
   cartItems: [],
@@ -176,66 +176,66 @@ export const CheckoutContext = createContext({
   setOrderData: () => { },
   isStepValid: () => false,
   loading: false,
-})
+});
 
 const getStepContent = (step, handleNext, checkoutData) => {
   switch (step) {
     case 0:
-      return <StepCart handleNext={handleNext} {...checkoutData} />
+      return <StepCart handleNext={handleNext} {...checkoutData} />;
     case 1:
-      return <StepAddress handleNext={handleNext} {...checkoutData} />
+      return <StepAddress handleNext={handleNext} {...checkoutData} />;
     case 2:
-      return <StepPayment handleNext={handleNext} {...checkoutData} />
+      return <StepPayment handleNext={handleNext} {...checkoutData} />;
     case 3:
-      return <StepConfirmation {...checkoutData} />
+      return <StepConfirmation {...checkoutData} />;
     default:
-      return null
+      return null;
   }
-}
+};
 
 const CheckoutWizard = () => {
   // Get user session
-  const { data: session, status } = useSession()
+  const { data: session, status } = useSession();
 
   // States
-  const [activeStep, setActiveStep] = useState(0)
-  const [cartItems, setCartItems] = useState([])
-  const [addresses, setAddresses] = useState([])
-  const [selectedAddress, setSelectedAddress] = useState(null)
-  const [selectedShipping, setSelectedShipping] = useState("standard")
+  const [activeStep, setActiveStep] = useState(0);
+  const [cartItems, setCartItems] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [selectedShipping, setSelectedShipping] = useState("standard");
   const [orderSummary, setOrderSummary] = useState({
     subtotal: 0,
     shipping: 0,
     total: 0,
-  })
-  const [loading, setLoading] = useState(true)
+  });
+  const [loading, setLoading] = useState(true);
   const [stepValidation, setStepValidation] = useState({
     0: false, // Cart step
     1: false, // Address step
     2: false, // Payment step
-  })
+  });
 
   // Function to check if current step is valid
-  const isStepValid = (step) => stepValidation[step]
+  const isStepValid = (step) => stepValidation[step];
 
   // Function to set step validation
   const setStepValid = (step, isValid) => {
     setStepValidation((prev) => ({
       ...prev,
       [step]: isValid,
-    }))
-  }
+    }));
+  };
 
   // Handle next step
   const handleNext = () => {
     if (isStepValid(activeStep)) {
-      const nextStep = activeStep + 1
-      setActiveStep(nextStep)
+      const nextStep = activeStep + 1;
+      setActiveStep(nextStep);
 
       // Save current step to localStorage
-      localStorage.setItem("checkoutStep", nextStep.toString())
+      localStorage.setItem("checkoutStep", nextStep.toString());
     }
-  }
+  };
 
   // Load data on component mount
   useEffect(() => {
@@ -243,60 +243,60 @@ const CheckoutWizard = () => {
     const fetchData = async () => {
 
 
-      setLoading(true)
+      setLoading(true);
       try {
         // Restore step from localStorage if available
-        const savedStep = localStorage.getItem("checkoutStep")
+        const savedStep = localStorage.getItem("checkoutStep");
         if (savedStep) {
-          setActiveStep(Number.parseInt(savedStep, 10))
+          setActiveStep(Number.parseInt(savedStep, 10));
         }
 
         // Fetch cart items
-        const cartResponse = await fetch("/api/cart")
+        const cartResponse = await fetch("/api/cart");
         if (cartResponse.ok) {
-          const cartData = await cartResponse.json()
-          setCartItems(cartData.items || [])
+          const cartData = await cartResponse.json();
+          setCartItems(cartData.items || []);
 
           // Calculate order summary
-          const subtotal = cartData.items.reduce((sum, item) => sum + item.price * item.count, 0)
+          const subtotal = cartData.items.reduce((sum, item) => sum + item.price * item.count, 0);
           setOrderSummary({
             subtotal,
             shipping: 0, // Free shipping by default
             total: subtotal,
-          })
+          });
 
           // Set cart step validation based on items
-          setStepValid(0, cartData.items.length > 0)
+          setStepValid(0, cartData.items.length > 0);
         }
-        console.log(session?.user, 'session?.user')
+        // console.log(session?.user, 'session?.user')
         // Fetch user addresses if logged in
         if (session?.user) {
 
-          const addressResponse = await fetch("/api/user/addresses")
+          const addressResponse = await fetch("/api/user/addresses");
           if (addressResponse.ok) {
-            const addressData = await addressResponse.json()
-            setAddresses(addressData.addresses || [])
+            const addressData = await addressResponse.json();
+            setAddresses(addressData.addresses || []);
 
             // Set default address if available
-            const defaultAddress = addressData.addresses.find((addr) => addr.isDefault)
+            const defaultAddress = addressData.addresses.find((addr) => addr.isDefault);
             if (defaultAddress) {
-              setSelectedAddress(defaultAddress.value)
-              setStepValid(1, true)
+              setSelectedAddress(defaultAddress.value);
+              setStepValid(1, true);
             } else if (addressData.addresses.length > 0) {
-              setSelectedAddress(addressData.addresses[0].value)
-              setStepValid(1, true)
+              setSelectedAddress(addressData.addresses[0].value);
+              setStepValid(1, true);
             }
           }
         }
       } catch (error) {
-        console.error("Error fetching checkout data:", error)
+        console.error("Error fetching checkout data:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [session])
+    fetchData();
+  }, [session]);
 
   // Checkout context value
   const checkoutData = {
@@ -314,7 +314,7 @@ const CheckoutWizard = () => {
     setStepValid,
     loading,
     user: session?.user,
-  }
+  };
 
   if (status === "loading" || loading) {
     return (
@@ -323,7 +323,7 @@ const CheckoutWizard = () => {
           <CircularProgress />
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
@@ -349,8 +349,8 @@ const CheckoutWizard = () => {
                     onClick={() => {
                       // Only allow going back to previous steps or current step
                       if (index <= activeStep) {
-                        setActiveStep(index)
-                        localStorage.setItem("checkoutStep", index.toString())
+                        setActiveStep(index);
+                        localStorage.setItem("checkoutStep", index.toString());
                       }
                     }}
                   >
@@ -359,7 +359,7 @@ const CheckoutWizard = () => {
                       <Typography className="step-title">{step.title}</Typography>
                     </StepLabel>
                   </Step>
-                )
+                );
               })}
             </Stepper>
           </StepperWrapper>
@@ -369,7 +369,7 @@ const CheckoutWizard = () => {
         <CardContent>{getStepContent(activeStep, handleNext, checkoutData)}</CardContent>
       </Card>
     </CheckoutContext.Provider>
-  )
-}
+  );
+};
 
-export default CheckoutWizard
+export default CheckoutWizard;

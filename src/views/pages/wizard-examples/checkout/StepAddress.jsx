@@ -1,60 +1,60 @@
-"use client"
+"use client";
 
 // React Imports
-import { useState, useEffect, useContext } from "react"
+import { useState, useEffect, useContext } from "react";
 
 // MUI Imports
-import Grid from "@mui/material/Grid2"
-import Typography from "@mui/material/Typography"
-import Chip from "@mui/material/Chip"
-import Divider from "@mui/material/Divider"
-import Button from "@mui/material/Button"
-import CardContent from "@mui/material/CardContent"
-import { styled } from "@mui/material/styles"
-import CircularProgress from "@mui/material/CircularProgress"
-import Alert from "@mui/material/Alert"
-import Dialog from "@mui/material/Dialog"
-import DialogTitle from "@mui/material/DialogTitle"
-import DialogContent from "@mui/material/DialogContent"
-import DialogActions from "@mui/material/DialogActions"
-import FormControlLabel from "@mui/material/FormControlLabel"
-import Switch from "@mui/material/Switch"
-import Select from "@mui/material/Select"
-import MenuItem from "@mui/material/MenuItem"
-import TextField from "@mui/material/TextField"
+import Grid from "@mui/material/Grid2";
+import Typography from "@mui/material/Typography";
+import Chip from "@mui/material/Chip";
+import Divider from "@mui/material/Divider";
+import Button from "@mui/material/Button";
+import CardContent from "@mui/material/CardContent";
+import { styled } from "@mui/material/styles";
+import CircularProgress from "@mui/material/CircularProgress";
+import Alert from "@mui/material/Alert";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Switch from "@mui/material/Switch";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import TextField from "@mui/material/TextField";
 
 // Third-party Imports
-import classnames from "classnames"
-import { toast } from "react-toastify"
+import classnames from "classnames";
+import { toast } from "react-toastify";
 
 // Component Imports
-import CustomInputHorizontal from "@core/components/custom-inputs/Horizontal"
-import CustomInputVertical from "@core/components/custom-inputs/Vertical"
-import AddEditAddress from "@components/dialogs/add-edit-address"
-import OpenDialogOnElementClick from "@components/dialogs/OpenDialogOnElementClick"
+import CustomInputHorizontal from "@core/components/custom-inputs/Horizontal";
+import CustomInputVertical from "@core/components/custom-inputs/Vertical";
+import AddEditAddress from "@components/dialogs/add-edit-address";
+import OpenDialogOnElementClick from "@components/dialogs/OpenDialogOnElementClick";
 
 // Context Import
-import { CheckoutContext } from "./CheckoutWizard"
-import { addCart, deleteAddresses, getAddresses, getAllClients } from "@/app/server/actions"
-import { cartApi } from "@/services/cart"
-import { tradeProfessionalsApi } from "@/services/trade-professionals"
-import { FormControl } from "@mui/material"
-import { getSession, useSession } from "next-auth/react"
-import { addToCart } from "@/redux-store/slices/cart"
-import { useDispatch } from "react-redux"
+import { CheckoutContext } from "./CheckoutWizard";
+import { addCart, deleteAddresses, getAddresses, getAllClients } from "@/app/server/actions";
+import { cartApi } from "@/services/cart";
+import { tradeProfessionalsApi } from "@/services/trade-professionals";
+import { FormControl } from "@mui/material";
+import { getSession, useSession } from "next-auth/react";
+import { addToCart } from "@/redux-store/slices/cart";
+import { useDispatch } from "react-redux";
 
 // Styled Components
 const HorizontalContent = styled(Typography, {
   name: "MuiCustomInputHorizontal",
   slot: "content",
-})({})
+})({});
 
 const VerticalContent = styled(Typography, {
   name: "MuiCustomInputVertical",
   slot: "content",
 })({
   textAlign: "center",
-})
+});
 
 const StepAddress = ({ handleNext }) => {
   // Context
@@ -71,30 +71,30 @@ const StepAddress = ({ handleNext }) => {
     loading,
     user,
     cartItems, // Declare cartItems from context or props
-  } = useContext(CheckoutContext)
+  } = useContext(CheckoutContext);
 
   // States
-  const [isUpdating, setIsUpdating] = useState(false)
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
-  const [addressToDelete, setAddressToDelete] = useState(null)
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [addressToDelete, setAddressToDelete] = useState(null);
   const [open, setOpen] = useState(false);
   const [addressData, setAddressData] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false)  // Add loading state
+  const [isSubmitting, setIsSubmitting] = useState(false);  // Add loading state
   //const [isClientOrder, setIsClientOrder] = useState(false)
   const [isClientOrder, setIsClientOrder] = useState(() => {
     const stored = sessionStorage.getItem('isClientOrder');
     return stored ? JSON.parse(stored) : false;
   });
-  const [clients, setClients] = useState([])
+  const [clients, setClients] = useState([]);
   //const [selectedClient, setSelectedClient] = useState(null)
   const [selectedClient, setSelectedClient] = useState(() => {
     const storedClient = sessionStorage.getItem('selectedClient');
     return storedClient ? JSON.parse(storedClient) : null;
   });
-  const [priceDialogOpen, setPriceDialogOpen] = useState(false)
-  const [modifiedPrices, setModifiedPrices] = useState({})
-  const [clientLoading, setClientLoading] = useState(false)
-  const { data: session, status } = useSession()
+  const [priceDialogOpen, setPriceDialogOpen] = useState(false);
+  const [modifiedPrices, setModifiedPrices] = useState({});
+  const [clientLoading, setClientLoading] = useState(false);
+  const { data: session, status } = useSession();
   const dispatch = useDispatch();
   //console.log(isClientOrder, 'isClientOrder');
 
@@ -103,7 +103,7 @@ const StepAddress = ({ handleNext }) => {
     variant: "outlined",
     children: "Add New Address",
     className: "self-start",
-  }
+  };
 
 
   // Shipping options
@@ -147,17 +147,17 @@ const StepAddress = ({ handleNext }) => {
         </>
       ),
     },
-  ]
+  ];
 
   // Handle address selection
   const handleAddressChange = (value) => {
-    setSelectedAddress(value)
-    setStepValid(1, true)
-  }
+    setSelectedAddress(value);
+    setStepValid(1, true);
+  };
 
   // Handle shipping option change
   const handleShippingChange = async (value) => {
-    setIsUpdating(true)
+    setIsUpdating(true);
     try {
       // Calculate shipping cost based on selected method
       const shippingCost = value === 'express' ? 10 : value === 'overnight' ? 15 : 0;
@@ -175,19 +175,19 @@ const StepAddress = ({ handleNext }) => {
       }));
 
       // Update cart with new shipping method
-      const response = await cartApi.updateCart({
-        userId: user?._id,
-        shippingMethod: value,
-        shippingCost: shippingCost,
-        total: total
-      });
+      // const response = await cartApi.updateCart({
+      //   userId: user?._id,
+      //   shippingMethod: value,
+      //   shippingCost: shippingCost,
+      //   total: total
+      // });
 
-      if (!response.success) {
-        // Revert changes if API call fails
-        setSelectedShipping(prev => prev);
-        setOrderSummary(prev => prev);
-        toast.error(response.message || 'Failed to update shipping method');
-      }
+      // if (!response.success) {
+      // Revert changes if API call fails
+      setSelectedShipping(prev => prev);
+      setOrderSummary(prev => prev);
+      // toast.error(response.message || 'Failed to update shipping method');
+      // }
     } catch (error) {
       console.error("Error updating shipping method:", error);
       toast.error('Failed to update shipping method');
@@ -195,9 +195,9 @@ const StepAddress = ({ handleNext }) => {
       setSelectedShipping(prev => prev);
       setOrderSummary(prev => prev);
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
   // Edit address
   const handleEditAddress = (address) => {
@@ -206,68 +206,68 @@ const StepAddress = ({ handleNext }) => {
   };
   // Delete address confirmation
   const confirmDeleteAddress = (addressId) => {
-    setAddressToDelete(addressId)
-    setDeleteConfirmOpen(true)
-  }
+    setAddressToDelete(addressId);
+    setDeleteConfirmOpen(true);
+  };
 
   // Delete address
   const deleteAddress = async () => {
-    if (!addressToDelete) return
+    if (!addressToDelete) return;
 
-    setIsUpdating(true)
+    setIsUpdating(true);
     try {
-      const response = await deleteAddresses(addressToDelete)
+      const response = await deleteAddresses(addressToDelete);
 
       if (response.success) {
         // Update local state
-        const updatedAddresses = addresses?.filter((addr) => addr._id !== addressToDelete)
-        setAddresses(updatedAddresses)
+        const updatedAddresses = addresses?.filter((addr) => addr._id !== addressToDelete);
+        setAddresses(updatedAddresses);
 
         // If deleted address was selected, select another one if available
         if (selectedAddress === addressToDelete) {
           if (updatedAddresses.length > 0) {
-            setSelectedAddress(updatedAddresses[0]._id)
-            setStepValid(1, true)
+            setSelectedAddress(updatedAddresses[0]._id);
+            setStepValid(1, true);
           } else {
-            setSelectedAddress(null)
-            setStepValid(1, false)
+            setSelectedAddress(null);
+            setStepValid(1, false);
           }
         }
       }
     } catch (error) {
-      console.error("Error deleting address:", error)
+      console.error("Error deleting address:", error);
     } finally {
-      setIsUpdating(false)
-      setDeleteConfirmOpen(false)
-      setAddressToDelete(null)
+      setIsUpdating(false);
+      setDeleteConfirmOpen(false);
+      setAddressToDelete(null);
     }
-  }
+  };
 
   // Handle successful address add/edit
   const handleAddressSuccess = async (response) => {
     try {
-      const addressesResponse = await getAddresses(user?._id)
+      const addressesResponse = await getAddresses(user?._id);
       if (addressesResponse.success) {
-        setAddresses(addressesResponse.data)
+        setAddresses(addressesResponse.data);
 
         if (!selectedAddress && addressesResponse.data.length > 0) {
-          setSelectedAddress(addressesResponse.data[0]._id)
-          setStepValid(1, true)
+          setSelectedAddress(addressesResponse.data[0]._id);
+          setStepValid(1, true);
         }
 
         // Close dialog only if operation was successful
-        handleClose()
+        handleClose();
       }
     } catch (error) {
-      console.error("Error fetching addresses:", error)
+      console.error("Error fetching addresses:", error);
     }
-  }
+  };
 
   // Handle dialog close
   const handleClose = () => {
-    setOpen(false)
-    setAddressData(null)
-  }
+    setOpen(false);
+    setAddressData(null);
+  };
 
   // Dialog props for AddEditAddress
   const dialogProps = {
@@ -277,7 +277,7 @@ const StepAddress = ({ handleNext }) => {
     setOpen: setOpen, // Pass setOpen to control dialog visibility
     isSubmitting,
     setIsSubmitting
-  }
+  };
 
   useEffect(() => {
     if (selectedClient?.addressDetails) {
@@ -295,23 +295,23 @@ const StepAddress = ({ handleNext }) => {
         isDefault: selectedClient.addressDetails.isDefault,
         label: selectedClient.addressDetails.label || '',
         tags: selectedClient.addressDetails.tags || []
-      }
+      };
 
       // Update addresses state with client address
-      setAddresses([clientAddress])
+      setAddresses([clientAddress]);
 
       // Set this address as selected
-      setSelectedAddress(clientAddress.id)
-      setStepValid(1, true)
+      setSelectedAddress(clientAddress.id);
+      setStepValid(1, true);
     }
 
     //setPriceDialogOpen(true)
-  }, [selectedClient])
+  }, [selectedClient]);
 
   // Handle client selection
   const handleClientSelect = (event) => {
-    const client = clients.find(c => c._id === event.target.value)
-    setSelectedClient(client)
+    const client = clients.find(c => c._id === event.target.value);
+    setSelectedClient(client);
     sessionStorage.setItem('selectedClient', JSON.stringify(client));
 
     // Format and set client address if available
@@ -330,24 +330,24 @@ const StepAddress = ({ handleNext }) => {
         isDefault: client.addressDetails.isDefault,
         label: client.addressDetails.label || '',
         tags: client.addressDetails.tags || []
-      }
+      };
 
       // Update addresses state with client address
-      setAddresses([clientAddress])
+      setAddresses([clientAddress]);
 
       // Set this address as selected
-      setSelectedAddress(clientAddress.id)
-      setStepValid(1, true)
+      setSelectedAddress(clientAddress.id);
+      setStepValid(1, true);
     } else {
       // If client has no address, reset addresses
-      setAddresses([])
-      setSelectedAddress(null)
-      setStepValid(1, false)
-      toast.warning('Selected client has no address. Please add an address to continue.')
+      setAddresses([]);
+      setSelectedAddress(null);
+      setStepValid(1, false);
+      toast.warning('Selected client has no address. Please add an address to continue.');
     }
 
-    setPriceDialogOpen(true)
-  }
+    setPriceDialogOpen(true);
+  };
 
   // Format addresses for custom input component
   const formattedAddresses = (isClientOrder ? addresses : addresses)?.map((address) => ({
@@ -417,30 +417,30 @@ const StepAddress = ({ handleNext }) => {
 
   // Check if address is selected and update validation
   useEffect(() => {
-    setStepValid(1, selectedAddress !== null)
-  }, [selectedAddress, setStepValid])
+    setStepValid(1, selectedAddress !== null);
+  }, [selectedAddress, setStepValid]);
 
   // Fetch clients
   const fetchClients = async () => {
-    setClientLoading(true)
+    setClientLoading(true);
     try {
       const response = await getAllClients();
-      console.log(response, 'response 55 getAllClients');
+      // console.log(response, 'response 55 getAllClients');
 
       if (response.success) {
-        setClients(response.data)
+        setClients(response.data);
       }
     } catch (error) {
-      console.error('Error fetching clients:', error)
+      console.error('Error fetching clients:', error);
     } finally {
-      setClientLoading(false)
+      setClientLoading(false);
     }
-  }
+  };
 
   // Handle client order toggle
   const handleClientOrderToggle = (event) => {
     const checked = event.target.checked;
-    setIsClientOrder(checked)
+    setIsClientOrder(checked);
     sessionStorage.setItem('isClientOrder', JSON.stringify(checked));
     if (checked) {
       fetchClients();
@@ -448,26 +448,26 @@ const StepAddress = ({ handleNext }) => {
       setSelectedClient(null);
       sessionStorage.removeItem('selectedClient');
     }
-  }
+  };
 
   useEffect(() => {
     fetchClients();
-  }, [isClientOrder])
+  }, [isClientOrder]);
 
   // Handle price modification
   const handlePriceChange = (itemId, newPrice) => {
     setModifiedPrices(prev => ({
       ...prev,
       [itemId]: newPrice
-    }))
-  }
+    }));
+  };
 
   // Validate price is within range
   const validatePrice = (item, price) => {
-    const minPrice = item.variation?.regularPriceB2B || 0
-    const maxPrice = item.variation?.regularPriceB2C || 0
-    return price >= minPrice && price <= maxPrice
-  }
+    const minPrice = item.variation?.regularPriceB2B || 0;
+    const maxPrice = item.variation?.regularPriceB2C || 0;
+    return price >= minPrice && price <= maxPrice;
+  };
 
 
   // Handle price dialog save
@@ -478,7 +478,7 @@ const StepAddress = ({ handleNext }) => {
       productId: item?.product?.id,       // Add productId as key
       variationId: item?.variation?.id,   // Add variationId as key
       price: modifiedPrices[item._id] || item.price
-    }))
+    }));
 
     //console.log('updatedCartItems', cartItems, updatedCartItems, session?.user?.id);
     //return false;
@@ -493,21 +493,21 @@ const StepAddress = ({ handleNext }) => {
     // Update context or state with new prices
     // This depends on how your cart state is managed
 
-    setPriceDialogOpen(false)
-  }
+    setPriceDialogOpen(false);
+  };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center py-10">
         <CircularProgress />
       </div>
-    )
+    );
   }
   const sentClientToPayment = async () => {
 
-  }
+  };
 
-  console.log(clients, 'kkkk');
+  // console.log(clients, 'kkkk');
 
   return (
     <>
@@ -586,7 +586,7 @@ const StepAddress = ({ handleNext }) => {
               {shippingOptions.map((item, index) => {
                 let asset;
                 if (item.asset && typeof item.asset === "string") {
-                  asset = <i className={classnames(item.asset, "text-[28px]")} />
+                  asset = <i className={classnames(item.asset, "text-[28px]")} />;
                 }
 
                 return (
@@ -605,7 +605,7 @@ const StepAddress = ({ handleNext }) => {
                     data={typeof item.asset === "string" ? { ...item, asset } : item}
                     disabled={isUpdating}
                   />
-                )
+                );
               })}
             </Grid>
           </div>
@@ -803,7 +803,7 @@ const StepAddress = ({ handleNext }) => {
       </Dialog>
 
     </>
-  )
-}
+  );
+};
 
-export default StepAddress
+export default StepAddress;
