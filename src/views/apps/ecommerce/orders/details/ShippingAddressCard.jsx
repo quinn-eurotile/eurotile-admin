@@ -44,17 +44,32 @@ const ShippingAddress = ({ data }) => {
             dialogProps={{ type: 'Add address for billing address', data }}
           /> */}
         </div>
-        {data?.shippingAddress?.type == 'Shipping' ? (
-          <div className='flex flex-col'>
-            <Typography>{data?.shippingAddress?.addressLine1}</Typography>
-            <Typography>{data?.shippingAddress?.city}</Typography>
-            <Typography>
-              {data?.shippingAddress?.postalCode}, {data?.shippingAddress?.state}
+        {data?.shippingAddress?.type === 'Shipping' ? (
+          <div className='flex flex-col gap-1'>
+            <Typography variant='body1' className='font-medium'>
+              {data.shippingAddress.name}
             </Typography>
-            <Typography>{data?.shippingAddress?.country}</Typography>
+            <Typography variant='body2'>{data.shippingAddress.addressLine1}</Typography>
+            {data.shippingAddress.addressLine2 && (
+              <Typography variant='body2'>{data.shippingAddress.addressLine2}</Typography>
+            )}
+            <Typography variant='body2'>
+              {data.shippingAddress.city}, {data.shippingAddress.state} - {data.shippingAddress.postalCode}
+            </Typography>
+            <Typography variant='body2'>{data.shippingAddress.country}</Typography>
+            <Typography variant='body2' className='text-sm text-gray-500'>
+              Phone: {data.shippingAddress.phone}
+            </Typography>
+            {data.shippingAddress.label && (
+              <Typography variant='caption' className='text-xs text-gray-500 italic'>
+                Label: {data.shippingAddress.label}
+              </Typography>
+            )}
           </div>
         ) : (
-          'No Address Added'
+          <Typography variant='body2' className='text-gray-500'>
+            No Address Added
+          </Typography>
         )}
       </CardContent>
     </Card>

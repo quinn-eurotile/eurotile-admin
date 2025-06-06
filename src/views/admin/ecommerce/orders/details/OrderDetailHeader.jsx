@@ -11,7 +11,7 @@ import moment from 'moment'
 import { useParams, useRouter } from 'next/navigation'
 
 const OrderDetailHeader = ({ order, data }) => {
-  console.log(data, 'orderDataorderDataorderData')
+  //console.log(data, 'orderDataorderDataorderData')
   // Vars
 
 
@@ -31,17 +31,11 @@ const OrderDetailHeader = ({ order, data }) => {
     <div className='flex flex-wrap justify-between sm:items-center max-sm:flex-col gap-y-4'>
       <div className='flex flex-col items-start gap-1'>
         <div className='flex items-center gap-2'>
-          <Typography variant='h5'>{`Order #${order}`}</Typography>
+          <Typography variant='h5'>{`Order #${data?.orderId}`}</Typography>
           <Chip
             label={statusChipColor[data?.orderStatus]?.text}
             color={statusChipColor[data?.orderStatus]?.color}
             variant='tonal'
-            size='small'
-          />
-          <Chip
-            variant='tonal'
-            label={paymentStatus[data?.paymentStatus ?? 0]?.text}
-            color={paymentStatus[data?.paymentStatus ?? 0]?.color}
             size='small'
           />
 
