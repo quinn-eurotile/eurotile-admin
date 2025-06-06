@@ -55,6 +55,7 @@ export default function ProductsPage() {
 
   const fetchProductList = async (currentPage = 1, pageSize = rowsPerPage) => {
     try {
+      
       const response = await getFrontProductList(currentPage, pageSize, filter?.search_string, {
         attributeVariations: JSON.stringify(filter.attributeVariations),
         search_string: filter.search_string,

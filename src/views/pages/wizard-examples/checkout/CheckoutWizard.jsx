@@ -203,10 +203,11 @@ const getStepContent = (step, handleNext, handleBack, checkoutData) => {
 const CheckoutWizard = ({ initialData }) => {
   // Get user session
   const { data: session, status } = useSession()
-  console.log(initialData, 'initialData 314');
+  console.log(initialData, 'initialData 3142');
   // States
   const [activeStep, setActiveStep] = useState(0)
   const [cartItems, setCartItems] = useState(initialData?.cartItems || [])
+  const [cartData, setCartData] = useState(initialData?.cartData || [])
   const [addresses, setAddresses] = useState(initialData?.addresses || [])
   const [selectedAddress, setSelectedAddress] = useState(null)
   const [selectedShipping, setSelectedShipping] = useState('standard')
@@ -319,7 +320,9 @@ const CheckoutWizard = ({ initialData }) => {
     isStepValid,
     setStepValid,
     loading,
-    user: session?.user
+    user: session?.user,
+    cartData,
+    setCartData
   }
 
   if (status === "loading") {
