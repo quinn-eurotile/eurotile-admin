@@ -154,7 +154,13 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, or
   )
 }
 
-const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, addresses }) => {
+const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, addresses,user }) => {
+
+  console.log("cartItems:", cartItems);
+  console.log("orderSummary:", orderSummary);
+  console.log("selectedAddress:", selectedAddress);
+  console.log("addresses:", addresses);
+  
   // Context
   const { setStepValid, loading, setOrderData } = useContext(CheckoutContext)
   const [mounted, setMounted] = useState(false)
@@ -345,7 +351,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                     isProcessing={isProcessing}
                     setIsProcessing={setIsProcessing}
                     orderSummary={orderSummary}
-                  // user={user}
+                  user={user}
                   />
                 </StripeWrapper>
               </TabPanel>
