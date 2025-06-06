@@ -52,7 +52,7 @@ export default function ProductDetailPage() {
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [error, setError] = useState('');
   const [calculatedValues, setCalculatedValues] = useState({
-    sqm: 0,
+    sqm: 1,
     tiles: 0,
     pallets: 0
   });
@@ -99,18 +99,18 @@ export default function ProductDetailPage() {
     // Step 2: Find the matching variation
     const matchingVariation = product?.productVariations?.find(variation => {
       const variationAttributes = variation.attributes;
-      const selectedAttributeIds = Object.keys(newAttributes); 
+      const selectedAttributeIds = Object.keys(newAttributes);
       if (variationAttributes.length !== selectedAttributeIds.length) {
         return true;
       }
-      
+
       return variationAttributes.every(attrId => {
         const selectedVariationId = newAttributes[attrId];
         return variation.attributeVariations.includes(selectedVariationId);
       });
     });
-   
-    
+
+
 
     if (matchingVariation) {
       setSelectedVariation(matchingVariation);
@@ -426,7 +426,7 @@ export default function ProductDetailPage() {
         dispatch(addToCart(response.data));
         toast.success('Products added to cart successfully');
 
-        router.push('/'+locale+'/checkout');
+        router.push('/' + locale + '/checkout');
         setSelectedVariations([]); // Clear selections after successful add
       } else {
         setError(response.message || 'Failed to add items to cart');

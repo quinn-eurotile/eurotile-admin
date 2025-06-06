@@ -17,15 +17,15 @@ export const cartApi = createApiService(CART_API, {
   },
 
   // Update cart item quantity
-  updateCartItem: async (itemId, quantity) => {
+updateCartItem: async (itemId, quantity) => {
     try {
       const response = await api.put(`${CART_API}/item`, {
         id: itemId,
         quantity
       });
-      console.log(response, 'response.data 317');
+      // console.log(response, 'response.data 317');
 
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Error updating cart item:', error);
       throw error;
@@ -36,7 +36,7 @@ export const cartApi = createApiService(CART_API, {
   removeCartItem: async (itemId) => {
     try {
       const response = await api.delete(`${CART_API}/item/${itemId}`);
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Error removing cart item:', error);
       throw error;
@@ -99,4 +99,4 @@ export const cartApi = createApiService(CART_API, {
     return await api.get(`${PAYMENT_ENDPOINT}/klarna/verify/${orderId}`);
   }
 
-}); 
+});
