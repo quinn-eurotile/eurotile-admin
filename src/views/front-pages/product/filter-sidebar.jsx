@@ -109,8 +109,7 @@ export default function FilterSidebar({
 
   const filterContent = (
     <>
-      <div className='overflow-y-auto overflow-x-hidden max-h-[600px]'>
-        <div className='relative mb-6'>
+    <div className='relative mb-6'>
           <input
             type='text'
             placeholder='Search'
@@ -120,6 +119,8 @@ export default function FilterSidebar({
           />
           <i className='ri-search-line text-xl absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400'></i>
         </div>
+      <div className='overflow-y-auto overflow-x-hidden max-h-[600px]'>
+        
 
         {/* Categories Filter */}
         {reawFilterData?.nestedCategories?.length > 0 && (
@@ -284,7 +285,7 @@ export default function FilterSidebar({
   }
 
   return (
-    <div className='w-full md:w-74 shrink-0'>
+    <div className=' w-72 shrink-0'>
       <div className='flex gap-2 mt-4 justify-between'>
         <h3 className='text-xl text-redText font-medium mb-4'>Filters</h3>
         {/* <div className=''>

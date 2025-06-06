@@ -38,24 +38,30 @@ const BillingAddress = () => {
         <div className='flex flex-col'>
           <div className='flex justify-between items-center'>
             <Typography variant='h5'>Billing Address</Typography>
-            <OpenDialogOnElementClick
+            {/* <OpenDialogOnElementClick
               element={Typography}
               elementProps={typographyProps('Edit', 'primary', 'cursor-pointer font-medium')}
               dialog={AddAddress}
               dialogProps={{ type: 'Add address for billing address', data }}
-            />
+            /> */}
           </div>
+          {data?.shippingAddress?.type == 'Billing' ? (
           <div className='flex flex-col'>
-            <Typography>45 Roker Terrace</Typography>
-            <Typography>Latheronwheel</Typography>
-            <Typography>KW5 8NW, London</Typography>
-            <Typography>UK</Typography>
+            <Typography>{data?.shippingAddress?.addressLine1}</Typography>
+            <Typography>{data?.shippingAddress?.city}</Typography>
+            <Typography>
+              {data?.shippingAddress?.postalCode}, {data?.shippingAddress?.state}
+            </Typography>
+            <Typography>{data?.shippingAddress?.country}</Typography>
           </div>
+        ) : (
+          'No Address Added'
+        )}
         </div>
-        <div className='flex flex-col items-start gap-1'>
+        {/* <div className='flex flex-col items-start gap-1'>
           <Typography variant='h5'>Mastercard</Typography>
           <Typography>Card Number: ******4291</Typography>
-        </div>
+        </div> */}
       </CardContent>
     </Card>
   )

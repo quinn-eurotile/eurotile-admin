@@ -1,92 +1,81 @@
-"use client"
+"use client";
 
 // React Imports
-import { useEffect, useState, useContext } from "react"
-
-// Next Imports
-import Link from "next/link"
-
+import { useEffect, useState, useContext } from "react";
 // MUI Imports
-import Grid from "@mui/material/Grid2"
-import Typography from "@mui/material/Typography"
-import Alert from "@mui/material/Alert"
-import AlertTitle from "@mui/material/AlertTitle"
-import TabContext from "@mui/lab/TabContext"
-import Tab from "@mui/material/Tab"
-import TabPanel from "@mui/lab/TabPanel"
-import FormControlLabel from "@mui/material/FormControlLabel"
-import Button from "@mui/material/Button"
-import Switch from "@mui/material/Switch"
-import Chip from "@mui/material/Chip"
-import Divider from "@mui/material/Divider"
-import CardContent from "@mui/material/CardContent"
-import IconButton from "@mui/material/IconButton"
-import Collapse from "@mui/material/Collapse"
-import Fade from "@mui/material/Fade"
-import CircularProgress from "@mui/material/CircularProgress"
-import Radio from "@mui/material/Radio"
-import RadioGroup from "@mui/material/RadioGroup"
-import FormControl from "@mui/material/FormControl"
-import TextField from "@mui/material/TextField"
+import Grid from "@mui/material/Grid2";
+import Typography from "@mui/material/Typography";
+import Alert from "@mui/material/Alert";
+import TabContext from "@mui/lab/TabContext";
+import Tab from "@mui/material/Tab";
+import TabPanel from "@mui/lab/TabPanel";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Button from "@mui/material/Button";
+import Switch from "@mui/material/Switch";
+import Chip from "@mui/material/Chip";
+import Divider from "@mui/material/Divider";
+import CardContent from "@mui/material/CardContent";
+import CircularProgress from "@mui/material/CircularProgress";
 
 // Component Imports
-import CustomTabList from "@core/components/mui/TabList"
+import CustomTabList from "@core/components/mui/TabList";
 
 // Context Import
-import { CheckoutContext } from "./CheckoutWizard"
-import { toast } from "react-toastify"
-
+import { CheckoutContext } from "./CheckoutWizard";
 // Stripe and Klarna imports (you'll need to install these)
-import { loadStripe } from "@stripe/stripe-js"
-import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js"
-import { createPaymentIntent, createKlarnaSession, verifyKlarnaPayment, verifyStripePayment } from "@/app/server/actions"
-import { paymentApi } from "@/services/payment"
-import dynamic from "next/dynamic"
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { createPaymentIntent, createKlarnaSession, verifyKlarnaPayment, verifyStripePayment } from "@/app/server/actions";
+import { paymentApi } from "@/services/payment";
+import dynamic from "next/dynamic";
 
 // Dynamically import StripeWrapper with no SSR
 const StripeWrapper = dynamic(
   () => import('@/components/payment/StripeWrapper'),
   { ssr: false }
-)
+);
 
 // Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 // Stripe Payment Form Component
-const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, orderSummary, user }) => {
-  const stripe = useStripe()
-  const elements = useElements()
-  const [saveCard, setSaveCard] = useState(true)
-  const [paymentError, setPaymentError] = useState(null)
+const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, orderSummary, user, cartItems }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [saveCard, setSaveCard] = useState(true);
+  const [paymentError, setPaymentError] = useState(null);
 
   const handleSubmit = async (event) => {
-    event.preventDefault()
+    event.preventDefault();
 
     if (!stripe || !elements) {
-      return
+      return;
     }
 
-    setIsProcessing(true)
-    setPaymentError(null)
-
+    setIsProcessing(true);
+    setPaymentError(null);
+    console.log('orderSummary', orderSummary);
     try {
       // Create payment intent using our API
       const response = await createPaymentIntent({
-        amount: Math.round(orderSummary.total * 100), // Convert to cents
+        // amount: Math.round(orderSummary.total * 100), // Convert to cents
+        amount: Math.round(12 * 100), // Convert to cents
         currency: "usd",
         saveCard,
         customerId: user?.id,
-      })
+        cartItems: cartItems,
+      });
+      console.log("response:", response); // Add this line to see the paymentIntent object
 
       if (!response.success) {
-        setPaymentError(response.message || "Failed to create payment intent")
-        return
+        setPaymentError(response.message || "Failed to create payment intent");
+        return;
       }
 
-      const { clientSecret } = response.data
+      const { clientSecret } = response.data;
 
       // Confirm payment with Stripe
-      const { error: confirmError, paymentIntent } = await confirmCardPayment(clientSecret, {
+      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
           card: elements.getElement(CardElement),
           billing_details: {
@@ -94,30 +83,30 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, or
             email: user?.email || "",
           },
         },
-      })
+      });
+
+      console.log("Payment Intent:", paymentIntent); // Add this line to see the paymentIntent object
 
       if (confirmError) {
-        setPaymentError(confirmError.message)
+        setPaymentError(confirmError.message);
       } else if (paymentIntent.status === "succeeded") {
-        // Verify payment with our API
-        const verifyResponse = await  verifyStripePayment(paymentIntent.id)
-        
         if (verifyResponse.success) {
           onPaymentSuccess({
             paymentIntentId: paymentIntent.id,
             paymentMethod: "stripe",
             status: verifyResponse.data.status
-          })
+          });
         } else {
-          setPaymentError("Payment verification failed. Please contact support.")
+          setPaymentError("Payment verification failed. Please contact support.");
         }
       }
     } catch (error) {
-      setPaymentError("An unexpected error occurred.")
+      console.error("Stripe payment error:", error);
+      setPaymentError("An unexpected error occurred.");
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit}>
@@ -157,35 +146,35 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, or
         </Grid>
       </Grid>
     </form>
-  )
-}
+  );
+};
 
 const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, addresses }) => {
   // Context
-  const { setStepValid, loading, setOrderData } = useContext(CheckoutContext)
-  const [mounted, setMounted] = useState(false)
-  const [value, setValue] = useState("stripe")
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [paymentData, setPaymentData] = useState(null)
-  const [error, setError] = useState("")
-  const [paymentMethod, setPaymentMethod] = useState("card")
+  const { setStepValid, loading, setOrderData } = useContext(CheckoutContext);
+  const [mounted, setMounted] = useState(false);
+  const [value, setValue] = useState("stripe");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentData, setPaymentData] = useState(null);
+  const [error, setError] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("card");
   const [cardDetails, setCardDetails] = useState({
     cardNumber: "",
     cardName: "",
     expiry: "",
     cvv: ""
-  })
+  });
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   const handleChange = (event, newValue) => {
-    setValue(newValue)
+    setValue(newValue);
     // Reset any previous payment data and errors
-    setPaymentData(null)
-    setError("")
-  }
+    setPaymentData(null);
+    setError("");
+  };
 
   // Calculate totals
   const calculateTotals = () => {
@@ -203,16 +192,16 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
   const totals = calculateTotals();
 
   const handlePaymentMethodChange = (event) => {
-    setPaymentMethod(event.target.value)
-  }
+    setPaymentMethod(event.target.value);
+  };
 
   const handleCardDetailsChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setCardDetails(prev => ({
       ...prev,
       [name]: value
-    }))
-  }
+    }));
+  };
 
   const validateCardDetails = () => {
     if (paymentMethod === "card") {
@@ -220,7 +209,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
       if (!cardDetails.cardName.trim()) return "Cardholder name is required";
       if (!cardDetails.expiry.trim()) return "Expiry date is required";
       if (!cardDetails.cvv.trim()) return "CVV is required";
-      
+
       // Basic validation
       if (!/^\d{16}$/.test(cardDetails.cardNumber.replace(/\s/g, ''))) {
         return "Invalid card number";
@@ -231,14 +220,14 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
       // Add more validations as needed
     }
     return null;
-  }
+  };
 
   // Handle Klarna payment
   const handleKlarnaPayment = async () => {
-    setIsProcessing(true)
-    setError("")
+    setIsProcessing(true);
+    setError("");
     try {
-      const response = await  createKlarnaSession({
+      const response = await createKlarnaSession({
         amount: Math.round(orderSummary.total * 100),
         currency: "USD",
         order_lines: cartItems.map(item => ({
@@ -257,30 +246,30 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
           country: 'US',
           phone: selectedAddress?.phone
         }
-      })
+      });
 
       if (response.success && response.data.redirect_url) {
         // Save payment method before redirect
         setPaymentData({
           paymentMethod: "klarna",
           sessionId: response.data.session_id
-        })
-        
+        });
+
         // Store session ID in localStorage for verification after redirect
-        localStorage.setItem('klarnaSessionId', response.data.session_id)
-        
+        localStorage.setItem('klarnaSessionId', response.data.session_id);
+
         // Redirect to Klarna checkout
-        window.location.href = response.data.redirect_url
+        window.location.href = response.data.redirect_url;
       } else {
-        setError(response.message || "Failed to initialize Klarna payment")
+        setError(response.message || "Failed to initialize Klarna payment");
       }
     } catch (error) {
-      console.error("Klarna payment error:", error)
-      setError("Failed to initialize Klarna payment. Please try again.")
+      console.error("Klarna payment error:", error);
+      setError("Failed to initialize Klarna payment. Please try again.");
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+  };
 
   // Handle Cash on Delivery
   const handleCashOnDelivery = () => {
@@ -290,10 +279,10 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
         deliveryAddress: selectedAddress,
         amount: orderSummary.total
       }
-    })
-    setStepValid(2, true)
-    handleNext()
-  }
+    });
+    setStepValid(2, true);
+    handleNext();
+  };
 
   // Handle successful payment
   const handlePaymentSuccess = async (data) => {
@@ -303,56 +292,56 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
         deliveryAddress: selectedAddress,
         amount: orderSummary.total
       }
-    }
+    };
 
     // For Klarna, verify the payment status
     if (data.paymentMethod === 'klarna' && data.sessionId) {
-      const verifyResponse = await verifyKlarnaPayment(data.sessionId)
+      const verifyResponse = await verifyKlarnaPayment(data.sessionId);
       if (!verifyResponse.success) {
-        setError("Payment verification failed. Please contact support.")
-        return
+        setError("Payment verification failed. Please contact support.");
+        return;
       }
-      paymentDetails.status = verifyResponse.data.status
+      paymentDetails.status = verifyResponse.data.status;
     }
 
-    setPaymentData(paymentDetails)
-    setStepValid(2, true)
-    handleNext()
-  }
+    setPaymentData(paymentDetails);
+    setStepValid(2, true);
+    handleNext();
+  };
 
   // Check for Klarna redirect
   useEffect(() => {
     const checkKlarnaPayment = async () => {
-      const sessionId = localStorage.getItem('klarnaSessionId')
-      const isKlarnaRedirect = new URLSearchParams(window.location.search).get('klarna_order_id')
-      
+      const sessionId = localStorage.getItem('klarnaSessionId');
+      const isKlarnaRedirect = new URLSearchParams(window.location.search).get('klarna_order_id');
+
       if (sessionId && isKlarnaRedirect) {
-        setIsProcessing(true)
+        setIsProcessing(true);
         try {
-          const response = await verifyKlarnaPayment(sessionId)
+          const response = await verifyKlarnaPayment(sessionId);
           if (response.success) {
             handlePaymentSuccess({
               paymentMethod: 'klarna',
               sessionId,
               status: response.data.status
-            })
+            });
           } else {
-            setError("Klarna payment verification failed. Please try again.")
+            setError("Klarna payment verification failed. Please try again.");
           }
         } catch (error) {
-          setError("Failed to verify Klarna payment. Please contact support.")
+          setError("Failed to verify Klarna payment. Please contact support.");
         } finally {
-          setIsProcessing(false)
-          localStorage.removeItem('klarnaSessionId')
+          setIsProcessing(false);
+          localStorage.removeItem('klarnaSessionId');
         }
       }
-    }
+    };
 
-    checkKlarnaPayment()
-  }, [])
+    checkKlarnaPayment();
+  }, []);
 
   // Get selected address details
-  const selectedAddressDetails = addresses?.find((addr) => addr.id === selectedAddress)
+  const selectedAddressDetails = addresses?.find((addr) => addr.id === selectedAddress);
 
   const handlePaymentComplete = (paymentData) => {
     // Store payment data for order completion
@@ -360,7 +349,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
       ...prev,
       payment: paymentData
     }));
-    
+
     // Move to confirmation step
     handleNext();
   };
@@ -370,7 +359,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
       <div className="flex justify-center items-center py-10">
         <CircularProgress />
       </div>
-    )
+    );
   }
 
   return (
@@ -404,7 +393,8 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                     isProcessing={isProcessing}
                     setIsProcessing={setIsProcessing}
                     orderSummary={orderSummary}
-                    // user={user}
+                    cartItems={cartItems}
+                  //user={user}
                   />
                 </StripeWrapper>
               </TabPanel>
@@ -441,8 +431,8 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
             Back
           </Button>
           {value === 'cash-on-delivery' && (
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               onClick={handleCashOnDelivery}
               disabled={isProcessing}
             >
@@ -458,7 +448,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
             <Typography variant="h6" className="font-medium mb-4">
               Order Summary
             </Typography>
-            
+
             {/* Cart Items */}
             <div className="space-y-4 mb-4">
               {cartItems && cartItems.map((item, index) => (
@@ -486,7 +476,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
             </div>
 
             <Divider />
-            
+
             {/* Price Summary */}
             <div className="py-4 space-y-2">
               <div className="flex justify-between">
@@ -515,29 +505,29 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
               <Typography variant="h6" className="font-medium">
                 Delivery Details
               </Typography>
-              
+
               {selectedAddressDetails && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Typography variant="body2" color="text.secondary">
                       Address Type
                     </Typography>
-                    <Chip 
-                      variant="tonal" 
-                      size="small" 
-                      color="primary" 
-                      label={selectedAddressDetails?.type || "Home"} 
+                    <Chip
+                      variant="tonal"
+                      size="small"
+                      color="primary"
+                      label={selectedAddressDetails?.type || "Home"}
                     />
                   </div>
-                  
+
                   <div className="space-y-1">
                     <Typography className="font-medium">
                       {selectedAddressDetails.name}
                       {selectedAddressDetails.isDefault && (
-                        <Chip 
-                          size="small" 
-                          color="info" 
-                          label="Default" 
+                        <Chip
+                          size="small"
+                          color="info"
+                          label="Default"
                           className="ml-2"
                         />
                       )}
@@ -559,7 +549,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
         </div>
       </Grid>
     </Grid>
-  )
-}
+  );
+};
 
-export default StepPayment
+export default StepPayment;

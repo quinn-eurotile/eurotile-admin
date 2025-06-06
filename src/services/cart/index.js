@@ -1,14 +1,14 @@
-import { api } from "@/utils/api"; 
+import { api } from "@/utils/api";
 import { createApiService } from "../commonService";
- const CART_API = '/cart';
-
-export const cartApi = createApiService(CART_API ,  {
+const CART_API = '/cart';
+const PAYMENT_ENDPOINT = '/payment';
+export const cartApi = createApiService(CART_API, {
   // Get user's cart
   getCart: async (userId) => {
     try {
       const response = await api.get(`${CART_API}/${userId}`);
       console.log(response.data, 'response.data 317');
-      
+
       return response.data;
     } catch (error) {
       console.error('Error fetching cart:', error);
@@ -17,14 +17,14 @@ export const cartApi = createApiService(CART_API ,  {
   },
 
   // Update cart item quantity
-  updateCartItem: async (itemId, quantity) => { 
+  updateCartItem: async (itemId, quantity) => {
     try {
       const response = await api.put(`${CART_API}/item`, {
         id: itemId,
         quantity
       });
       console.log(response, 'response.data 317');
-      
+
       return response.data;
     } catch (error) {
       console.error('Error updating cart item:', error);
@@ -81,5 +81,22 @@ export const cartApi = createApiService(CART_API ,  {
       console.error('Error updating shipping method:', error);
       throw error;
     }
+  },
+  // Payment methods
+  createPaymentIntent: async (data) => {
+
+    console.log('createPaymentIntent ajsxbsaxbsx =================', data);
+    return await api.post(`${PAYMENT_ENDPOINT}/stripe/create-payment-intent`, data);
+  },
+  verifyStripePayment: async (paymentIntentId) => {
+    return await api.get(`${PAYMENT_ENDPOINT}/stripe/verify/${paymentIntentId}`);
+  },
+
+  createKlarnaSession: async (data) => {
+    return await api.post(`${PAYMENT_ENDPOINT}/klarna/create-session`, data);
+  },
+  verifyKlarnaPayment: async (orderId) => {
+    return await api.get(`${PAYMENT_ENDPOINT}/klarna/verify/${orderId}`);
   }
+
 }); 

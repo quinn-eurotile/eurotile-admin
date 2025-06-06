@@ -17,3 +17,19 @@ export async function getDashboardRedirectUrl() {
     return null;
   }
 }
+
+
+export const paymentStatus = {
+  paid : { text: 'paid', color: 'success', colorClassName: 'text-success' },
+  pending : { text: 'pending', color: 'warning', colorClassName: 'text-warning' },
+  refunded : { text: 'refunded', color: 'secondary', colorClassName: 'text-secondary' },
+  failed : { text: 'failed', color: 'error', colorClassName: 'text-error' }
+}
+
+export const statusChipColor = {
+  0: { text: 'Cancelled', color: 'error', colorClassName: 'text-error' },
+  1: { text: 'Delivered', color: 'success', colorClassName: 'text-success' },
+  2: { text: 'Processing', color: 'warning', colorClassName: 'text-warning' },
+  3: { text: 'New', color: 'info', colorClassName: 'text-info' },
+  4: { text: 'Shipped', color: 'secondary', colorClassName: 'text-secondary' }
+};

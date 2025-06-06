@@ -24,4 +24,21 @@ export const userTradeProfessionalService = createApiService(USER_TRADE_PROFESSI
     addBankAccountForTradeProfessional: async (data) => {
         return api.post(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/create-connect-account`, data);
     },
+    getAllClients: async () => { 
+        try {
+          const response = await api.get(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/client/all`);
+          console.log(response,'response getAllClients 222');
+          
+          return response;
+        } catch (error) {
+          console.error('Error fetching clients:', error);
+          return {
+            type: 'error',
+            message: error.response?.data?.message || 'Failed to fetch clients',
+            data: null
+          };
+        }
+      }
 });
+
+ 
