@@ -10,8 +10,10 @@ export const getDashboardData = async () => {
 
 const DashboardAnalytics = async () => {
   return (
-    <Grid container>
+    <Grid>
+      <Grid size={{sm: 12}}>
         <OrderListTable />
+        </Grid>
     </Grid>
   )
 }
