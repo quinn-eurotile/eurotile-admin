@@ -321,7 +321,7 @@ export default function ProductDetailPage() {
 
 
 
-                  <div className="bg-bgLight rounded-md px-4 py-2 flex items-center">
+                  <div className="bg-bgLight rounded-md px-4 py-2 flex items-center mb-4">
                     <span className="text-sm text-center w-full">{pricingTier}</span>
                   </div>
                 </div>

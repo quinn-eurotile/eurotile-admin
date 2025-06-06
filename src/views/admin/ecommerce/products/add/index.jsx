@@ -157,7 +157,8 @@ const AddProduct = () => {
           categories: categoryIds,
           attributes: attributeIds,
           attributeVariations: attributeVariationIds,
-          // attributeVariations: attributeVariationIds, // add for sample
+          samples: product?.samples, // add for sample
+          allowSample: product?.allowSample, // add for sample
           productVariations: productVariations,
           // productImages: productImages,
           productFeaturedImage: product.productFeaturedImage || null,
@@ -290,7 +291,7 @@ const AddProduct = () => {
       // console.log('API Response:', response);
 
       if (response.success) {
-        router.push(`/${locale}/admin/ecommerce/products/list`)
+        //router.push(`/${locale}/admin/ecommerce/products/list`)
         toast.success(response.message || 'Product created successfully')
       } else {
         toast.error(response.message || 'Failed to save product')

@@ -247,7 +247,7 @@ const ProjectListTable = ({ documentData }) => {
               <div className='flex gap-2 align-center'>
                 <Chip label={label} color={color} size='small' />
                 {isAdmin && (
-                  <i class='ri-edit-line cursor-pointer' onClick={() => handleStatusClick(row.original)} clickable></i>
+                  <i className='ri-edit-line cursor-pointer' onClick={() => handleStatusClick(row.original)} clickable></i>
                 )}
               </div>
             </>

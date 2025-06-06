@@ -553,9 +553,7 @@ export default function ProductDetailPage() {
                 {product?.shortDescription || ''}
               </p>
 
-              <p className="text-sm text-red-800 my-4">
-                <a href="#" className="underline" onClick={() => setOpenSampleDialog(true)}>Need A Sample?</a>
-              </p>
+
 
               <Dialog open={openSampleDialog} onClose={() => setOpenSampleDialog(false)}>
                 <DialogTitle id='form-dialog-title'>Need A Sample?</DialogTitle>
@@ -623,7 +621,15 @@ export default function ProductDetailPage() {
               </Dialog>
 
               <div className="my-6">
-                <h3 className="font-normal mb-4">Pricing Tiers (inc. Shipping & Duties)</h3>
+               <div className="flex justify-between items-center mb-4">
+                <h3 className="font-normal">Pricing Tiers (inc. Shipping & Duties) </h3>
+
+                 <p className="text-sm text-red-800 my-4">
+                <a href="#" className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-900" onClick={() => setOpenSampleDialog(true)}>Need A Sample?</a>
+              </p>
+                </div>
+
+
 
                 <div className=" rounded-md overflow-hidden">
                   <table className="w-full text-sm border border-collapse border-bgLight">
@@ -733,7 +739,8 @@ export default function ProductDetailPage() {
 
 
 
-                  <div className="bg-bgLight rounded-md px-4 py-2 flex items-center">
+                  <div className="bg-bgLight rounded-md px-4 py-2 flex items-center mb-4 border border-light !rounded-[10px]
+!rounded-[10px]">
                     <span className="text-sm text-center w-full">{pricingTier}</span>
                   </div>
                 </div>
@@ -743,7 +750,7 @@ export default function ProductDetailPage() {
                       type="text"
                       value={quantity}
                       placeholder="Quantity / Enter SQ.M"
-                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
+                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
                       onChange={handleQuantityChange}
                     />
                   </div>
@@ -752,7 +759,7 @@ export default function ProductDetailPage() {
                     <input
                       type="text"
                       value={tiles}
-                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
+                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
                       onChange={handleTilesChange}
                       placeholder="No. Of Tiles"
                     />
@@ -761,7 +768,8 @@ export default function ProductDetailPage() {
                   <div className="rounded-md">
                     <input
                       type="text"
-                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
+                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]
+!rounded-[10px]"
                       value={pallets}
                       onChange={handlePalletsChange}
                       placeholder="No. Of Pallets"

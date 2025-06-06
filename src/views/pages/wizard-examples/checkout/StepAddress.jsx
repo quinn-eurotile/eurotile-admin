@@ -271,10 +271,8 @@ const StepAddress = ({ handleNext }) => {
 
   // Dialog props for AddEditAddress
   const dialogProps = {
-    onClose: handleClose,
     onSuccess: handleAddressSuccess,
     data: addressData,
-    setOpen: setOpen, // Pass setOpen to control dialog visibility
     isSubmitting,
     setIsSubmitting
   };
