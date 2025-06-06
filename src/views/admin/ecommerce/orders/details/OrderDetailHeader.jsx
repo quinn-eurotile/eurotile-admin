@@ -10,7 +10,7 @@ import { paymentStatus, statusChipColor } from '@/components/common/common'
 import moment from 'moment'
 import { useParams, useRouter } from 'next/navigation'
 
-const OrderDetailHeader = ({ orderData, order, data }) => {
+const OrderDetailHeader = ({ order, data }) => {
   console.log(data, 'orderDataorderDataorderData')
   // Vars
 

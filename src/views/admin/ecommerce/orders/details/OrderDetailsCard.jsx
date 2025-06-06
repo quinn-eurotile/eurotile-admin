@@ -46,7 +46,6 @@ const fuzzyFilter = (row, columnId, value, addMeta) => {
   return itemRank.passed
 }
 
-// const orderData = [
 //   {
 //     productName: 'OnePlus 7 Pro',
 //     productImage: '/images/apps/ecommerce/product-21.png',
@@ -281,6 +280,8 @@ const OrderDetailsCard = ({ data }) => {
     setIsDialogOpen(false)
     setPayoutAmount('') // Reset input on close
   }
+
+  console.log('data comming',data)
 
   return (
     <Card>
