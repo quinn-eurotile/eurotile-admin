@@ -1138,9 +1138,9 @@ export default function ProductVariants({
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierDiscount.tierFirst.tierAddOn`}
+                            name={`productVariations.${index}.tierDiscount.tierFifth.tierAddOn`}
                             control={control}
-                            defaultValue={variation.tierDiscount?.tierFirst?.tierAddOn}
+                            defaultValue={variation.tierDiscount?.tierFifth?.tierAddOn}
                             rules={{ required: 'Tier Add On is required' }}
                             render={({ field, fieldState: { error } }) => (
                               <>
@@ -1160,9 +1160,9 @@ export default function ProductVariants({
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierDiscount.tierFirst.tierMultiplyBy`}
+                            name={`productVariations.${index}.tierDiscount.tierFifth.tierMultiplyBy`}
                             control={control}
-                            defaultValue={variation?.tierDiscount?.tierFirst?.tierMultiplyBy}
+                            defaultValue={variation?.tierDiscount?.tierFifth?.tierMultiplyBy}
                             rules={{ required: 'Tier Multiply By is required' }}
                             render={({ field, fieldState: { error } }) => (
                               <>
@@ -1188,8 +1188,8 @@ export default function ProductVariants({
                             value={calculateTierValue(
                               variation?.purchasedPrice,
                               1.17,
-                              variation.tierDiscount?.tierFirst?.tierAddOn,
-                              variation.tierDiscount?.tierFirst?.tierMultiplyBy
+                              variation.tierDiscount?.tierFifth?.tierAddOn,
+                              variation.tierDiscount?.tierFifth?.tierMultiplyBy
                             )}
                           />
                         </Grid>
@@ -1200,7 +1200,7 @@ export default function ProductVariants({
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierDiscount.tierSecond.tierAddOn`}
+                            name={`productVariations.${index}.tierDiscount.tierFourth.tierAddOn`}
                             control={control}
                             defaultValue={variation.tierAddOn}
                             rules={{ required: 'Tier Add On is required' }}
@@ -1222,7 +1222,7 @@ export default function ProductVariants({
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierDiscount.tierSecond.tierMultiplyBy`}
+                            name={`productVariations.${index}.tierDiscount.tierFourth.tierMultiplyBy`}
                             control={control}
                             defaultValue={variation.tierMultiplyBy}
                             rules={{ required: 'Tier Multiply By is required' }}
@@ -1250,8 +1250,8 @@ export default function ProductVariants({
                             value={calculateTierValue(
                               variation?.purchasedPrice,
                               1.17,
-                              variation.tierDiscount?.tierSecond?.tierAddOn,
-                              variation.tierDiscount?.tierSecond?.tierMultiplyBy
+                              variation.tierDiscount?.tierFourth?.tierAddOn,
+                              variation.tierDiscount?.tierFourth?.tierMultiplyBy
                             )}
                           />
                         </Grid>
@@ -1324,7 +1324,7 @@ export default function ProductVariants({
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierDiscount.tierFourth.tierAddOn`}
+                            name={`productVariations.${index}.tierDiscount.tierSecond.tierAddOn`}
                             control={control}
                             defaultValue={variation.tierAddOn}
                             rules={{ required: 'Tier Add On is required' }}
@@ -1346,7 +1346,7 @@ export default function ProductVariants({
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierDiscount.tierFourth.tierMultiplyBy`}
+                            name={`productVariations.${index}.tierDiscount.tierSecond.tierMultiplyBy`}
                             control={control}
                             defaultValue={variation.tierMultiplyBy}
                             rules={{ required: 'Tier Multiply By is required' }}
@@ -1374,8 +1374,8 @@ export default function ProductVariants({
                             value={calculateTierValue(
                               variation?.purchasedPrice,
                               1.17,
-                              variation.tierDiscount?.tierFourth?.tierAddOn,
-                              variation.tierDiscount?.tierFourth?.tierMultiplyBy
+                              variation.tierDiscount?.tierSecond?.tierAddOn,
+                              variation.tierDiscount?.tierSecond?.tierMultiplyBy
                             )}
                           />
                         </Grid>
@@ -1386,7 +1386,7 @@ export default function ProductVariants({
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierDiscount.tierFifth.tierAddOn`}
+                            name={`productVariations.${index}.tierDiscount.tierFirst.tierAddOn`}
                             control={control}
                             defaultValue={variation.tierAddOn}
                             rules={{ required: 'Tier Add On is required' }}
@@ -1408,7 +1408,7 @@ export default function ProductVariants({
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <Controller
-                            name={`productVariations.${index}.tierDiscount.tierFifth.tierMultiplyBy`}
+                            name={`productVariations.${index}.tierDiscount.tierFirst.tierMultiplyBy`}
                             control={control}
                             defaultValue={variation.tierMultiplyBy}
                             rules={{ required: 'Tier Multiply By is required' }}
@@ -1436,8 +1436,8 @@ export default function ProductVariants({
                             value={calculateTierValue(
                               variation?.purchasedPrice,
                               1.17,
-                              variation.tierDiscount?.tierFifth?.tierAddOn,
-                              variation.tierDiscount?.tierFifth?.tierMultiplyBy
+                              variation.tierDiscount?.tierFirst?.tierAddOn,
+                              variation.tierDiscount?.tierFirst?.tierMultiplyBy
                             )}
                           />
                         </Grid>

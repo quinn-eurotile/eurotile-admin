@@ -17,7 +17,9 @@ export const createApiService = (baseEndpoint, customMethods = {}) => {
 
       return api.get(`${baseEndpoint}?${queryParams}`, {}, false);
     },
+
     getAll: async () => {
+      console.log(baseEndpoint,'baseEndpointbaseEndpoint')
       return api.get(`${baseEndpoint}`, {}, false);
     },
     getByParamsIfUrlHasId: async (id, page = 1, limit = 10, searchString = "", filter = {}) => {

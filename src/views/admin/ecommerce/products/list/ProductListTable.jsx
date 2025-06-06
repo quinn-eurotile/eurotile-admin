@@ -44,12 +44,13 @@ import { getLocalizedUrl } from '@/utils/i18n';
 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css';
-import { deleteProduct, getProductList, getProductRawData, updateStatus } from '@/app/server/actions';
+import { deleteProduct, getProductList, getProductRawData, updateStatus, getAllProductList } from '@/app/server/actions';
 import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { useDispatch } from 'react-redux';
 import { callCommonAction } from '@/redux-store/slices/common';
 import { toast } from 'react-toastify';
 import { Router } from 'next/router';
+//import { Download, Loader2 } from "lucide-react"
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   // Rank the item
@@ -101,6 +102,22 @@ const productStatusObj = {
 
 // Column Definitions
 const columnHelper = createColumnHelper();
+
+// Helper function to escape CSV values
+function escapeCsvValue(value) {
+  if (value === null || value === undefined) {
+    return ""
+  }
+
+  const stringValue = String(value)
+
+  // If the value contains commas, quotes, or newlines, wrap it in quotes and escape any quotes
+  if (stringValue.includes(",") || stringValue.includes('"') || stringValue.includes("\n")) {
+    return `"${stringValue.replace(/"/g, '""')}"`
+  }
+
+  return stringValue
+}
 
 const ProductListTable = () => {
   const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
@@ -365,6 +382,131 @@ const ProductListTable = () => {
     setPage(0);
   };
 
+  const [isExporting, setIsExporting] = useState(false)
+
+  const handleExport = async () => {
+    try {
+      setIsExporting(true)
+      const response = await getAllProductList();
+      console.log('suppliers', response);
+
+      const headers = [
+        "SKU",
+        "Name",
+        "Short Description",
+        "Description",
+        "Stock Status",
+        "Status",
+        "Default Price",
+        "Min Price B2B",
+        "Max Price B2B",
+        "Min Price B2C",
+        "Max Price B2C",
+        "Supplier",
+        "Categories",
+        "Featured Image",
+      ]
+
+      // Create CSV rows
+      const rows = []
+
+      // Add header row
+      rows.push(headers.join(","))
+
+      // Process products and variations
+      for (const product of response.data) {
+        // Add main product row
+        rows.push(
+          [
+            escapeCsvValue(product.sku),
+            escapeCsvValue(product.name),
+            escapeCsvValue(product.shortDescription || ""),
+            escapeCsvValue(product.description || ""),
+            escapeCsvValue(product.stockStatus === "in_stock" ? "In Stock" : "Out of Stock"),
+            escapeCsvValue(product.status === 1 ? "Published" : "Draft"),
+            product.defaultPrice,
+            product.minPriceB2B,
+            product.maxPriceB2B,
+            product.minPriceB2C,
+            product.maxPriceB2C,
+            escapeCsvValue(product.supplier?.companyName || ""),
+            escapeCsvValue(product.categories?.map((cat) => cat.name).join(", ") || ""),
+            escapeCsvValue(product.productFeaturedImage?.filePath || ""),
+          ].join(","),
+        )
+
+        // Add variations if they exist
+        if (product.productVariations && product.productVariations.length > 0) {
+          for (const variation of product.productVariations) {
+            // Get attribute information
+            const attributeInfo =
+              variation.attributeVariations
+                ?.map((attrVar) => {
+                  const attrName = attrVar.productAttribute?.name || "Unknown"
+                  const attrValue = attrVar.metaValue || ""
+                  const unit = attrVar.productMeasurementUnit?.symbol || ""
+                  return `${attrName}: ${attrValue}${unit ? " " + unit : ""}`
+                })
+                .join(", ") || ""
+
+            // Add variation as a separate row with parent SKU reference
+            rows.push(
+              [
+                escapeCsvValue(`${product.sku}-VAR-${variation._id.toString().substring(0, 8)}`),
+                escapeCsvValue(`${product.name} - ${attributeInfo}`),
+                escapeCsvValue(variation.description || ""),
+                escapeCsvValue(variation.description || ""),
+                escapeCsvValue(variation.stockStatus === "in_stock" ? "In Stock" : "Out of Stock"),
+                escapeCsvValue(variation.status ? "Published" : "Draft"),
+                variation.regularPriceB2C || 0,
+                variation.regularPriceB2B || 0,
+                variation.regularPriceB2B || 0,
+                variation.regularPriceB2C || 0,
+                variation.regularPriceB2C || 0,
+                escapeCsvValue(variation.supplier?.companyName || product.supplier?.companyName || ""),
+                escapeCsvValue(
+                  variation.categories?.map((cat) => cat.name).join(", ") ||
+                  product.categories?.map((cat) => cat.name).join(", ") ||
+                  "",
+                ),
+                escapeCsvValue(
+                  variation.productFeaturedImage?.filePath ||
+                  (variation.variationImages && variation.variationImages.length > 0
+                    ? variation.variationImages[0].filePath
+                    : ""),
+                ),
+              ].join(","),
+            )
+          }
+        }
+      }
+
+      // Generate CSV content
+      const csvContent = rows.join("\n")
+
+      // Create a blob from the CSV content
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+
+      // Create a download link and trigger the download
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.setAttribute("download", "products-export.csv")
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+
+      // Clean up the object URL
+      window.URL.revokeObjectURL(url)
+
+    } catch (error) {
+      console.error("Error exporting products:", error)
+      alert("Failed to export products. Please try again.")
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
 
   return (
     <>
@@ -385,6 +527,7 @@ const ProductListTable = () => {
               variant='outlined'
               className='max-sm:is-full is-auto'
               startIcon={<i className='ri-upload-2-line' />}
+              onClick={handleExport} disabled={isExporting}
             >
               Export
             </Button>

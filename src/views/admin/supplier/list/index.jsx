@@ -72,7 +72,7 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
 // Column Definitions
 const columnHelper = createColumnHelper()
 
-const SupplierMemberList = ({ initialData, fetchSupplierList, deleteTeamMember }) => {
+const SupplierMemberList = ({ initialData, fetchSupplierList, deleteTeamMember, updateStatus }) => {
 
   // States
   const [rowSelection, setRowSelection] = useState({})
@@ -103,6 +103,13 @@ const SupplierMemberList = ({ initialData, fetchSupplierList, deleteTeamMember }
     2: 'Pending',
     0: 'Inactive'
   }
+  const handleSupplierStatusToggle = async rowData => {
+    console.log("rowDatarowData", rowData)
+    const currentStatus = rowData.status
+    const newStatus = currentStatus === 1 ? 0 : 1
+    await updateStatus(rowData.id, newStatus)
+    refreshSupplierList()
+  }
 
   const columns = useMemo(
     () => [
@@ -126,11 +133,11 @@ const SupplierMemberList = ({ initialData, fetchSupplierList, deleteTeamMember }
       // },
       columnHelper.accessor('id', {
         header: 'Supplier ID',
-        cell: ({ row }) => <Typography>{row?.original?.supplierId}</Typography>
+        cell: ({ row }) => <Typography onClick={() => router.push(`/${locale}/admin/supplier/view/${row.original._id}`)} class="cursor-pointer">{row?.original?.supplierId}</Typography>
       }),
       columnHelper.accessor('companyName', {
         header: 'Company Name',
-        cell: ({ row }) => <Typography>{row?.original?.companyName}</Typography>
+        cell: ({ row }) => <Typography onClick={() => router.push(`/${locale}/admin/supplier/view/${row.original._id}`)} class="cursor-pointer">{row?.original?.companyName}</Typography>
       }),
 
       columnHelper.accessor('email', {
@@ -185,19 +192,27 @@ const SupplierMemberList = ({ initialData, fetchSupplierList, deleteTeamMember }
       // }),
       columnHelper.accessor('action', {
         header: 'Action',
-        cell: ({ row }) => (
-          <div className='flex items-center'>
-            <IconButton onClick={() => router.push(`/${locale}/admin/supplier/view/${row.original._id}`)}>
-              <i className='ri-eye-line text-textSecondary' />
-            </IconButton>
-            <IconButton onClick={() => handleDeleteConfirmation(row.original._id)}>
-              <i className='ri-delete-bin-7-line text-textSecondary' />
-            </IconButton>
-            <IconButton onClick={() => handleEdit(row.original._id)}>
-              <i className='ri-edit-line text-textSecondary' />
-            </IconButton>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const currentStatus = row.original.status;
+          return (
+            <div className='flex items-center'>
+
+              <IconButton onClick={() => handleDeleteConfirmation(row.original._id)}>
+                <i className='ri-delete-bin-7-line text-textSecondary' />
+              </IconButton>
+              <IconButton onClick={() => handleEdit(row.original._id)}>
+                <i className='ri-edit-line text-textSecondary' />
+              </IconButton>
+              <IconButton onClick={() => handleSupplierStatusToggle(row.original)}>
+                {currentStatus === 1 ? (
+                  <i className='ri-eye-line text-textSecondary' title='Set Inactive' />
+                ) : (
+                  <i className='ri-eye-off-line text-textSecondary' title='Set Active' />
+                )}
+              </IconButton>
+            </div>
+          )
+        },
         enableSorting: false
       })
     ],

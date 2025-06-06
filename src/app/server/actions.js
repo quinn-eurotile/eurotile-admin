@@ -18,7 +18,7 @@ import { db as cartData } from '@/fake-db/pages/cart';
 import { db as statisticsData } from '@/fake-db/pages/widgetExamples';
 import { tradeProfessionalService } from '@/services/trade-professionals';
 import { productRawDataServices } from '@/services/product-raw-data';
-import { productFrontListServices, productServices } from '@/services/product';
+import { productExportServices, productFrontListServices, productServices } from '@/services/product';
 import {  cartServices } from '@/services/cart'
 import { addressService } from '@/services/address'
 import { adminSettingServices } from '@/services/adminSetting';
@@ -85,6 +85,10 @@ export const getProductRawData = async () => {
 
 export const getProductList = async (currentPage, rowsPerPage, searchTerm, filteredData) => {
   return await productServices.get(currentPage, rowsPerPage, searchTerm, filteredData);
+};
+
+export const getAllProductList = async () => {
+  return await productExportServices.getAll();
 };
 
 export const getFrontProductList = async (currentPage, rowsPerPage, searchTerm, filteredData) => {
