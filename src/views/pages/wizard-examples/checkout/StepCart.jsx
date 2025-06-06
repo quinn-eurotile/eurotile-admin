@@ -1,60 +1,60 @@
-"use client"
+"use client";
 
 // React Imports
-import { useState, useEffect, useContext } from "react"
+import { useState, useEffect, useContext } from "react";
 
 // Next Imports
-import Link from "next/link"
+import Link from "next/link";
 
 // MUI Imports
-import Grid from "@mui/material/Grid2"
-import Typography from "@mui/material/Typography"
-import Alert from "@mui/material/Alert"
-import AlertTitle from "@mui/material/AlertTitle"
-import TextField from "@mui/material/TextField"
-import Button from "@mui/material/Button"
-import Divider from "@mui/material/Divider"
-import Chip from "@mui/material/Chip"
-import IconButton from "@mui/material/IconButton"
-import Rating from "@mui/material/Rating"
-import CardContent from "@mui/material/CardContent"
-import Collapse from "@mui/material/Collapse"
-import Fade from "@mui/material/Fade"
-import CircularProgress from "@mui/material/CircularProgress"
+import Grid from "@mui/material/Grid2";
+import Typography from "@mui/material/Typography";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
+import Rating from "@mui/material/Rating";
+import CardContent from "@mui/material/CardContent";
+import Collapse from "@mui/material/Collapse";
+import Fade from "@mui/material/Fade";
+import CircularProgress from "@mui/material/CircularProgress";
 
 
 // Component Imports
-import DirectionalIcon from "@components/DirectionalIcon"
+import DirectionalIcon from "@components/DirectionalIcon";
 
 // Context Import
-import { CheckoutContext } from "./CheckoutWizard"
-import { cartApi } from "@/services/cart/index"
-import { removeCartItem, updateCartItem } from "@/app/server/actions"
-import { toast } from "react-toastify"
+import { CheckoutContext } from "./CheckoutWizard";
+import { cartApi } from "@/services/cart/index";
+import { removeCartItem, updateCartItem } from "@/app/server/actions";
+import { toast } from "react-toastify";
 
 // API Import
 
 
 const StepCart = ({ handleNext }) => {
   // States
-  const [openCollapse, setOpenCollapse] = useState(true)
-  const [openFade, setOpenFade] = useState(true)
-  const [isUpdating, setIsUpdating] = useState(false)
-  const [promoCode, setPromoCode] = useState("")
-  const [error, setError] = useState("")
-  const [couponCode, setCouponCode] = useState("")
-  const [showCouponInput, setShowCouponInput] = useState(false)
+  const [openCollapse, setOpenCollapse] = useState(true);
+  const [openFade, setOpenFade] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [error, setError] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [showCouponInput, setShowCouponInput] = useState(false);
 
   // Context
-  const { cartItems, setCartItems, orderSummary, setOrderSummary, setStepValid, loading, user } = useContext(CheckoutContext)
+  const { cartItems, setCartItems, orderSummary, setOrderSummary, setStepValid, loading, user } = useContext(CheckoutContext);
 
   useEffect(() => {
     if (!openFade) {
       setTimeout(() => {
-        setOpenCollapse(false)
-      }, 300)
+        setOpenCollapse(false);
+      }, 300);
     }
-  }, [openFade])
+  }, [openFade]);
 
   // Calculate cart totals
   const calculateTotals = () => {
@@ -85,71 +85,71 @@ const StepCart = ({ handleNext }) => {
 
   // Update cart item quantity
   const updateItemQuantity = async (itemId, newQuantity) => {
-    if (newQuantity < 1) return
+    if (newQuantity < 1) return;
 
-    setIsUpdating(true)
-    setError("")
+    setIsUpdating(true);
+    setError("");
     try {
-      const response = await updateCartItem(itemId, newQuantity)
-      console.log(response, 'response updateCartItem');
+      const response = await updateCartItem(itemId, newQuantity);
+      // console.log(response, 'response updateCartItem');
       if (response.success) {
-        const { items, orderSummary: newOrderSummary } = response.data
-        setCartItems(items)
-        setOrderSummary(newOrderSummary)
+        const { items, orderSummary: newOrderSummary } = response.data;
+        setCartItems(items);
+        setOrderSummary(newOrderSummary);
       } else {
-        setError(response.message || "Error updating cart")
+        setError(response.message || "Error updating cart");
       }
     } catch (error) {
-      console.error("Error updating cart:", error)
-      setError("Failed to update cart item")
+      console.error("Error updating cart:", error);
+      setError("Failed to update cart item");
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
   // Remove item from cart
   const removeItem = async (itemId) => {
-    setIsUpdating(true)
-    setError("")
+    setIsUpdating(true);
+    setError("");
     try {
-      const response = await removeCartItem(itemId)
+      const response = await removeCartItem(itemId);
 
       if (response.success) {
-        const { items, orderSummary: newOrderSummary } = response.data
-        setCartItems(items)
-        setOrderSummary(newOrderSummary)
-        setStepValid(0, items.length > 0)
+        const { items, orderSummary: newOrderSummary } = response.data;
+        setCartItems(items);
+        setOrderSummary(newOrderSummary);
+        setStepValid(0, items.length > 0);
       } else {
-        setError(response.message || "Error removing item")
+        setError(response.message || "Error removing item");
       }
     } catch (error) {
-      console.error("Error removing item from cart:", error)
-      setError("Failed to remove item from cart")
+      console.error("Error removing item from cart:", error);
+      setError("Failed to remove item from cart");
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
   // Move item to wishlist
   const moveToWishlist = async (itemId) => {
-    setIsUpdating(true)
-    setError("")
+    setIsUpdating(true);
+    setError("");
     try {
-      const response = await cartApi.addToWishlist(itemId)
+      const response = await cartApi.addToWishlist(itemId);
 
       if (response.success) {
         // Remove from cart after adding to wishlist
-        await removeItem(itemId)
+        await removeItem(itemId);
       } else {
-        setError(response.message || "Error moving item to wishlist")
+        setError(response.message || "Error moving item to wishlist");
       }
     } catch (error) {
-      console.error("Error moving item to wishlist:", error)
-      setError("Failed to move item to wishlist")
+      console.error("Error moving item to wishlist:", error);
+      setError("Failed to move item to wishlist");
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }
+  };
 
   // Handle apply coupon
   const handleApplyCoupon = async () => {
@@ -182,17 +182,17 @@ const StepCart = ({ handleNext }) => {
 
   // Check if cart is empty and update validation
   useEffect(() => {
-    setStepValid(0, cartItems.length > 0)
-  }, [cartItems, setStepValid])
+    setStepValid(0, cartItems.length > 0);
+  }, [cartItems, setStepValid]);
 
   if (loading) {
     return (
       <div className="flex justify-center items-center py-10">
         <CircularProgress />
       </div>
-    )
+    );
   }
-  console.log(JSON.stringify(orderSummary, null, 2), 'orderSummary');
+  // console.log(JSON.stringify(orderSummary, null, 2), 'orderSummary');
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-4">
@@ -473,7 +473,7 @@ const StepCart = ({ handleNext }) => {
         </div>
       </Grid>
     </Grid>
-  )
-}
+  );
+};
 
-export default StepCart
+export default StepCart;

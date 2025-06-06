@@ -1,27 +1,27 @@
 "use client";
 
-import Image from "next/image"
-import Link from "next/link"
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
-import Select from '@mui/material/Select'
-import { useEffect, useState } from "react"
-import { Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid2, InputLabel, MenuItem } from "@mui/material"
-import Tab from '@mui/material/Tab'
-import TabList from '@mui/lab/TabList'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
-import Typography from '@mui/material/Typography'
-import ColorSelector from "./ColorSelector"
-import RelatedProductGrid from "./related-product"
-import { addCart, getProductDetails } from "@/app/server/actions"
-import { useParams } from "next/navigation"
-import { useDispatch, useSelector } from "react-redux"
-import { addToCart } from "@/redux-store/slices/cart"
+import Image from "next/image";
+import Link from "next/link";
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Select from '@mui/material/Select';
+import { useEffect, useState } from "react";
+import { Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid2, InputLabel, MenuItem } from "@mui/material";
+import Tab from '@mui/material/Tab';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
+import TabContext from '@mui/lab/TabContext';
+import Typography from '@mui/material/Typography';
+import ColorSelector from "./ColorSelector";
+import RelatedProductGrid from "./related-product";
+import { addCart, getProductDetails } from "@/app/server/actions";
+import { useParams } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart } from "@/redux-store/slices/cart";
 
-import { getSession, useSession } from "next-auth/react"
-import { toast } from "react-toastify"
-import { useRouter } from "next/navigation"
+import { getSession, useSession } from "next-auth/react";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 
 
@@ -38,8 +38,8 @@ export default function ProductDetailPage() {
 
   const router = useRouter();
   const { lang: locale, id: productId } = useParams();
-  const [product, setProduct] = useState(null)
-  const { data: session, status } = useSession()
+  const [product, setProduct] = useState(null);
+  const { data: session, status } = useSession();
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState("1");
@@ -132,7 +132,9 @@ export default function ProductDetailPage() {
         ? [product.productFeaturedImage.filePath]
         : ["/images/pages/product-img1.jpg"]);
 
-
+  console.log('selectedVariation', selectedVariation);
+  console.log('productImages', productImages);
+  // Update product images to use variation images
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
   };
