@@ -96,17 +96,13 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, or
 
       if (confirmError) {
         setPaymentError(confirmError.message);
-      } else if (paymentIntent.status === "succeeded") {
-        if (verifyResponse.success) {
-          onPaymentSuccess({
-            paymentIntentId: paymentIntent.id,
-            paymentMethod: "stripe",
-            status: verifyResponse.data.status
-          });
-        } else {
-          setPaymentError("Payment verification failed. Please contact support.");
-        }
-      }
+      } else
+        onPaymentSuccess({
+          paymentIntentId: paymentIntent.id,
+          paymentMethod: "stripe",
+          status: true
+        });
+      setPaymentError("Payment verification failed. Please contact support.");
     } catch (error) {
       console.error("Error creating payment intent:", error);
       setPaymentError("An unexpected error occurred.");
