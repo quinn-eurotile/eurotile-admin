@@ -1,38 +1,38 @@
-'use client'
+'use client';
 
 // React Imports
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 
 // MUI Imports
-import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
-import CardContent from '@mui/material/CardContent'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
-import TextField from '@mui/material/TextField'
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import TextField from '@mui/material/TextField';
 
 // React Hook Form Imports
-import { useFormContext, Controller } from 'react-hook-form'
+import { useFormContext, Controller } from 'react-hook-form';
 
-import { Autocomplete, FormHelperText } from '@mui/material'
+import { Autocomplete, FormHelperText } from '@mui/material';
 
 const ProductOrganize = ({ rawProductData }) => {
   // Access RHF context methods and form control
-  const { control, watch } = useFormContext()
-  const [vendorList, setVendorList] = useState([])
-  const [categoryList, setCategoryList] = useState([])
+  const { control, watch } = useFormContext();
+  const [vendorList, setVendorList] = useState([]);
+  const [categoryList, setCategoryList] = useState([]);
 
   useEffect(() => {
     if (rawProductData?.suppliers && Array.isArray(rawProductData?.suppliers)) {
-      setVendorList(rawProductData?.suppliers)
+      setVendorList(rawProductData?.suppliers);
     }
 
     if (rawProductData?.nestedCategories && Array.isArray(rawProductData.nestedCategories)) {
-      setCategoryList(rawProductData.nestedCategories)
+      setCategoryList(rawProductData.nestedCategories);
     }
-  }, [rawProductData])
+  }, [rawProductData]);
 
   function flattenCategoriesold(categories, parent = '', level = 0) {
     return categories.flatMap(cat => {
@@ -41,10 +41,10 @@ const ProductOrganize = ({ rawProductData }) => {
         title: cat.name,
         fullPath: parent ? `${parent} > ${cat.name}` : cat.name,
         level
-      }
-      const children = cat.children ? flattenCategories(cat.children, current.fullPath, level + 1) : []
-      return [current, ...children]
-    })
+      };
+      const children = cat.children ? flattenCategories(cat.children, current.fullPath, level + 1) : [];
+      return [current, ...children];
+    });
   }
 
   function flattenCategories(categories, parent = '', level = 0, parentIds = []) {
@@ -55,17 +55,17 @@ const ProductOrganize = ({ rawProductData }) => {
         fullPath: parent ? `${parent} > ${cat.name}` : cat.name,
         level,
         parentIds
-      }
+      };
 
       const children = cat.children
         ? flattenCategories(cat.children, current.fullPath, level + 1, [...parentIds, cat._id])
-        : []
+        : [];
 
-      return [current, ...children]
-    })
+      return [current, ...children];
+    });
   }
 
-  const flatOptions = flattenCategories(categoryList)
+  const flatOptions = flattenCategories(categoryList);
 
   return (
     <Card>
@@ -124,7 +124,7 @@ const ProductOrganize = ({ rawProductData }) => {
             rules={{ required: 'At least one category is required' }}
             render={({ field, fieldState }) => {
               // All available options
-              const allOptions = flatOptions
+              const allOptions = flatOptions;
 
               // Find the explicitly selected categories by comparing field.value to flatOptions
               // Only include options whose `id` is not present in another option's `parentIds`
@@ -132,7 +132,7 @@ const ProductOrganize = ({ rawProductData }) => {
                 opt =>
                   field.value.includes(opt.id) &&
                   !allOptions.some(other => field.value.includes(other.id) && other.parentIds.includes(opt.id))
-              )
+              );
 
               return (
                 <Autocomplete
@@ -143,9 +143,9 @@ const ProductOrganize = ({ rawProductData }) => {
                   groupBy={option => option.fullPath.split(' > ')[0]}
                   onChange={(_, selectedOptions) => {
                     // When user selects options, include selected IDs + their parent IDs in form state
-                    const allSelectedIds = selectedOptions.flatMap(opt => [opt.id, ...opt.parentIds])
-                    const uniqueIds = Array.from(new Set(allSelectedIds))
-                    field.onChange(uniqueIds)
+                    const allSelectedIds = selectedOptions.flatMap(opt => [opt.id, ...opt.parentIds]);
+                    const uniqueIds = Array.from(new Set(allSelectedIds));
+                    field.onChange(uniqueIds);
                   }}
                   renderInput={params => (
                     <TextField
@@ -157,7 +157,7 @@ const ProductOrganize = ({ rawProductData }) => {
                   )}
                   sx={{ width: 400 }}
                 />
-              )
+              );
             }}
           />
         </div>
@@ -213,7 +213,7 @@ const ProductOrganize = ({ rawProductData }) => {
         /> */}
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default ProductOrganize
+export default ProductOrganize;
