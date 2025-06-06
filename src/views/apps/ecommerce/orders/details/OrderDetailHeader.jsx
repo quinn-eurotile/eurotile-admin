@@ -41,6 +41,7 @@ const OrderDetailHeader = ({ orderData, order, data }) => {
             color={paymentStatus[data?.paymentStatus ?? 0]?.color}
             size='small'
           />
+          <Button>View Invoice</Button>
         </div>
         <Typography>{moment(data?.updatedAt).format('MMMM Do YYYY, h:mm:ss a')}</Typography>
       </div>

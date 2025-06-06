@@ -45,7 +45,7 @@ const Logo = ({ color,white=true }) => {
 
   const FullLogoImage = white
   ? '/images/euro-tile/logo/Eurotile_Logo-White.png'
-  : '/images/euro-tile/logo/Eurotile_Logo.png'
+  : '/images/pages/logo-black.png'
 const CollapsedLogoImage = white
   ? '/images/euro-tile/logo/logo-icon-white.png'
   : '/images/euro-tile/logo/logo-icon.png'

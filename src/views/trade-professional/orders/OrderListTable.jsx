@@ -14,7 +14,6 @@ import Typography from '@mui/material/Typography'
 import Checkbox from '@mui/material/Checkbox'
 import Chip from '@mui/material/Chip'
 import TablePagination from '@mui/material/TablePagination'
-import TextField from '@mui/material/TextField'
 
 // Third-party Imports
 import classnames from 'classnames'
@@ -43,10 +42,16 @@ import { useDispatch } from 'react-redux'
 import { callCommonAction } from '@/redux-store/slices/common'
 import { getOrderList } from '@/app/server/order'
 import moment from 'moment'
-import { CardHeader } from '@mui/material';
-import TableFilters from './TableFilters';
-import { paymentStatus, statusChipColor } from '@/components/common/common';
+import { CardHeader, Grid2 } from '@mui/material'
+import TableFilters from './TableFilters'
+import { paymentStatus, statusChipColor } from '@/components/common/common'
 
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
+import TextField from '@mui/material/TextField'
+import Grid from '@mui/material/Grid2'
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value)
@@ -78,8 +83,29 @@ const OrderListTable = ({ orderData }) => {
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [totalRecords, setTotalRecords] = useState(0)
   const [search, setSearch] = useState('')
-    const [filter, setFilter] = useState({ status: '' });
+  const [filter, setFilter] = useState({ status: '' })
   const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  // Input field value state
+  const [payoutAmount, setPayoutAmount] = useState('')
+
+  // Open dialog handler
+  const handleOpenDialog = () => {
+    setIsDialogOpen(true)
+  }
+
+  // Close dialog handler
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false)
+    setPayoutAmount('') // Reset input on close
+  }
+
+  const handleSubmit = () => {
+    console.log('Submitted Payout Amount:', payoutAmount)
+    handleCloseDialog()
+  }
 
   useEffect(() => {
     fetchOrderList(page + 1, rowsPerPage)
@@ -89,7 +115,7 @@ const OrderListTable = ({ orderData }) => {
     try {
       dispatch(callCommonAction({ loading: true }))
       const response = await getOrderList(currentPage, pageSize, search, filter)
-      console.log(response,'responseresponseresponseresponse')
+      console.log(response, 'responseresponseresponseresponse')
       dispatch(callCommonAction({ loading: false }))
 
       if (response.statusCode === 200 && response.data) {
@@ -151,13 +177,11 @@ const OrderListTable = ({ orderData }) => {
         cell: ({ row }) => (
           <div className='flex items-center gap-3'>
             {getAvatar({
-                  avatar: `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/${row.original.avatar}`,
-                  customer: row.original?.username ?? ''
-                })}
+              avatar: `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/${row.original.avatar}`,
+              customer: row.original?.username ?? ''
+            })}
             <div className='flex flex-col'>
-              <Typography>
-                {row.original.username}
-              </Typography>
+              <Typography>{row.original.username}</Typography>
               <Typography variant='body2'>{row.original.email}</Typography>
             </div>
           </div>
@@ -176,12 +200,12 @@ const OrderListTable = ({ orderData }) => {
 
         cell: ({ row }) => (
           <>
-          <Chip
-            label={paymentStatus[row.original.paymentStatus]?.text}
-            color={paymentStatus[row.original.paymentStatus]?.color}
-            variant='tonal'
-            size='small'
-          />
+            <Chip
+              label={paymentStatus[row.original.paymentStatus]?.text}
+              color={paymentStatus[row.original.paymentStatus]?.color}
+              variant='tonal'
+              size='small'
+            />
           </>
         )
       }),
@@ -209,7 +233,7 @@ const OrderListTable = ({ orderData }) => {
                   icon: 'ri-eye-line',
                   href: getLocalizedUrl(`/trade-professional/orders/view/${row.original?.id}`, locale),
                   linkProps: { className: 'flex items-center is-full gap-2 plb-2 pli-4' }
-                },
+                }
                 // {
                 //   text: 'Download Order Invoices',
                 //   icon: 'ri-file-download-line',
@@ -257,18 +281,38 @@ const OrderListTable = ({ orderData }) => {
 
   return (
     <Card>
-      <CardHeader title='Filters' />
-      <TableFilters setFilter={setFilter} filter={filter} />
-      <CardContent className='flex justify-between max-sm:flex-col sm:items-center gap-4'>
-        <DebouncedInput
-          value={search}
-          onChange={value => setSearch(value)}
-          placeholder='Search Order'
-          className='sm:is-auto'
-        />
-        {/* <Button variant='outlined' color='secondary' startIcon={<i className='ri-upload-2-line' />}>
-          Export
-        </Button> */}
+      <div className='flex items-center gap-2 justify-between'>
+        <CardHeader title='Filters' />
+
+        <div className='pe-4'>
+          <DebouncedInput
+            value={search}
+            onChange={value => setSearch(value)}
+            placeholder='Search Order'
+            className='sm:is-auto'
+          />
+        </div>
+      </div>
+
+      <CardContent className='pt-0'>
+        <Grid container spacing={5}>
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <TableFilters setFilter={setFilter} filter={filter} className='w-full' />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 8 }}>
+            <div className='flex items-center gap-2 justify-end pt-2'>
+              <span>Total Commission: <strong>{data.totalCommission}</strong></span>
+              <Button
+                variant='contained'
+                color='primary'
+                startIcon={<i class="ri-wallet-2-fill"></i>}
+                onClick={handleOpenDialog}
+              >
+                Payout
+              </Button>
+            </div>
+          </Grid>
+        </Grid>
       </CardContent>
 
       <div className='overflow-x-auto'>
@@ -303,6 +347,31 @@ const OrderListTable = ({ orderData }) => {
         onRowsPerPageChange={handleChangeRowsPerPage}
         rowsPerPageOptions={[1, 10, 20, 50]}
       />
+
+      {/* Payout Dialog */}
+      <Dialog open={isDialogOpen} onClose={handleCloseDialog} fullWidth maxWidth='xs'>
+        <DialogTitle>Enter Payout Amount</DialogTitle>
+
+        <DialogContent>
+          <TextField
+            fullWidth
+            autoFocus
+            label='Amount'
+            variant='outlined'
+            value={payoutAmount}
+            onChange={e => setPayoutAmount(e.target.value)}
+            type='number'
+            margin='normal'
+          />
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button variant='contained' onClick={handleSubmit} disabled={!payoutAmount}>
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   )
 }
