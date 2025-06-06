@@ -12,7 +12,8 @@ import Logo from '@components/layout/shared/Logo'
 import tableStyles from '@core/styles/table.module.css'
 import './print.css'
 
-const PreviewCard = ({ invoiceData, id }) => {
+const PreviewCard = ({ invoiceData }) => {
+
   const customer = invoiceData?.createdBy
   const shippingAddress = invoiceData?.shippingAddress
 
@@ -20,8 +21,8 @@ const PreviewCard = ({ invoiceData, id }) => {
   const orderItems = invoiceData?.orderDetails?.map(detail => {
     const productDetail = JSON.parse(detail.productDetail || '{}')
     return {
-      name: productDetail?.description || 'N/A',
-      description: productDetail?.stockStatus || 'N/A',
+      name: productDetail?.product?.name || 'N/A',
+      description: productDetail?.description || 'N/A',
       price: Number(detail.price || 0),
       quantity: Number(detail.quantity || 0),
       total: Number(detail.price || 0) * Number(detail.quantity || 0)
@@ -103,11 +104,11 @@ const PreviewCard = ({ invoiceData, id }) => {
                 <tbody>
                   {orderItems.map((item, index) => (
                     <tr key={index}>
-                      <td><Typography color='text.primary'>{item.name}</Typography></td>
-                      <td><Typography color='text.primary'>{item.description}</Typography></td>
-                      <td><Typography color='text.primary'>€{item.price.toFixed(2)}</Typography></td>
-                      <td><Typography color='text.primary'>{item.quantity}</Typography></td>
-                      <td><Typography color='text.primary'>€{item.total.toFixed(2)}</Typography></td>
+                      <td><Typography color='text.primary'>{item?.name}</Typography></td>
+                      <td><Typography color='text.primary'>{item?.description}</Typography></td>
+                      <td><Typography color='text.primary'>€{item?.price.toFixed(2)}</Typography></td>
+                      <td><Typography color='text.primary'>{item?.quantity}</Typography></td>
+                      <td><Typography color='text.primary'>€{item?.total.toFixed(2)}</Typography></td>
                     </tr>
                   ))}
                 </tbody>

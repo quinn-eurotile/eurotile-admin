@@ -25,7 +25,7 @@ export const paymentStatus = {
   refunded : { text: 'refunded', color: 'secondary', colorClassName: 'text-secondary' },
   failed : { text: 'failed', color: 'error', colorClassName: 'text-error' }
 }
-
+//0=Cancelled, 1 = Delivered, 2= Processing, 3 = New, 4 = Shipped,
 export const statusChipColor = {
   0: { text: 'Cancelled', color: 'error', colorClassName: 'text-error' },
   1: { text: 'Delivered', color: 'success', colorClassName: 'text-success' },

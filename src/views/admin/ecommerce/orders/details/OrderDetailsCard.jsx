@@ -46,7 +46,6 @@ const fuzzyFilter = (row, columnId, value, addMeta) => {
   return itemRank.passed
 }
 
-// const orderData = [
 //   {
 //     productName: 'OnePlus 7 Pro',
 //     productImage: '/images/apps/ecommerce/product-21.png',
@@ -131,23 +130,23 @@ const OrderTable = ({ orderedProduct }) => {
 
           try {
             productDetail =
-              typeof row.original.productDetail === 'string'
-                ? JSON.parse(row.original.productDetail)
-                : row.original.productDetail
+              typeof row?.original?.productDetail === 'string'
+                ? JSON.parse(row?.original?.productDetail)
+                : row?.original?.productDetail
           } catch (error) {
             console.error('Error parsing productDetail:', error)
           }
 
           return (
             <div className='flex items-center gap-3'>
-              {console.log(productDetail, 'Parsed productDetail')}
+              {console.log(`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${productDetail?.variationImages?.[0]?.filePath}`, 'Parsed image')}
               {getAvatar({
-                avatar: `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/fjdkfj`,
+                avatar: `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${productDetail?.variationImages?.[0]?.filePath}`,
                 customer: data?.createdBy?.name ?? ''
               })}
               <div className='flex flex-col items-start'>
                 <Typography color='text.primary' className='font-medium'>
-                  {productDetail?.name || 'N/A'}
+                  {productDetail?.product?.name || 'N/A'}
                 </Typography>
                 <Typography variant='body2'>{productDetail?.brand || 'Unknown'}</Typography>
               </div>
@@ -282,6 +281,8 @@ const OrderDetailsCard = ({ data }) => {
     setPayoutAmount('') // Reset input on close
   }
 
+  console.log('data comming',data)
+
   return (
     <Card>
       <div className='flex items-center justify-between px-4'>
@@ -298,7 +299,7 @@ const OrderDetailsCard = ({ data }) => {
               Subtotal:
             </Typography>
             <Typography color='text.primary' className='font-medium'>
-              €{data?.orderDetails?.subtotal ? data.orderDetails.subtotal.toFixed(2) : '0.00'}
+              €{data?.subtotal ? data?.subtotal?.toFixed(2) : '0.00'}
             </Typography>
           </div>
           <div className='flex items-center gap-12'>
@@ -306,7 +307,7 @@ const OrderDetailsCard = ({ data }) => {
               Shipping Fee:
             </Typography>
             <Typography color='text.primary' className='font-medium'>
-              €{data?.orderDetails?.shipping ? data.orderDetails.shipping.toFixed(2) : '0.00'}
+              €{data?.shipping ? data?.shipping?.toFixed(2) : '0.00'}
             </Typography>
           </div>
           <div className='flex items-center gap-12'>
@@ -314,7 +315,7 @@ const OrderDetailsCard = ({ data }) => {
               Discount:
             </Typography>
             <Typography color='text.primary' className='font-medium'>
-              €{data?.orderDetails?.discount ? data.orderDetails.discount.toFixed(2) : '0.00'}
+              €{data?.discount ? data?.discount?.toFixed(2) : '0.00'}
             </Typography>
           </div>
           <div className='flex items-center gap-12'>
@@ -322,7 +323,7 @@ const OrderDetailsCard = ({ data }) => {
               Tax:
             </Typography>
             <Typography color='text.primary' className='font-medium'>
-              €{data?.orderDetails?.tax ? data.orderDetails.tax.toFixed(2) : '0.00'}
+              €{data?.tax ? data?.tax?.toFixed(2) : '0.00'}
             </Typography>
           </div>
           <div className='flex items-center gap-12'>
@@ -330,7 +331,7 @@ const OrderDetailsCard = ({ data }) => {
               Total:
             </Typography>
             <Typography color='text.primary' className='font-medium'>
-              €{data?.orderDetails?.total ? data.orderDetails.total.toFixed(2) : '0.00'}
+              €{data?.total ? data?.total.toFixed(2) : '0.00'}
             </Typography>
           </div>
         </div>
