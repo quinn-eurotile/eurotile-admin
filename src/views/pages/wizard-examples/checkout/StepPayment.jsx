@@ -37,6 +37,7 @@ import { Elements, CardElement, useStripe, useElements } from "@stripe/react-str
 import { createPaymentIntent, createKlarnaSession, verifyKlarnaPayment, verifyStripePayment } from "@/app/server/actions";
 import { paymentApi } from "@/services/payment";
 import dynamic from "next/dynamic";
+import { useSession } from "next-auth/react";
 
 // Dynamically import StripeWrapper with no SSR
 const StripeWrapper = dynamic(
@@ -49,6 +50,10 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
 // Stripe Payment Form Component
 const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, selectedAddress,selectedShipping,orderSummary, user, cartItems }) => {
+
+  console.log( JSON.stringify( user),'user 317'); 
+  
+  
   const stripe = useStripe();
   const elements = useElements();
   const [saveCard, setSaveCard] = useState(true);
@@ -72,14 +77,8 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
         amount: Math.round(orderSummary.total * 100), // Convert to cents
         currency: "usd",
         saveCard,
-        customerId: user?.id,
-        cartItems: cartItems.map(item => ({
-          product: item.product,
-          variation: item.variation,
-          price: item.price,
-          quantity: item.quantity,
-          productImages: item.variation?.images?.[0] || item.product?.images?.[0],
-        })),
+        customerId: user?._id,
+        cartItems: cartItems,
         orderData: {
           subtotal: orderSummary.subtotal,
           shipping: orderSummary.shipping,
@@ -88,7 +87,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
           shippingAddress: selectedAddress,
           shippingMethod: selectedShipping,
           paymentMethod: 'stripe',
-          userId: user?.id
+          userId: user?._id
         }
       });
       console.log("response:", response); // Add this line to see the paymentIntent object
@@ -113,18 +112,13 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
 
       if (confirmError) {
         setPaymentError(confirmError.message);
-      } else if (paymentIntent.status === "succeeded") {
-        // if (verifyResponse.success) {
+      } else
         onPaymentSuccess({
           paymentIntentId: paymentIntent.id,
           paymentMethod: "stripe",
-          status: verifyResponse.data.status
+          status: true
         });
-
-      }
-      else {
-        setPaymentError("Payment verification failed. Please contact support.");
-      }
+      setPaymentError("Payment verification failed. Please contact support.");
     } catch (error) {
       console.error("Error creating payment intent:", error);
       setPaymentError("An unexpected error occurred.");
@@ -174,13 +168,14 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
   );
 };
 
-const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, addresses, user }) => {
+const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, selectedShipping, addresses, user }) => {
 
   console.log("cartItems:", cartItems);
   console.log("orderSummary:", orderSummary);
   console.log("selectedAddress:", selectedAddress);
+  console.log("selectedShipping:", selectedShipping);
   console.log("addresses:", addresses);
-
+  const { data: session, status } = useSession()
   // Context
   const { setStepValid, loading, setOrderData } = useContext(CheckoutContext);
   const [mounted, setMounted] = useState(false);
@@ -396,10 +391,10 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                     isProcessing={isProcessing}
                     setIsProcessing={setIsProcessing}
                     orderSummary={totals}
-                    user={user}
+                    user={session?.user}
                     cartItems={cartItems}
-                    
-                  // user={user}
+                    selectedAddress={selectedAddress}
+                    selectedShipping={selectedShipping} 
                   />
                 </StripeWrapper>
               </TabPanel>
