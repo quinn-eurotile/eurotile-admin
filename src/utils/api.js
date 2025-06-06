@@ -24,6 +24,7 @@ const getCommonHeaders = async () => {
 const apiRequest = async (endpoint, method, data = null, customHeaders = {}, showToastOnError = true) => {
   try {
 
+    console.log(endpoint, 'endpoint');
 
     const headers = {
       ...(await getCommonHeaders()), // 👈 Skip Content-Type if FormData
