@@ -21,16 +21,22 @@ export const userTradeProfessionalBusinessProfile = createApiService(TRADE_PROFE
 export const userTradeProfessionalBusiness = createApiService(TRADE_PROFESSIONALS_BUSINESS_ENDPOINT);
 export const userProfile = createApiService(USER_PROFILE_ENDPOINT);
 export const userTradeProfessionalService = createApiService(USER_TRADE_PROFESSIONALS_ENDPOINT, {
-    addBankAccountForTradeProfessional: async (data) => {
-        return api.post(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/create-connect-account`, data);
-    },
-    getAllClients: async () => { 
-          return await api.get(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/client/all`);
-         
-      },
-      getClientById: async (id) => {
-        return await api.get(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/client-public/${id}`);
-      }
+
+  getClientById: async (id) => {
+    return await api.get(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/client-public/${id}`);
+  },
+  addBankAccountForTradeProfessional: async (data) => {
+    return await api.post(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/create-connect-account`, data);
+  },
+  getStripeAccountStatus: async () => {
+    return await api.get(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/stripe-account-status`);
+  },
+  reVerifyStripeAccount: async () => {
+    return await api.post(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/stripe-account-reverify`);
+  },
+  getAllClients: async () => {
+    return await api.get(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/client/all`);
+  },
 });
 
 

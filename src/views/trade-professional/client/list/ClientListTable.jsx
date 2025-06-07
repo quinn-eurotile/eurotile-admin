@@ -54,7 +54,6 @@ import { Box, Tooltip } from '@mui/material';
 import { useParams, useRouter } from 'next/navigation';
 import moment from 'moment';
 import OpenDialogOnElementClick from '@/components/dialogs/OpenDialogOnElementClick';
-import EditUserInfo from './editClientInfo';
 import EditClientInfo from './editClientInfo';
 
 // Styled Components
