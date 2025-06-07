@@ -6,7 +6,7 @@ export const paymentApi = {
   // Create Stripe Payment Intent
   createPaymentIntent: async (data) => {
     try {
-      console.log('waheguru');
+      // console.log('waheguru');
       const response = await api.post(`${PAYMENT_API}/stripe/create-payment-intent`, data);
       return response.data;
     } catch (error) {
@@ -59,4 +59,4 @@ export const paymentApi = {
       };
     }
   }
-}; 
+};

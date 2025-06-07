@@ -10,10 +10,10 @@ export const api2 =   () => {
     const sendRequest = async (endpoint, method = 'GET', body = null) => {
       const session = await getSession();
 
-      console.log(
+      // console.log(
         session,'session'
       );
-      
+
         if (!session?.access_token) {
             throw new Error('No access token available');
         }

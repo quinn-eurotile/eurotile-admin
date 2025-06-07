@@ -75,7 +75,7 @@ const Footer = () => {
                 }}
               />
               <Button size="small" className="bg-red-800 hover:bg-red-900 text-white px-0 rounded w-[40px] min-w-[40px]">
-                < i class="ri-send-plane-fill"></i>
+                < i className="ri-send-plane-fill"></i>
               </Button>
             </div>
           </div>

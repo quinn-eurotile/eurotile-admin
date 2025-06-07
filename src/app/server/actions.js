@@ -19,7 +19,7 @@ import { db as statisticsData } from '@/fake-db/pages/widgetExamples';
 import { tradeProfessionalService, userTradeProfessionalService } from '@/services/trade-professionals';
 import { productRawDataServices } from '@/services/product-raw-data';
 import { productExportServices, productFrontListServices, productServices } from '@/services/product';
-import { addressService } from '@/services/address'
+import { addressService } from '@/services/address';
 import { adminSettingServices } from '@/services/adminSetting';
 import { cartApi } from '@/services/cart/index';
 
@@ -181,6 +181,9 @@ export const removeCartItem = async (id) => {
   return await cartApi.removeCartItem(id);
 };
 
+export const removeCart = async (id) => {
+  return await cartApi.removeCart(id);
+};
 export const addToWishlist = async (data) => {
   return await cartApi.addToWishlist(data);
 };

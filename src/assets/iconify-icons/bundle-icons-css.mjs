@@ -160,7 +160,7 @@ async function generateIconsCSS() {
                 if (!svg) {
                     // Invalid icon
                     iconSet.remove(name);
-                    
+
 return;
                 }
 
@@ -189,7 +189,7 @@ return;
                     // Invalid icon
                     console.error(`Error parsing ${name} from ${source.dir}:`, err);
                     iconSet.remove(name);
-                    
+
 return;
                 }
 
@@ -212,7 +212,7 @@ return;
 
     // Save the CSS to a file
     await fs.writeFile(target, cssContent, 'utf8');
-    console.log(`Saved CSS to ${target}!`);
+    // console.log(`Saved CSS to ${target}!`);
 }
 
 generateIconsCSS().catch(err => {
@@ -238,6 +238,6 @@ function organizeIconsList(icons) {
         if (!prefixList.includes(name))
             prefixList.push(name);
     });
-    
+
 return sorted;
 }

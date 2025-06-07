@@ -268,7 +268,7 @@ const SubMenu = (props, ref) => {
   }, [pathname])
 
   /* useEffect(() => {
-      console.log(openSubmenu)
+      // console.log(openSubmenu)
     }, [openSubmenu]) */
   const submenuContent = (
     <SubMenuContent

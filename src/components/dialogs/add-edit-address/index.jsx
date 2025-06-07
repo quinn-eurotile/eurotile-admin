@@ -117,7 +117,7 @@ const customInputData = [
 ];
 
 
-const AddEditAddress = ({ open, setOpen, data, onClose, onSuccess }) => {
+const AddEditAddress = ({ open, setOpen, data, onSuccess }) => {
   const initialSelected = customInputData?.find(item => item.isSelected)?.value || ''
   const [selected, setSelected] = useState(initialSelected)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -188,9 +188,9 @@ const AddEditAddress = ({ open, setOpen, data, onClose, onSuccess }) => {
 
   const handleClose = () => {
     reset()
-    if (onClose) {
-      onClose()
-    }
+    // if (onClose) {
+    //   onClose()
+    // }
     setOpen(false)
   }
 
@@ -245,7 +245,7 @@ const AddEditAddress = ({ open, setOpen, data, onClose, onSuccess }) => {
     setValue('address.street', selectedAddress.addressLine1) // Using addressLine1 as street
   }
 
-  console.log(JSON.stringify(data), 'datadatadata');
+  // console.log(JSON.stringify(data), 'datadatadata');
 
   return (
     <Dialog

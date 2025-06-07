@@ -1,18 +1,18 @@
-'use client'
+'use client';
 
 // React Imports
-import { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react';
 
 // MUI Imports
-import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
-import CardContent from '@mui/material/CardContent'
-import Checkbox from '@mui/material/Checkbox'
-import Typography from '@mui/material/Typography'
+import Card from '@mui/material/Card';
+import CardHeader from '@mui/material/CardHeader';
+import CardContent from '@mui/material/CardContent';
+import Checkbox from '@mui/material/Checkbox';
+import Typography from '@mui/material/Typography';
 
 // Third-party Imports
-import classnames from 'classnames'
-import { rankItem } from '@tanstack/match-sorter-utils'
+import classnames from 'classnames';
+import { rankItem } from '@tanstack/match-sorter-utils';
 import {
   createColumnHelper,
   flexRender,
@@ -21,32 +21,31 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel
-} from '@tanstack/react-table'
+} from '@tanstack/react-table';
 
 // Style Imports
-import tableStyles from '@core/styles/table.module.css'
-import { Avatar, Button, IconButton } from '@mui/material'
-import { useParams, useRouter } from 'next/navigation'
-import Dialog from '@mui/material/Dialog'
-import DialogTitle from '@mui/material/DialogTitle'
-import DialogContent from '@mui/material/DialogContent'
-import DialogActions from '@mui/material/DialogActions'
-import Preview from '../preview'
+import tableStyles from '@core/styles/table.module.css';
+import { Avatar, Button, IconButton } from '@mui/material';
+import { useParams, useRouter } from 'next/navigation';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Preview from '../preview';
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
   // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value)
+  const itemRank = rankItem(row.getValue(columnId), value);
 
   // Store the itemRank info
   addMeta({
     itemRank
-  })
+  });
 
   // Return if the item should be filtered in/out
-  return itemRank.passed
-}
+  return itemRank.passed;
+};
 
-// const orderData = [
 //   {
 //     productName: 'OnePlus 7 Pro',
 //     productImage: '/images/apps/ecommerce/product-21.png',
@@ -82,26 +81,26 @@ const fuzzyFilter = (row, columnId, value, addMeta) => {
 // ]
 
 // Column Definitions
-const columnHelper = createColumnHelper()
+const columnHelper = createColumnHelper();
 
 const OrderTable = ({ orderedProduct }) => {
-  console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct')
+  // console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct');
 
   // States
-  const [rowSelection, setRowSelection] = useState({})
+  const [rowSelection, setRowSelection] = useState({});
 
-  const [data, setData] = useState(orderedProduct?.orderDetails)
-  const [globalFilter, setGlobalFilter] = useState('')
+  const [data, setData] = useState(orderedProduct?.orderDetails);
+  const [globalFilter, setGlobalFilter] = useState('');
 
   const getAvatar = params => {
-    const { avatar, customer } = params
+    const { avatar, customer } = params;
 
     if (avatar) {
-      return <Avatar src={avatar} />
+      return <Avatar src={avatar} />;
     } else {
-      return <Avatar>{getInitials(customer)}</Avatar>
+      return <Avatar>{getInitials(customer)}</Avatar>;
     }
-  }
+  };
 
   const columns = useMemo(
     () => [
@@ -127,48 +126,47 @@ const OrderTable = ({ orderedProduct }) => {
       columnHelper.accessor('productName', {
         header: 'Product',
         cell: ({ row }) => {
-          let productDetail = {}
+          let productDetail = {};
 
           try {
             productDetail =
-              typeof row.original.productDetail === 'string'
-                ? JSON.parse(row.original.productDetail)
-                : row.original.productDetail
+              typeof row?.original?.productDetail === 'string'
+                ? JSON.parse(row?.original?.productDetail)
+                : row?.original?.productDetail;
           } catch (error) {
-            console.error('Error parsing productDetail:', error)
+            console.error('Error parsing productDetail:', error);
           }
 
           return (
             <div className='flex items-center gap-3'>
-              {console.log(productDetail, 'Parsed productDetail')}
               {getAvatar({
-                avatar: `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}/fjdkfj`,
+                avatar: `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${productDetail?.variationImages?.[0]?.filePath}`,
                 customer: data?.createdBy?.name ?? ''
               })}
               <div className='flex flex-col items-start'>
                 <Typography color='text.primary' className='font-medium'>
-                  {productDetail?.name || 'N/A'}
+                  {productDetail?.product?.name || 'N/A'}
                 </Typography>
-                <Typography variant='body2'>{productDetail?.brand || 'Unknown'}</Typography>
+                <Typography variant='body2'>{productDetail?.supplier?.name || 'Unknown'}</Typography>
               </div>
             </div>
-          )
+          );
         }
       }),
 
       columnHelper.accessor('price', {
         header: 'Price',
         cell: ({ row }) => {
-          const price = Number(row.original?.price) || 0
-          return <Typography>{`€${price.toFixed(2)}`}</Typography>
+          const price = Number(row.original?.price) || 0;
+          return <Typography>{`€${price.toFixed(2)}`}</Typography>;
         }
       }),
 
       columnHelper.accessor('quantity', {
         header: 'Qty',
         cell: ({ row }) => {
-          const quantity = Number(row.original?.quantity) || 0
-          return <Typography>{quantity}</Typography>
+          const quantity = Number(row.original?.quantity) || 0;
+          return <Typography>{quantity}</Typography>;
         }
       }),
 
@@ -176,16 +174,16 @@ const OrderTable = ({ orderedProduct }) => {
         header: 'Total',
         cell: ({ row }) => {
           // Safely parse quantity and price as numbers; default to 0 if invalid
-          const quantity = Number(row.original?.quantity) || 0
-          const price = Number(row.original?.price) || 0
+          const quantity = Number(row.original?.quantity) || 0;
+          const price = Number(row.original?.price) || 0;
 
-          return <Typography>{(quantity * price).toFixed(2)}</Typography>
+          return <Typography>{(quantity * price).toFixed(2)}</Typography>;
         }
       })
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
-  )
+  );
 
   const table = useReactTable({
     data,
@@ -196,7 +194,7 @@ const OrderTable = ({ orderedProduct }) => {
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onRowSelectionChange: setRowSelection
-  })
+  });
 
   return (
     <div className='overflow-x-auto'>
@@ -250,37 +248,39 @@ const OrderTable = ({ orderedProduct }) => {
                       </td>
                     ))}
                   </tr>
-                )
+                );
               })}
           </tbody>
         )}
       </table>
     </div>
-  )
-}
+  );
+};
 
 const OrderDetailsCard = ({ data }) => {
-  const router = useRouter()
-  const { lang: locale } = useParams()
+  const router = useRouter();
+  const { lang: locale } = useParams();
   const viewInvoice = () => {
-    router.push(`/${locale}/trade-professional/orders/view/invoice/${data?._id}`)
-  }
+    router.push(`/${locale}/trade-professional/orders/view/invoice/${data?._id}`);
+  };
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Input field value state
-  const [payoutAmount, setPayoutAmount] = useState('')
+  const [payoutAmount, setPayoutAmount] = useState('');
 
   // Open dialog handler
   const handleOpenDialog = () => {
-    setIsDialogOpen(true)
-  }
+    setIsDialogOpen(true);
+  };
 
   // Close dialog handler
   const handleCloseDialog = () => {
-    setIsDialogOpen(false)
-    setPayoutAmount('') // Reset input on close
-  }
+    setIsDialogOpen(false);
+    setPayoutAmount(''); // Reset input on close
+  };
+
+  // console.log('data comming', data);
 
   return (
     <Card>
@@ -298,7 +298,7 @@ const OrderDetailsCard = ({ data }) => {
               Subtotal:
             </Typography>
             <Typography color='text.primary' className='font-medium'>
-              €{data?.orderDetails?.subtotal ? data.orderDetails.subtotal.toFixed(2) : '0.00'}
+              €{data?.subtotal ? data?.subtotal?.toFixed(2) : '0.00'}
             </Typography>
           </div>
           <div className='flex items-center gap-12'>
@@ -306,7 +306,7 @@ const OrderDetailsCard = ({ data }) => {
               Shipping Fee:
             </Typography>
             <Typography color='text.primary' className='font-medium'>
-              €{data?.orderDetails?.shipping ? data.orderDetails.shipping.toFixed(2) : '0.00'}
+              €{data?.shipping ? data?.shipping?.toFixed(2) : '0.00'}
             </Typography>
           </div>
           <div className='flex items-center gap-12'>
@@ -314,7 +314,7 @@ const OrderDetailsCard = ({ data }) => {
               Discount:
             </Typography>
             <Typography color='text.primary' className='font-medium'>
-              €{data?.orderDetails?.discount ? data.orderDetails.discount.toFixed(2) : '0.00'}
+              €{data?.discount ? data?.discount?.toFixed(2) : '0.00'}
             </Typography>
           </div>
           <div className='flex items-center gap-12'>
@@ -322,7 +322,7 @@ const OrderDetailsCard = ({ data }) => {
               Tax:
             </Typography>
             <Typography color='text.primary' className='font-medium'>
-              €{data?.orderDetails?.tax ? data.orderDetails.tax.toFixed(2) : '0.00'}
+              €{data?.tax ? data?.tax?.toFixed(2) : '0.00'}
             </Typography>
           </div>
           <div className='flex items-center gap-12'>
@@ -330,7 +330,7 @@ const OrderDetailsCard = ({ data }) => {
               Total:
             </Typography>
             <Typography color='text.primary' className='font-medium'>
-              €{data?.orderDetails?.total ? data.orderDetails.total.toFixed(2) : '0.00'}
+              €{data?.total ? data?.total.toFixed(2) : '0.00'}
             </Typography>
           </div>
         </div>
@@ -338,7 +338,7 @@ const OrderDetailsCard = ({ data }) => {
 
       <Dialog open={isDialogOpen} onClose={handleCloseDialog} fullWidth maxWidth='lg'>
         <DialogTitle sx={{ m: 0, ps: 4 }}>
-         Order Invoice
+          Order Invoice
           <IconButton
             aria-label='close'
             onClick={handleCloseDialog}
@@ -349,7 +349,7 @@ const OrderDetailsCard = ({ data }) => {
               color: theme => theme.palette.grey[500]
             }}
           >
-           <i class="ri-close-large-line"></i>
+            <i className="ri-close-large-line"></i>
           </IconButton>
         </DialogTitle>
         <DialogContent>
@@ -357,7 +357,7 @@ const OrderDetailsCard = ({ data }) => {
         </DialogContent>
       </Dialog>
     </Card>
-  )
-}
+  );
+};
 
-export default OrderDetailsCard
+export default OrderDetailsCard;

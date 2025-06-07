@@ -103,7 +103,7 @@ const OrderListTable = ({ orderData }) => {
   }
 
   const handleSubmit = () => {
-    console.log('Submitted Payout Amount:', payoutAmount)
+    // console.log('Submitted Payout Amount:', payoutAmount)
     handleCloseDialog()
   }
 
@@ -115,7 +115,7 @@ const OrderListTable = ({ orderData }) => {
     try {
       dispatch(callCommonAction({ loading: true }))
       const response = await getOrderList(currentPage, pageSize, search, filter)
-      console.log(response, 'responseresponseresponseresponse')
+      // console.log(response, 'responseresponseresponseresponse')
       dispatch(callCommonAction({ loading: false }))
 
       if (response.statusCode === 200 && response.data) {
@@ -305,7 +305,7 @@ const OrderListTable = ({ orderData }) => {
               <Button
                 variant='contained'
                 color='primary'
-                startIcon={<i class="ri-wallet-2-fill"></i>}
+                startIcon={<i className="ri-wallet-2-fill"></i>}
                 onClick={handleOpenDialog}
               >
                 Payout

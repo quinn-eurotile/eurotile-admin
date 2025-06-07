@@ -1,27 +1,27 @@
 "use client";
 
-import Image from "next/image"
-import Link from "next/link"
-import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
-import Select from '@mui/material/Select'
-import { useEffect, useState } from "react"
-import { Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid2, InputLabel, MenuItem } from "@mui/material"
-import Tab from '@mui/material/Tab'
-import TabList from '@mui/lab/TabList'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
-import Typography from '@mui/material/Typography'
-import ColorSelector from "./ColorSelector"
-import RelatedProductGrid from "./related-product"
-import { addCart, getProductDetails } from "@/app/server/actions"
-import { useParams } from "next/navigation"
-import { useDispatch, useSelector } from "react-redux"
-import { addToCart } from "@/redux-store/slices/cart"
+import Image from "next/image";
+import Link from "next/link";
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Select from '@mui/material/Select';
+import { useEffect, useState } from "react";
+import { Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, FormControl, FormControlLabel, Grid2, InputLabel, MenuItem, Radio, RadioGroup } from "@mui/material";
+import Tab from '@mui/material/Tab';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
+import TabContext from '@mui/lab/TabContext';
+import Typography from '@mui/material/Typography';
+import ColorSelector from "./ColorSelector";
+import RelatedProductGrid from "./related-product";
+import { addCart, getProductDetails } from "@/app/server/actions";
+import { useParams } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart } from "@/redux-store/slices/cart";
 
-import { getSession, useSession } from "next-auth/react"
-import { toast } from "react-toastify"
-import { useRouter } from "next/navigation"
+import { getSession, useSession } from "next-auth/react";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 
 
@@ -38,8 +38,8 @@ export default function ProductDetailPage() {
 
   const router = useRouter();
   const { lang: locale, id: productId } = useParams();
-  const [product, setProduct] = useState(null)
-  const { data: session, status } = useSession()
+  const [product, setProduct] = useState(null);
+  const { data: session, status } = useSession();
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState("1");
@@ -66,7 +66,9 @@ export default function ProductDetailPage() {
   const [priceError, setPriceError] = useState("");
   const [selectedVariations, setSelectedVariations] = useState([]);
 
-  console.log('Current cart state:', cart);
+  const [openSampleDialog, setOpenSampleDialog] = useState(false);
+
+  // console.log('Current cart state:', cart);
   const fetchProductDetails = async () => {
     try {
       const response = await getProductDetails(productId);
@@ -133,7 +135,9 @@ console.log(selectedVariation);
         ? [product.productFeaturedImage.filePath]
         : ["/images/pages/product-img1.jpg"]);
 
-log
+  // console.log('selectedVariation', selectedVariation);
+  // console.log('productImages', productImages);
+  // Update product images to use variation images
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
   };
@@ -287,7 +291,7 @@ log
   const handleQuantityChange = (e) => {
     const values = calculateValues('sqm', e.target.value);
 
-    console.log(values, 'values');
+    // console.log(values, 'values');
 
     if (values) {
       setQuantity(e.target.value);
@@ -439,7 +443,7 @@ log
   };
 
   // const cart = useSelector(state => state.cartReducer);
-  // console.log('Current Cart:', cart);
+  // // console.log('Current Cart:', cart);
   // 🟩 Calculate thresholds and map them to discounts
   const getDynamicTierData = () => {
     // const { tierDiscount } = selectedVariation;
@@ -486,6 +490,7 @@ log
           <div className="grid md:grid-cols-2 gap-8 mb-5">
             {/* Product Images */}
             <div>
+              {/* {`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${productImages[currentImageIndex]}`} */}
               <div className="mb-4 relative p-4 bg-bgLight rounded-lg">
                 <div className="relative aspect-square">
                   <Image
@@ -549,8 +554,84 @@ log
                 {product?.shortDescription || ''}
               </p>
 
+
+
+              <Dialog open={openSampleDialog} onClose={() => setOpenSampleDialog(false)}>
+                <DialogTitle id='form-dialog-title'>Need A Sample?</DialogTitle>
+                <DialogContent>
+                  <DialogContentText className='mbe-5'>
+                    20x20cm sample delivered in 3-5 working days
+                  </DialogContentText>
+
+                  <FormControl className='flex-wrap flex-row'>
+                    <RadioGroup row defaultValue='checked' name='basic-radio' aria-label='basic-radio' className="gap-4">
+
+                      <FormControlLabel className="w-full items-start"
+                        sx={{
+                          '& .MuiButtonBase-root': {
+                            paddingTop: 0,
+                          }
+                        }}
+                        label={<span>
+                          15x15cm Sample
+                          <span className="block text-gray-400" style={{ fontSize: '12px' }}>
+                            (1 Free Sample per Month for Trade professional)
+                          </span>
+                        </span>}
+                        control={<Checkbox defaultChecked name='basic-checked' />} />
+
+                      <FormControlLabel className="w-full items-start"
+                        sx={{
+                          '& .MuiButtonBase-root': {
+                            paddingTop: 0,
+                          }
+                        }}
+                        label={<span>
+                          Large Sample (60x60cm) – Chargeable
+                          <span className="block text-gray-400" style={{ fontSize: '12px' }}>
+                            (Admin-defined price or proportionate to product price)
+                          </span>
+                        </span>}
+                        control={<Checkbox name='basic-checked' />} />
+
+                      <FormControlLabel className="w-full items-start"
+                        sx={{
+                          '& .MuiButtonBase-root': {
+                            paddingTop: 0,
+                          }
+                        }}
+                        label={<span>
+                          Full-Size Sample – Chargeable
+                          <span className="block text-gray-400" style={{ fontSize: '12px' }}>
+                            (Admin-defined price or proportionate to product price)
+                          </span>
+                        </span>}
+                        control={<Checkbox name='basic-checked' />} />
+
+
+
+                    </RadioGroup>
+                  </FormControl>
+
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setOpenSampleDialog(false)} variant='contained'>
+                    Submit
+                  </Button>
+                </DialogActions>
+              </Dialog>
+
               <div className="my-6">
-                <h3 className="font-normal mb-4">Pricing Tiers (inc. Shipping & Duties)</h3>
+               <div className="flex justify-between items-center mb-4">
+                <h3 className="font-normal">Pricing Tiers (inc. Shipping & Duties) </h3>
+
+                 <p className="text-sm text-red-800 my-4">
+                <a href="#" className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-900" onClick={() => setOpenSampleDialog(true)}>Need A Sample?</a>
+              </p>
+                </div>
+
+
+
                 <div className=" rounded-md overflow-hidden">
                   <table className="w-full text-sm border border-collapse border-bgLight">
                     <thead className="bg-bgLight">
@@ -659,7 +740,8 @@ log
 
 
 
-                  <div className="bg-bgLight rounded-md px-4 py-2 flex items-center">
+                  <div className="bg-bgLight rounded-md px-4 py-2 flex items-center mb-4 border border-light !rounded-[10px]
+!rounded-[10px]">
                     <span className="text-sm text-center w-full">{pricingTier}</span>
                   </div>
                 </div>
@@ -669,7 +751,7 @@ log
                       type="text"
                       value={quantity}
                       placeholder="Quantity / Enter SQ.M"
-                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
+                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
                       onChange={handleQuantityChange}
                     />
                   </div>
@@ -678,7 +760,7 @@ log
                     <input
                       type="text"
                       value={tiles}
-                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
+                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
                       onChange={handleTilesChange}
                       placeholder="No. Of Tiles"
                     />
@@ -687,7 +769,8 @@ log
                   <div className="rounded-md">
                     <input
                       type="text"
-                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
+                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]
+!rounded-[10px]"
                       value={pallets}
                       onChange={handlePalletsChange}
                       placeholder="No. Of Pallets"
@@ -930,7 +1013,7 @@ log
               />
             </TabList>
 
-            <TabPanel value='1' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-4">
+            <TabPanel value='1' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
 
               {product?.description ?? ''}
               {/* <p className="text-sm leading-relaxed">
@@ -1025,7 +1108,7 @@ log
               </div> */}
 
             </TabPanel>
-            <TabPanel value='2' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-4">
+            <TabPanel value='2' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
               <div className="grid md:grid-cols-2 gap-8 ">
                 <div>
                   <h3 className="font-medium mb-4 text-redText">Technical Specifications</h3>
@@ -1096,7 +1179,7 @@ log
                 </div>
               </div>
             </TabPanel>
-            <TabPanel value='3' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-4">
+            <TabPanel value='3' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((i) => (

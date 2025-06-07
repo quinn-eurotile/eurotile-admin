@@ -21,7 +21,7 @@ export const chatSlice = createSlice({
   initialState,
   reducers: {
     setChatData: (state, action) => {
-      console.log(action.payload, 'action.payload');
+      // console.log(action.payload, 'action.payload');
       state.contacts = action.payload.contacts;
       state.chats = action.payload.chats;
       state.profileUser = action.payload.profileUser;

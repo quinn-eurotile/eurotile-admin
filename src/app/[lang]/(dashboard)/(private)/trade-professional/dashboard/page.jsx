@@ -27,7 +27,7 @@ export const getDashboardData = async() => {
 
 const DashboardAnalytics = async() => {
   const dashboardData = await getDashboardData();
-  console.log('dashboardData',dashboardData)
+  // console.log('dashboardData',dashboardData)
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, md: 4 }}>

@@ -41,7 +41,7 @@ const products1 = [
 
 export default function RelatedProductGrid({ products }) {
 
-  console.log(products, 'hello');
+  // console.log(products, 'hello');
 
   if (!products || products.length === 0) {
     return <div>No related products available.</div>;
@@ -60,7 +60,6 @@ export default function RelatedProductGrid({ products }) {
             <div key={product._id} className="group">
               <Link href={`/products/${product.slug}`} className="block p-2 bg-bgLight rounded-lg mb-3">
                 <div className="relative aspect-square overflow-hidden rounded-md">
-                  {console.log(product.image, 'Image')}
                   <Image
                     src={imageSrc}
                     alt={product.name}

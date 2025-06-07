@@ -297,7 +297,7 @@ const SupportTicketListTable = () => {
       columnHelper.accessor('sender_detail', {
         header: 'Customer Name',
         cell: ({ row }) => (
-          //console.log('row.originalrow.original', row)
+          //// console.log('row.originalrow.original', row)
 
           < Typography className='capitalize' color='text.primary' >
             {row.original?.sender_name}

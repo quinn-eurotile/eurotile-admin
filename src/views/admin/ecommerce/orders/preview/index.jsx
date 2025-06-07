@@ -11,7 +11,7 @@ import { Box, CircularProgress } from '@mui/material';
 import { callCommonAction } from '@/redux-store/slices/common'
 
 const Preview = ({ orderId }) => {
-  console.log(orderId,'orderIdorderId')
+  // console.log(orderId,'orderIdorderId')
   // Handle Print Button Click
   const handleButtonClick = () => {
     window.print()
@@ -28,7 +28,7 @@ const Preview = ({ orderId }) => {
     try {
       dispatch(callCommonAction({ loading: true }))
       const response = await getOrderDetails(orderId)
-      console.log(response,'responseresponse')
+      // console.log(response,'responseresponse')
       dispatch(callCommonAction({ loading: false }))
       if (response.statusCode === 200 && response.data) {
         setData(response.data)

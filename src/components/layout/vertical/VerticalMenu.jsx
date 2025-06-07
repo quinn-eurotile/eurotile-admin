@@ -45,7 +45,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
   const user = session?.user
   const roles = user?.roles || []
   const roleId = !roles.length ? '' : roles[0]?._id
-  //console.log('useruseruser', roleId);
+  //// console.log('useruseruser', roleId);
   const role =
     roleId == '680f110aa6224872fab09569' || roleId == '680f606cb47c317ad30841b5' ? 'admin' : 'trade-professional'
   return (

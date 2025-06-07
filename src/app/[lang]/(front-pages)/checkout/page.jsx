@@ -14,7 +14,7 @@ export async function fetchCartData(userId) {
 
     //  const response = await getCartData();;
     const response = await cartServices.getById(userId);
-    console.log(response, 'cartData response');
+    // console.log(response, 'cartData response');
 
     const cartData = response?.data || {};
 
@@ -48,7 +48,7 @@ const CheckoutPage = async () => {
       shipping: 0,
       subtotal: 0,
       total: 0
-     
+
     }
   }
 
@@ -59,9 +59,9 @@ const CheckoutPage = async () => {
       fetchCartData(session.user._id),
       fetchUserAddresses(session.user._id),
       fetchUserProfile(session.user._id)
-    ]) 
-    console.log(cartData, 'cartData');
-    
+    ])
+    // console.log(cartData, 'cartData');
+
 
     initialData = {
       cartItems: cartData.items,

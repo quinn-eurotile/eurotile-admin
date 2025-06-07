@@ -49,11 +49,11 @@ const StripeWrapper = dynamic(
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 // Stripe Payment Form Component
-const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, selectedAddress,selectedShipping,orderSummary, user, cartItems }) => {
+const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, selectedAddress, selectedShipping, orderSummary, user, cartItems }) => {
 
-  console.log( JSON.stringify( user),'user 317'); 
-  
-  
+  // console.log(JSON.stringify(user), 'user 317');
+
+
   const stripe = useStripe();
   const elements = useElements();
   const [saveCard, setSaveCard] = useState(true);
@@ -67,10 +67,10 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
     }
 
     setIsProcessing(true);
-    setPaymentError(null); 
- console.log("orderSummary:", orderSummary);
- 
- 
+    setPaymentError(null);
+    // console.log("orderSummary:", orderSummary);
+
+
     try {
       // Create payment intent using our API
       const response = await createPaymentIntent({
@@ -90,7 +90,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
           userId: user?._id
         }
       });
-      console.log("response:", response); // Add this line to see the paymentIntent object
+      console.log("response 3333333333333:", response); // Add this line to see the paymentIntent object
 
       if (!response.success) {
         setPaymentError(response.message || "Failed to create payment intent");
@@ -110,15 +110,19 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
         },
       });
 
+      console.log('paymentIntent:', paymentIntent);
+      console.log('confirmError:', confirmError);
+
       if (confirmError) {
         setPaymentError(confirmError.message);
-      } else
+      } else {
         onPaymentSuccess({
           paymentIntentId: paymentIntent.id,
           paymentMethod: "stripe",
           status: true
         });
-      setPaymentError("Payment verification failed. Please contact support.");
+      }
+      // setPaymentError("Payment verification failed. Please contact support.");
     } catch (error) {
       console.error("Error creating payment intent:", error);
       setPaymentError("An unexpected error occurred.");
@@ -170,12 +174,12 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
 
 const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, selectedShipping, addresses, user }) => {
 
-  console.log("cartItems:", cartItems);
-  console.log("orderSummary:", orderSummary);
-  console.log("selectedAddress:", selectedAddress);
-  console.log("selectedShipping:", selectedShipping);
-  console.log("addresses:", addresses);
-  const { data: session, status } = useSession()
+  // console.log("cartItems:", cartItems);
+  // console.log("orderSummary:", orderSummary);
+  // console.log("selectedAddress:", selectedAddress);
+  // console.log("selectedShipping:", selectedShipping);
+  // console.log("addresses:", addresses);
+  const { data: session, status } = useSession();
   // Context
   const { setStepValid, loading, setOrderData } = useContext(CheckoutContext);
   const [mounted, setMounted] = useState(false);
@@ -288,20 +292,21 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
       ...data,
       details: {
         deliveryAddress: selectedAddress,
-        amount: orderSummary.total
+        amount: orderSummary.total,
       }
+
     };
 
     // For Klarna, verify the payment status
-    if (data.paymentMethod === 'klarna' && data.sessionId) {
-      const verifyResponse = await verifyKlarnaPayment(data.sessionId);
-      if (!verifyResponse.success) {
-        setError("Payment verification failed. Please contact support.");
-        return;
-      }
-      paymentDetails.status = verifyResponse.data.status;
-    }
-
+    // if (data.paymentMethod === 'klarna' && data.sessionId) {
+    //   const verifyResponse = await verifyKlarnaPayment(data.sessionId);
+    //   if (!verifyResponse.success) {
+    //     setError("Payment verification failed. Please contact support.");
+    //     return;
+    //   }
+    //   paymentDetails.status = verifyResponse.data.status;
+    // }
+    // await removeCart();
     setPaymentData(paymentDetails);
     setStepValid(2, true);
     handleNext();
@@ -394,7 +399,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                     user={session?.user}
                     cartItems={cartItems}
                     selectedAddress={selectedAddress}
-                    selectedShipping={selectedShipping} 
+                    selectedShipping={selectedShipping}
                   />
                 </StripeWrapper>
               </TabPanel>
@@ -450,7 +455,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
             </Typography>
             {cartItems && cartItems.map((item, index) => (
               <div key={index} className="flex items-center gap-4 mb-4">
-                   <img
+                <img
                   width={64}
                   height={64}
                   src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=140&width=140"}

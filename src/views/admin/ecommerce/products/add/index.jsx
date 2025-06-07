@@ -18,6 +18,7 @@ import ProductOrganize from './ProductOrganize'
 import ProductAddHeader from './ProductAddHeader'
 import ProductInformation from './ProductInformation'
 import { toast } from 'react-toastify'
+import SampleOrder from './SampleOrder'
 
 const AddProduct = () => {
   const router = useRouter()
@@ -156,6 +157,8 @@ const AddProduct = () => {
           categories: categoryIds,
           attributes: attributeIds,
           attributeVariations: attributeVariationIds,
+          samples: product?.samples, // add for sample
+          allowSample: product?.allowSample, // add for sample
           productVariations: productVariations,
           // productImages: productImages,
           productFeaturedImage: product.productFeaturedImage || null,
@@ -184,7 +187,7 @@ const AddProduct = () => {
   }, [productId])
 
   const onSubmit = async formDataValues => {
-    console.log(formDataValues, 'formDataValuesformDataValuesformDataValues')
+    // console.log(formDataValues, 'formDataValuesformDataValuesformDataValues');
     // return;
     try {
       const missingFields = []
@@ -274,7 +277,7 @@ const AddProduct = () => {
 
       // Debug: log formData keys and values
       // for (let [key, value] of formData.entries()) {
-      //   console.log(`${key}:`, value);
+      //   // console.log(`${key}:`, value);
       // }
 
       // Call appropriate API
@@ -285,10 +288,10 @@ const AddProduct = () => {
         response = await createProduct(formData)
       }
 
-      console.log('API Response:', response)
+      // console.log('API Response:', response);
 
       if (response.success) {
-        router.push(`/${locale}/admin/ecommerce/products/list`)
+        //router.push(`/${locale}/admin/ecommerce/products/list`)
         toast.success(response.message || 'Product created successfully')
       } else {
         toast.error(response.message || 'Failed to save product')
@@ -298,7 +301,6 @@ const AddProduct = () => {
       toast.error(error?.message || 'Something went wrong while submitting the product')
     }
   }
-
 
   return (
     <FormProvider {...formMethods}>
@@ -336,6 +338,9 @@ const AddProduct = () => {
               </Grid> */}
               <Grid size={{ xs: 12 }}>
                 <ProductOrganize rawProductData={rawProduct} />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <SampleOrder rawProductData={rawProduct} />
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <ProductFeaturedImage />

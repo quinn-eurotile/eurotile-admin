@@ -65,7 +65,7 @@ const ChatContent = props => {
   //   if (!socket.current) return;
   //   // Listen for incoming messages
   //   socket.current.on('receiveMessage', (data) => {
-  //     console.log('Received message:', JSON.parse(data));
+  //     // console.log('Received message:', JSON.parse(data));
   //     const parseData = JSON.parse(data);
   //     // Update your chat store with the new message
   //     dispatch(sendMsg({ msg: parseData?.message }));
@@ -80,7 +80,7 @@ const ChatContent = props => {
     const handleReceiveMessage = (data) => {
       try {
         const parseData = typeof data === 'string' ? JSON.parse(data) : data;
-        console.log('Received message:', parseData);
+        // console.log('Received message:', parseData);
         dispatch(sendMsg({ data: parseData }));
       } catch (error) {
         console.error('Failed to parse received message:', error);
@@ -96,11 +96,11 @@ const ChatContent = props => {
 
   // useEffect(() => {
   //   if (!socket.current) return;
-  //   console.log('saxxxx');
+  //   // console.log('saxxxx');
   //   const handleReceiveMessage = (data) => {
   //     try {
   //       const parseData = typeof data === 'string' ? JSON.parse(data) : data;
-  //       console.log('Received message:', parseData);
+  //       // console.log('Received message:', parseData);
   //       dispatch(sendMsg({ msg: parseData?.message }));
   //     } catch (error) {
   //       console.error('Failed to parse received message:', error);
@@ -118,7 +118,7 @@ const ChatContent = props => {
   const sendMessage = (messageContent) => {
     if (!socket.current) return;
     //let tId = props.ticketId;
-    console.log('chatStore.profileUser?.id', chatStore.profileUser?.id, chatStore.activeUser?.id);
+    // console.log('chatStore.profileUser?.id', chatStore.profileUser?.id, chatStore.activeUser?.id);
 
     const messageData = {
       content: messageContent,

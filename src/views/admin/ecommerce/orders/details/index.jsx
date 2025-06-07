@@ -29,6 +29,8 @@ const OrderDetails = ({ orderId }) => {
     try {
       dispatch(callCommonAction({ loading: true }))
       const response = await getOrderDetails(orderId)
+
+      // console.log('response',response)
       dispatch(callCommonAction({ loading: false }))
       if (response.statusCode === 200 && response.data) {
         setData(response.data)
@@ -70,9 +72,9 @@ const OrderDetails = ({ orderId }) => {
             <Grid size={{ xs: 12 }}>
               <ShippingAddress data={data}/>
             </Grid>
-            <Grid size={{ xs: 12 }}>
+            {/* <Grid size={{ xs: 12 }}>
               <BillingAddress />
-            </Grid>
+            </Grid> */}
           </Grid>
         </Grid>
       </Grid>
