@@ -61,6 +61,15 @@ export const cartApi = createApiService(CART_API, {
       throw error;
     }
   },
+  removeCartWhole: async (id) => {
+    try {
+      const response = await api.delete(`${CART_API}/cart/${id}`);
+      return response;
+    } catch (error) {
+      console.error('Error removing cart:', error);
+      throw error;
+    }
+  },
   // Add item to wishlist
   addToWishlist: async (itemId) => {
     try {
@@ -127,5 +136,11 @@ export const cartApi = createApiService(CART_API, {
   },
   createPaymentIntentPublic: async (data) => {
     return await api.post(`${PAYMENT_ENDPOINT}/stripe/create-payment-intent-public`, data);
+  },
+  updateOrderStatus: async (data) => {
+    return await api.post(`${CART_API}/update-order-status`, data);
+  },
+  getOrderById: async (orderId) => {
+    return await api.get(`${CART_API}/order/${orderId}`);
   }
 });

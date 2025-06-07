@@ -34,7 +34,7 @@ import { CheckoutContext } from "./CheckoutWizard";
 // Stripe and Klarna imports (you'll need to install these)
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { createPaymentIntent, createKlarnaSession, verifyKlarnaPayment, verifyStripePayment } from "@/app/server/actions";
+import { createPaymentIntent, createKlarnaSession, verifyKlarnaPayment, verifyStripePayment, removeCart } from "@/app/server/actions";
 import { paymentApi } from "@/services/payment";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
@@ -174,7 +174,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
 
 const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, selectedShipping, addresses, user }) => {
 
-  // console.log("cartItems:", cartItems);
+  console.log("cartItems:", cartItems);
   // console.log("orderSummary:", orderSummary);
   // console.log("selectedAddress:", selectedAddress);
   // console.log("selectedShipping:", selectedShipping);
@@ -296,7 +296,13 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
       }
 
     };
-
+   // Delete the cart using the existing removeCart action
+    try {
+      // const response = await removeCart(cartItems[0]?.cartId);
+      // console.log("response removeCartWholeremoveCartWhole:", response);
+    } catch (cartError) {
+      console.error('Failed to delete cart, but payment was successful:', cartError);
+    }
     // For Klarna, verify the payment status
     // if (data.paymentMethod === 'klarna' && data.sessionId) {
     //   const verifyResponse = await verifyKlarnaPayment(data.sessionId);

@@ -189,6 +189,9 @@ export const removeCartItem = async (id) => {
 export const removeCart = async (id) => {
   return await cartApi.removeCart(id);
 };
+export const removeCartWhole = async (id) => {
+  return await cartApi.removeCartWhole(id);
+};
 export const addToWishlist = async (data) => {
   return await cartApi.addToWishlist(data);
 };
@@ -224,5 +227,12 @@ export const sendPaymentLinkToClient = async (data) => {
 export const getPaymentCart = async (cartId, clientId) => {
   return await cartApi.getPaymentCart(cartId, clientId);  
  };
+ export const updateOrderStatus = async (data) => {
+  return await cartApi.updateOrderStatus(data);  
+ };
+ export const getOrderById = async (orderId) => {
+  return await cartApi.getOrderById(orderId);  
+ };
+
 
 

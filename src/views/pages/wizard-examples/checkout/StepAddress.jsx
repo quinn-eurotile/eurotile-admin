@@ -35,7 +35,7 @@ import OpenDialogOnElementClick from "@components/dialogs/OpenDialogOnElementCli
 
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard";
-import { addCart, deleteAddresses, getAddresses, getAllClients, sendPaymentLinkToClient } from "@/app/server/actions";
+import { addCart, deleteAddresses, getAddresses, getAllClients, removeCart, sendPaymentLinkToClient } from "@/app/server/actions";
 import { cartApi } from "@/services/cart";
 import { tradeProfessionalsApi } from "@/services/trade-professionals";
 import { FormControl } from "@mui/material";
@@ -543,6 +543,9 @@ const StepAddress = ({ handleNext }) => {
       const response = await sendPaymentLinkToClient(paymentLinkData);
 
       if (response.success) {
+
+      const response = await removeCart(user?._id);
+      console.log("response removeCartWholeremoveCartWhole:", response);
         toast.success('Payment link sent to client successfully');
         // Clear the cart or handle post-success actions
       } else {
