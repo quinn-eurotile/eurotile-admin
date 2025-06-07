@@ -544,9 +544,9 @@ const StepAddress = ({ handleNext }) => {
 
       if (response.success) {
 
+        toast.success('Payment link sent to client successfully');
       const response = await removeCart(user?._id);
       console.log("response removeCartWholeremoveCartWhole:", response);
-        toast.success('Payment link sent to client successfully');
         // Clear the cart or handle post-success actions
       } else {
         toast.error(response.message || 'Failed to send payment link');

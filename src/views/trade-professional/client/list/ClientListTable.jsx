@@ -284,6 +284,13 @@ const ClientListTable = () => {
             <IconButton onClick={() => handleDeleteConfirmation(row.original.id)}>
               <i className='ri-delete-bin-7-line text-textSecondary' />
             </IconButton>
+
+            <IconButton 
+              onClick={() => window.open('/en/products', '_blank')}
+              title="Place Order"
+            >
+              <i className='ri-shopping-cart-line text-textSecondary' />
+            </IconButton>
           </div>
         ),
         enableSorting: false
