@@ -175,7 +175,12 @@ export const updateCartItem = async (itemId, data) => {
 export const getAllClients = async () => {
   return await userTradeProfessionalService.getAllClients();
 };
-
+export const getClientById = async (id) => {
+  return await userTradeProfessionalService.getClientById(id);
+};
+export const getCartById = async (id) => {
+  return await cartApi.getCartById(id);
+};
 
 export const removeCartItem = async (id) => {
   return await cartApi.removeCartItem(id);
@@ -196,7 +201,9 @@ export const applyPromoCode = async (code) => {
 export const createPaymentIntent = async (data) => {
   return await cartApi.createPaymentIntent(data);
 };
-
+export const createPaymentIntentPublic = async (data) => {
+  return await cartApi.createPaymentIntentPublic(data);
+};
 export const createKlarnaSession = async (data) => {
   return await cartApi.createKlarnaSession(data);
 };
@@ -213,5 +220,9 @@ export const sendPaymentLinkToClient = async (data) => {
   return await cartApi.sendPaymentLinkToClient(data);
   
 };
+
+export const getPaymentCart = async (cartId, clientId) => {
+  return await cartApi.getPaymentCart(cartId, clientId);  
+ };
 
 

@@ -1,80 +1,97 @@
-// Component Imports
-import { fetchUserProfile } from '@/app/front-pages/checkout/page';
-import { getCartData } from '@/app/server/actions';
-import { authOptions } from '@/libs/auth';
-import { addressService } from '@/services/address';
-import { cartServices } from '@/services/cart';
-import Checkout from '@views/front-pages/CheckoutPage'
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/libs/auth';
+import { cartServices } from '@/services/cart';
+import { addressService } from '@/services/address';
+import { fetchUserProfile } from '@/app/front-pages/checkout/page'; 
+import { getCartById, getClientById } from '@/app/server/actions';
+import { notFound } from 'next/navigation';
+import PaymentPageClient from './PaymentPageClient';
 
 // Server-side data fetching functions
-export async function fetchCartData(userId) {
-
+async function fetchCartData(cartId) {
   try {
+    const response = await getCartById(cartId);
 
-    //  const response = await getCartData();;
-    const response = await cartServices.getById(userId);
-    // console.log(response, 'cartData response');
-
-    const cartData = response?.data || {};
-
-    return cartData;
+    console.log(response,'response cartServices');
+    
+    return response || {};
   } catch (error) {
-    console.error('Failed to fetch cart data:', error)
-    return { items: [], subtotal: 0, total: 0 }
-  }
-}
-export async function fetchUserAddresses(userId) {
-  try {
-    const addresses = await addressService.getById(userId)
-    return addresses?.data || []
-  } catch (error) {
-    console.error('Failed to fetch user addresses:', error)
-    return []
+    console.error('Failed to fetch cart data:', error);
+    return null;
   }
 }
 
-const CheckoutPage = async () => {
-  // Get session on server side
-  const session = await getServerSession(authOptions)
+async function fetchClientData(clientId) {
+  try {
+    const response = await getClientById(clientId);
+    return response?.data || null;
+  } catch (error) {
+    console.error('Failed to fetch client data:', error);
+    return null;
+  }
+}
+
+const PaymentPage = async props => {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
+
+  const cartId = params.id;
+  const clientId = searchParams.client;
+
+  console.log('Payment page params:', { params, searchParams });
+
+  if (!cartId || !clientId) {
+    notFound();
+  }
 
   // Initialize data
   let initialData = {
     cartItems: [],
-    addresses: [],
-    user: null,
+    client: null,
     orderSummary: {
       discount: 0,
       shipping: 0,
       subtotal: 0,
       total: 0
-
     }
-  }
+  };
 
+  try {
+    // Fetch cart and client data in parallel
+    const [cartData, clientData] = await Promise.all([
+      fetchCartData(cartId),
+      fetchClientData(clientId)
+    ]);
 
-  // Fetch data if user is authenticated
-  if (session?.user?._id) {
-    const [cartData, addresses, userProfile] = await Promise.all([
-      fetchCartData(session.user._id),
-      fetchUserAddresses(session.user._id),
-      fetchUserProfile(session.user._id)
-    ])
-    // console.log(cartData, 'cartData');
-
+    // if (!cartData || !clientData) {
+    //   notFound();
+    // }
 
     initialData = {
-      cartItems: cartData.items,
-      addresses: addresses,
-      user: userProfile || session.user,
-      orderSummary: cartData.orderSummary,
-      cartData: cartData
-    }
-  }
-  console.log(initialData, 'initialData');
-  return <>
-    <Checkout initialData={initialData} session={session} />
-  </>
-}
+      cartItems: cartData.items || [],
+      client: clientData,
+      orderSummary: cartData.orderSummary || initialData.orderSummary,
+      cartData: cartData,
+      shippingAddress: clientData.addressDetails || null
+    };
 
-export default CheckoutPage
+  } catch (error) {
+    console.error('Error fetching payment data:', error);
+    notFound();
+  }
+
+  console.log('Payment page initialData:', initialData);
+
+  return <>
+    <PaymentPageClient 
+      initialData={initialData} 
+      cartId={cartId} 
+      clientId={clientId} 
+    />
+  
+  </>;
+};
+
+export default PaymentPage;
+
+// MUI Imports

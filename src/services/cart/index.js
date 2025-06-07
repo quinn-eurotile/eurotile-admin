@@ -15,6 +15,15 @@ export const cartApi = createApiService(CART_API, {
       throw error;
     }
   },
+  getCartById: async (id) => {
+    try {
+      const response = await api.get(`${CART_API}/cart/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching cart:', error);
+      throw error;
+    }
+  },
 
   // Update cart item quantity
   updateCartItem: async (itemId, quantity) => {
@@ -113,5 +122,10 @@ export const cartApi = createApiService(CART_API, {
       return await api.post(`${CART_API}/send-payment-link`, data);
      
   },
-
+  getPaymentCart: async (cartId, clientId) => {
+    return await api.get(`${CART_API}/payment/${cartId}?client=${clientId}`);
+  },
+  createPaymentIntentPublic: async (data) => {
+    return await api.post(`${PAYMENT_ENDPOINT}/stripe/create-payment-intent-public`, data);
+  }
 });
