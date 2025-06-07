@@ -30,6 +30,9 @@ export const userTradeProfessionalService = createApiService(USER_TRADE_PROFESSI
   reVerifyStripeAccount: async () => {
     return await api.post(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/stripe-account-reverify`);
   },
+  payoutProcess: async (data) => {
+    return await api.post(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/payout-process`, data);
+  },
   getAllClients: async () => {
     return await api.get(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/client/all`);
   },
