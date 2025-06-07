@@ -21,24 +21,18 @@ export const userTradeProfessionalBusinessProfile = createApiService(TRADE_PROFE
 export const userTradeProfessionalBusiness = createApiService(TRADE_PROFESSIONALS_BUSINESS_ENDPOINT);
 export const userProfile = createApiService(USER_PROFILE_ENDPOINT);
 export const userTradeProfessionalService = createApiService(USER_TRADE_PROFESSIONALS_ENDPOINT, {
-    addBankAccountForTradeProfessional: async (data) => {
-        return api.post(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/create-connect-account`, data);
-    },
-    getAllClients: async () => {
-        try {
-          const response = await api.get(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/client/all`);
-          // console.log(response,'response getAllClients 222');
-
-          return response;
-        } catch (error) {
-          console.error('Error fetching clients:', error);
-          return {
-            type: 'error',
-            message: error.response?.data?.message || 'Failed to fetch clients',
-            data: null
-          };
-        }
-      }
+  addBankAccountForTradeProfessional: async (data) => {
+    return await api.post(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/create-connect-account`, data);
+  },
+  getStripeAccountStatus: async () => {
+    return await api.get(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/stripe-account-status`);
+  },
+  reVerifyStripeAccount: async () => {
+    return await api.post(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/stripe-account-reverify`);
+  },
+  getAllClients: async () => {
+    return await api.get(`${USER_TRADE_PROFESSIONALS_ENDPOINT}/client/all`);
+  },
 });
 
 

@@ -51,6 +51,14 @@ export const addBankAccountForTradeProfessional = async (data) => {
      return await userTradeProfessionalService.addBankAccountForTradeProfessional(data);
 };
 
+export const getStripeAccountStatus = async (data) => {
+     return await userTradeProfessionalService.getStripeAccountStatus(data);
+};
+
+export const reVerifyStripeAccount = async (data) => {
+     return await userTradeProfessionalService.reVerifyStripeAccount(data);
+};
+
 
 /* API for B2C Trade Professionals  Client */
 

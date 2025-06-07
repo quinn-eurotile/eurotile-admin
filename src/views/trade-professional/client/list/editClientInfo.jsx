@@ -261,13 +261,23 @@ const EditClientInfo = ({ open, setOpen, data = null, setRefresh }) => {
 
           <Grid container spacing={4}>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Full Name' {...register('name')} />
+              <TextField fullWidth label='Full Name' {...register('name', { required: 'Name is required' })}
+                error={!!errors?.name}
+                helperText={errors?.name?.message}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Email' type='email' {...register('email')} />
+              <TextField fullWidth label='Email' type='email'
+                {...register('email', { required: 'Email is required' })}
+                error={!!errors?.email}
+                helperText={errors?.email?.message}
+              />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Phone' {...register('phone')} />
+              <TextField fullWidth label='Phone' {...register('phone', { required: 'Phone is required' })}
+                error={!!errors?.phone}
+                helperText={errors?.phone?.message}
+              />
             </Grid>
 
             <Grid size={{ xs: 12 }}>
