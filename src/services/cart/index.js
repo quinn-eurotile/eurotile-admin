@@ -15,6 +15,15 @@ export const cartApi = createApiService(CART_API, {
       throw error;
     }
   },
+  getCartById: async (id) => {
+    try {
+      const response = await api.get(`${CART_API}/cart/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching cart:', error);
+      throw error;
+    }
+  },
 
   // Update cart item quantity
   updateCartItem: async (itemId, quantity) => {
@@ -46,6 +55,15 @@ export const cartApi = createApiService(CART_API, {
   removeCart: async (itemId) => {
     try {
       const response = await api.delete(`${CART_API}/${itemId}`);
+      return response;
+    } catch (error) {
+      console.error('Error removing cart:', error);
+      throw error;
+    }
+  },
+  removeCartWhole: async (id) => {
+    try {
+      const response = await api.delete(`${CART_API}/cart/${id}`);
       return response;
     } catch (error) {
       console.error('Error removing cart:', error);
@@ -106,6 +124,23 @@ export const cartApi = createApiService(CART_API, {
   },
   verifyKlarnaPayment: async (orderId) => {
     return await api.get(`${PAYMENT_ENDPOINT}/klarna/verify/${orderId}`);
-  }
+  },
 
+  // Send payment link to client
+  sendPaymentLinkToClient: async (data) => {
+      return await api.post(`${CART_API}/send-payment-link`, data);
+     
+  },
+  getPaymentCart: async (cartId, clientId) => {
+    return await api.get(`${CART_API}/payment/${cartId}?client=${clientId}`);
+  },
+  createPaymentIntentPublic: async (data) => {
+    return await api.post(`${PAYMENT_ENDPOINT}/stripe/create-payment-intent-public`, data);
+  },
+  updateOrderStatus: async (data) => {
+    return await api.post(`${CART_API}/update-order-status`, data);
+  },
+  getOrderById: async (orderId) => {
+    return await api.get(`${CART_API}/order/${orderId}`);
+  }
 });

@@ -125,6 +125,7 @@ export default function ProductDetailPage() {
     }
   };
 
+console.log(selectedVariation);
 
   // Update product images to use variation images
   const productImages =

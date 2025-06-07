@@ -71,6 +71,7 @@ const CheckoutPage = async () => {
       cartData: cartData
     }
   }
+  console.log(initialData, 'initialData');
   return <>
     <Checkout initialData={initialData} session={session} />
   </>
