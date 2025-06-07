@@ -1,23 +1,23 @@
-'use client'
+'use client';
 // React Imports
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react';
 
 // Next Imports
-import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 // MUI Imports
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
-import Checkbox from '@mui/material/Checkbox'
-import Chip from '@mui/material/Chip'
-import TablePagination from '@mui/material/TablePagination'
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import Checkbox from '@mui/material/Checkbox';
+import Chip from '@mui/material/Chip';
+import TablePagination from '@mui/material/TablePagination';
 
 // Third-party Imports
-import classnames from 'classnames'
-import { rankItem } from '@tanstack/match-sorter-utils'
+import classnames from 'classnames';
+import { rankItem } from '@tanstack/match-sorter-utils';
 import {
   createColumnHelper,
   flexRender,
@@ -26,97 +26,149 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel
-} from '@tanstack/react-table'
+} from '@tanstack/react-table';
 
 // Component Imports
-import CustomAvatar from '@core/components/mui/Avatar'
-import OptionMenu from '@core/components/option-menu'
+import CustomAvatar from '@core/components/mui/Avatar';
+import OptionMenu from '@core/components/option-menu';
 
 // Util Imports
-import { getInitials } from '@/utils/getInitials'
-import { getLocalizedUrl } from '@/utils/i18n'
+import { getInitials } from '@/utils/getInitials';
+import { getLocalizedUrl } from '@/utils/i18n';
 
 // Style Imports
-import tableStyles from '@core/styles/table.module.css'
-import { useDispatch } from 'react-redux'
-import { callCommonAction } from '@/redux-store/slices/common'
-import { getOrderList } from '@/app/server/order'
-import moment from 'moment'
-import { CardHeader, Grid2 } from '@mui/material'
-import TableFilters from './TableFilters'
-import { paymentStatus, statusChipColor } from '@/components/common/common'
+import tableStyles from '@core/styles/table.module.css';
+import { useDispatch } from 'react-redux';
+import { callCommonAction } from '@/redux-store/slices/common';
+import { getOrderList } from '@/app/server/order';
+import { payoutProcess } from '@/app/server/trade-professional';
+import moment from 'moment';
+import { CardHeader, Grid2 } from '@mui/material';
+import TableFilters from './TableFilters';
+import { paymentStatus, statusChipColor } from '@/components/common/common';
 
-import Dialog from '@mui/material/Dialog'
-import DialogTitle from '@mui/material/DialogTitle'
-import DialogContent from '@mui/material/DialogContent'
-import DialogActions from '@mui/material/DialogActions'
-import TextField from '@mui/material/TextField'
-import Grid from '@mui/material/Grid2'
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import TextField from '@mui/material/TextField';
+import Grid from '@mui/material/Grid2';
+import { toast } from 'react-toastify';
 
 const fuzzyFilter = (row, columnId, value, addMeta) => {
-  const itemRank = rankItem(row.getValue(columnId), value)
-  addMeta({ itemRank })
-  return itemRank.passed
-}
+  const itemRank = rankItem(row.getValue(columnId), value);
+  addMeta({ itemRank });
+  return itemRank.passed;
+};
 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
-  const [value, setValue] = useState(initialValue)
+  const [value, setValue] = useState(initialValue);
 
-  useEffect(() => setValue(initialValue), [initialValue])
+  useEffect(() => setValue(initialValue), [initialValue]);
 
   useEffect(() => {
-    const timeout = setTimeout(() => onChange(value), debounce)
-    return () => clearTimeout(timeout)
-  }, [value])
+    const timeout = setTimeout(() => onChange(value), debounce);
+    return () => clearTimeout(timeout);
+  }, [value]);
 
-  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
-}
+  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />;
+};
 
-const columnHelper = createColumnHelper()
+const columnHelper = createColumnHelper();
 
 const OrderListTable = ({ orderData }) => {
-  const dispatch = useDispatch()
-  const { lang: locale } = useParams()
-  const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState([])
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [totalRecords, setTotalRecords] = useState(0)
-  const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState({ status: '' })
-  const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN
-
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-
+  const dispatch = useDispatch();
+  const { lang: locale } = useParams();
+  const [rowSelection, setRowSelection] = useState({});
+  const [data, setData] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState({ status: '' });
+  const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   // Input field value state
-  const [payoutAmount, setPayoutAmount] = useState('')
+  const [payoutAmount, setPayoutAmount] = useState('');
 
   // Open dialog handler
   const handleOpenDialog = () => {
-    setIsDialogOpen(true)
-  }
+    setIsDialogOpen(true);
+  };
 
   // Close dialog handler
   const handleCloseDialog = () => {
-    setIsDialogOpen(false)
-    setPayoutAmount('') // Reset input on close
-  }
+    setIsDialogOpen(false);
+    setPayoutAmount(''); // Reset input on close
+  };
 
+  const calculateEligibleCommission = () => {
+    const fourteenDaysAgo = moment().subtract(14, 'days');
+    const eligibleOrders = data.filter(order => {
+      const isShipped = order.orderStatus === 4;
+      const isOldEnough = moment(order.updatedAt).isBefore(fourteenDaysAgo);
+      return isShipped && isOldEnough;
+    });
+
+    return eligibleOrders.reduce((total, order) => total + parseFloat(order.commission), 0);
+  };
+
+  // Add state for eligible commission
+  const [eligibleCommission, setEligibleCommission] = useState(0);
+
+  // Update useEffect to calculate eligible commission when data changes
+  useEffect(() => {
+    const total = calculateEligibleCommission();
+    setEligibleCommission(total);
+  }, [data]);
+
+  // Modify the handleSubmit function to validate payout amount
   const handleSubmit = () => {
-    // console.log('Submitted Payout Amount:', payoutAmount)
-    handleCloseDialog()
-  }
+    const amount = parseFloat(payoutAmount);
+    if (amount <= 0) {
+      // Show error message
+      return;
+    }
+    if (amount > eligibleCommission) {
+      // Show error message
+      return;
+    }
+    // TODO: Call your API endpoint to process the payout
+    processPayout(parseFloat(payoutAmount));
+    handleCloseDialog();
+  };
+
+
+  // Add this function
+  const processPayout = async (amount) => {
+    try {
+      dispatch(callCommonAction({ loading: true }));
+      const response = await payoutProcess({ amount: parseFloat(amount) });
+      console.log(response, 'responseresponseresponseresponse');
+      dispatch(callCommonAction({ loading: false }));
+      if (response.statusCode === 200 && response.data) {
+        fetchOrderList(page, rowsPerPage);
+        handleCloseDialog();
+      } else {
+        toast.error(response?.message);
+      }
+    } catch (error) {
+      dispatch(callCommonAction({ loading: false }));
+    }
+  };
+
+
 
   useEffect(() => {
-    fetchOrderList(page + 1, rowsPerPage)
-  }, [page, rowsPerPage, search, filter])
+    fetchOrderList(page + 1, rowsPerPage);
+  }, [page, rowsPerPage, search, filter]);
 
   const fetchOrderList = async (currentPage = 1, pageSize = rowsPerPage) => {
     try {
-      dispatch(callCommonAction({ loading: true }))
-      const response = await getOrderList(currentPage, pageSize, search, filter)
+      dispatch(callCommonAction({ loading: true }));
+      const response = await getOrderList(currentPage, pageSize, search, filter);
       // console.log(response, 'responseresponseresponseresponse')
-      dispatch(callCommonAction({ loading: false }))
+      dispatch(callCommonAction({ loading: false }));
 
       if (response.statusCode === 200 && response.data) {
         const formatted = response.data.docs.map(order => ({
@@ -134,25 +186,25 @@ const OrderListTable = ({ orderData }) => {
           username: order?.createdByDetails?.name,
           email: order?.createdByDetails?.email,
           supportticketmsgs: order?.supportticketmsgs
-        }))
-        setData(formatted)
-        setTotalRecords(response.data.totalDocs || 0)
+        }));
+        setData(formatted);
+        setTotalRecords(response.data.totalDocs || 0);
       }
     } catch (error) {
-      dispatch(callCommonAction({ loading: false }))
-      console.error('Failed to fetch order list', error)
+      dispatch(callCommonAction({ loading: false }));
+      console.error('Failed to fetch order list', error);
     }
-  }
+  };
 
   const handleChangePage = (event, newPage) => {
-    setPage(newPage)
-  }
+    setPage(newPage);
+  };
 
   const handleChangeRowsPerPage = event => {
-    const newSize = parseInt(event.target.value, 10)
-    setRowsPerPage(newSize)
-    setPage(0)
-  }
+    const newSize = parseInt(event.target.value, 10);
+    setRowsPerPage(newSize);
+    setPage(0);
+  };
 
   const columns = useMemo(
     () => [
@@ -256,7 +308,7 @@ const OrderListTable = ({ orderData }) => {
       })
     ],
     [data]
-  )
+  );
 
   const table = useReactTable({
     data,
@@ -267,7 +319,7 @@ const OrderListTable = ({ orderData }) => {
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onRowSelectionChange: setRowSelection
-  })
+  });
 
   const getAvatar = ({ avatar, customer }) => {
     return avatar ? (
@@ -276,8 +328,8 @@ const OrderListTable = ({ orderData }) => {
       <CustomAvatar skin='light' color='primary' size={34}>
         {getInitials(customer)}
       </CustomAvatar>
-    )
-  }
+    );
+  };
 
   return (
     <Card>
@@ -301,12 +353,19 @@ const OrderListTable = ({ orderData }) => {
           </Grid>
           <Grid size={{ xs: 12, sm: 8 }}>
             <div className='flex items-center gap-2 justify-end pt-2'>
-              <span>Total Commission: <strong>{data.totalCommission}</strong></span>
+              <div className='flex flex-col items-end'>
+                <span>Total Commission: <strong>€{data.reduce((total, order) => total + parseFloat(order.commission), 0).toFixed(2)}</strong></span>
+                <span>Eligible for Payout: <strong>€{eligibleCommission.toFixed(2)}</strong></span>
+                <Typography variant='caption' color='textSecondary'>
+                  (Only includes commissions from orders shipped 14+ days ago)
+                </Typography>
+              </div>
               <Button
                 variant='contained'
                 color='primary'
                 startIcon={<i className="ri-wallet-2-fill"></i>}
                 onClick={handleOpenDialog}
+                disabled={eligibleCommission <= 0}
               >
                 Payout
               </Button>
@@ -348,32 +407,45 @@ const OrderListTable = ({ orderData }) => {
         rowsPerPageOptions={[1, 10, 20, 50]}
       />
 
-      {/* Payout Dialog */}
+      {/* Update the Payout Dialog */}
       <Dialog open={isDialogOpen} onClose={handleCloseDialog} fullWidth maxWidth='xs'>
-        <DialogTitle>Enter Payout Amount</DialogTitle>
-
+        <DialogTitle>Request Commission Payout</DialogTitle>
         <DialogContent>
+          <div className='mb-4 mt-2'>
+            <Typography variant='body2' color='textSecondary' gutterBottom>
+              Available for payout: €{eligibleCommission.toFixed(2)}
+            </Typography>
+          </div>
           <TextField
             fullWidth
-            autoFocus
-            label='Amount'
+            label='Amount to Transfer'
             variant='outlined'
             value={payoutAmount}
             onChange={e => setPayoutAmount(e.target.value)}
             type='number'
-            margin='normal'
+            inputProps={{
+              min: 0,
+              max: eligibleCommission,
+              step: '0.01'
+            }}
+            helperText={`Enter an amount between €0 and €${eligibleCommission.toFixed(2)}`}
           />
         </DialogContent>
-
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button variant='contained' onClick={handleSubmit} disabled={!payoutAmount}>
-            Submit
+          <Button
+            variant='contained'
+            onClick={handleSubmit}
+            disabled={!payoutAmount || parseFloat(payoutAmount) <= 0 || parseFloat(payoutAmount) > eligibleCommission}
+          >
+            Request Payout
           </Button>
         </DialogActions>
       </Dialog>
     </Card>
-  )
-}
+  );
+};
 
-export default OrderListTable
+export default OrderListTable;
+
+

@@ -59,6 +59,10 @@ export const reVerifyStripeAccount = async (data) => {
      return await userTradeProfessionalService.reVerifyStripeAccount(data);
 };
 
+export const payoutProcess = async (data) => {
+     return await userTradeProfessionalService.payoutProcess(data);
+};
+
 
 /* API for B2C Trade Professionals  Client */
 
