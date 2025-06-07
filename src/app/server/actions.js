@@ -209,4 +209,9 @@ export const verifyKlarnaPayment = async (orderId) => {
   return await cartApi.verifyKlarnaPayment(orderId);
 };
 
+export const sendPaymentLinkToClient = async (data) => {
+  return await cartApi.sendPaymentLinkToClient(data);
+  
+};
+
 

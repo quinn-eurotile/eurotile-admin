@@ -35,7 +35,7 @@ import OpenDialogOnElementClick from "@components/dialogs/OpenDialogOnElementCli
 
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard";
-import { addCart, deleteAddresses, getAddresses, getAllClients } from "@/app/server/actions";
+import { addCart, deleteAddresses, getAddresses, getAllClients, sendPaymentLinkToClient } from "@/app/server/actions";
 import { cartApi } from "@/services/cart";
 import { tradeProfessionalsApi } from "@/services/trade-professionals";
 import { FormControl } from "@mui/material";
@@ -93,6 +93,7 @@ const StepAddress = ({ handleNext }) => {
   });
   const [priceDialogOpen, setPriceDialogOpen] = useState(false);
   const [modifiedPrices, setModifiedPrices] = useState({});
+  const [commissions, setCommissions] = useState({});
   const [clientLoading, setClientLoading] = useState(false);
   const { data: session, status } = useSession();
   const dispatch = useDispatch();
@@ -460,6 +461,14 @@ const StepAddress = ({ handleNext }) => {
     }));
   };
 
+  // Handle commission change
+  const handleCommissionChange = (itemId, newCommission) => {
+    setCommissions(prev => ({
+      ...prev,
+      [itemId]: newCommission
+    }));
+  };
+
   // Validate price is within range
   const validatePrice = (item, price) => {
     const minPrice = item.variation?.regularPriceB2B || 0;
@@ -467,19 +476,22 @@ const StepAddress = ({ handleNext }) => {
     return price >= minPrice && price <= maxPrice;
   };
 
-
   // Handle price dialog save
   const handlePriceDialogSave = async () => {
-    // Update cart items with modified prices
-    const updatedCartItems = cartItems.map(item => ({
-      ...item,
-      productId: item?.product?.id,       // Add productId as key
-      variationId: item?.variation?.id,   // Add variationId as key
-      price: modifiedPrices[item._id] || item.price
-    }));
+    // Update cart items with modified prices and calculated commissions
+    const updatedCartItems = cartItems.map(item => {
+      const currentPrice = modifiedPrices[item._id] || item.price;
+      const basePrice = item.variation?.regularPriceB2B || 0;
+      const commission = Math.max(0, currentPrice - basePrice);
 
-    //// console.log('updatedCartItems', cartItems, updatedCartItems, session?.user?.id);
-    //return false;
+      return {
+        ...item,
+        productId: item?.product?.id,
+        variationId: item?.variation?.id,
+        price: currentPrice,
+        commission: commission
+      };
+    });
 
     const response = await addCart({
       items: updatedCartItems,
@@ -488,9 +500,6 @@ const StepAddress = ({ handleNext }) => {
 
     dispatch(addToCart(response.data));
     toast.success('Products added to cart successfully');
-    // Update context or state with new prices
-    // This depends on how your cart state is managed
-
     setPriceDialogOpen(false);
   };
 
@@ -502,7 +511,49 @@ const StepAddress = ({ handleNext }) => {
     );
   }
   const sentClientToPayment = async () => {
+    setIsUpdating(true);
+    try {
+      // Generate a unique cart identifier
+      const cartId = `cart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Calculate totals
+      const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const shippingCost = selectedShipping === 'express' ? 10 : selectedShipping === 'overnight' ? 15 : 0;
+      const total = subtotal + shippingCost;
 
+      // Prepare data for payment link
+      const paymentLinkData = {
+        cartId,
+        clientId: selectedClient._id,
+        cartItems: cartItems.map(item => ({
+          ...item,
+          productId: item?.product?.id,
+          variationId: item?.variation?.id,
+          price: modifiedPrices[item._id] || item.price
+        })),
+        shippingAddress: selectedAddress,
+        shippingMethod: selectedShipping,
+        orderSummary: {
+          subtotal,
+          shipping: shippingCost,
+          total
+        }
+      };
+
+      const response = await sendPaymentLinkToClient(paymentLinkData);
+
+      if (response.success) {
+        toast.success('Payment link sent to client successfully');
+        // Clear the cart or handle post-success actions
+      } else {
+        toast.error(response.message || 'Failed to send payment link');
+      }
+    } catch (error) {
+      console.error('Error sending payment link:', error);
+      toast.error('Failed to send payment link. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   // // console.log(clients, 'kkkk');
@@ -652,6 +703,17 @@ const StepAddress = ({ handleNext }) => {
                   <Typography color="text.primary">Order Total</Typography>
                   <Typography>£{cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2) || "0.00"}</Typography>
                 </div>
+                {isClientOrder && (
+                  <div className="flex justify-between flex-wrap">
+                    <Typography color="text.primary">Total Commission</Typography>
+                    <Typography>£{cartItems?.reduce((sum, item) => {
+                      const basePrice = item.variation?.regularPriceB2B || 0;
+                      const currentPrice = modifiedPrices[item._id] || item.price;
+                      const commission = Math.max(0, currentPrice - basePrice);
+                      return sum + (commission * item.quantity);
+                    }, 0).toFixed(2) || "0.00"}</Typography>
+                  </div>
+                )}
                 <div className="flex justify-between flex-wrap">
                   <Typography color="text.primary">Delivery Charges</Typography>
                   <div className="flex gap-2">
@@ -762,34 +824,52 @@ const StepAddress = ({ handleNext }) => {
         <DialogTitle>Modify Prices for Client Order</DialogTitle>
         <DialogContent>
           <div className="space-y-4 mt-4">
-            {cartItems?.map((item) => (
-              <div key={item._id} className="flex items-center gap-4 p-4 border rounded">
-                <img
-                  width={60}
-                  height={60}
-                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg"}
-                  alt={item?.product?.name}
-                  className="rounded"
-                />
-                <div className="flex-grow">
-                  <Typography variant="subtitle1">{item?.product?.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Quantity: {item.quantity} SQ.M
-                  </Typography>
-                  <div className="flex items-center gap-4 mt-2">
-                    <TextField
-                      label="Price per SQ.M"
-                      type="number"
-                      value={modifiedPrices[item._id] || item.price}
-                      onChange={(e) => handlePriceChange(item._id, Number(e.target.value))}
-                      error={!validatePrice(item, modifiedPrices[item._id] || item.price)}
-                      helperText={`Price range: £${item.variation?.regularPriceB2B} - £${item.variation?.regularPriceB2C}`}
-                      size="small"
-                    />
+            {cartItems?.map((item) => {
+              const basePrice = item.variation?.regularPriceB2B || 0;
+              const maxPrice = item.variation?.regularPriceB2C || 0;
+              const currentPrice = modifiedPrices[item._id] || item.price;
+              const commission = Math.max(0, currentPrice - basePrice);
+
+              return (
+                <div key={item._id} className="flex items-center gap-4 p-4 border rounded">
+                  <img
+                    width={60}
+                    height={60}
+                    src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg"}
+                    alt={item?.product?.name}
+                    className="rounded"
+                  />
+                  <div className="flex-grow">
+                    <Typography variant="subtitle1">{item?.product?.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Quantity: {item.quantity} SQ.M
+                    </Typography>
+                    <div className="flex items-center gap-4 mt-2">
+                      <TextField
+                        label="Price per SQ.M"
+                        type="number"
+                        value={currentPrice}
+                        onChange={(e) => handlePriceChange(item._id, Number(e.target.value))}
+                        error={!validatePrice(item, currentPrice)}
+                        helperText={`Base price: £${basePrice} (Range: £${basePrice} - £${maxPrice})`}
+                        size="small"
+                      />
+                      <div className="flex flex-col ml-4">
+                        <Typography variant="body2" color="text.primary" className="font-medium">
+                          Commission: £{commission.toFixed(2)} per SQ.M
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Base Price: £{basePrice.toFixed(2)} per SQ.M
+                        </Typography>
+                        <Typography variant="body2" color="text.primary" className="font-medium">
+                          Total Price: £{currentPrice.toFixed(2)} per SQ.M
+                        </Typography>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </DialogContent>
         <DialogActions>

@@ -145,9 +145,9 @@ const Header = ({ mode }) => {
             <Link href="/" className="hover:text-gray-300">
               Home
             </Link>
-            <div className="relative group">
+            {/* <div className="relative group">
               <button className="flex items-center text-white bg-transparent font-montserrat text-15">
-                Products {/* <ChevronRight className="h-4 w-4 ml-1 transform rotate-90" /> */}
+                Products 
                 <i className="ri-arrow-down-s-line text-sm"></i>
               </button>
               <div className="absolute left-0 w-48 bg-white text-black rounded-md shadow-lg py-1 z-10 hidden group-hover:block">
@@ -164,7 +164,10 @@ const Header = ({ mode }) => {
                   Outdoor Tiles
                 </Link>
               </div>
-            </div>
+            </div> */}
+            <Link href="/en/products" target='_blank' rel='noopener noreferrer' className="hover:text-gray-300">
+              Products
+            </Link>
             <Link href="/about" className="hover:text-gray-300">
               About Us
             </Link>
@@ -189,7 +192,7 @@ const Header = ({ mode }) => {
                 3
               </span>
             </button> */}
-            <Link href="/en/checkout" passHref>
+            <Link href="/en/checkout" passHref target='_blank' rel='noopener noreferrer'>
               <button
                 className="text-white hover:text-gray-300 relative bg-transparent"
               >

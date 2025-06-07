@@ -106,6 +106,12 @@ export const cartApi = createApiService(CART_API, {
   },
   verifyKlarnaPayment: async (orderId) => {
     return await api.get(`${PAYMENT_ENDPOINT}/klarna/verify/${orderId}`);
-  }
+  },
+
+  // Send payment link to client
+  sendPaymentLinkToClient: async (data) => {
+      return await api.post(`${CART_API}/send-payment-link`, data);
+     
+  },
 
 });
