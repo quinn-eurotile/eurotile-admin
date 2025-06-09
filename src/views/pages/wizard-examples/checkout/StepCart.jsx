@@ -243,26 +243,39 @@ const StepCart = ({ handleNext }) => {
                 </IconButton>
                 <div className="flex flex-col sm:flex-row items-center sm:justify-between w-full">
                   <div className="flex flex-col gap-2 items-center sm:items-start">
-                    <Typography className="font-medium text-lg" color="text.primary">
-                      {product?.product?.name}
+                    <Typography className="font-medium" color="text.primary">
+                      {product?.isSample ? 
+                        `${product?.product?.name} (${product?.sampleAttributes?.type} Sample)` : 
+                        product?.product?.name}
                     </Typography>
 
                     {/* Variation Details */}
                     <div className="flex flex-col gap-1">
                       <Typography color="text.secondary" className="text-sm">
-                        Variation: {product?.variation?.description || 'Standard'}
+                        Sold By: {product?.product?.supplier?.companyName || 'N/A'}
                       </Typography>
-                      {product?.attributes && Object.entries(product.attributes).map(([key, value]) => (
-                        <Typography key={key} color="text.secondary" className="text-sm">
-                          {key}: {value}
-                        </Typography>
-                      ))}
-                      <Typography color="text.secondary" className="text-sm">
-                        Tiles: {product?.numberOfTiles || 0}
-                      </Typography>
-                      <Typography color="text.secondary" className="text-sm">
-                        Pallets: {product?.numberOfPallets || 0}
-                      </Typography>
+                      {product?.isSample ? (
+                        <>
+                          <Typography color="text.secondary" className="text-sm">
+                            Sample Type: {product?.sampleAttributes?.type || 'N/A'}
+                          </Typography>
+                          <Typography color="text.secondary" className="text-sm">
+                            Size: {product?.sampleAttributes?.size || 'N/A'}
+                          </Typography>
+                        </>
+                      ) : (
+                        <>
+                          <Typography color="text.secondary" className="text-sm">
+                            Variation: {product?.variation?.description || 'Standard'}
+                          </Typography>
+                          <Typography color="text.secondary" className="text-sm">
+                            Tiles: {product?.numberOfTiles || 0}
+                          </Typography>
+                          <Typography color="text.secondary" className="text-sm">
+                            Pallets: {product?.numberOfPallets || 0}
+                          </Typography>
+                        </>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -285,16 +298,18 @@ const StepCart = ({ handleNext }) => {
                     </div>
 
                     <div className="flex items-center gap-4 mt-2">
-                      <TextField
-                        size="small"
-                        type="number"
-                        value={product?.quantity || 0}
-                        onChange={(e) => updateItemQuantity(product._id, Number(e.target.value))}
-                        className="block max-w-[100px]"
-                        disabled={isUpdating}
-                        inputProps={{ min: 1, step: 1 }}
-                        label="SQ.M"
-                      />
+                      {!product?.isSample && (
+                        <TextField
+                          size="small"
+                          type="number"
+                          value={product?.quantity || 0}
+                          onChange={(e) => updateItemQuantity(product._id, Number(e.target.value))}
+                          className="block max-w-[100px]"
+                          disabled={isUpdating}
+                          inputProps={{ min: 1, step: 1 }}
+                          label="SQ.M"
+                        />
+                      )}
                     </div>
                   </div>
 

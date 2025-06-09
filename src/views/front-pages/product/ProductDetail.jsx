@@ -57,6 +57,12 @@ export default function ProductDetailPage() {
   const [selectedVariations, setSelectedVariations] = useState([]);
 
   const [openSampleDialog, setOpenSampleDialog] = useState(false);
+  const [selectedSamples, setSelectedSamples] = useState({
+    small: false,
+    large: false,
+    full: false
+  });
+
 
   // console.log('Current cart state:', cart);
   const fetchProductDetails = async () => {
@@ -218,7 +224,7 @@ export default function ProductDetailPage() {
     }
 
     // Use palletSize as tilesPerPallet
-    const tilesPerPallet = selectedVariation.palletSize || 1;
+    const tilesPerPallet = parseFloat(selectedVariation.boxesPerPallet) * parseFloat(selectedVariation.numberOfTiles) || 1;
     // Use sqmPerTile if available, else fallback to 1 to avoid division by 0
     const sqmPerTile = selectedVariation.sqmPerTile || 1;
 
@@ -389,31 +395,73 @@ export default function ProductDetailPage() {
       // Prepare cart items
       let cartItems = [];
 
-      // Add saved variations
-      selectedVariations.forEach(variation => {
+      if (!openSampleDialog) {
+
+        // Add saved variations
+        selectedVariations.forEach(variation => {
+          cartItems.push({
+            productId: product._id,
+            variationId: variation.variation._id,
+            quantity: variation.quantity,
+            numberOfTiles: variation.numberOfTiles,
+            numberOfPallets: variation.numberOfPallets,
+            attributes: variation.attributes,
+            price: variation.price,
+            isSample: false,
+            sampleAttributes: null
+          });
+        });
+
+        // Add current selection if exists
+        if (selectedVariation && calculatedValues.sqm) {
+          cartItems.push({
+            productId: product._id,
+            variationId: selectedVariation._id,
+            quantity: calculatedValues.sqm,
+            numberOfTiles: calculatedValues.tiles,
+            numberOfPallets: calculatedValues.pallets,
+            attributes: selectedAttributes,
+            price: selectedVariation.regularPriceB2C,
+            isSample: false,
+            sampleAttributes: null
+          });
+        }
+
+      }
+
+      // Add selected samples if any
+      const selectedTypes = Object.entries(selectedSamples)
+        .filter(([_, isSelected]) => isSelected)
+        .map(([type]) => type);
+
+      selectedTypes.forEach(type => {
+        const sampleInfo = sampleData[type];
+        const samplePrice = type === 'small' && sampleInfo.freePerMonth ? 0 : sampleInfo.price;
+
+        console.log('samplePrice', sampleInfo);
+
+
+
         cartItems.push({
           productId: product._id,
-          variationId: variation.variation._id,
-          quantity: variation.quantity,
-          numberOfTiles: variation.numberOfTiles,
-          numberOfPallets: variation.numberOfPallets,
-          attributes: variation.attributes,
-          price: variation.price
+          variationId: selectedVariation?._id,
+          quantity: 1,
+          numberOfTiles: 0,
+          numberOfPallets: 0,
+          attributes: {
+            size: type === 'small' ? '15x15cm' : type === 'large' ? '60x60cm' : 'Full Size',
+            type: type
+          },
+          price: samplePrice,
+          isSample: true,
+          sampleAttributes: {
+            size: type === 'small' ? '15x15cm' : type === 'large' ? '60x60cm' : 'Full Size',
+            type: type,
+            price: samplePrice
+          }
         });
       });
 
-      // Add current selection if exists
-      if (selectedVariation && calculatedValues.sqm) {
-        cartItems.push({
-          productId: product._id,
-          variationId: selectedVariation._id,
-          quantity: calculatedValues.sqm,
-          numberOfTiles: calculatedValues.tiles,
-          numberOfPallets: calculatedValues.pallets,
-          attributes: selectedAttributes,
-          price: calculatedValues.pricePerSqm || selectedVariation.regularPriceB2C
-        });
-      }
 
       const response = await addCart({
         items: cartItems,
@@ -423,9 +471,14 @@ export default function ProductDetailPage() {
       if (response.success) {
         dispatch(addToCart(response.data));
         toast.success('Products added to cart successfully');
-
         router.push('/' + locale + '/checkout');
         setSelectedVariations([]); // Clear selections after successful add
+        setSelectedSamples({ // Clear sample selections
+          small: false,
+          large: false,
+          full: false
+        });
+        setOpenSampleDialog(false);
       } else {
         setError(response.message || 'Failed to add items to cart');
       }
@@ -470,6 +523,17 @@ export default function ProductDetailPage() {
     return 'You have unlocked the maximum discount!';
   };
 
+  const handleSampleChange = (type) => {
+    setSelectedSamples(prev => ({
+      ...prev,
+      [type]: !prev[type]
+    }));
+  };
+
+  // Parse sample data from product
+  const sampleData = product?.samples ?
+    (typeof product.samples === 'string' ? JSON.parse(product.samples) : product.samples)
+    : null;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -553,74 +617,105 @@ export default function ProductDetailPage() {
                 <DialogTitle id='form-dialog-title'>Need A Sample?</DialogTitle>
                 <DialogContent>
                   <DialogContentText className='mbe-5'>
-                    20x20cm sample delivered in 3-5 working days
+                    Choose your sample size and we'll deliver it to you
                   </DialogContentText>
 
                   <FormControl className='flex-wrap flex-row'>
                     <RadioGroup row defaultValue='checked' name='basic-radio' aria-label='basic-radio' className="gap-4">
-
-                      <FormControlLabel className="w-full items-start"
-                        sx={{
-                          '& .MuiButtonBase-root': {
-                            paddingTop: 0,
+                      {sampleData?.small && (
+                        <FormControlLabel
+                          className="w-full items-start"
+                          sx={{
+                            '& .MuiButtonBase-root': {
+                              paddingTop: 0,
+                            }
+                          }}
+                          label={<span>
+                            15x15cm Sample
+                            <span className="block text-gray-400" style={{ fontSize: '12px' }}>
+                              {sampleData.small.freePerMonth
+                                ? '(1 Free Sample per Month for Trade professional)'
+                                : `(Price: £${sampleData.small.price})`}
+                            </span>
+                          </span>}
+                          control={
+                            <Checkbox
+                              checked={selectedSamples.small}
+                              onChange={() => handleSampleChange('small')}
+                              name='small-sample'
+                            />
                           }
-                        }}
-                        label={<span>
-                          15x15cm Sample
-                          <span className="block text-gray-400" style={{ fontSize: '12px' }}>
-                            (1 Free Sample per Month for Trade professional)
-                          </span>
-                        </span>}
-                        control={<Checkbox defaultChecked name='basic-checked' />} />
+                        />
+                      )}
 
-                      <FormControlLabel className="w-full items-start"
-                        sx={{
-                          '& .MuiButtonBase-root': {
-                            paddingTop: 0,
+                      {sampleData?.large && (
+                        <FormControlLabel
+                          className="w-full items-start"
+                          sx={{
+                            '& .MuiButtonBase-root': {
+                              paddingTop: 0,
+                            }
+                          }}
+                          label={<span>
+                            Large Sample (60x60cm)
+                            <span className="block text-gray-400" style={{ fontSize: '12px' }}>
+                              (Price: £{sampleData.large.price})
+                            </span>
+                          </span>}
+                          control={
+                            <Checkbox
+                              checked={selectedSamples.large}
+                              onChange={() => handleSampleChange('large')}
+                              name='large-sample'
+                            />
                           }
-                        }}
-                        label={<span>
-                          Large Sample (60x60cm) – Chargeable
-                          <span className="block text-gray-400" style={{ fontSize: '12px' }}>
-                            (Admin-defined price or proportionate to product price)
-                          </span>
-                        </span>}
-                        control={<Checkbox name='basic-checked' />} />
+                        />
+                      )}
 
-                      <FormControlLabel className="w-full items-start"
-                        sx={{
-                          '& .MuiButtonBase-root': {
-                            paddingTop: 0,
+                      {sampleData?.full && (
+                        <FormControlLabel
+                          className="w-full items-start"
+                          sx={{
+                            '& .MuiButtonBase-root': {
+                              paddingTop: 0,
+                            }
+                          }}
+                          label={<span>
+                            Full-Size Sample
+                            <span className="block text-gray-400" style={{ fontSize: '12px' }}>
+                              (Price: £{sampleData.full.price})
+                            </span>
+                          </span>}
+                          control={
+                            <Checkbox
+                              checked={selectedSamples.full}
+                              onChange={() => handleSampleChange('full')}
+                              name='full-sample'
+                            />
                           }
-                        }}
-                        label={<span>
-                          Full-Size Sample – Chargeable
-                          <span className="block text-gray-400" style={{ fontSize: '12px' }}>
-                            (Admin-defined price or proportionate to product price)
-                          </span>
-                        </span>}
-                        control={<Checkbox name='basic-checked' />} />
-
-
-
+                        />
+                      )}
                     </RadioGroup>
                   </FormControl>
 
                 </DialogContent>
                 <DialogActions>
-                  <Button onClick={() => setOpenSampleDialog(false)} variant='contained'>
-                    Submit
+                  <Button onClick={() => setOpenSampleDialog(false)} variant='outlined'>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleAddToCart} variant='contained'>
+                    Order Sample
                   </Button>
                 </DialogActions>
               </Dialog>
 
               <div className="my-6">
-               <div className="flex justify-between items-center mb-4">
-                <h3 className="font-normal">Pricing Tiers (inc. Shipping & Duties) </h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-normal">Pricing Tiers (inc. Shipping & Duties) </h3>
 
-                 <p className="text-sm text-red-800 my-4">
-                <a href="#" className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-900" onClick={() => setOpenSampleDialog(true)}>Need A Sample?</a>
-              </p>
+                  <p className="text-sm text-red-800 my-4">
+                    <a href="#" className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-900" onClick={() => setOpenSampleDialog(true)}>Need A Sample?</a>
+                  </p>
                 </div>
 
 

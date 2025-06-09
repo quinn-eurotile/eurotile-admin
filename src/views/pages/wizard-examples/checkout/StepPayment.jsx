@@ -436,7 +436,11 @@ const StepPayment = ({ handleNext, handleBack }) => {
                   className="object-cover rounded-lg"
                 />
                 <div>
-                  <Typography variant="body2">{item.productName}</Typography>
+                  <Typography variant="body2">
+                    {item?.isSample ? 
+                      `${item?.product?.name} (${item?.sampleAttributes?.type} Sample)` : 
+                      item?.product?.name}
+                  </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Qty: {item.quantity} × £{item.price}
                   </Typography>

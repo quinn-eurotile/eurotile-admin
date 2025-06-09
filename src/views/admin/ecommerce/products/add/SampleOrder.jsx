@@ -27,104 +27,41 @@ import {
   Typography
 } from '@mui/material'
 
-// const SampleOrder = ({ rawProductData }) => {
-//   // Access RHF context methods and form control
-//   const { control, watch } = useFormContext();
-//   const [vendorList, setVendorList] = useState([]);
-//   const [categoryList, setCategoryList] = useState([]);
-//   const [allowSample, setAllowSample] = useState(false);
-
-//   useEffect(() => {
-//     if (rawProductData?.suppliers && Array.isArray(rawProductData?.suppliers)) {
-//       setVendorList(rawProductData?.suppliers);
-//     }
-
-//     if (rawProductData?.nestedCategories && Array.isArray(rawProductData.nestedCategories)) {
-//       setCategoryList(rawProductData.nestedCategories);
-//     }
-//   }, [rawProductData]);
-
-//   // console.log(watch('allowSample'), '...........');
-
-//   return (
-//     <Card>
-//       <CardHeader title='Sample Order' />
-//       <CardContent>
-
-//         <Controller
-//           name="allowSample"
-//           control={control}
-//           defaultValue={false}
-//           render={({ field }) => (
-//             <FormControlLabel
-//               control={
-//                 <Switch
-//                   {...field}
-//                   checked={field.value}
-//                   onChange={(e) => field.onChange(e.target.checked)}
-//                   color="primary"
-//                 />
-//               }
-//               label="Allow Sample"
-//               sx={{ mt: 4 }}
-//             />
-//           )}
-//         />
-
-//         {watch('allowSample') && (
-//           <Box mt={2} display='flex' flexDirection='column' gap={2}>
-//             <Controller
-//               name='samples.small.price'
-//               control={control}
-//               defaultValue={0}
-//               render={({ field }) => (
-//                 <FormControl component="fieldset">
-//                   <RadioGroup {...field}>
-//                     <FormControlLabel value="free" control={<Radio />} label="15x15cm Sample (Free)" />
-//                   </RadioGroup>
-//                 </FormControl>
-//               )}
-//             />
-//             <Controller
-//               name='samples.large.price'
-//               control={control}
-//               defaultValue=''
-//               render={({ field }) => (
-//                 <TextField {...field} label='60x60cm Sample Price' fullWidth />
-//               )}
-//             />
-//             <Controller
-//               name='samples.full.price'
-//               control={control}
-//               defaultValue=''
-//               render={({ field }) => (
-//                 <TextField {...field} label='Full Size Sample Price' fullWidth />
-//               )}
-//             />
-//           </Box>
-//         )}
-
-//       </CardContent>
-//     </Card>
-//   );
-// };
-
-const SampleOrder = ({ rawProductData }) => {
-  const { control, watch } = useFormContext()
-  const [vendorList, setVendorList] = useState([])
-  const [categoryList, setCategoryList] = useState([])
-
-  useEffect(() => {
-    if (rawProductData?.suppliers && Array.isArray(rawProductData?.suppliers)) {
-      setVendorList(rawProductData?.suppliers)
-    }
-
-    if (rawProductData?.nestedCategories && Array.isArray(rawProductData.nestedCategories)) {
-      setCategoryList(rawProductData.nestedCategories)
-    }
-  }, [rawProductData])
-
+const SampleOrder = ({ sampleData }) => {
+  const { control, watch, setValue } = useFormContext()
   const allowSample = watch('allowSample')
+  const isSmallSampleFree = watch('samples.small.freePerMonth')
+
+  // Initialize form values when component mounts or when sampleData changes
+  useEffect(() => {
+    if (sampleData && Object.keys(sampleData).length > 0) {
+      // Enable sample switch if sample data exists
+      setValue('allowSample', true)
+
+      // Set small sample values
+      if (sampleData.small) {
+        setValue('samples.small.freePerMonth', sampleData.small.freePerMonth)
+        setValue('samples.small.price', sampleData.small.freePerMonth ? 0 : sampleData.small.price)
+      }
+
+      // Set large sample value
+      if (sampleData.large) {
+        setValue('samples.large.price', sampleData.large.price)
+      }
+
+      // Set full sample value
+      if (sampleData.full) {
+        setValue('samples.full.price', sampleData.full.price)
+      }
+    }
+  }, [sampleData, setValue])
+
+  // Effect to handle price when free/paid selection changes
+  useEffect(() => {
+    if (isSmallSampleFree) {
+      setValue('samples.small.price', 0)
+    }
+  }, [isSmallSampleFree, setValue])
 
   return (
     <Card>
@@ -182,8 +119,7 @@ const SampleOrder = ({ rawProductData }) => {
                 defaultValue={0}
                 rules={{
                   validate: value => {
-                    const isFree = watch('samples.small.freePerMonth')
-                    if (!isFree && (!value || Number(value) <= 0)) {
+                    if (!isSmallSampleFree && (!value || Number(value) <= 0)) {
                       return 'Enter a price for paid sample'
                     }
                     return true
@@ -196,7 +132,7 @@ const SampleOrder = ({ rawProductData }) => {
                     type='number'
                     fullWidth
                     sx={{ mt: 1 }}
-                    disabled={watch('samples.small.freePerMonth')}
+                    disabled={isSmallSampleFree}
                     error={!!fieldState.error}
                     helperText={fieldState.error?.message}
                   />

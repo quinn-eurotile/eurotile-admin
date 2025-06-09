@@ -87,14 +87,12 @@ const StepConfirmation = () => {
                 src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=140&width=140"}
                 className="object-cover rounded-lg m-4"
               />
-              <div className="flex flex-col sm:flex-row justify-between flex-1 w-full p-4">
-                <div className="flex flex-col gap-1">
-                  <Typography className="font-medium">{product.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Quantity: {product.quantity}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {getShippingMethodName()} {getShippingDescription()}
+              <div className="flex justify-between is-full p-5 flex-col sm:flex-row items-center sm:items-start">
+                <div className="flex flex-col gap-2 items-center sm:items-start">
+                  <Typography className="font-medium" color="text.primary">
+                    {product?.isSample ?
+                      `${product?.product?.name} (${product?.sampleAttributes?.type} Sample)` :
+                      product?.product?.name}
                   </Typography>
                 </div>
                 <Typography className="font-medium">£{(product.price * product.quantity).toFixed(2)}</Typography>
