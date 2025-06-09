@@ -1,7 +1,5 @@
 import axios from "axios";
 import { getServerSession } from "next-auth";
-import { getSession } from "next-auth/react";
-
 import { authOptions } from "@/libs/auth";
 
 // Base API URL

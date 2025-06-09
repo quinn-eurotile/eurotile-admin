@@ -221,18 +221,43 @@ export const verifyKlarnaPayment = async (orderId) => {
 
 export const sendPaymentLinkToClient = async (data) => {
   return await cartApi.sendPaymentLinkToClient(data);
-  
+
 };
 
 export const getPaymentCart = async (cartId, clientId) => {
-  return await cartApi.getPaymentCart(cartId, clientId);  
- };
- export const updateOrderStatus = async (data) => {
-  return await cartApi.updateOrderStatus(data);  
- };
- export const getOrderById = async (orderId) => {
-  return await cartApi.getOrderById(orderId);  
- };
+  return await cartApi.getPaymentCart(cartId, clientId);
+};
+export const updateOrderStatus = async (data) => {
+  return await cartApi.updateOrderStatus(data);
+};
+export const getOrderById = async (orderId) => {
+  return await cartApi.getOrderById(orderId);
+};
+
+export async function getDisputes({ page = 1, limit = 10 }) {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/disputes?page=${page}&limit=${limit}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch disputes');
+    }
+
+    const data = await response.json();
+    return {
+      data: data.disputes,
+      total: data.total,
+    };
+  } catch (error) {
+    console.error('Error fetching disputes:', error);
+    throw error;
+  }
+}
 
 
 
