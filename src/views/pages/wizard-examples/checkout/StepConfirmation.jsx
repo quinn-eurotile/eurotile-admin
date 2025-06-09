@@ -186,7 +186,9 @@ const StepConfirmation = () => {
               <div className="flex justify-between is-full p-5 flex-col sm:flex-row items-center sm:items-start">
                 <div className="flex flex-col gap-2 items-center sm:items-start">
                   <Typography className="font-medium" color="text.primary">
-                    {product?.product?.name}
+                    {product?.isSample ? 
+                      `${product?.product?.name} (${product?.sampleAttributes?.type} Sample)` : 
+                      product?.product?.name}
                   </Typography>
                   <div className="flex items-center gap-1">
                     <Typography>Sold By:</Typography>

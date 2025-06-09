@@ -29,6 +29,7 @@ const AddProduct = () => {
   const [attributeVariations, setAttributeVariations] = useState([])
   const [defaultAttribute, setDefaultAttribute] = useState([])
   const [productVariations, setProductVariations] = useState([])
+  const [sampleData, setSampleData] = useState({})
 
   const defaultValues = {
     productVariations: productVariations || []
@@ -70,6 +71,10 @@ const AddProduct = () => {
           : []
 
         const attributeIds = Array.isArray(product.attributes) ? product.attributes : []
+
+        const sampleData = product?.samples ? 
+          (typeof product.samples === 'string' ? JSON.parse(product.samples) : product.samples) 
+          : {};
 
         // Map productVariations array with complete data structure
         const productVariations = Array.isArray(product.productVariations)
@@ -171,6 +176,7 @@ const AddProduct = () => {
         setDefaultAttribute(attributeIds)
         setAttributeVariations(attributeVariationIds)
         setProductVariations(productVariations)
+        setSampleData(sampleData)
 
         // Reset the form with fetched and mapped values
         reset(formValues)
@@ -340,7 +346,7 @@ const AddProduct = () => {
                 <ProductOrganize rawProductData={rawProduct} />
               </Grid>
               <Grid size={{ xs: 12 }}>
-                <SampleOrder rawProductData={rawProduct} />
+                <SampleOrder sampleData={sampleData} />
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <ProductFeaturedImage />
