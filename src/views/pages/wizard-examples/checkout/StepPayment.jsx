@@ -172,16 +172,21 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
   );
 };
 
-const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, selectedShipping, addresses, user }) => {
-
-  console.log("cartItems:", cartItems);
-  // console.log("orderSummary:", orderSummary);
-  // console.log("selectedAddress:", selectedAddress);
-  // console.log("selectedShipping:", selectedShipping);
-  // console.log("addresses:", addresses);
-  const { data: session, status } = useSession();
+const StepPayment = ({ handleNext, handleBack }) => {
   // Context
-  const { setStepValid, loading, setOrderData } = useContext(CheckoutContext);
+  const {
+    cartItems,
+    orderSummary,
+    selectedAddress,
+    selectedShipping,
+    addresses,
+    user,
+    adminSettings,
+    setStepValid,
+    loading,
+    setOrderData
+  } = useContext(CheckoutContext);
+  const { data: session, status } = useSession();
   const [mounted, setMounted] = useState(false);
   const [value, setValue] = useState("stripe");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -198,80 +203,9 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
     setPaymentData(null);
     setError("");
   };
-  const calculateTotals = () => {
-    if (!cartItems || cartItems.length === 0) return {
-      subtotal: 0,
-      discount: 0,
-      shipping: 0,
-      total: 0
-    };
 
-    const subtotal = cartItems.reduce((sum, item) => {
-      return sum + (item.price * item.quantity);
-    }, 0);
-
-    const discount = orderSummary?.discount || 0;
-    const shipping = orderSummary?.shipping || 0;
-    const total = subtotal - discount + shipping;
-
-    return {
-      subtotal,
-      discount,
-      shipping,
-      total
-    };
-  };
-
-  const totals = calculateTotals();
-
-  // Handle Klarna payment
-  const handleKlarnaPayment = async () => {
-    setIsProcessing(true);
-    setError("");
-    try {
-      const response = await createKlarnaSession({
-        amount: Math.round(orderSummary.total * 100),
-        currency: "USD",
-        order_lines: cartItems.map(item => ({
-          name: item.productName,
-          quantity: item.quantity,
-          unit_price: Math.round(item.price * 100),
-          total_amount: Math.round(item.price * item.quantity * 100)
-        })),
-        shipping_address: {
-          given_name: selectedAddress?.name?.split(' ')[0] || '',
-          family_name: selectedAddress?.name?.split(' ').slice(1).join(' ') || '',
-          email: selectedAddress?.email,
-          street_address: selectedAddress?.street,
-          city: selectedAddress?.city,
-          postal_code: selectedAddress?.zipCode,
-          country: 'US',
-          phone: selectedAddress?.phone
-        }
-      });
-
-      if (response.success && response.data.redirect_url) {
-        // Save payment method before redirect
-        setPaymentData({
-          paymentMethod: "klarna",
-          sessionId: response.data.session_id
-        });
-
-        // Store session ID in localStorage for verification after redirect
-        localStorage.setItem('klarnaSessionId', response.data.session_id);
-
-        // Redirect to Klarna checkout
-        window.location.href = response.data.redirect_url;
-      } else {
-        setError(response.message || "Failed to initialize Klarna payment");
-      }
-    } catch (error) {
-      console.error("Klarna payment error:", error);
-      setError("Failed to initialize Klarna payment. Please try again.");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  // Get selected address details
+  const selectedAddressDetails = addresses.find((addr) => addr.id === selectedAddress);
 
   // Handle Cash on Delivery
   const handleCashOnDelivery = () => {
@@ -279,11 +213,47 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
       paymentMethod: "cash_on_delivery",
       details: {
         deliveryAddress: selectedAddress,
-        amount: orderSummary.total
+        amount: orderSummary.total,
+        vat: orderSummary.vat,
+        vatRate: orderSummary.vatRate
       }
     });
     setStepValid(2, true);
     handleNext();
+  };
+
+  // Handle Stripe payment
+  const handleStripePayment = async () => {
+    setIsProcessing(true);
+    try {
+      const response = await fetch("/api/payment/stripe/create-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: cartItems,
+          shipping: orderSummary.shipping,
+          vat: orderSummary.vat,
+          vatRate: orderSummary.vatRate,
+          total: orderSummary.total,
+          shippingAddress: selectedAddressDetails
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        window.location.href = data.url;
+      } else {
+        setError(data.message || "Failed to initialize payment");
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      setError("Failed to initialize payment. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   // Handle successful payment
@@ -349,9 +319,6 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
     checkKlarnaPayment();
   }, []);
 
-  // Get selected address details
-  const selectedAddressDetails = addresses?.find((addr) => addr.id === selectedAddress);
-
   const handlePaymentComplete = (paymentData) => {
     // Store payment data for order completion
     setOrderData(prev => ({
@@ -401,7 +368,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                     onPaymentSuccess={handlePaymentSuccess}
                     isProcessing={isProcessing}
                     setIsProcessing={setIsProcessing}
-                    orderSummary={totals}
+                    orderSummary={orderSummary}
                     user={session?.user}
                     cartItems={cartItems}
                     selectedAddress={selectedAddress}
@@ -416,7 +383,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                 </Typography>
                 <Button
                   variant="contained"
-                  onClick={handleKlarnaPayment}
+                  onClick={handleStripePayment}
                   disabled={isProcessing}
                   className="bg-pink-500 hover:bg-pink-600"
                 >
@@ -471,7 +438,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                 <div>
                   <Typography variant="body2">{item.productName}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Qty: {item.quantity} × ${item.price}
+                    Qty: {item.quantity} × £{item.price}
                   </Typography>
                 </div>
               </div>
@@ -480,7 +447,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between gap-2">
                 <Typography color="text.primary">Order Total</Typography>
-                <Typography>${totals.subtotal?.toFixed(2) || "0.00"}</Typography>
+                <Typography>£{orderSummary.subtotal?.toFixed(2) || "0.00"}</Typography>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <Typography color="text.primary">Delivery Charges</Typography>
@@ -488,14 +455,18 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                   {orderSummary.shipping === 0 ? (
                     <>
                       <Typography color="text.disabled" className="line-through">
-                        $5.00
+                        £5.00
                       </Typography>
                       <Chip variant="tonal" size="small" color="success" label="Free" />
                     </>
                   ) : (
-                    <Typography>${orderSummary.shipping?.toFixed(2) || "0.00"}</Typography>
+                    <Typography>£{orderSummary.shipping?.toFixed(2) || "0.00"}</Typography>
                   )}
                 </div>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <Typography color="text.primary">VAT ({orderSummary.vatRate || 0}%)</Typography>
+                <Typography>£{orderSummary.vat?.toFixed(2) || "0.00"}</Typography>
               </div>
             </div>
           </CardContent>
@@ -506,7 +477,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                 <Typography className="font-medium" color="text.primary">
                   Total Amount
                 </Typography>
-                <Typography className="font-medium">${totals.total?.toFixed(2) || "0.00"}</Typography>
+                <Typography className="font-medium">£{orderSummary.total?.toFixed(2) || "0.00"}</Typography>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <Typography className="font-medium" color="text.primary">
