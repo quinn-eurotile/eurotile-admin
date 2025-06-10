@@ -72,8 +72,8 @@ const AddProduct = () => {
 
         const attributeIds = Array.isArray(product.attributes) ? product.attributes : []
 
-        const sampleData = product?.samples ? 
-          (typeof product.samples === 'string' ? JSON.parse(product.samples) : product.samples) 
+        const sampleData = product?.samples ?
+          (typeof product.samples === 'string' ? JSON.parse(product.samples) : product.samples)
           : {};
 
         // Map productVariations array with complete data structure
@@ -297,7 +297,7 @@ const AddProduct = () => {
       // console.log('API Response:', response);
 
       if (response.success) {
-        //router.push(`/${locale}/admin/ecommerce/products/list`)
+        router.push(`/${locale}/admin/ecommerce/products/list`)
         toast.success(response.message || 'Product created successfully')
       } else {
         toast.error(response.message || 'Failed to save product')

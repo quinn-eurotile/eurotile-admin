@@ -79,7 +79,7 @@ const Login = ({ mode }) => {
     resolver: valibotResolver(schema),
     defaultValues: {
       email: 'admin317@yopmail.com',
-      password: '123456789'
+      password: '1234567890'
     }
   })
 
