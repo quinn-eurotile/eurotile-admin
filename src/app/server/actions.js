@@ -240,6 +240,3 @@ export const getOrderList = async (currentPage, rowsPerPage, searchTerm, filtere
 export const getOrderStats = async () => {
   return await orderServices.getStats();
 };
-
-
-

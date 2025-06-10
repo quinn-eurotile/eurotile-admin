@@ -385,8 +385,6 @@ const CheckoutWizard = ({ initialData }) => {
     )
   }
 
-  console.log(initialData,'adminSettings');
-
 
   return (
     <CheckoutContext.Provider value={contextValue}>
