@@ -56,7 +56,7 @@ const VerticalContent = styled(Typography, {
   textAlign: "center",
 });
 
-const StepAddress = ({ handleNext }) => {
+const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => {
   // Context
   const {
     addresses,
@@ -65,12 +65,11 @@ const StepAddress = ({ handleNext }) => {
     setSelectedAddress,
     selectedShipping,
     setSelectedShipping,
-    orderSummary,
     setOrderSummary,
     setStepValid,
     loading,
     user,
-    cartItems, // Declare cartItems from context or props
+    // Declare cartItems from context or props
   } = useContext(CheckoutContext);
 
   // States
@@ -515,7 +514,7 @@ const StepAddress = ({ handleNext }) => {
     try {
       // Generate a unique cart identifier
       const cartId = `cart-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
+
       // Calculate totals
       const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       const shippingCost = selectedShipping === 'express' ? 10 : selectedShipping === 'overnight' ? 15 : 0;
@@ -666,91 +665,44 @@ const StepAddress = ({ handleNext }) => {
         </Grid>
 
         <Grid size={{ xs: 12, lg: 4 }} className="flex flex-col gap-4">
-          <div className="border rounded">
-            <CardContent className="flex flex-col gap-4">
-              <Typography className="font-medium" color="text.primary">
-                Estimated Delivery Date
-              </Typography>
-              {cartItems &&
-                cartItems.map((item, index) => (
-                  <div key={index} className="flex gap-4 items-center">
-                    <img
-                      width={60}
-                      height={60}
-                      src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=60&width=60"}
-                      alt={item?.product?.name || 'Product Image'}
-                    />
-                    <div>
-                      <Typography>{item?.product?.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Quantity: {item.quantity} SQ.M
-                      </Typography>
-                      <Typography className="font-medium">
-                        {selectedShipping === "overnight"
-                          ? "1 day delivery"
-                          : selectedShipping === "express"
-                            ? "3-4 days delivery"
-                            : "1 week delivery"}
-                      </Typography>
-                    </div>
-                  </div>
-                ))}
-            </CardContent>
-            <Divider />
-            <CardContent className="flex flex-col gap-4">
-              <Typography className="font-medium" color="text.primary">
-                Price Details
-              </Typography>
+          {/* Order Summary Card */}
+          <div className="flex flex-col gap-4 rounded border p-4">
+            <Typography variant="h6">Order Summary</Typography>
+            <CardContent className="flex flex-col gap-4 p-0">
               <div className="flex flex-col gap-2">
                 <div className="flex gap-2 justify-between flex-wrap">
-                  <Typography color="text.primary">Order Total</Typography>
-                  <Typography>£{cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2) || "0.00"}</Typography>
+                  <Typography color="text.primary">Subtotal</Typography>
+                  <Typography>£{orderSummary?.subtotal?.toFixed(2) || "0.00"}</Typography>
                 </div>
-                {isClientOrder && (
-                  <div className="flex justify-between flex-wrap">
-                    <Typography color="text.primary">Total Commission</Typography>
-                    <Typography>£{cartItems?.reduce((sum, item) => {
-                      const basePrice = item.variation?.regularPriceB2B || 0;
-                      const currentPrice = modifiedPrices[item._id] || item.price;
-                      const commission = Math.max(0, currentPrice - basePrice);
-                      return sum + (commission * item.quantity);
-                    }, 0).toFixed(2) || "0.00"}</Typography>
-                  </div>
-                )}
                 <div className="flex justify-between flex-wrap">
-                  <Typography color="text.primary">Delivery Charges</Typography>
+                  <Typography color="text.primary">Shipping</Typography>
                   <div className="flex gap-2">
-                    {selectedShipping === "standard" ? (
-                      <>
-                        <Typography color="text.disabled" className="line-through">
-                          £5.00
-                        </Typography>
-                        <Chip size="small" variant="tonal" color="success" label="Free" />
-                      </>
-                    ) : selectedShipping === "express" ? (
-                      <Typography>£10.00</Typography>
-                    ) : selectedShipping === "overnight" ? (
-                      <Typography>£15.00</Typography>
+                    {orderSummary?.shipping > 0 ? (
+                      <Typography>£{orderSummary?.shipping?.toFixed(2)}</Typography>
                     ) : (
-                      <Typography>£0.00</Typography>
+                      <Chip size="small" variant="tonal" color="success" label="Free" />
                     )}
                   </div>
                 </div>
+                {orderSummary?.vat > 0 && (
+                  <div className="flex justify-between flex-wrap">
+                    <Typography color="text.primary">VAT ({orderSummary?.vatRate}%)</Typography>
+                    <Typography>£{orderSummary?.vat?.toFixed(2)}</Typography>
+                  </div>
+                )}
               </div>
             </CardContent>
             <Divider />
-            <CardContent className="flex items-center justify-between flex-wrap">
+            <CardContent className="flex items-center justify-between flex-wrap p-0">
               <Typography className="font-medium" color="text.primary">
-                Total Amount
+                Total
               </Typography>
               <Typography className="font-medium" color="text.primary">
-                £{(
-                  cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0) +
-                  (selectedShipping === "express" ? 10 : selectedShipping === "overnight" ? 15 : 0)
-                ).toFixed(2) || "0.00"}
+                £{orderSummary?.total?.toFixed(2) || "0.00"}
               </Typography>
             </CardContent>
           </div>
+
           <div className="flex justify-end">
 
             {isClientOrder ? (<Button

@@ -75,6 +75,7 @@ const StepConfirmation = () => {
   };
 
   const totals = calculateTotals();
+  console.log('cartItems', cartItems);
 
   return (
     <Grid container spacing={6}>
@@ -112,10 +113,10 @@ const StepConfirmation = () => {
             </div>
             {selectedAddressDetails ? (
               <div>
-                <Typography>{selectedAddressDetails?.name}</Typography>
-                <Typography>{selectedAddressDetails?.street},</Typography>
+                <Typography>{selectedAddressDetails.name}</Typography>
+                <Typography>{selectedAddressDetails.street},</Typography>
                 <Typography>
-                  {selectedAddressDetails?.city}, {selectedAddressDetails?.state} {selectedAddressDetails?.zipCode},
+                  {selectedAddressDetails.city}, {selectedAddressDetails.state} {selectedAddressDetails.zipCode},
                 </Typography>
                 <Typography>USA</Typography>
               </div>
@@ -139,10 +140,10 @@ const StepConfirmation = () => {
             </div>
             {selectedAddressDetails ? (
               <div>
-                <Typography>{selectedAddressDetails?.name}</Typography>
-                <Typography>{selectedAddressDetails?.street},</Typography>
+                <Typography>{selectedAddressDetails.name}</Typography>
+                <Typography>{selectedAddressDetails.street},</Typography>
                 <Typography>
-                  {selectedAddressDetails?.city}, {selectedAddressDetails?.state} {selectedAddressDetails?.zipCode},
+                  {selectedAddressDetails.city}, {selectedAddressDetails.state} {selectedAddressDetails.zipCode},
                 </Typography>
                 <Typography>USA</Typography>
               </div>
@@ -175,12 +176,12 @@ const StepConfirmation = () => {
 
       <Grid size={{ xs: 12, md: 8, xl: 9 }}>
         <div className="border rounded">
-          {cartItems?.map((product, index) => (
+          {cartItems.map((product, index) => (
             <div key={index} className="flex flex-col sm:flex-row items-center [&:not(:last-child)]:border-be">
               <img
                 height={80}
                 width={80}
-                src={`${process?.env?.NEXT_PUBLIC_BACKEND_DOMAIN}${product?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=80&width=80"}
+                src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=80&width=80"}
                 alt={product?.product?.name || 'Product Image'}
               />
               <div className="flex justify-between is-full p-5 flex-col sm:flex-row items-center sm:items-start">
@@ -194,14 +195,14 @@ const StepConfirmation = () => {
                       {product?.product?.supplier?.companyName || 'N/A'}
                     </Typography>
                   </div>
-                  {product?.inStock && <Chip variant="tonal" size="small" color="success" label="In Stock" />}
+                  {product.inStock && <Chip variant="tonal" size="small" color="success" label="In Stock" />}
                   <Typography>Quantity: {product?.quantity}</Typography>
                 </div>
                 <div className="flex items-center">
-                  <Typography color="primary.main">{`$${product?.price}`}</Typography>
-                  {product?.originalPrice && (
+                  <Typography color="primary.main">{`$${product.price}`}</Typography>
+                  {product.originalPrice && (
                     <Typography color="text.disabled" className="line-through">
-                      {`/$${product?.originalPrice}`}
+                      {`/$${product.originalPrice}`}
                     </Typography>
                   )}
                 </div>
@@ -220,12 +221,12 @@ const StepConfirmation = () => {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between gap-2">
                 <Typography color="text.primary">Order Total</Typography>
-                <Typography>${totals?.subtotal?.toFixed(2) || "0.00"}</Typography>
+                <Typography>${totals.subtotal?.toFixed(2) || "0.00"}</Typography>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <Typography color="text.primary">Delivery Charges</Typography>
                 <div className="flex gap-2">
-                  {totals?.shipping === 0 ? (
+                  {totals.shipping === 0 ? (
                     <>
                       <Typography className="line-through" color="text.disabled">
                         $5.00
@@ -233,7 +234,7 @@ const StepConfirmation = () => {
                       <Chip variant="tonal" size="small" color="success" label="Free" />
                     </>
                   ) : (
-                    <Typography>${totals?.shipping?.toFixed(2) || "0.00"}</Typography>
+                    <Typography>${totals.shipping?.toFixed(2) || "0.00"}</Typography>
                   )}
                 </div>
               </div>
@@ -246,7 +247,7 @@ const StepConfirmation = () => {
                 Total
               </Typography>
               <Typography className="font-medium" color="text.primary">
-                ${totals?.total?.toFixed(2) || "0.00"}
+                ${totals.total?.toFixed(2) || "0.00"}
               </Typography>
             </div>
           </CardContent>

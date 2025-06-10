@@ -187,14 +187,11 @@ const getStepContent = (step, handleNext, handleBack, checkoutData) => {
         <StepPayment
           handleNext={handleNext}
           handleBack={handleBack}
-          cartItems={checkoutData.cartItems}
-          orderSummary={checkoutData.orderSummary}
-          selectedAddress={checkoutData.selectedAddress}
-          addresses={checkoutData.addresses}
+          {...checkoutData}
         />
       )
     case 3:
-      return <StepConfirmation />
+      return <StepConfirmation {...checkoutData} />
     default:
       return null
   }
@@ -216,6 +213,7 @@ const CheckoutWizard = ({ initialData }) => {
     initialData?.orderSummary || {
       subtotal: 0,
       shipping: 0,
+      vat:0,
       total: 0
     }
   )
@@ -314,6 +312,49 @@ const CheckoutWizard = ({ initialData }) => {
     setOpen(false)
   }
 
+  // Calculate order summary with VAT
+  const calculateOrderSummary = useCallback(() => {
+    if (!cartItems || cartItems.length === 0) return {
+      subtotal: 0,
+      discount: 0,
+      shipping: 0,
+      vat: 0,
+      total: 0
+    };
+
+    // Calculate subtotal from cart items
+    const subtotal = cartItems.reduce((sum, item) => {
+      return sum + (item.price * item.quantity);
+    }, 0);
+
+    // Get other values
+    const discount = orderSummary?.discount || 0;
+    const shipping = selectedShipping === "express" ? 10 :
+                    selectedShipping === "overnight" ? 15 : 0;
+
+    // Calculate VAT on subtotal minus discount
+    const vatRate = initialData?.adminSettings?.vatOnOrder || 0;
+    const vat = ((subtotal - discount) * vatRate) / 100;
+
+    // Calculate final total
+    const total = subtotal - discount + shipping + vat;
+
+    return {
+      subtotal,
+      discount,
+      shipping,
+      vat,
+      total,
+      vatRate
+    };
+  }, [cartItems, orderSummary?.discount, selectedShipping, initialData?.adminSettings?.vatOnOrder]);
+
+  // Update order summary when dependencies change
+  useEffect(() => {
+    const newSummary = calculateOrderSummary();
+    setOrderSummary(newSummary);
+  }, [calculateOrderSummary]);
+
   // Context value
   const contextValue = {
     cartItems,
@@ -329,9 +370,9 @@ const CheckoutWizard = ({ initialData }) => {
     isStepValid,
     setStepValid,
     loading,
-    user,
-    cartData,
-    setCartData
+    user: session?.user,
+    adminSettings: initialData?.adminSettings,
+    calculateOrderSummary
   }
 
   if (status === 'loading') {
@@ -343,6 +384,9 @@ const CheckoutWizard = ({ initialData }) => {
       </Card>
     )
   }
+
+  console.log(initialData,'adminSettings');
+
 
   return (
     <CheckoutContext.Provider value={contextValue}>
@@ -363,12 +407,13 @@ const CheckoutWizard = ({ initialData }) => {
 
         <CardContent>
           {getStepContent(activeStep, handleNext, handleBack, {
-            handleBack,
             cartItems,
             addresses,
             selectedAddress,
             selectedShipping,
-            orderSummary
+            orderSummary,
+            adminSettings: initialData?.adminSettings,
+            user
           })}
         </CardContent>
       </Card>

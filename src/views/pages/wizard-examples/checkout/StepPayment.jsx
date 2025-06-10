@@ -296,7 +296,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
       }
 
     };
-   // Delete the cart using the existing removeCart action
+    // Delete the cart using the existing removeCart action
     try {
       // const response = await removeCart(cartItems[0]?.cartId);
       // console.log("response removeCartWholeremoveCartWhole:", response);
@@ -469,7 +469,11 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                   className="object-cover rounded-lg"
                 />
                 <div>
-                  <Typography variant="body2">{item.productName}</Typography>
+                  <Typography variant="body2">
+                    {item?.isSample ?
+                      `${item?.product?.name} (${item?.sampleAttributes?.type} Sample)` :
+                      item?.product?.name}
+                  </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Qty: {item.quantity} × ${item.price}
                   </Typography>

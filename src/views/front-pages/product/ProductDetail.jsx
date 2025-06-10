@@ -24,16 +24,6 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 
 
-
-// Sample product images
-// const productImages = [
-//   "/images/pages/slider-img.jpg",
-//   "/images/pages/product-img1.jpg",
-//   "/images/pages/product-img1.jpg",
-//   "/images/pages/product-img1.jpg",
-//   "/images/pages/product-img1.jpg",
-// ]
-
 export default function ProductDetailPage() {
 
   const router = useRouter();
@@ -67,6 +57,12 @@ export default function ProductDetailPage() {
   const [selectedVariations, setSelectedVariations] = useState([]);
 
   const [openSampleDialog, setOpenSampleDialog] = useState(false);
+  const [selectedSamples, setSelectedSamples] = useState({
+    small: false,
+    large: false,
+    full: false
+  });
+
 
   // console.log('Current cart state:', cart);
   const fetchProductDetails = async () => {
@@ -79,7 +75,6 @@ export default function ProductDetailPage() {
       console.error('Failed to fetch product details:', error);
     }
   };
-  const userId = '680b8ce6e2f902abe9cc790b'; // get it from auth/user context if dynamic
 
 
   useEffect(() => {
@@ -87,7 +82,7 @@ export default function ProductDetailPage() {
       fetchProductDetails();
     }
   }, [productId]);
-  useEffect(() => {
+    useEffect(() => {
     if (product?.productVariations?.length > 0) {
       setSelectedVariation(product.productVariations[0]);
     }
@@ -125,7 +120,6 @@ export default function ProductDetailPage() {
     }
   };
 
-console.log(selectedVariation);
 
   // Update product images to use variation images
   const productImages =
@@ -156,15 +150,18 @@ console.log(selectedVariation);
 
     if (numQty < 30) {
       setPricingTier("Tier 5");
-    } else if (numQty < 75) {
+    } else if (numQty < 51) {
       setPricingTier("Tier 4");
-    } else if (numQty < 150) {
+    } else if (numQty < 153) {
       setPricingTier("Tier 3");
-    } else if (numQty < 1500) {
+    } else if (numQty < 1300) {
       setPricingTier("Tier 2");
     } else {
       setPricingTier("Tier 1");
     }
+
+
+
   };
 
 
@@ -192,22 +189,22 @@ console.log(selectedVariation);
   // Map of tiers to human-friendly names and quantity ranges
   const tierData = [
     {
-      label: 'Over 1500 sq.m',
+      label: 'Over 1300 sq.m',
       tierKey: 'tierFirst',
       tierName: 'Tier 1',
     },
     {
-      label: 'Under 150 - 1500 sq.m',
+      label: '153 - 1300 sq.m',
       tierKey: 'tierSecond',
       tierName: 'Tier 2',
     },
     {
-      label: 'Under 75 - 153 sq.m',
+      label: '51 - 153 sq.m',
       tierKey: 'tierThird',
       tierName: 'Tier 3',
     },
     {
-      label: 'Under 30 - 75 sq.m',
+      label: '30 - 51 sq.m',
       tierKey: 'tierFourth',
       tierName: 'Tier 4',
     },
@@ -227,7 +224,7 @@ console.log(selectedVariation);
     }
 
     // Use palletSize as tilesPerPallet
-    const tilesPerPallet = selectedVariation.palletSize || 1;
+    const tilesPerPallet = parseFloat(selectedVariation.boxesPerPallet) * parseFloat(selectedVariation.numberOfTiles) || 1;
     // Use sqmPerTile if available, else fallback to 1 to avoid division by 0
     const sqmPerTile = selectedVariation.sqmPerTile || 1;
 
@@ -261,11 +258,11 @@ console.log(selectedVariation);
     const sqm = newValues.sqm;
     let pricingTier;
 
-    if (sqm > 1500) {
+    if (sqm > 1300) {
       pricingTier = 'tierFirst';
     } else if (sqm > 153) {
       pricingTier = 'tierSecond';
-    } else if (sqm > 75) {
+    } else if (sqm > 51) {
       pricingTier = 'tierThird';
     } else if (sqm > 30) {
       pricingTier = 'tierFourth';
@@ -276,10 +273,12 @@ console.log(selectedVariation);
     const tierData = selectedVariation.tierDiscount[pricingTier];
     if (tierData) {
       const { tierAddOn, tierMultiplyBy } = tierData;
-      const calculatedPrice = tierAddOn + tierMultiplyBy * sqm;
+      // Calculate price per sqm for this tier
+    const pricePerSqm = tierAddOn + tierMultiplyBy;
 
-      newValues.tier = pricingTier;
-      newValues.calculatedPrice = calculatedPrice;
+    newValues.tier = pricingTier;
+    newValues.pricePerSqm = pricePerSqm;
+    newValues.calculatedPrice = pricePerSqm * sqm;
     }
 
     setCalculatedValues(newValues);
@@ -341,7 +340,7 @@ console.log(selectedVariation);
       numberOfTiles: calculatedValues.tiles,
       numberOfPallets: calculatedValues.pallets,
       attributes: selectedAttributes,
-      price: selectedVariation.regularPriceB2C
+      price: calculatedValues.pricePerSqm || selectedVariation.regularPriceB2C
     };
 
     setSelectedVariations([...selectedVariations, newVariation]);
@@ -396,31 +395,73 @@ console.log(selectedVariation);
       // Prepare cart items
       let cartItems = [];
 
-      // Add saved variations
-      selectedVariations.forEach(variation => {
+      if (!openSampleDialog) {
+
+        // Add saved variations
+        selectedVariations.forEach(variation => {
+          cartItems.push({
+            productId: product._id,
+            variationId: variation.variation._id,
+            quantity: variation.quantity,
+            numberOfTiles: variation.numberOfTiles,
+            numberOfPallets: variation.numberOfPallets,
+            attributes: variation.attributes,
+            price: variation.price,
+            isSample: false,
+            sampleAttributes: null
+          });
+        });
+
+        // Add current selection if exists
+        if (selectedVariation && calculatedValues.sqm) {
+          cartItems.push({
+            productId: product._id,
+            variationId: selectedVariation._id,
+            quantity: calculatedValues.sqm,
+            numberOfTiles: calculatedValues.tiles,
+            numberOfPallets: calculatedValues.pallets,
+            attributes: selectedAttributes,
+            price: selectedVariation.regularPriceB2C,
+            isSample: false,
+            sampleAttributes: null
+          });
+        }
+
+      }
+
+      // Add selected samples if any
+      const selectedTypes = Object.entries(selectedSamples)
+        .filter(([_, isSelected]) => isSelected)
+        .map(([type]) => type);
+
+      selectedTypes.forEach(type => {
+        const sampleInfo = sampleData[type];
+        const samplePrice = type === 'small' && sampleInfo.freePerMonth ? 0 : sampleInfo.price;
+
+        console.log('samplePrice', sampleInfo);
+
+
+
         cartItems.push({
           productId: product._id,
-          variationId: variation.variation._id,
-          quantity: variation.quantity,
-          numberOfTiles: variation.numberOfTiles,
-          numberOfPallets: variation.numberOfPallets,
-          attributes: variation.attributes,
-          price: variation.price
+          variationId: selectedVariation?._id,
+          quantity: 1,
+          numberOfTiles: 0,
+          numberOfPallets: 0,
+          attributes: {
+            size: type === 'small' ? '15x15cm' : type === 'large' ? '60x60cm' : 'Full Size',
+            type: type
+          },
+          price: samplePrice,
+          isSample: true,
+          sampleAttributes: {
+            size: type === 'small' ? '15x15cm' : type === 'large' ? '60x60cm' : 'Full Size',
+            type: type,
+            price: samplePrice
+          }
         });
       });
 
-      // Add current selection if exists
-      if (selectedVariation && calculatedValues.sqm) {
-        cartItems.push({
-          productId: product._id,
-          variationId: selectedVariation._id,
-          quantity: calculatedValues.sqm,
-          numberOfTiles: calculatedValues.tiles,
-          numberOfPallets: calculatedValues.pallets,
-          attributes: selectedAttributes,
-          price: selectedVariation.regularPriceB2C
-        });
-      }
 
       const response = await addCart({
         items: cartItems,
@@ -430,9 +471,14 @@ console.log(selectedVariation);
       if (response.success) {
         dispatch(addToCart(response.data));
         toast.success('Products added to cart successfully');
-
         router.push('/' + locale + '/checkout');
         setSelectedVariations([]); // Clear selections after successful add
+        setSelectedSamples({ // Clear sample selections
+          small: false,
+          large: false,
+          full: false
+        });
+        setOpenSampleDialog(false);
       } else {
         setError(response.message || 'Failed to add items to cart');
       }
@@ -477,6 +523,17 @@ console.log(selectedVariation);
     return 'You have unlocked the maximum discount!';
   };
 
+  const handleSampleChange = (type) => {
+    setSelectedSamples(prev => ({
+      ...prev,
+      [type]: !prev[type]
+    }));
+  };
+
+  // Parse sample data from product
+  const sampleData = product?.samples ?
+    (typeof product.samples === 'string' ? JSON.parse(product.samples) : product.samples)
+    : null;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -542,7 +599,7 @@ console.log(selectedVariation);
                 <span className="text-sm text-gray-600 ml-1">3.5k Reviews</span>
               </div>
 
-              <div className="mt-3 mb-4">
+                            <div className="mt-3 mb-4">
                 <p className="text-md text-redText mb-3">£{displayPrice?.minPrice} - £{displayPrice?.maxPrice}/SQ.M</p>
                 <p className="flex items-center gap-2 text-sm">
                   <span>Current Stock:</span>
@@ -560,74 +617,105 @@ console.log(selectedVariation);
                 <DialogTitle id='form-dialog-title'>Need A Sample?</DialogTitle>
                 <DialogContent>
                   <DialogContentText className='mbe-5'>
-                    20x20cm sample delivered in 3-5 working days
+                    Choose your sample size and we'll deliver it to you
                   </DialogContentText>
 
                   <FormControl className='flex-wrap flex-row'>
                     <RadioGroup row defaultValue='checked' name='basic-radio' aria-label='basic-radio' className="gap-4">
-
-                      <FormControlLabel className="w-full items-start"
-                        sx={{
-                          '& .MuiButtonBase-root': {
-                            paddingTop: 0,
+                      {sampleData?.small && (
+                        <FormControlLabel
+                          className="w-full items-start"
+                          sx={{
+                            '& .MuiButtonBase-root': {
+                              paddingTop: 0,
+                            }
+                          }}
+                          label={<span>
+                            15x15cm Sample
+                            <span className="block text-gray-400" style={{ fontSize: '12px' }}>
+                              {sampleData.small.freePerMonth
+                                ? '(1 Free Sample per Month for Trade professional)'
+                                : `(Price: £${sampleData.small.price})`}
+                            </span>
+                          </span>}
+                          control={
+                            <Checkbox
+                              checked={selectedSamples.small}
+                              onChange={() => handleSampleChange('small')}
+                              name='small-sample'
+                            />
                           }
-                        }}
-                        label={<span>
-                          15x15cm Sample
-                          <span className="block text-gray-400" style={{ fontSize: '12px' }}>
-                            (1 Free Sample per Month for Trade professional)
-                          </span>
-                        </span>}
-                        control={<Checkbox defaultChecked name='basic-checked' />} />
+                        />
+                      )}
 
-                      <FormControlLabel className="w-full items-start"
-                        sx={{
-                          '& .MuiButtonBase-root': {
-                            paddingTop: 0,
+                      {sampleData?.large && (
+                        <FormControlLabel
+                          className="w-full items-start"
+                          sx={{
+                            '& .MuiButtonBase-root': {
+                              paddingTop: 0,
+                            }
+                          }}
+                          label={<span>
+                            Large Sample (60x60cm)
+                            <span className="block text-gray-400" style={{ fontSize: '12px' }}>
+                              (Price: £{sampleData.large.price})
+                            </span>
+                          </span>}
+                          control={
+                            <Checkbox
+                              checked={selectedSamples.large}
+                              onChange={() => handleSampleChange('large')}
+                              name='large-sample'
+                            />
                           }
-                        }}
-                        label={<span>
-                          Large Sample (60x60cm) – Chargeable
-                          <span className="block text-gray-400" style={{ fontSize: '12px' }}>
-                            (Admin-defined price or proportionate to product price)
-                          </span>
-                        </span>}
-                        control={<Checkbox name='basic-checked' />} />
+                        />
+                      )}
 
-                      <FormControlLabel className="w-full items-start"
-                        sx={{
-                          '& .MuiButtonBase-root': {
-                            paddingTop: 0,
+                      {sampleData?.full && (
+                        <FormControlLabel
+                          className="w-full items-start"
+                          sx={{
+                            '& .MuiButtonBase-root': {
+                              paddingTop: 0,
+                            }
+                          }}
+                          label={<span>
+                            Full-Size Sample
+                            <span className="block text-gray-400" style={{ fontSize: '12px' }}>
+                              (Price: £{sampleData.full.price})
+                            </span>
+                          </span>}
+                          control={
+                            <Checkbox
+                              checked={selectedSamples.full}
+                              onChange={() => handleSampleChange('full')}
+                              name='full-sample'
+                            />
                           }
-                        }}
-                        label={<span>
-                          Full-Size Sample – Chargeable
-                          <span className="block text-gray-400" style={{ fontSize: '12px' }}>
-                            (Admin-defined price or proportionate to product price)
-                          </span>
-                        </span>}
-                        control={<Checkbox name='basic-checked' />} />
-
-
-
+                        />
+                      )}
                     </RadioGroup>
                   </FormControl>
 
                 </DialogContent>
                 <DialogActions>
-                  <Button onClick={() => setOpenSampleDialog(false)} variant='contained'>
-                    Submit
+                  <Button onClick={() => setOpenSampleDialog(false)} variant='outlined'>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleAddToCart} variant='contained'>
+                    Order Sample
                   </Button>
                 </DialogActions>
               </Dialog>
 
               <div className="my-6">
-               <div className="flex justify-between items-center mb-4">
-                <h3 className="font-normal">Pricing Tiers (inc. Shipping & Duties) </h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-normal">Pricing Tiers (inc. Shipping & Duties) </h3>
 
-                 <p className="text-sm text-red-800 my-4">
-                <a href="#" className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-900" onClick={() => setOpenSampleDialog(true)}>Need A Sample?</a>
-              </p>
+                  <p className="text-sm text-red-800 my-4">
+                    <a href="#" className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-900" onClick={() => setOpenSampleDialog(true)}>Need A Sample?</a>
+                  </p>
                 </div>
 
 
@@ -644,8 +732,6 @@ console.log(selectedVariation);
                     <tbody>
                       {selectedVariation && tierData.map((tier) => {
                         const discount = selectedVariation?.tierDiscount?.[tier.tierKey];
-
-                        // Example price calculation (you can adapt this logic as needed)
                         const price = discount.tierAddOn + discount.tierMultiplyBy;
                         return (
                           <tr key={tier.tierKey} className="border-t text-black/50">
@@ -655,31 +741,7 @@ console.log(selectedVariation);
                           </tr>
                         );
                       })}
-                      {/* <tr className="border-t text-black/50">
-                        <td className="px-4 py-2 border-r">Under 30 sq.m</td>
-                        <td className="px-4 py-2 border-r">Tier 5</td>
-                        <td className="px-4 py-2">£100.00 (inc. VAT)</td>
-                      </tr>
-                      <tr className="border-t text-black/50">
-                        <td className="px-4 py-2 border-r">Under 30 - 75 sq.m</td>
-                        <td className="px-4 py-2 border-r">Tier 4</td>
-                        <td className="px-4 py-2">£90.00 (inc. VAT)</td>
-                      </tr>
-                      <tr className="border-t text-black/50">
-                        <td className="px-4 py-2 border-r">Under 75 - 153 sq.m</td>
-                        <td className="px-4 py-2 border-r">Tier 3</td>
-                        <td className="px-4 py-2">£75.00 (inc. VAT)</td>
-                      </tr>
-                      <tr className="border-t text-black/50">
-                        <td className="px-4 py-2 border-r">Under 150 - 1500 sq.m</td>
-                        <td className="px-4 py-2 border-r">Tier 2</td>
-                        <td className="px-4 py-2">£70.00 (inc. VAT)</td>
-                      </tr>
-                      <tr className="border-t text-black/50">
-                        <td className="px-4 py-2 border-r">Over 1500 sq.m</td>
-                        <td className="px-4 py-2 border-r">Tier 1</td>
-                        <td className="px-4 py-2">£65.00 (inc. VAT)</td>
-                      </tr> */}
+
                     </tbody>
                   </table>
                 </div>
@@ -706,7 +768,7 @@ console.log(selectedVariation);
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   {product?.attributes?.map(attributeId => {
-                    // Get ALL variations for this attributeId
+                                        // Get ALL variations for this attributeId
                     const attributeVariations = product.attributeVariations.filter(
                       av => av.productAttribute === attributeId
                     );
@@ -717,24 +779,43 @@ console.log(selectedVariation);
                     const label = attributeVariations[0].metaKey;
 
                     return (
-                      <FormControl fullWidth key={attributeId} className="mb-4">
-                        <InputLabel>{label}</InputLabel>
-                        <Select
-                          value={selectedAttributes[attributeId] || ''}
-                          onChange={(e) => handleVariationChange(attributeId, e.target.value)}
-                          label={label}
-                          sx={{
-                            backgroundColor: '#f4f0ed',
-                            borderRadius: '10px'
-                          }}
-                        >
-                          {attributeVariations.map(variation => (
-                            <MenuItem key={variation._id} value={variation._id}>
-                              {variation.metaValue}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                      <div key={attributeId} className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          {label}
+                        </label>
+                        <FormControl fullWidth>
+                          <Select
+                            value={selectedAttributes[attributeId] || ''}
+                            onChange={(e) => handleVariationChange(attributeId, e.target.value)}
+                            displayEmpty
+                            sx={{
+                              backgroundColor: '#f4f0ed',
+                              borderRadius: '10px',
+                              '& .MuiSelect-select': {
+                                padding: '12px'
+                              }
+                            }}
+                          >
+
+                            {attributeVariations.map(variation => (
+                              <MenuItem
+                                key={variation._id}
+                                value={variation._id}
+                                sx={{
+                                  '&.Mui-selected': {
+                                    backgroundColor: 'rgba(185, 28, 28, 0.08)'
+                                  },
+                                  '&.Mui-selected:hover': {
+                                    backgroundColor: 'rgba(185, 28, 28, 0.12)'
+                                  }
+                                }}
+                              >
+                                {variation.metaValue}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </div>
                     );
                   })}
 
@@ -747,33 +828,35 @@ console.log(selectedVariation);
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div className="rounded-md">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Quantity (SQ.M)</label>
                     <input
                       type="text"
                       value={quantity}
-                      placeholder="Quantity / Enter SQ.M"
+                      placeholder="Enter quantity in SQ.M"
                       className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
                       onChange={handleQuantityChange}
                     />
                   </div>
 
                   <div className="rounded-md">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Number of Tiles</label>
                     <input
                       type="text"
                       value={tiles}
                       className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
                       onChange={handleTilesChange}
-                      placeholder="No. Of Tiles"
+                      placeholder="Enter number of tiles"
                     />
                   </div>
 
                   <div className="rounded-md">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Number of Pallets</label>
                     <input
                       type="text"
-                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]
-!rounded-[10px]"
+                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
                       value={pallets}
                       onChange={handlePalletsChange}
-                      placeholder="No. Of Pallets"
+                      placeholder="Enter number of pallets"
                     />
                   </div>
                 </div>
@@ -781,32 +864,7 @@ console.log(selectedVariation);
                 {error && (
                   <div className="text-red-500 mb-4">{error}</div>
                 )}
-                {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
 
-                  <div className="rounded-md">
-                    <input type="text" placeholder="Quantity / Enter SQ.M" className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black" onChange={handleQuantityChange} />
-                  </div>
-
-                  <div className="rounded-md">
-                    <input
-                      type="text"
-                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
-                      onChange={(e) => setTiles(e.target.value)}
-                      placeholder="No. Of Tiles"
-                    />
-                  </div>
-
-                  <div className="rounded-md">
-
-                    <input
-                      type="text"
-                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black"
-                      value={pallets}
-                      onChange={(e) => setPallets(e.target.value)}
-                      placeholder="No. Of Pallets"
-                    />
-                  </div>
-                </div> */}
 
                 {/* Add Selected Variations List */}
                 {selectedVariations.length > 0 && (
@@ -886,89 +944,6 @@ console.log(selectedVariation);
 
 
 
-          {/* <h1 className="text-lg font-semibold text-gray-900 mb-5">Get the Best Deal for I travertini bianco cross cut</h1>
-
-
-          <Grid2 container spacing={2} className="mb-12">
-            <Grid2 size={{ xs: 12, md: 6 }}>
-              <div className="bg-slate-50 rounded-2xl border border-red-200 p-3 shadow-sm hover:shadow-md transition-shadow duration-200 w-full">
-                <div className="flex gap-4 items-center flex-col md:flex-row">
-                  <div className="flex gap-4 items-center w-full">
-                    <div className="flex-shrink-0">
-                      <div className="w-35 h-35 rounded-lg overflow-hidden ">
-                        <Image
-                          src={"/images/pages/slider-img.jpg"}
-                          alt=""
-                          width={124}
-                          height={124}
-                          className="w-full h-full object-cover align-middle"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex-1 min-w-0 ">
-                      <h3 className="font-semibold  text-sm mb-1 leading-tight  text-red-800">Travertini Bianco Cross Cut</h3>
-                      <p className="font-normal text-gray-600 text-sm mb-1">Store Name Here</p>
-
-                      <div className="flex items-center gap-1 mb-1">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <i key={i} className="ri-star-fill fill-redText text-redText text-sm"></i>
-                        ))}
-                        <span className="text-sm font-normal text-gray-900 ml-1">3.2k Reviews</span>
-                      </div>
-
-                      <div className="text-sm font-semibold text-red-800 mb-3">£55.00 - £90.00/SQ.M</div>
-                    </div>
-                  </div>
-
-                  <div className="flex-shrink-0">
-                    <Button variant="text" className="flex items-center gap-1 text-gray-700 hover:bg-red-800 hover:text-white transition-colors">
-                      <span className="text-sm font-medium">Shop Now</span>
-                      <i className="ri-arrow-right-s-line text-sm"></i>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Grid2>
-            <Grid2 size={{ xs: 12, md: 6 }}>
-              <div className="bg-slate-50 rounded-2xl border border-red-200 p-3 shadow-sm hover:shadow-md transition-shadow duration-200 w-full">
-                <div className="flex gap-4 items-center flex-col md:flex-row">
-                  <div className="flex gap-4 items-center w-full">
-                  <div className="flex-shrink-0">
-                    <div className="w-35 h-35 rounded-lg overflow-hidden ">
-                      <Image
-                        src={"/images/pages/slider-img.jpg"}
-                        alt=""
-                        width={124}
-                        height={124}
-                        className="w-full h-full object-cover align-middle"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0 ">
-                    <h3 className="font-semibold  text-sm mb-1 leading-tight  text-red-800">Rock Pattern Tiles</h3>
-                    <p className="font-normal text-gray-600 text-sm mb-1">Store Name Here</p>
-
-                    <div className="flex items-center gap-1 mb-1">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <i key={i} className="ri-star-fill fill-redText text-redText text-sm"></i>
-                      ))}
-                      <span className="text-sm font-normal text-gray-900 ml-1">3.2k Reviews</span>
-                    </div>
-
-                    <div className="text-sm font-semibold text-red-800 mb-3">£55.00 - £90.00/SQ.M</div>
-                  </div>
-                  </div>
-
-                  <div className="flex-shrink-0">
-                    <Button variant="text" className="flex items-center gap-1 text-gray-700 hover:bg-red-800 hover:text-white transition-colors">
-                      <span className="text-sm font-medium">Shop Now</span>
-                      <i className="ri-arrow-right-s-line text-sm"></i>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Grid2>
-          </Grid2> */}
 
           <TabContext value={Tabvalue}>
             <TabList
@@ -1016,96 +991,6 @@ console.log(selectedVariation);
             <TabPanel value='1' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
 
               {product?.description ?? ''}
-              {/* <p className="text-sm leading-relaxed">
-                The Timeless Modernity Of Travertine And Its Harmonious Elegance Are Expressed In An Extremely Versatile
-                Collection Available In Terms Of Colours, Which Range From Cool Tones To Warmer, Enveloping Nuances.
-                Appearance And Surface Variation Travertine Reveals Different Textures Depending On Its Cuts.
-              </p>
-              <p className="text-sm leading-relaxed mt-4">
-                The Cross Cut Technology Reproduces The Cloudy Aesthetics Achieved By Cutting Perpendicular To The
-                Direction Of Layering Of The Stone, Resulting In A Homogeneous And Balanced Overall Effect.
-              </p> */}
-
-              {/* <div className="mt-6">
-                <h3 className="font-normal mb-2 text-sm">Need A Sample?</h3>
-                <p className="text-sm text-gray-600 mb-3">20x20cm Sample Delivered In 3-5 Working Days</p>
-
-                <Select className="mt-4">
-                  <SelectTrigger className="max-w-xs w-full md:w-1/4 mt-3 bg-bgLight">
-                    <SelectValue placeholder="£9.99 CHOOSE FINISH" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="polished">Polished</SelectItem>
-                    <SelectItem value="matte">Matte</SelectItem>
-                    <SelectItem value="honed">Honed</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <FormControl fullWidth className="max-w-xs w-full md:w-1/4 mt-3 bg-bgLight  rounded-md">
-                  <InputLabel id='choose-finish-label'>£9.99 CHOOSE FINISH</InputLabel>
-                  <Select label='£9.99 CHOOSE FINISH' labelId='choose-finish-label' id='choose-finish' defaultValue=''
-                    sx={{
-                      backgroundColor: '#f4f0ed',
-                      borderRadius: '10px',
-                      '&:hover .MuiSelect-filled:not(.Mui-disabled)::before': {
-                        borderBottom: 'none',
-                      },
-                      '& .MuiSelect-filled::before': {
-                        borderBottom: 'none',
-                      },
-                      '& .MuiSelect-filled::after': {
-                        borderBottom: 'none',
-                      },
-                    }}
-                  >
-                    <MenuItem value=''>
-                      <em>None</em>
-                    </MenuItem>
-                    <MenuItem value={10}>Polished</MenuItem>
-                    <MenuItem value={20}>Matte</MenuItem>
-                    <MenuItem value={30}>Honed</MenuItem>
-                  </Select>
-                </FormControl>
-
-              </div> */}
-
-              {/* <div className="mt-6">
-                <h3 className="font-normal mb-2">High Res Images Pack</h3>
-
-                 <Select className="max-w-xs">
-                  <SelectTrigger className="max-w-xs w-full md:w-1/4 mt-3 bg-bgLight">
-                    <SelectValue placeholder="DOWNLOAD (5.8MB)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="download">Download Now</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <FormControl fullWidth className="max-w-xs w-full md:w-1/4 mt-3 bg-bgLight rounded-md">
-                  <InputLabel id='download-label'>DOWNLOAD (5.8MB)</InputLabel>
-                  <Select label='DOWNLOAD (5.8MB)' labelId='download-label' id='download' defaultValue=''
-                    sx={{
-                      backgroundColor: '#f4f0ed',
-                      borderRadius: '10px',
-                      '&:hover .MuiSelect-filled:not(.Mui-disabled)::before': {
-                        borderBottom: 'none',
-                      },
-                      '& .MuiSelect-filled::before': {
-                        borderBottom: 'none',
-                      },
-                      '& .MuiSelect-filled::after': {
-                        borderBottom: 'none',
-                      },
-                    }}
-                  >
-                    <MenuItem value=''>
-                      <em>None</em>
-                    </MenuItem>
-                    <MenuItem value={10}>Download Now</MenuItem>
-                  </Select>
-                </FormControl>
-
-              </div> */}
 
             </TabPanel>
             <TabPanel value='2' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
@@ -1215,7 +1100,7 @@ console.log(selectedVariation);
           <div className="mt-12">
             <h2 className="text-2xl font-medium text-red-800 mb-6 text-center">More Products</h2>
             {/* <RelatedProductGrid products={product?.associatedProduct} /> */}
-            {/* <RelatedProductGrid products={product?.associatedProducts || []} /> */}
+            <RelatedProductGrid products={product?.associatedProducts || []} />
 
           </div>
         </div>
