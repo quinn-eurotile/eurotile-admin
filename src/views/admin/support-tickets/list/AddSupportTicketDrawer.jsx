@@ -7,16 +7,20 @@ import IconButton from '@mui/material/IconButton'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
-
+import Autocomplete from '@mui/material/Autocomplete'
 // React Hook Form
 import { useForm } from 'react-hook-form'
 import TicketFile from './TicketFile'
 import { createSupportTicket, updateSupportTicketStatus } from '@/app/server/support-ticket'
-import { FormControl, InputLabel, MenuItem, Select } from '@mui/material'
+import { FormControl, InputLabel, MenuItem, Select, FormHelperText } from '@mui/material'
+import { getOrderListForSupportTicket } from '@/app/server/order'
+import { callCommonAction } from '@/redux-store/slices/common'
+import { useDispatch } from 'react-redux'
 
 const AddSupportTicketDrawer = ({ open, handleClose, refreshList, editData, setEditData }) => {
   const [featuredImageFile, setFeaturedImageFile] = useState(null)
-
+  const [orders, setOrders] = useState([])
+  const dispatch = useDispatch()
   const statusOptions = [
     { value: 1, label: 'Open' },
     //{ value: 2, label: 'Closed' },
@@ -25,6 +29,14 @@ const AddSupportTicketDrawer = ({ open, handleClose, refreshList, editData, setE
     { value: 5, label: 'Resolved' },
     { value: 6, label: 'Rejected' },
     //{ value: 7, label: 'Cancelled' }
+  ]
+
+  const issueTypeOptions = [
+    { value: 1, label: 'Order Issue' },
+    { value: 2, label: 'Payment Issue' },
+    { value: 3, label: 'Invoice Issue' },
+    { value: 4, label: 'Product Issue' },
+    { value: 5, label: 'General Issue' }
   ]
 
   const {
@@ -39,25 +51,51 @@ const AddSupportTicketDrawer = ({ open, handleClose, refreshList, editData, setE
   } = useForm()
 
   useEffect(() => {
+    if (open) {
+      fetchOrderList();
+    }
+  }, [open]);
+
+  const fetchOrderList = async () => {
+    try {
+      dispatch(callCommonAction({ loading: true }));
+      const response = await getOrderListForSupportTicket();
+      dispatch(callCommonAction({ loading: false }));
+      if (response.statusCode === 200 && response.data) {
+        console.log(response?.data, 'response?.dataresponse?.dataresponse?.data')
+        setOrders(response?.data);
+      }
+    } catch (error) {
+      dispatch(callCommonAction({ loading: false }));
+      console.error('Failed to fetch order list', error);
+    }
+  };
+
+  useEffect(() => {
     if (editData) {
       // Reset form values based on editData
       reset({
-        subject: editData.subject || '',
-        message: editData.message || '',
-        status: editData.status || 1
+        subject: editData?.subject || '',
+        message: editData?.message || '',
+        status: editData?.status || 1,
+        issue_type: editData?.issue_type || 1,
+        order: editData?.order || ''
       })
     } else {
       reset({
         subject: '',
         message: '',
         status: 1,
+        issue_type: "1",
+        order: null
       })
-       setFeaturedImageFile(null)
+      setFeaturedImageFile(null)
     }
   }, [editData, reset])
 
   useEffect(() => {
     register('status', { required: 'Status is required' })
+    register('issue_type', { required: 'Issue type is required' })
   }, [register])
 
   const onSubmit = async formValues => {
@@ -89,6 +127,8 @@ const AddSupportTicketDrawer = ({ open, handleClose, refreshList, editData, setE
       formData.append('subject', formValues.subject)
       formData.append('message', formValues.message)
       formData.append('status', formValues.status)
+      formData.append('issue_type', formValues.issue_type)
+      formData.append('order', formValues.order)
 
       if (featuredImageFile) {
         formData.append('ticketFile', featuredImageFile)
@@ -146,6 +186,46 @@ const AddSupportTicketDrawer = ({ open, handleClose, refreshList, editData, setE
             error={Boolean(errors.subject)}
             helperText={errors.subject?.message}
           />
+
+
+          <FormControl fullWidth error={Boolean(errors.order_id)}>
+            <Autocomplete
+              disablePortal
+              options={orders}
+              getOptionLabel={option => option?.orderId || ''}
+              isOptionEqualToValue={(option, value) => option._id === value._id}
+              value={orders.find(order => order._id === watch('order')) || null}
+              onChange={(e, newValue) => { setValue('order', newValue?._id || '') }}
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  label='Select Order ID'
+                  error={Boolean(errors.order)}
+                  helperText={errors.order?.message}
+                />
+              )}
+              disabled={!!editData}
+            />
+          </FormControl>
+
+          <FormControl fullWidth error={Boolean(errors.issue_type)}>
+            <InputLabel id='issue-type-label'>Issue Type</InputLabel>
+            <Select
+              labelId='issue-type-label'
+              label='Issue Type'
+              defaultValue={1}
+              disabled={!!editData}
+              value={watch('issue_type') ?? 1}
+              {...register('issue_type', { required: 'Issue type is required' })}
+            >
+              {issueTypeOptions.map(opt => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.issue_type && <FormHelperText>{errors.issue_type.message}</FormHelperText>}
+          </FormControl>
 
           <TextField
             fullWidth
