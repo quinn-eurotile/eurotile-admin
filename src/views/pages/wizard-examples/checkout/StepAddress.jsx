@@ -665,6 +665,43 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
         </Grid>
 
         <Grid size={{ xs: 12, lg: 4 }} className="flex flex-col gap-4">
+          {/* Order Summary Card */}
+          <div className="flex flex-col gap-4 rounded border p-4">
+            <Typography variant="h6">Order Summary</Typography>
+            <CardContent className="flex flex-col gap-4 p-0">
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2 justify-between flex-wrap">
+                  <Typography color="text.primary">Subtotal</Typography>
+                  <Typography>£{orderSummary?.subtotal?.toFixed(2) || "0.00"}</Typography>
+                </div>
+                <div className="flex justify-between flex-wrap">
+                  <Typography color="text.primary">Shipping</Typography>
+                  <div className="flex gap-2">
+                    {orderSummary?.shipping > 0 ? (
+                      <Typography>£{orderSummary?.shipping?.toFixed(2)}</Typography>
+                    ) : (
+                      <Chip size="small" variant="tonal" color="success" label="Free" />
+                    )}
+                  </div>
+                </div>
+                {orderSummary?.vat > 0 && (
+                  <div className="flex justify-between flex-wrap">
+                    <Typography color="text.primary">VAT ({orderSummary?.vatRate}%)</Typography>
+                    <Typography>£{orderSummary?.vat?.toFixed(2)}</Typography>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+            <Divider />
+            <CardContent className="flex items-center justify-between flex-wrap p-0">
+              <Typography className="font-medium" color="text.primary">
+                Total
+              </Typography>
+              <Typography className="font-medium" color="text.primary">
+                £{orderSummary?.total?.toFixed(2) || "0.00"}
+              </Typography>
+            </CardContent>
+          </div>
 
           <div className="flex justify-end">
 
