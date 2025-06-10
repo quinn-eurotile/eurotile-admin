@@ -14,7 +14,6 @@ import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
 import Chip from '@mui/material/Chip'
 import IconButton from '@mui/material/IconButton'
-import Rating from '@mui/material/Rating'
 import CardContent from '@mui/material/CardContent'
 import Collapse from '@mui/material/Collapse'
 import Fade from '@mui/material/Fade'
@@ -22,36 +21,16 @@ import Fade from '@mui/material/Fade'
 // Component Imports
 import DirectionalIcon from '@components/DirectionalIcon'
 
-// Vars
-const products = [
-  {
-    imgSrc: '/images/pages/google-home.png',
-    imgAlt: 'Google Home',
-    productName: 'Google - Google Home - White',
-    soldBy: 'Google',
-    inStock: true,
-    rating: 4,
-    count: 1,
-    price: 299,
-    originalPrice: 359
-  },
-  {
-    imgSrc: '/images/pages/iPhone-11.png',
-    imgAlt: 'Apple iPhone',
-    productName: 'Apple iPhone 11 (64GB, Black)',
-    soldBy: 'Apple',
-    inStock: true,
-    rating: 4,
-    count: 1,
-    price: 899,
-    originalPrice: 999
-  }
-]
+// Redux Imports
+import { useSelector, useDispatch } from 'react-redux'
+import { updateQuantity, removeFromCart } from '@/redux-store/slices/cart'
 
 const StepCart = ({ handleNext }) => {
   // States
   const [openCollapse, setOpenCollapse] = useState(true)
   const [openFade, setOpenFade] = useState(true)
+  const dispatch = useDispatch()
+  const cart = useSelector(state => state.cartReducer)
 
   useEffect(() => {
     if (!openFade) {
@@ -60,6 +39,17 @@ const StepCart = ({ handleNext }) => {
       }, 300)
     }
   }, [openFade])
+
+  const handleQuantityChange = (itemId, newQuantity) => {
+    const quantity = parseInt(newQuantity)
+    if (quantity > 0) {
+      dispatch(updateQuantity({ productId: itemId, quantity }))
+    }
+  }
+
+  const handleRemoveItem = (itemId) => {
+    dispatch(removeFromCart({ productId: itemId }))
+  }
 
   return (
     <Grid container spacing={6}>
@@ -92,52 +82,81 @@ const StepCart = ({ handleNext }) => {
           </Fade>
         </Collapse>
         <Typography className='rounded' variant='h5'>
-          My Shopping Bag (2 Items)
+          My Shopping Bag ({cart.totalItems} Items)
         </Typography>
         <div className='border rounded'>
-          {products.map((product, index) => (
-            <div
-              key={index}
-              className='flex flex-col sm:flex-row items-center relative p-5 gap-4 [&:not(:last-child)]:border-be'
-            >
-              <img height={140} width={140} src={product.imgSrc} alt={product.imgAlt} />
-              <IconButton size='small' className='absolute block-start-2 inline-end-2'>
-                <i className='ri-close-line text-lg' />
-              </IconButton>
-              <div className='flex flex-col sm:flex-row items-center sm:justify-between is-full'>
-                <div className='flex flex-col gap-2 items-center sm:items-start'>
-                  <Typography className='font-medium' color='text.primary'>
-                    {product.productName}
-                  </Typography>
-                  <div className='flex items-center gap-4'>
-                    <div className='flex items-center gap-1'>
-                      <Typography color='text.disabled'>Sold By:</Typography>
-                      <Typography href='/' component={Link} onClick={e => e.preventDefault()} color='primary.main'>
-                        {product.soldBy}
-                      </Typography>
+          {cart.items && cart.items.length > 0 ? (
+            cart.items.map((item) => (
+              <div
+                key={item.id}
+                className='flex flex-col sm:flex-row items-center relative p-5 gap-4 [&:not(:last-child)]:border-be'
+              >
+                <img 
+                  height={140} 
+                  width={140} 
+                  src={item.image || '/placeholder.svg'} 
+                  alt={item.name || 'Product'} 
+                />
+                <IconButton 
+                  size='small' 
+                  className='absolute block-start-2 inline-end-2'
+                  onClick={() => handleRemoveItem(item.id)}
+                >
+                  <i className='ri-close-line text-lg' />
+                </IconButton>
+                <div className='flex flex-col sm:flex-row items-center sm:justify-between is-full'>
+                  <div className='flex flex-col gap-2 items-center sm:items-start'>
+                    <Typography className='font-medium' color='text.primary'>
+                      {item.name}
+                    </Typography>
+                    <div className='flex items-center gap-4'>
+                      <div className='flex items-center gap-1'>
+                        <Typography color='text.disabled'>Sold By:</Typography>
+                        <Typography href='/' component={Link} onClick={e => e.preventDefault()} color='primary.main'>
+                          {item.supplier || 'Supplier'}
+                        </Typography>
+                      </div>
+                      <Chip 
+                        size='small' 
+                        variant='tonal' 
+                        color={item.inStock ? 'success' : 'error'} 
+                        label={item.inStock ? 'In Stock' : 'Out of Stock'} 
+                      />
                     </div>
-                    {product.inStock ? (
-                      <Chip size='small' variant='tonal' color='success' label='In Stock' />
-                    ) : (
-                      <Chip size='small' variant='tonal' color='error' label='Out of Stock' />
-                    )}
+                    <TextField 
+                      size='small' 
+                      type='number' 
+                      value={item.quantity}
+                      onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                      className='block max-is-[100px]' 
+                      inputProps={{ min: 1 }}
+                    />
                   </div>
-                  <Rating name='google-nest-rating' value={product.rating} readOnly />
-                  <TextField size='small' type='number' defaultValue={product.count} className='block max-is-[100px]' />
-                </div>
-                <div className='flex flex-col justify-between items-center mt-4 gap-1 sm:items-end'>
-                  <div className='flex'>
-                    <Typography color='primary.main'>{`$${product.price}`}</Typography>
-                    <span className='text-textSecondary'>/</span>
-                    <Typography className='line-through'>{`$${product.originalPrice}`}</Typography>
+                  <div className='flex flex-col justify-between items-center mt-4 gap-1 sm:items-end'>
+                    <div className='flex'>
+                      <Typography color='primary.main'>{`£${item.price.toFixed(2)}`}</Typography>
+                      {item.originalPrice && (
+                        <>
+                          <span className='text-textSecondary'>/</span>
+                          <Typography className='line-through'>{`£${item.originalPrice.toFixed(2)}`}</Typography>
+                        </>
+                      )}
+                    </div>
+                    <Typography color='text.primary'>
+                      Total: £{(item.price * item.quantity).toFixed(2)}
+                    </Typography>
+                    <Button variant='outlined' size='small'>
+                      Move to wishlist
+                    </Button>
                   </div>
-                  <Button variant='outlined' size='small'>
-                    Move to wishlist
-                  </Button>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className='p-5 text-center'>
+              <Typography>Your cart is empty</Typography>
             </div>
-          ))}
+          )}
         </div>
         <Typography
           href='/'
@@ -190,7 +209,7 @@ const StepCart = ({ handleNext }) => {
             <div className='flex flex-col gap-2'>
               <div className='flex items-center flex-wrap justify-between'>
                 <Typography color='text.primary'>Bag Total</Typography>
-                <Typography>$1198.00</Typography>
+                <Typography>£{cart.totalAmount.toFixed(2)}</Typography>
               </div>
               <div className='flex items-center flex-wrap justify-between'>
                 <Typography color='text.primary'>Coup Discount</Typography>
@@ -200,13 +219,13 @@ const StepCart = ({ handleNext }) => {
               </div>
               <div className='flex items-center flex-wrap justify-between'>
                 <Typography color='text.primary'>Order Total</Typography>
-                <Typography>$1198.00</Typography>
+                <Typography>£{cart.totalAmount.toFixed(2)}</Typography>
               </div>
               <div className='flex items-center flex-wrap justify-between'>
                 <Typography color='text.primary'>Delivery Charges</Typography>
                 <div className='flex items-center gap-2'>
                   <Typography color='text.disabled' className='line-through'>
-                    $5.00
+                    £5.00
                   </Typography>
                   <Chip variant='tonal' size='small' color='success' label='Free' />
                 </div>
@@ -220,13 +239,18 @@ const StepCart = ({ handleNext }) => {
                 Total
               </Typography>
               <Typography className='font-medium' color='text.primary'>
-                $1198.00
+                £{cart.totalAmount.toFixed(2)}
               </Typography>
             </div>
           </CardContent>
         </div>
         <div className='flex justify-normal sm:justify-end xl:justify-normal'>
-          <Button fullWidth variant='contained' onClick={handleNext}>
+          <Button 
+            fullWidth 
+            variant='contained' 
+            onClick={handleNext}
+            disabled={!cart.items || cart.items.length === 0}
+          >
             Place Order
           </Button>
         </div>

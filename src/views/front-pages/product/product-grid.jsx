@@ -1,9 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import Button from '@mui/material/Button';
+import { useParams } from 'next/navigation';
 
 export default function ProductGrid({ products }) {
-
+  const { lang: locale} = useParams();
   // console.log(products, 'productsproducts');
 
   return (
@@ -11,9 +12,13 @@ export default function ProductGrid({ products }) {
       {products?.map((product, index) => (
         <div key={`${product?.variationId}`} className='group'>
           {/* <Link href={`/products/${product?.id}?vid=${product?.variationId}`}> */}
-          <Link href={`/products/${product?.id}`}
-            target='_blank'
+          <Link
+            href={{
+              pathname: `/${locale}/products/${product?.id}`,
+              query: { vid: product?.variationId }
+            }}
             rel='noopener noreferrer'
+            className="block"
           >
             <div className='p-2 bg-bgLight rounded-lg mb-3'>
               <div className='relative aspect-square overflow-hidden rounded-md'>
@@ -33,9 +38,13 @@ export default function ProductGrid({ products }) {
             </div>
           </Link>
           <div className='text-center'>
-            <Link href={`/products/${product?.id}`}
-              target='_blank'
+            <Link 
+              href={{
+                pathname: `/${locale}/products/${product?.id}`,
+                query: { vid: product?.variationId }
+              }}
               rel='noopener noreferrer'
+              className="block"
             >
               <h3 className='font-normal text-16'>{product?.name}</h3>
               <p className='text-red-800 my-1'>£{product?.price ? parseFloat(product?.price).toFixed(2) : '0.00'}</p>

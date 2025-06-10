@@ -58,6 +58,8 @@ const StepCart = ({ handleNext }) => {
     calculateOrderSummary
   } = useContext(CheckoutContext);
 
+  console.log(cartItems, 'cartItems.............');
+
   useEffect(() => {
     if (!openFade) {
       setTimeout(() => {
@@ -74,7 +76,7 @@ const StepCart = ({ handleNext }) => {
     setError("");
     try {
       const response = await updateCartItem(itemId, newQuantity);
-      // // console.log(response, 'response updateCartItem');
+       console.log(response, 'response updateCartItem');
       if (response.success) {
         const { items, orderSummary: newOrderSummary } = response.data;
         setCartItems(items);
@@ -338,7 +340,7 @@ const StepCart = ({ handleNext }) => {
                       onClick={() => moveToWishlist(product._id)}
                       disabled={isUpdating}
                       className="mt-2"
-                    >
+                    > 
                       Move to wishlist
                     </Button>
                   </div>
@@ -375,7 +377,7 @@ const StepCart = ({ handleNext }) => {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <Typography color="text.primary">Bag Total</Typography>
-                <Typography>£{orderSummary.subtotal?.toFixed(2)}</Typography>
+                <Typography>£{orderSummary?.subtotal?.toFixed(2)}</Typography>
               </div>
 
               {/* <div className="flex flex-col gap-2">
@@ -420,8 +422,8 @@ const StepCart = ({ handleNext }) => {
               <div className="flex items-center justify-between">
                 <Typography color="text.primary">Shipping Charges</Typography>
                 <div className="flex items-center gap-2">
-                  {orderSummary.shipping > 0 ? (
-                    <Typography>£{orderSummary.shipping?.toFixed(2)}</Typography>
+                  {orderSummary?.shipping > 0 ? (
+                    <Typography>£{orderSummary?.shipping?.toFixed(2)}</Typography>
                   ) : (
                     <>
                       <Typography color="text.disabled" className="line-through">
@@ -434,8 +436,8 @@ const StepCart = ({ handleNext }) => {
               </div>
 
               <div className="flex items-center justify-between">
-                <Typography color="text.primary">VAT ({orderSummary.vatRate || 0}%)</Typography>
-                <Typography>£{orderSummary.vat?.toFixed(2)}</Typography>
+                <Typography color="text.primary">VAT ({orderSummary?.vatRate || 0}%)</Typography>
+                <Typography>£{orderSummary?.vat?.toFixed(2)}</Typography>
               </div>
 
               {error && (
@@ -452,7 +454,7 @@ const StepCart = ({ handleNext }) => {
                 Total Amount
               </Typography>
               <Typography className="font-medium" color="text.primary">
-                £{orderSummary.total?.toFixed(2)}
+                £{orderSummary?.total?.toFixed(2)}
               </Typography>
             </div>
           </CardContent>

@@ -32,8 +32,8 @@ export default function ProductDetailPage() {
   const { data: session, status } = useSession();
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [quantity, setQuantity] = useState("1");
-  const [tiles, setTiles] = useState("10");
+  const [quantity, setQuantity] = useState();
+  const [tiles, setTiles] = useState();
   const [pallets, setPallets] = useState("1");
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedFinish, setSelectedFinish] = useState("");
@@ -63,6 +63,9 @@ export default function ProductDetailPage() {
     full: false
   });
 
+  // Get vid from URL
+  const searchParams = new URLSearchParams(window.location.search);
+  const vid = searchParams.get('vid');
 
   // console.log('Current cart state:', cart);
   const fetchProductDetails = async () => {
@@ -70,6 +73,25 @@ export default function ProductDetailPage() {
       const response = await getProductDetails(productId);
       if (response?.success && response?.data) {
         setProduct(response.data);
+
+        // If vid exists in URL, find and set the corresponding variation
+        if (vid) {
+          const variation = response.data.productVariations.find(v => v._id === vid);
+          if (variation) {
+            setSelectedVariation(variation);
+
+            // Pre-select attribute variations based on the selected variation
+            const initialAttributes = {};
+            variation.attributeVariations.forEach(attrVarId => {
+              const attrVar = response.data.attributeVariations.find(av => av._id === attrVarId);
+              if (attrVar) {
+                initialAttributes[attrVar.productAttribute] = attrVarId;
+              }
+            });
+            console.log('initialAttributes', initialAttributes);
+            setSelectedAttributes(initialAttributes);
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to fetch product details:', error);
@@ -77,16 +99,20 @@ export default function ProductDetailPage() {
   };
 
 
+
+
   useEffect(() => {
     if (productId) {
       fetchProductDetails();
     }
-  }, [productId]);
-    useEffect(() => {
-    if (product?.productVariations?.length > 0) {
+  }, [productId, vid]);
+
+  // Remove the automatic selection of first variation if vid is present
+  useEffect(() => {
+    if (product?.productVariations?.length > 0 && !vid) {
       setSelectedVariation(product.productVariations[0]);
     }
-  }, [product]);
+  }, [product, vid]);
 
   const handleVariationChange = (attributeId, variationId) => {
     // Step 1: Update the selectedAttributes with the selected variationId
@@ -95,25 +121,31 @@ export default function ProductDetailPage() {
 
     // Step 2: Find the matching variation
     const matchingVariation = product?.productVariations?.find(variation => {
-      const variationAttributes = variation.attributes;
-      const selectedAttributeIds = Object.keys(newAttributes);
-      if (variationAttributes.length !== selectedAttributeIds.length) {
-        return true;
-      }
+      // Check if all selected attributes match the variation's attribute variations
+      return variation.attributeVariations.every(attrVarId => {
+        // Find the attribute variation in the product's attribute variations
+        const attrVar = product.attributeVariations.find(av => av._id === attrVarId);
+        if (!attrVar) return false;
 
-      return variationAttributes.every(attrId => {
-        const selectedVariationId = newAttributes[attrId];
-        return variation.attributeVariations.includes(selectedVariationId);
+        // Check if this attribute variation is selected
+        return newAttributes[attrVar.productAttribute] === attrVarId;
       });
     });
 
-
-
     if (matchingVariation) {
       setSelectedVariation(matchingVariation);
+      
+      // Reset image index when variation changes
+      setCurrentImageIndex(0);
 
-      if (matchingVariation.variationImages?.length > 0) {
-        setCurrentImageIndex(0);
+      // Update pricing tier based on the new variation
+      if (matchingVariation.regularPriceB2B) {
+        updatePricingTier(quantity);
+      }
+
+      // Update calculated values if they exist
+      if (calculatedValues.sqm > 0) {
+        calculateValues('sqm', calculatedValues.sqm);
       }
     } else {
       setSelectedVariation(null);
@@ -121,13 +153,32 @@ export default function ProductDetailPage() {
   };
 
 
+  // Update pricing tier based on quantity
+  const updatePricingTier = (qty) => {
+    if (!selectedVariation) return;
+
+    const numQty = Number.parseInt(qty) || 0;
+    const sqm = numQty * (selectedVariation.sqmPerTile || 1);
+
+    if (sqm >= 1300) {
+      setPricingTier("Tier 1");
+    } else if (sqm >= 153) {
+      setPricingTier("Tier 2");
+    } else if (sqm >= 51) {
+      setPricingTier("Tier 3");
+    } else if (sqm >= 30) {
+      setPricingTier("Tier 4");
+    } else {
+      setPricingTier("Tier 5");
+    }
+  };
+
   // Update product images to use variation images
-  const productImages =
-    (selectedVariation?.variationImages?.length
-      ? selectedVariation.variationImages.map(img => img.filePath)
-      : product?.productFeaturedImage?.filePath
-        ? [product.productFeaturedImage.filePath]
-        : ["/images/pages/product-img1.jpg"]);
+  const productImages = selectedVariation?.variationImages?.length
+    ? selectedVariation.variationImages.map(img => img.filePath)
+    : product?.productFeaturedImage?.filePath
+      ? [product.productFeaturedImage.filePath]
+      : ["/placeholder.svg"];
 
   // console.log('selectedVariation', selectedVariation);
   // console.log('productImages', productImages);
@@ -143,29 +194,6 @@ export default function ProductDetailPage() {
   const selectImage = (index) => {
     setCurrentImageIndex(index);
   };
-
-  // Update pricing tier based on quantity
-  const updatePricingTier = (qty) => {
-    const numQty = Number.parseInt(qty) || 0;
-
-    if (numQty < 30) {
-      setPricingTier("Tier 5");
-    } else if (numQty < 51) {
-      setPricingTier("Tier 4");
-    } else if (numQty < 153) {
-      setPricingTier("Tier 3");
-    } else if (numQty < 1300) {
-      setPricingTier("Tier 2");
-    } else {
-      setPricingTier("Tier 1");
-    }
-
-
-
-  };
-
-
-
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -183,6 +211,7 @@ export default function ProductDetailPage() {
     minPrice: product?.minPriceB2B,
     maxPrice: product?.maxPriceB2B
   };
+
   if (!product) {
     return <div>Loading product details...</div>;
   }
@@ -274,11 +303,11 @@ export default function ProductDetailPage() {
     if (tierData) {
       const { tierAddOn, tierMultiplyBy } = tierData;
       // Calculate price per sqm for this tier
-    const pricePerSqm = tierAddOn + tierMultiplyBy;
+      const pricePerSqm = tierAddOn + tierMultiplyBy;
 
-    newValues.tier = pricingTier;
-    newValues.pricePerSqm = pricePerSqm;
-    newValues.calculatedPrice = pricePerSqm * sqm;
+      newValues.tier = pricingTier;
+      newValues.pricePerSqm = pricePerSqm;
+      newValues.calculatedPrice = pricePerSqm * sqm;
     }
 
     setCalculatedValues(newValues);
@@ -599,7 +628,7 @@ export default function ProductDetailPage() {
                 <span className="text-sm text-gray-600 ml-1">3.5k Reviews</span>
               </div>
 
-                            <div className="mt-3 mb-4">
+              <div className="mt-3 mb-4">
                 <p className="text-md text-redText mb-3">£{displayPrice?.minPrice} - £{displayPrice?.maxPrice}/SQ.M</p>
                 <p className="flex items-center gap-2 text-sm">
                   <span>Current Stock:</span>
@@ -768,7 +797,7 @@ export default function ProductDetailPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   {product?.attributes?.map(attributeId => {
-                                        // Get ALL variations for this attributeId
+                    // Get ALL variations for this attributeId
                     const attributeVariations = product.attributeVariations.filter(
                       av => av.productAttribute === attributeId
                     );
@@ -830,7 +859,7 @@ export default function ProductDetailPage() {
                   <div className="rounded-md">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Quantity (SQ.M)</label>
                     <input
-                      type="text"
+                      type="number"
                       value={quantity}
                       placeholder="Enter quantity in SQ.M"
                       className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
@@ -841,7 +870,7 @@ export default function ProductDetailPage() {
                   <div className="rounded-md">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Number of Tiles</label>
                     <input
-                      type="text"
+                      type="number"
                       value={tiles}
                       className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
                       onChange={handleTilesChange}
@@ -852,7 +881,7 @@ export default function ProductDetailPage() {
                   <div className="rounded-md">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Number of Pallets</label>
                     <input
-                      type="text"
+                      type="number"
                       className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
                       value={pallets}
                       onChange={handlePalletsChange}

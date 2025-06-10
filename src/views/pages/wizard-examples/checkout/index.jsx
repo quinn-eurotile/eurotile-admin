@@ -237,8 +237,11 @@ const CheckoutWizard = () => {
     }
   };
 
+
+
   // Load data on component mount
   useEffect(() => {
+    console.log('dscs')
 
     const fetchData = async () => {
 
@@ -298,6 +301,8 @@ const CheckoutWizard = () => {
     fetchData();
   }, [session]);
 
+  console.log(cartItems, 'Seven Time cartItems.............');
+
   // Checkout context value
   const checkoutData = {
     cartItems,
@@ -356,7 +361,7 @@ const CheckoutWizard = () => {
                   >
                     <StepLabel icon={<></>} className="text-center">
                       {step.icon}
-                      <Typography className="step-title">{step.title}</Typography>
+                      <Typography className="step-title">{step.title + 'Peer'}</Typography>
                     </StepLabel>
                   </Step>
                 );
