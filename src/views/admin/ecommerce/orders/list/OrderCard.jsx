@@ -1,82 +1,77 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+
 // MUI Imports
 import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Divider from '@mui/material/Divider'
 import Grid from '@mui/material/Grid2'
 import Typography from '@mui/material/Typography'
-import useMediaQuery from '@mui/material/useMediaQuery'
 
-// Third-party Imports
-import classnames from 'classnames'
+// Services
+import { orderServices } from '@/services/order'
 
-// Component Imports
-import CustomAvatar from '@core/components/mui/Avatar'
+// Redux
+import { useDispatch } from 'react-redux'
+import { callCommonAction } from '@/redux-store/slices/common'
+import { getOrderStats } from '@/app/server/actions'
 
-// Vars
-const data = [
-  {
-    value: 56,
-    title: 'Pending Payment',
-    icon: 'ri-calendar-2-line'
-  },
-  {
-    value: 12689,
-    title: 'Completed',
-    icon: 'ri-check-double-line'
-  },
-  {
-    value: 124,
-    title: 'Refunded',
-    icon: 'ri-wallet-3-line'
-  },
-  {
-    value: 32,
-    title: 'Failed',
-    icon: 'ri-error-warning-line'
-  }
+const statusCards = [
+  { status: 3, statusKey: 'new',   label: 'New Orders', color: 'primary.main', icon: 'ri-shopping-cart-line' },
+  { status: 2, statusKey: 'processing', label: 'Processing', color: 'info.main', icon: 'ri-loader-4-line' },
+  { status: 4, statusKey: 'shipped', label: 'Shipped', color: 'secondary.main', icon: 'ri-truck-line' },
+  { status: 1, statusKey: 'delivered', label: 'Delivered', color: 'success.main', icon: 'ri-check-double-line' }
 ]
 
+
 const OrderCard = () => {
-  // Hooks
-  const isBelowMdScreen = useMediaQuery(theme => theme.breakpoints.down('md'))
-  const isBelowSmScreen = useMediaQuery(theme => theme.breakpoints.down('sm'))
+  const dispatch = useDispatch()
+  const [stats, setStats] = useState({})
+
+  const fetchStats = async () => {
+    try {
+      dispatch(callCommonAction({ loading: true }))
+      const response = await getOrderStats()
+      console.log(response, 'response getOrderStatsgetOrderStats')
+      if (response?.statusCode === 200 && response.data) {
+        setStats(response.data)
+      }
+
+      dispatch(callCommonAction({ loading: false }))
+    } catch (error) {
+      dispatch(callCommonAction({ loading: false }))
+      console.error('Failed to fetch order stats', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchStats()
+  }, [])
 
   return (
-    <Card>
-      <CardContent>
-        <Grid container spacing={6}>
-          {data.map((item, index) => (
-            <Grid
-              size={{ xs: 12, sm: 6, md: 3 }}
-              key={index}
-              className={classnames({
-                '[&:nth-of-type(odd)>div]:pie-6 [&:nth-of-type(odd)>div]:border-ie':
-                  isBelowMdScreen && !isBelowSmScreen,
-                '[&:not(:last-child)>div]:pie-6 [&:not(:last-child)>div]:border-ie': !isBelowMdScreen
-              })}
-            >
-              <div className='flex justify-between gap-4'>
-                <div className='flex flex-col items-start'>
-                  <Typography variant='h4'>{item.value.toLocaleString()}</Typography>
-                  <Typography>{item.title}</Typography>
-                </div>
-                <CustomAvatar variant='rounded' size={42} skin='light'>
-                  <i className={classnames(item.icon, 'text-[26px]')} />
-                </CustomAvatar>
+    <Grid container spacing={6}>
+      {statusCards.map(card => (
+        <Grid key={card.statusKey} size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card className='p-6'>
+            <div className='flex items-center gap-4'>
+              <div
+                className='flex items-center justify-center rounded-full bs-14 is-14'
+                style={{ backgroundColor: `${card.color}15` }}
+              >
+                <i className={`${card.icon} text-2xl`} style={{ color: card.color }} />
               </div>
-              {isBelowMdScreen && !isBelowSmScreen && index < data.length - 2 && (
-                <Divider
-                  className={classnames('mbs-6', {
-                    'mie-6': index % 2 === 0
-                  })}
-                />
-              )}
-              {isBelowSmScreen && index < data.length - 1 && <Divider className='mbs-6' />}
-            </Grid>
-          ))}
+              <div>
+                <Typography variant='h4' className='font-medium'>
+                  {stats?.statusSummary?.[card.statusKey] || 0}
+                </Typography>
+                <Typography variant='body2' color='text.secondary'>
+                  {card.label}
+                </Typography>
+              </div>
+            </div>
+          </Card>
         </Grid>
-      </CardContent>
-    </Card>
+      ))}
+    </Grid>
   )
 }
 

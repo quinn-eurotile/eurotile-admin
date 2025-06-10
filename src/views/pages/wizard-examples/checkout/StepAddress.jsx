@@ -536,7 +536,8 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
           subtotal,
           shipping: shippingCost,
           total
-        }
+        },
+        tradeProfessionalId: session?.user?.id
       };
 
       const response = await sendPaymentLinkToClient(paymentLinkData);

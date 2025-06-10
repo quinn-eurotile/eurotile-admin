@@ -1,9 +1,11 @@
-// MUI Imports
-import Grid from '@mui/material/Grid2'
+// Next Imports
+import { redirect } from 'next/navigation'
 
 // Component Imports
-import OrderCard from '@/views/admin/ecommerce/orders/list/OrderCard'
-import OrderListTable from '@/views/admin/ecommerce/orders/list/OrderListTable'
+import OrderDetails from '@views/apps/ecommerce/orders/details'
+
+// Data Imports
+import { getEcommerceData } from '@/app/server/actions'
 
 /**
  * ! If you need data using an API call, uncomment the below API code, update the `process.env.API_URL` variable in the
@@ -21,17 +23,18 @@ import OrderListTable from '@/views/admin/ecommerce/orders/list/OrderListTable'
 
   return res.json()
 } */
-const OrdersListPage = async () => {
-  return (
-    <Grid container spacing={6}>
-      <Grid size={{ xs: 12 }}>
-        <OrderCard />
-      </Grid>
-      <Grid size={{ xs: 12 }}>
-        <OrderListTable />
-      </Grid>
-    </Grid>
-  )
+const OrderDetailsPage = async props => {
+  const params = await props.params
+
+  // Vars
+  const data = await getEcommerceData()
+  const filteredData = data?.orderData.filter(item => item.order === params.id)[0]
+
+  if (!filteredData) {
+    redirect('/not-found')
+  }
+
+  return filteredData ? <OrderDetails orderData={filteredData} order={params.id} /> : null
 }
 
-export default OrdersListPage
+export default OrderDetailsPage

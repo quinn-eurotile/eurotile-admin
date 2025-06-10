@@ -129,7 +129,7 @@ export const cartApi = createApiService(CART_API, {
   // Send payment link to client
   sendPaymentLinkToClient: async (data) => {
       return await api.post(`${CART_API}/send-payment-link`, data);
-     
+
   },
   getPaymentCart: async (cartId, clientId) => {
     return await api.get(`${CART_API}/payment/${cartId}?client=${clientId}`);
