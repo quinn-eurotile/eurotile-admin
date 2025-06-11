@@ -35,13 +35,14 @@ import OpenDialogOnElementClick from "@components/dialogs/OpenDialogOnElementCli
 
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard";
-import { addCart, deleteAddresses, getAddresses, getAllClients, removeCart, sendPaymentLinkToClient } from "@/app/server/actions";
+import { addCart, deleteAddresses, getAddresses, getAllClients, removeCart, removeCartByUserId, sendPaymentLinkToClient } from "@/app/server/actions";
 import { cartApi } from "@/services/cart";
 import { tradeProfessionalsApi } from "@/services/trade-professionals";
 import { FormControl } from "@mui/material";
 import { getSession, useSession } from "next-auth/react";
 import { addToCart } from "@/redux-store/slices/cart";
 import { useDispatch } from "react-redux";
+import { useRouter } from "next/router";
 
 // Styled Components
 const HorizontalContent = styled(Typography, {
@@ -96,6 +97,7 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
   const [clientLoading, setClientLoading] = useState(false);
   const { data: session, status } = useSession();
   const dispatch = useDispatch();
+  // const router = useRouter();
   //// console.log(isClientOrder, 'isClientOrder');
 
   // Button props for add address
@@ -545,8 +547,9 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
       if (response.success) {
 
         toast.success('Payment link sent to client successfully');
-      const response = await removeCart(user?._id);
-      console.log("response removeCartWholeremoveCartWhole:", response);
+        const response = await removeCartByUserId(user?._id);
+        console.log("response removeCartWholeremoveCartWhole:", response);
+        // router.push('/en/products');
         // Clear the cart or handle post-success actions
       } else {
         toast.error(response.message || 'Failed to send payment link');

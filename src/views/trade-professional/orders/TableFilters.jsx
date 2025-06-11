@@ -18,6 +18,14 @@ const TableFilters = ({ setFilter, filter }) => {
     { value: '2', label: 'Processing' },
     { value: '3', label: 'New' },
     { value: '4', label: 'Shipped' },
+    // { value: '5', label: 'Completed' },
+    // { value: '6', label: 'Refunded' },
+    // { value: '7', label: 'Returned' },
+    // { value: '8', label: 'Partially Refunded' },
+    // { value: '9', label: 'Partially Returned' },
+    // { value: '10', label: 'Partially Delivered' },
+    // { value: '11', label: 'Partially Shipped' },
+    // { value: '12', label: 'Partially Completed' },
   ];
   return (
 
