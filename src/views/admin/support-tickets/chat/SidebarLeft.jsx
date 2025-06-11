@@ -40,6 +40,8 @@ const renderChat = props => {
   // Props
   const { chatStore, getActiveUserData, setSidebarOpen, backdropOpen, setBackdropOpen, isBelowMdScreen } = props;
 
+  console.log('chatStore', chatStore);
+
   return chatStore.chats.map(chat => {
 
     const contact = chatStore?.contacts?.find(contact => contact.id === chat.userId) || chatStore.contacts[0];
@@ -117,7 +119,7 @@ const SidebarLeft = props => {
     isBelowMdScreen,
     isBelowSmScreen,
     messageInputRef,
-    handleLoadMore
+    handleLoadMoreTickets
   } = props;
 
   // States
@@ -258,6 +260,9 @@ const SidebarLeft = props => {
             style={{ height: 'calc(100vh - 80px)' }}
           >
             <ul className='p-3 pbs-4'>
+              <li className='flex justify-center p-4'>
+                <Button variant='contained' size='small' style={{ fontSize: '11px', padding: '4px 10px' }} onClick={handleLoadMoreTickets}>Load More</Button>
+              </li>
               {renderChat({
                 chatStore,
                 getActiveUserData,
@@ -268,11 +273,14 @@ const SidebarLeft = props => {
               })}
             </ul>
             {isLoading && (
-              <div className='flex justify-center p-4'>
-                <Typography variant='body2' color='text.secondary'>
-                  Loading more tickets...
-                </Typography>
-              </div>
+              <>
+                <div className='flex justify-center p-4'>
+                  <Typography variant='body2' color='text.secondary'>
+                    Loading more tickets...
+                  </Typography>
+                </div>
+                <button className='bg-red-500' type='button' onClick={() => { console.log('load more') }}>Load More</button>
+              </>
             )}
           </div>
         </ScrollWrapper>

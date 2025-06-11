@@ -8,12 +8,14 @@ import CardContent from '@mui/material/CardContent';
 
 // Third-party Imports
 import classnames from 'classnames';
+import PerfectScrollbar from 'react-perfect-scrollbar';
 
 // Component Imports
 import CustomAvatar from '@core/components/mui/Avatar';
 
 // Util Imports
 import { getInitials } from '@/utils/getInitials';
+import { Box, Button } from '@mui/material';
 
 // Formats the chat data into a structured format for display.
 const formatedChatData = (chats, profileUser) => {
@@ -52,6 +54,23 @@ const formatedChatData = (chats, profileUser) => {
   return formattedChatData;
 };
 
+// Wrapper for the chat log to handle scrolling
+const ScrollWrapper = ({ children, isBelowLgScreen, scrollRef, className }) => {
+  if (isBelowLgScreen) {
+    return (
+      <div ref={scrollRef} className={classnames('bs-full overflow-y-auto overflow-x-hidden', className)}>
+        {children}
+      </div>
+    );
+  } else {
+    return (
+      <PerfectScrollbar ref={scrollRef} options={{ wheelPropagation: false }} className={className}>
+        {children}
+      </PerfectScrollbar>
+    );
+  }
+};
+
 const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen }) => {
   // Props
   const { profileUser, contacts } = chatStore;
@@ -59,13 +78,20 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
   // Vars
   const activeUserChat = chatStore.chats.find(chat => chat.userId === chatStore.activeUser?.id);
 
+
   // Refs
   const scrollRef = useRef(null);
 
   // Function to scroll to bottom when new message is sent
   const scrollToBottom = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      if (isBelowLgScreen) {
+        // @ts-ignore
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      } else {
+        // @ts-ignore
+        scrollRef.current._container.scrollTop = scrollRef.current._container.scrollHeight;
+      }
     }
   };
 
@@ -78,8 +104,19 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
   }, [chatStore]);
 
   return (
-    <div ref={scrollRef} className='bg-[var(--mui-palette-customColors-chatBg)]'>
+    <ScrollWrapper
+      isBelowLgScreen={isBelowLgScreen}
+      scrollRef={scrollRef}
+      className='bg-[var(--mui-palette-customColors-chatBg)]'
+    >
+
+
       <CardContent className='p-0'>
+
+        <div className='flex justify-center p-4'>
+          <Button variant='contained' size='small' style={{ fontSize: '11px', padding: '4px 10px' }}>Load More</Button>
+        </div>
+
         {activeUserChat &&
           formatedChatData(activeUserChat.chat, profileUser).map((msgGroup, index) => {
             const isSender = msgGroup.senderId === profileUser.id;
@@ -172,7 +209,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
             );
           })}
       </CardContent>
-    </div>
+    </ScrollWrapper>
   );
 };
 

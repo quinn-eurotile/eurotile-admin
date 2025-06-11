@@ -1,12 +1,11 @@
 // React Imports
-import { useEffect, useState, useRef, useLayoutEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 // MUI Imports
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import CardContent from '@mui/material/CardContent';
-import PerfectScrollbar from 'react-perfect-scrollbar';
 
 // Component Imports
 import OptionMenu from '@core/components/option-menu';
@@ -64,57 +63,20 @@ const ChatContent = props => {
   const [userProfileRightOpen, setUserProfileRightOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const chatContainerRef = useRef(null);
-  const [containerReady, setContainerReady] = useState(false);
 
-  // Use useLayoutEffect to ensure DOM is ready
-  useLayoutEffect(() => {
-    if (chatContainerRef.current) {
-      console.log('Container is ready:', chatContainerRef.current);
-      setContainerReady(true);
+  const handleScroll = () => {
+    alert('handleScroll');
+    console.log('handleScroll', chatContainerRef);
+    if (!chatContainerRef.current || isLoading) return;
+
+    const { scrollTop } = chatContainerRef.current;
+    // Load more when user scrolls to top (with 100px threshold)
+    if (scrollTop < 100) {
+      setIsLoading(true);
+      handleLoadMore();
+      setIsLoading(false);
     }
-  }, []);
-
-  // Add scroll event listener using useEffect
-  useEffect(() => {
-    if (!containerReady) return;
-
-    const container = chatContainerRef.current;
-    console.log('Setting up scroll listener for container:', container);
-
-    const handleScrollEvent = () => {
-      if (!container || isLoading) return;
-
-      const scrollTop = container.scrollTop;
-      console.log('Scroll position:', scrollTop);
-
-      if (scrollTop < 100) {
-        setIsLoading(true);
-        handleLoadMore();
-        setIsLoading(false);
-      }
-    };
-
-    if (container) {
-      container.addEventListener('scroll', handleScrollEvent);
-    }
-
-    // Cleanup
-    return () => {
-      if (container) {
-        container.removeEventListener('scroll', handleScrollEvent);
-      }
-    };
-  }, [containerReady, isLoading, handleLoadMore]);
-
-  // Force scroll container to be scrollable
-  useEffect(() => {
-    const container = chatContainerRef.current;
-    if (container) {
-      container.style.overflowY = 'auto';
-      container.style.height = 'calc(100vh - 180px)';
-      container.style.position = 'relative';
-    }
-  }, []);
+  };
 
   useEffect(() => {
     if (!socket.current) return;
@@ -233,66 +195,13 @@ const ChatContent = props => {
                 setUserProfileLeftOpen={setUserProfileRightOpen}
               />
             )}
-            {/* {isBelowMdScreen ? (
-              <OptionMenu
-                iconClassName='text-textSecondary'
-                options={[
-                  {
-                    text: 'View Contact',
-                    menuItemProps: {
-                      onClick: () => {
-                        setUserProfileRightOpen(true);
-                        setBackdropOpen(true);
-                      }
-                    }
-                  },
-                  'Mute Notifications',
-                  'Block Contact',
-                  'Clear Chat',
-                  'Block'
-                ]}
-              />
-            ) : (
-              <div className='flex items-center gap-1'>
-                <IconButton size='small'>
-                  <i className='ri-phone-line text-textSecondary' />
-                </IconButton>
-                <IconButton size='small'>
-                  <i className='ri-video-add-line text-textSecondary' />
-                </IconButton>
-                <IconButton size='small'>
-                  <i className='ri-search-line text-textSecondary' />
-                </IconButton>
-                <OptionMenu
-                  iconClassName='text-textSecondary'
-                  options={[
-                    {
-                      text: 'View Contact',
-                      menuItemProps: {
-                        onClick: () => {
-                          setUserProfileRightOpen(true);
-                          setBackdropOpen(true);
-                        }
-                      }
-                    },
-                    'Mute Notifications',
-                    'Block Contact',
-                    'Clear Chat',
-                    'Block'
-                  ]}
-                />
-              </div>
-            )} */}
+
           </div>
 
           <div
             ref={chatContainerRef}
+            onScroll={handleScroll}
             className='flex-1 overflow-y-auto'
-            style={{
-              height: 'calc(100vh - 180px)',
-              position: 'relative',
-              overflowY: 'auto'
-            }}
           >
             {isLoading && (
               <div className='flex justify-center p-4'>
@@ -301,6 +210,7 @@ const ChatContent = props => {
                 </Typography>
               </div>
             )}
+
             <ChatLog
               chatStore={chatStore}
               isBelowMdScreen={isBelowMdScreen}

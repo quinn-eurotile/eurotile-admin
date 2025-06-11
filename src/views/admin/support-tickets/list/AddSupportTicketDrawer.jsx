@@ -150,6 +150,7 @@ const AddSupportTicketDrawer = ({ open, handleClose, refreshList, editData, setE
         })
       }
     } catch (error) {
+      toast.error(error?.message || 'Failed to fetch data');
       console.error('Submission failed:', error)
     }
   }

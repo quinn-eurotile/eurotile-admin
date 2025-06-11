@@ -11,7 +11,7 @@ import classNames from 'classnames';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Slice Imports
-import { getActiveUserData, fetchChatData, setChatData } from '@/redux-store/slices/chat'; // Add fetchChatData
+import { getActiveUserData, setChatData } from '@/redux-store/slices/chat'; // Add fetchChatData
 
 // Component Imports
 import SidebarLeft from './SidebarLeft';
@@ -23,7 +23,7 @@ import io from 'socket.io-client';
 // Util Imports
 import { commonLayoutClasses } from '@layouts/utils/layoutClasses';
 import { useParams, useRouter } from 'next/navigation';
-import { getChatMessageForTicket, getRawDataForChat } from '@/app/server/support-ticket-chat';
+import { getChatMessageForTicket, loadMoreTickets } from '@/app/server/support-ticket-chat';
 import { callCommonAction } from '@/redux-store/slices/common';
 import { getLocalizedUrl } from '@/utils/i18n';
 
@@ -55,10 +55,12 @@ const ChatWrapper = () => {
   const isBelowSmScreen = useMediaQuery(theme => theme.breakpoints.down('sm'));
 
   const fetchChatData = async (currentPage = 1, searchTerm = '') => {
+    console.log('fetchChatData api call', ticketId, currentPage, rowsPerPage, searchTerm);
     try {
       dispatch(callCommonAction({ loading: true }));
-      console.log('ticketId', ticketId, currentPage, rowsPerPage, searchTerm);
       const response = await getChatMessageForTicket(ticketId, currentPage, rowsPerPage, searchTerm, {});
+
+      console.log('response contact', response);
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
         const formatted = {
@@ -74,6 +76,7 @@ const ChatWrapper = () => {
         }
       }
     } catch (error) {
+      toast.error(error?.message || 'Failed to fetch team members');
       dispatch(callCommonAction({ loading: false }));
       console.error('Failed to fetch team members', error);
     }
@@ -84,16 +87,16 @@ const ChatWrapper = () => {
     setIsLoading(true);
     try {
       const nextPage = ticketPage + 1;
-      const response = await getChatMessageForTicket(null, nextPage, rowsPerPage, '', {});
+      const response = await loadMoreTickets(null, nextPage, rowsPerPage, '', {});
+      console.log('response load more tickets', response);
       if (response.statusCode === 200 && response.data) {
-        const newContacts = response.data.docs;
-        const newChats = response.data.chats;
+        const newData = response.data;
 
         // Append new data to existing data
         dispatch(setChatData({
           ...chatStore,
-          contacts: [...chatStore.contacts, ...newContacts],
-          chats: [...chatStore.chats, ...newChats]
+          contacts: [...chatStore.contacts, ...newData.contacts],
+          chats: [...chatStore.chats, ...newData.chats]
         }));
 
         setTicketPage(nextPage);
@@ -130,6 +133,7 @@ const ChatWrapper = () => {
   };
 
   useEffect(() => {
+    alert()
     fetchChatData();
   }, []);
 
@@ -151,7 +155,8 @@ const ChatWrapper = () => {
   // Get active user's data
   const activeUser = ticketId => {
     if (!socket.current) return;
-    router.push(getLocalizedUrl(`/admin/support-tickets/view/${ticketId}`, locale));
+
+    //router.push(getLocalizedUrl(`/admin/support-tickets/view/${ticketId}`, locale));
 
     socket.current.emit("join", { ticketId });
     setTicketId(ticketId);
@@ -208,7 +213,7 @@ const ChatWrapper = () => {
         isBelowMdScreen={isBelowMdScreen}
         isBelowSmScreen={isBelowSmScreen}
         messageInputRef={messageInputRef}
-        handleLoadMore={handleLoadMoreTickets}
+        handleLoadMoreTickets={handleLoadMoreTickets}
       />
 
       <ChatContent
