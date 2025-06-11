@@ -64,9 +64,9 @@ export const getStatisticsData = async () => {
   return statisticsData;
 };
 
-export const getOrderHistory = async () => {
-  return eCommerceData.orderData;
-};
+// export const getOrderHistory = async () => {
+//   return eCommerceData.orderData;
+// };
 
 export const getteamMemberList = async () => {
   const response = await sendRequest('/admin/forgot-password', 'POST', { email });
@@ -190,6 +190,9 @@ export const removeCartItem = async (id) => {
 export const removeCart = async (id) => {
   return await cartApi.removeCart(id);
 };
+export const removeCartByUserId = async (userId) => {
+  return await cartApi.removeCartByUserId(userId);
+};
 export const removeCartWhole = async (id) => {
   return await cartApi.removeCartWhole(id);
 };
@@ -228,8 +231,8 @@ export const sendPaymentLinkToClient = async (data) => {
 export const getPaymentCart = async (cartId, clientId) => {
   return await cartApi.getPaymentCart(cartId, clientId);
  };
- export const updateOrderStatus = async (data) => {
-  return await cartApi.updateOrderStatus(data);
+export const updateOrderStatus = async (id , data) => {
+  return await cartApi.updateOrderStatus(id,data);
  };
  export const getOrderById = async (orderId) => {
   return await cartApi.getOrderById(orderId);
@@ -239,4 +242,7 @@ export const getOrderList = async (currentPage, rowsPerPage, searchTerm, filtere
 };
 export const getOrderStats = async () => {
   return await orderServices.getStats();
+};
+export const getOrderHistory = async (orderId) => {
+  return await orderServices.getOrderHistory(orderId);
 };

@@ -113,7 +113,10 @@ const OrderListTable = () => {
           id: order._id,
           orderId: order.orderId,
           customerName: order.customerDetails?.name || order?.createdByDetails?.name,
-          customerEmail: order.customerDetails?.email || order?.createdByDetails?.email ,
+          customerEmail: order.customerDetails?.email || order?.createdByDetails?.email,
+          onBehalfOf: order.tradeProfessionalDetails ? true : false,
+          tradeProfessionalName: order.tradeProfessionalDetails?.name,
+          tradeProfessionalEmail: order.tradeProfessionalDetails?.email,
           orderStatus: order.orderStatus,
           total: order.total,
           createdAt: order.createdAt,
@@ -162,6 +165,11 @@ const OrderListTable = () => {
             <Typography color='text.primary'>{row.original.customerName}</Typography>
             <Typography variant='body2' color='text.secondary'>
               {row.original.customerEmail}
+              {row.original.onBehalfOf && (
+                <Typography variant='body2' color='text.secondary'>
+                  <Chip label={row.original.tradeProfessionalName + ' ' + row.original.tradeProfessionalEmail} color='primary' variant='outlined' size='small' />
+                </Typography>
+              )}
             </Typography>
           </div>
         )

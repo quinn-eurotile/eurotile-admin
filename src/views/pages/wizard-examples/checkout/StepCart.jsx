@@ -246,8 +246,8 @@ const StepCart = ({ handleNext }) => {
                 <div className="flex flex-col sm:flex-row items-center sm:justify-between w-full">
                   <div className="flex flex-col gap-2 items-center sm:items-start">
                     <Typography className="font-medium" color="text.primary">
-                      {product?.isSample ? 
-                        `${product?.product?.name} (${product?.sampleAttributes?.type} Sample)` : 
+                      {product?.isSample ?
+                        `${product?.product?.name} (${product?.sampleAttributes?.type} Sample)` :
                         product?.product?.name}
                     </Typography>
 
@@ -334,15 +334,15 @@ const StepCart = ({ handleNext }) => {
                       )}
                     </div>
 
-                    <Button
+                    {/* <Button
                       variant="outlined"
                       size="small"
                       onClick={() => moveToWishlist(product._id)}
                       disabled={isUpdating}
                       className="mt-2"
-                    > 
+                    >
                       Move to wishlist
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
               </div>
@@ -350,7 +350,7 @@ const StepCart = ({ handleNext }) => {
           </div>
         )}
 
-        <Typography
+        {/* <Typography
           href="/"
           component={Link}
           onClick={(e) => e.preventDefault()}
@@ -363,7 +363,7 @@ const StepCart = ({ handleNext }) => {
             rtlIconClass="ri-arrow-left-s-line"
             className="text-base"
           />
-        </Typography>
+        </Typography> */}
       </Grid>
 
       <Grid size={{ xs: 12, lg: 4 }} className="flex flex-col gap-2">

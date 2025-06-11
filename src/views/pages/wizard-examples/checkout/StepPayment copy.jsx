@@ -80,7 +80,6 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
         customerId: user?._id,
         cartItems: cartItems,
         orderData: {
-          userId: user?._id,
           subtotal: orderSummary.subtotal,
           shipping: orderSummary.shipping,
           tax: orderSummary.tax || 0,
@@ -88,10 +87,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
           shippingAddress: selectedAddress,
           shippingMethod: selectedShipping,
           paymentMethod: 'stripe',
-          userId: user?._id,
-           email: user?.email,
-
-
+          userId: user?._id
         }
       });
       console.log("response 3333333333333:", response); // Add this line to see the paymentIntent object
@@ -101,7 +97,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
         return;
       }
 
-      const { clientSecret, orderId } = response.data;
+      const { clientSecret } = response.data;
 
       // Confirm payment with Stripe
       const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
@@ -122,7 +118,6 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
       } else {
         onPaymentSuccess({
           paymentIntentId: paymentIntent.id,
-          orderId: orderId,
           paymentMethod: "stripe",
           status: true
         });
