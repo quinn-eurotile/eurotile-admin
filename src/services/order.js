@@ -1,6 +1,5 @@
 // services/trade-professionals
 import { createApiService } from "./commonService";
-import { api } from "@/utils/api";
 
 const ORDER_ENDPOINT = "/order";
 const ORDER_SUPPORT_TICKET_ENDPOINT = "/order/support/ticket";
