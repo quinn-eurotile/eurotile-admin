@@ -23,7 +23,7 @@ export const createApiService = (baseEndpoint, customMethods = {}) => {
       return api.get(`${baseEndpoint}`, {}, false);
     },
     getByParamsIfUrlHasId: async (id, page = 1, limit = 10, searchString = "", filter = {}) => {
-      // console.log('baseEndpoint', baseEndpoint);
+      console.log('getByParamsIfUrlHasId baseEndpoint', baseEndpoint);
 
       const queryParams = new URLSearchParams({
         page: page.toString(),

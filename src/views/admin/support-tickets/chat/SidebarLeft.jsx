@@ -1,5 +1,5 @@
 // React Imports
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // MUI Imports
 import Avatar from '@mui/material/Avatar';
@@ -123,6 +123,8 @@ const SidebarLeft = props => {
   // States
   const [userSidebar, setUserSidebar] = useState(false);
   const [searchValue, setSearchValue] = useState();
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollContainerRef = useRef(null);
 
   const handleChange = (event, newValue) => {
     setSearchValue(newValue);
@@ -132,6 +134,18 @@ const SidebarLeft = props => {
     setBackdropOpen(false);
     setSearchValue(null);
     messageInputRef.current?.focus();
+  };
+
+  const handleScroll = () => {
+    if (!scrollContainerRef.current || isLoading) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    // Load more when user scrolls to bottom (with 100px threshold)
+    if (scrollHeight - scrollTop - clientHeight < 100) {
+      setIsLoading(true);
+      handleLoadMore();
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -236,17 +250,31 @@ const SidebarLeft = props => {
             ) : null}
           </div>
         </div>
-        <ScrollWrapper isBelowLgScreen={isBelowLgScreen}  >
-          <ul className='p-3 pbs-4'>
-            {renderChat({
-              chatStore,
-              getActiveUserData,
-              backdropOpen,
-              setSidebarOpen,
-              isBelowMdScreen,
-              setBackdropOpen
-            })}
-          </ul>
+        <ScrollWrapper isBelowLgScreen={isBelowLgScreen}>
+          <div
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            className='overflow-y-auto'
+            style={{ height: 'calc(100vh - 80px)' }}
+          >
+            <ul className='p-3 pbs-4'>
+              {renderChat({
+                chatStore,
+                getActiveUserData,
+                backdropOpen,
+                setSidebarOpen,
+                isBelowMdScreen,
+                setBackdropOpen
+              })}
+            </ul>
+            {isLoading && (
+              <div className='flex justify-center p-4'>
+                <Typography variant='body2' color='text.secondary'>
+                  Loading more tickets...
+                </Typography>
+              </div>
+            )}
+          </div>
         </ScrollWrapper>
         {/* <Box bgcolor={'#fff'} display={'flex'} justifyContent={'center'} padding={'15px 10px'}>
           <Button variant='contained' size='small' onClick={handleLoadMore}>Load More</Button>

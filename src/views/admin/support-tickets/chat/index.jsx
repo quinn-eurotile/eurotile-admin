@@ -32,13 +32,15 @@ const ChatWrapper = () => {
   const router = useRouter();
   const [ticketId, setTicketId] = useState(id ? id[0] : null);
   const socket = useRef();
+
   // States
   const [backdropOpen, setBackdropOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [totalRecords, setTotalRecords] = useState(0);
+  const [ticketPage, setTicketPage] = useState(1);
+  const [messagePage, setMessagePage] = useState(1);
+  const [rowsPerPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+
   // Refs
   const chatBoxRef = useRef(null);
   const messageInputRef = useRef(null);
@@ -52,10 +54,10 @@ const ChatWrapper = () => {
   const isBelowMdScreen = useMediaQuery(theme => theme.breakpoints.down('md'));
   const isBelowSmScreen = useMediaQuery(theme => theme.breakpoints.down('sm'));
 
-
   const fetchChatData = async (currentPage = 1, searchTerm = '') => {
     try {
       dispatch(callCommonAction({ loading: true }));
+      console.log('ticketId', ticketId, currentPage, rowsPerPage, searchTerm);
       const response = await getChatMessageForTicket(ticketId, currentPage, rowsPerPage, searchTerm, {});
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
@@ -77,12 +79,59 @@ const ChatWrapper = () => {
     }
   };
 
+  const handleLoadMoreTickets = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      const nextPage = ticketPage + 1;
+      const response = await getChatMessageForTicket(null, nextPage, rowsPerPage, '', {});
+      if (response.statusCode === 200 && response.data) {
+        const newContacts = response.data.docs;
+        const newChats = response.data.chats;
+
+        // Append new data to existing data
+        dispatch(setChatData({
+          ...chatStore,
+          contacts: [...chatStore.contacts, ...newContacts],
+          chats: [...chatStore.chats, ...newChats]
+        }));
+
+        setTicketPage(nextPage);
+      }
+    } catch (error) {
+      console.error('Failed to load more tickets', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLoadMoreMessages = async () => {
+    if (isLoading || !ticketId) return;
+    setIsLoading(true);
+    try {
+      const nextPage = messagePage + 1;
+      const response = await getChatMessageForTicket(ticketId, nextPage, rowsPerPage, '', {});
+      if (response.statusCode === 200 && response.data) {
+        const newMessages = response.data.chats;
+
+        // Append new messages to existing messages
+        dispatch(setChatData({
+          ...chatStore,
+          chats: [...newMessages, ...chatStore.chats]
+        }));
+
+        setMessagePage(nextPage);
+      }
+    } catch (error) {
+      console.error('Failed to load more messages', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchChatData();
   }, []);
-
-
 
   useEffect(() => {
     // Initialize socket connection
@@ -97,16 +146,9 @@ const ChatWrapper = () => {
       }
     };
 
-
   }, []);
 
-  const handleLoadMore = () => {
-    alert('Call Me');
-    setPage(page + 1);
-    fetchChatData(page + 1);
-  };
-
-  // Get active user’s data
+  // Get active user's data
   const activeUser = ticketId => {
     if (!socket.current) return;
     router.push(getLocalizedUrl(`/admin/support-tickets/view/${ticketId}`, locale));
@@ -150,12 +192,10 @@ const ChatWrapper = () => {
   }, [backdropOpen]);
 
   return (
-    <div
-      className={classNames(commonLayoutClasses.contentHeightFixed, 'flex is-full overflow-hidden rounded relative', {
-        border: settings.skin === 'bordered',
-        'shadow-md': settings.skin !== 'bordered'
-      })}
-    >
+    <div className={classNames(commonLayoutClasses.contentHeightFixed, 'flex is-full overflow-hidden rounded relative', {
+      border: settings.skin === 'bordered',
+      'shadow-md': settings.skin !== 'bordered'
+    })}>
       <SidebarLeft
         chatStore={chatStore}
         getActiveUserData={activeUser}
@@ -168,7 +208,7 @@ const ChatWrapper = () => {
         isBelowMdScreen={isBelowMdScreen}
         isBelowSmScreen={isBelowSmScreen}
         messageInputRef={messageInputRef}
-        handleLoadMore={handleLoadMore}
+        handleLoadMore={handleLoadMoreTickets}
       />
 
       <ChatContent
@@ -183,7 +223,7 @@ const ChatWrapper = () => {
         messageInputRef={messageInputRef}
         ticketId={ticketId}
         socket={socket}
-
+        handleLoadMore={handleLoadMoreMessages}
       />
 
       <Backdrop open={backdropOpen} onClick={() => setBackdropOpen(false)} className='absolute z-10' />
