@@ -1,5 +1,4 @@
 // services/trade-professionals
-import { api } from "@/utils/api";
 import { createApiService } from "./commonService";
 
 const ORDER_ENDPOINT = "/order";
@@ -25,6 +24,9 @@ export const orderServices = createApiService(ORDER_ENDPOINT, {
 
   getStats: async () => {
     return api.get(`${ORDER_ENDPOINT}/stats`);
+  },
+  getOrderHistory: async (orderId) => {
+    return api.get(`${ORDER_ENDPOINT}/history/${orderId}`);
   }
 })
 export const orderSupportTicketServices = createApiService(ORDER_SUPPORT_TICKET_ENDPOINT);

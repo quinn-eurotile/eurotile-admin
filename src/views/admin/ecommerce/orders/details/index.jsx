@@ -28,6 +28,15 @@ import { callCommonAction } from '@/redux-store/slices/common'
 
 // Services
 import { updateOrderStatus } from '@/app/server/actions'
+import OrderHistory from './OrderHistory'
+
+// Constants
+import {
+    orderStatus,
+    orderStatusObj,
+    customerTypes,
+    customerTypeObj
+} from '@/configs/constant'
 
 // Helper function to safely format dates
 const formatDate = (dateString) => {
@@ -38,20 +47,6 @@ const formatDate = (dateString) => {
         console.error('Invalid date:', dateString)
         return 'Invalid date'
     }
-}
-
-const statusObj = {
-    3: { label: 'New', color: 'primary' },
-    5: { label: 'Pending', color: 'warning' },
-    2: { label: 'Processing', color: 'info' },
-    4: { label: 'Shipped', color: 'secondary' },
-    1: { label: 'Delivered', color: 'success' },
-    0: { label: 'Cancelled', color: 'error' }
-}
-
-const customerTypeObj = {
-    retail: { label: 'Retail', color: 'primary' },
-    trade: { label: 'Trade', color: 'secondary' }
 }
 
 const OrderDetails = ({ orderData: initialOrderData }) => {
@@ -65,28 +60,30 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
             dispatch(callCommonAction({ loading: true }))
 
             const response = await updateOrderStatus(order._id, {
-                status,
-                trackingId
+                status: Number(status),
+                trackingId: trackingId || null,
+                orderId: order._id,
+                userId: order.updatedBy?._id || order.createdBy?._id
             })
-          console.log(response, 'response updateOrderStatus')
 
             if (response?.statusCode === 200) {
                 toast.success('Order updated successfully')
                 setOrder(response.data)
+            } else {
+                toast.error(response?.message || 'Failed to update order')
             }
 
             dispatch(callCommonAction({ loading: false }))
         } catch (error) {
             dispatch(callCommonAction({ loading: false }))
             console.error('Failed to update order', error)
-            toast.error('Failed to update order')
+            toast.error(error?.message || 'Failed to update order')
         }
     }
 
-  if (!order) return null
+    if (!order) return null
 
-  console.log(initialOrderData,'orderorderorder');
-
+    console.log(initialOrderData,'orderorderorder');
 
     return (
         <Grid container spacing={6}>
@@ -97,8 +94,8 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                         action={
                             <div>
                                 <Chip
-                                    label={statusObj[order.orderStatus]?.label}
-                                    color={statusObj[order.orderStatus]?.color}
+                                    label={orderStatusObj[order.orderStatus]?.label}
+                                    color={orderStatusObj[order.orderStatus]?.color}
                                 />
                             </div>
                         }
@@ -112,7 +109,7 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                                         <span className='font-medium'>Name:</span> {order.createdBy?.name}
                                     </Typography>
                                     <Typography>
-                      <span className='font-medium'>Email:</span> {order.createdBy?.email}
+                                        <span className='font-medium'>Email:</span> {order.createdBy?.email}
                                     </Typography>
                                     <Typography>
                                         <span className='font-medium'>Phone:</span> {order.createdBy?.phone}
@@ -166,19 +163,31 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                                 </thead>
                                 <tbody>
                                     {order?.orderDetails?.map((item) => {
-                                        const productDetail = JSON.parse(item.productDetail)
+                                        let productDetail;
+                                        try {
+                                            productDetail = typeof item.productDetail === 'string'
+                                                ? JSON.parse(item.productDetail)
+                                                : item.productDetail;
+                                        } catch (error) {
+                                            console.error('Error parsing product detail:', error);
+                                            productDetail = {
+                                                product: { name: 'Error loading product', sku: 'N/A' },
+                                                supplierName: 'N/A'
+                                            };
+                                        }
+
                                         return (
                                             <tr key={item._id} className='border-t'>
                                                 <td className='p-2'>
                                                     <div className='flex flex-col'>
-                                                        <span>{productDetail.product.name}</span>
-                                                        <span className='text-sm text-gray-500'>SKU: {productDetail.product.sku}</span>
+                                                        <span>{productDetail?.product?.name || 'Unknown Product'}</span>
+                                                        <span className='text-sm text-gray-500'>SKU: {productDetail?.product?.sku || 'N/A'}</span>
                                                     </div>
                                                 </td>
-                                                <td className='p-2'>{productDetail.supplierName}</td>
+                                                <td className='p-2'>{productDetail?.supplierName || 'N/A'}</td>
                                                 <td className='p-2'>{item.quantity}</td>
-                                                <td className='p-2'>${item.price.toFixed(2)}</td>
-                                                <td className='p-2'>${(item.price * item.quantity).toFixed(2)}</td>
+                                                <td className='p-2'>${item.price?.toFixed(2) || '0.00'}</td>
+                                                <td className='p-2'>${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</td>
                                             </tr>
                                         )
                                     })}
@@ -214,7 +223,7 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
             </Grid>
 
             <Grid size={{ xs: 12, lg: 4 }}>
-                <Card>
+                <Card className="mb-6">
                     <CardHeader title='Order Management' />
                     <CardContent>
                         <div className='space-y-4'>
@@ -225,7 +234,7 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                                     label='Status'
                                     onChange={(e) => setStatus(e.target.value)}
                                 >
-                                    {Object.entries(statusObj).map(([value, { label }]) => (
+                                    {Object.entries(orderStatusObj).map(([value, { label }]) => (
                                         <MenuItem key={value} value={Number(value)}>{label}</MenuItem>
                                     ))}
                                 </Select>
@@ -270,6 +279,8 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                         </div>
                     </CardContent>
                 </Card>
+
+                <OrderHistory orderId={order._id} />
             </Grid>
         </Grid>
     )
