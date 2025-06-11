@@ -231,7 +231,7 @@ const StepCart = ({ handleNext }) => {
                 <img
                   height={140}
                   width={140}
-                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=140&width=140"}
+                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product?.variation?.variationImages[0]?.filePath}` || "/placeholder.svg?height=140&width=140"}
                   alt={product?.product?.name || 'Product Image'}
                   className="object-cover rounded-lg"
                 />
@@ -274,7 +274,7 @@ const StepCart = ({ handleNext }) => {
                             Tiles: {product?.numberOfTiles || 0}
                           </Typography>
                           <Typography color="text.secondary" className="text-sm">
-                            Pallets: {product?.numberOfPallets || 0}
+                            Boxes: {product?.numberOfPallets || 0}
                           </Typography>
                         </>
                       )}

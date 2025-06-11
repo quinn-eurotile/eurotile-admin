@@ -1,11 +1,12 @@
 // React Imports
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useLayoutEffect } from 'react';
 
 // MUI Imports
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import CardContent from '@mui/material/CardContent';
+import PerfectScrollbar from 'react-perfect-scrollbar';
 
 // Component Imports
 import OptionMenu from '@core/components/option-menu';
@@ -54,25 +55,66 @@ const ChatContent = props => {
     isBelowSmScreen,
     isBelowLgScreen,
     messageInputRef,
-    socket
+    socket,
+    handleLoadMore
   } = props;
 
   const { activeUser } = chatStore;
   // States
   const [userProfileRightOpen, setUserProfileRightOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const chatContainerRef = useRef(null);
+  const [containerReady, setContainerReady] = useState(false);
 
-  // useEffect(() => {
-  //   if (!socket.current) return;
-  //   // Listen for incoming messages
-  //   socket.current.on('receiveMessage', (data) => {
-  //     // console.log('Received message:', JSON.parse(data));
-  //     const parseData = JSON.parse(data);
-  //     // Update your chat store with the new message
-  //     dispatch(sendMsg({ msg: parseData?.message }));
-  //   });
+  // Use useLayoutEffect to ensure DOM is ready
+  useLayoutEffect(() => {
+    if (chatContainerRef.current) {
+      console.log('Container is ready:', chatContainerRef.current);
+      setContainerReady(true);
+    }
+  }, []);
 
+  // Add scroll event listener using useEffect
+  useEffect(() => {
+    if (!containerReady) return;
 
-  // }, [socket]);
+    const container = chatContainerRef.current;
+    console.log('Setting up scroll listener for container:', container);
+
+    const handleScrollEvent = () => {
+      if (!container || isLoading) return;
+
+      const scrollTop = container.scrollTop;
+      console.log('Scroll position:', scrollTop);
+
+      if (scrollTop < 100) {
+        setIsLoading(true);
+        handleLoadMore();
+        setIsLoading(false);
+      }
+    };
+
+    if (container) {
+      container.addEventListener('scroll', handleScrollEvent);
+    }
+
+    // Cleanup
+    return () => {
+      if (container) {
+        container.removeEventListener('scroll', handleScrollEvent);
+      }
+    };
+  }, [containerReady, isLoading, handleLoadMore]);
+
+  // Force scroll container to be scrollable
+  useEffect(() => {
+    const container = chatContainerRef.current;
+    if (container) {
+      container.style.overflowY = 'auto';
+      container.style.height = 'calc(100vh - 180px)';
+      container.style.position = 'relative';
+    }
+  }, []);
 
   useEffect(() => {
     if (!socket.current) return;
@@ -243,14 +285,29 @@ const ChatContent = props => {
             )} */}
           </div>
 
-
-
-          <ChatLog
-            chatStore={chatStore}
-            isBelowMdScreen={isBelowMdScreen}
-            isBelowSmScreen={isBelowSmScreen}
-            isBelowLgScreen={isBelowLgScreen}
-          />
+          <div
+            ref={chatContainerRef}
+            className='flex-1 overflow-y-auto'
+            style={{
+              height: 'calc(100vh - 180px)',
+              position: 'relative',
+              overflowY: 'auto'
+            }}
+          >
+            {isLoading && (
+              <div className='flex justify-center p-4'>
+                <Typography variant='body2' color='text.secondary'>
+                  Loading older messages...
+                </Typography>
+              </div>
+            )}
+            <ChatLog
+              chatStore={chatStore}
+              isBelowMdScreen={isBelowMdScreen}
+              isBelowSmScreen={isBelowSmScreen}
+              isBelowLgScreen={isBelowLgScreen}
+            />
+          </div>
 
           <SendMsgForm
             dispatch={dispatch}
