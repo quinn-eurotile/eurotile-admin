@@ -464,7 +464,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                 <img
                   width={64}
                   height={64}
-                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=140&width=140"}
+                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item?.variation?.variationImages[0]?.filePath}` || "/placeholder.svg?height=140&width=140"}
                   alt={item?.product?.name || 'Product Image'}
                   className="object-cover rounded-lg"
                 />

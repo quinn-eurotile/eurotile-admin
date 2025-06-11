@@ -826,7 +826,7 @@ export default function ProductVariants({
                           <>
                             <TextField
                               {...field}
-                              label='Stock Quantity'
+                              label='Stock Quantity (Boxes)'
                               type='number'
                               inputProps={{ min: 1 }}
                               fullWidth
@@ -946,7 +946,7 @@ export default function ProductVariants({
                           <>
                             <TextField
                               {...field}
-                              label='Tile Height (cm)'
+                              label='Tile Thickness (mm)'
                               type='number'
                               inputProps={{ step: 1, min: 1 }}
                               fullWidth
@@ -994,7 +994,7 @@ export default function ProductVariants({
                               {...field}
                               label='Box sizes (sq.m)'
                               type='number'
-                              inputProps={{ step: 1, min: 1 }}
+                              inputProps={{ step: 0.01, min: 0.01 }}
                               fullWidth
                               variant='outlined'
                               error={!!error}

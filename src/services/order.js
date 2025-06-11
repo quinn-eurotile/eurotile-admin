@@ -1,5 +1,4 @@
 // services/trade-professionals
-import { api } from "@/utils/api";
 import { createApiService } from "./commonService";
 import { api } from "@/utils/api";
 
