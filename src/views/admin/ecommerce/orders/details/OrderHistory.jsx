@@ -15,7 +15,7 @@ import TimelineDot from '@mui/lab/TimelineDot'
 import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent'
 
 // Constants
-import { orderHistoryActions, orderHistoryActionObj } from '@/configs/constant'
+import { orderHistoryActions, orderHistoryActionObj, orderStatusMap } from '@/configs/constant'
 import { getOrderHistory } from '@/app/server/actions'
 
 const formatDate = (dateString) => {
@@ -25,6 +25,13 @@ const formatDate = (dateString) => {
     } catch (error) {
         return 'Invalid date'
     }
+}
+
+const getStatusDescription = (event) => {
+    if (event.action === orderHistoryActions.STATUS_CHANGED && event.metadata?.oldStatus && event.metadata?.newStatus) {
+        return `Order status updated from ${orderStatusMap[event.metadata.oldStatus] || event.metadata.oldStatus} to ${orderStatusMap[event.metadata.newStatus] || event.metadata.newStatus}`
+    }
+    return event.description
 }
 
 const OrderHistory = ({ orderId }) => {
@@ -70,7 +77,7 @@ const OrderHistory = ({ orderId }) => {
                             </TimelineSeparator>
                             <TimelineContent>
                                 <Typography variant="body1">
-                                    {event.description}
+                                    {getStatusDescription(event)}
                                 </Typography>
                                 <Typography variant="caption" color="text.secondary">
                                     by {event.performedBy?.name || 'System'}

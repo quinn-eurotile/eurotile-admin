@@ -246,3 +246,6 @@ export const getOrderStats = async () => {
 export const getOrderHistory = async (orderId) => {
   return await orderServices.getOrderHistory(orderId);
 };
+export const createOrder = async (data) => {
+  return await orderServices.create(data);
+};

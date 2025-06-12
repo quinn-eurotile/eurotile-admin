@@ -54,6 +54,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
   // console.log(JSON.stringify(user), 'user 317');
 
 
+
   const stripe = useStripe();
   const elements = useElements();
   const [saveCard, setSaveCard] = useState(true);
