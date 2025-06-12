@@ -23,7 +23,7 @@ import io from 'socket.io-client';
 // Util Imports
 import { commonLayoutClasses } from '@layouts/utils/layoutClasses';
 import { useParams, useRouter } from 'next/navigation';
-import { getChatMessageForTicket, loadMoreTickets } from '@/app/server/support-ticket-chat';
+import { getChatMessageForTicket, loadMoreTickets, loadMoreMessages } from '@/app/server/support-ticket-chat';
 import { callCommonAction } from '@/redux-store/slices/common';
 import { getLocalizedUrl } from '@/utils/i18n';
 
@@ -40,6 +40,7 @@ const ChatWrapper = () => {
   const [messagePage, setMessagePage] = useState(1);
   const [rowsPerPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
   // Refs
   const chatBoxRef = useRef(null);
@@ -109,31 +110,36 @@ const ChatWrapper = () => {
   };
 
   const handleLoadMoreMessages = async () => {
-    if (isLoading || !ticketId) return;
-    setIsLoading(true);
+    if (isLoadingMessages || !ticketId) return;
+    setIsLoadingMessages(true);
     try {
       const nextPage = messagePage + 1;
-      const response = await getChatMessageForTicket(ticketId, nextPage, rowsPerPage, '', {});
+      const response = await loadMoreMessages(ticketId, nextPage, rowsPerPage, '', {});
       if (response.statusCode === 200 && response.data) {
-        const newMessages = response.data.chats;
+        const newMessages = response.data.chats; // newMessages.chat is the array of old messages
 
-        // Append new messages to existing messages
-        dispatch(setChatData({
-          ...chatStore,
-          chats: [...newMessages, ...chatStore.chats]
-        }));
+        const updatedChats = chatStore.chats.map(chat => {
+          if (chat.id === ticketId) {
+            return {
+              ...chat,
+              chat: [...newMessages, ...chat.chat] // Prepend older messages
+            };
+          }
+          return chat;
+        });
+
+        dispatch(setChatData({ ...chatStore, chats: updatedChats }));
 
         setMessagePage(nextPage);
       }
     } catch (error) {
       console.error('Failed to load more messages', error);
     } finally {
-      setIsLoading(false);
+      setIsLoadingMessages(false);
     }
   };
 
   useEffect(() => {
-    alert()
     fetchChatData();
   }, []);
 
@@ -228,7 +234,8 @@ const ChatWrapper = () => {
         messageInputRef={messageInputRef}
         ticketId={ticketId}
         socket={socket}
-        handleLoadMore={handleLoadMoreMessages}
+        handleLoadMoreMessages={handleLoadMoreMessages}
+        isLoadingMessages={isLoadingMessages}
       />
 
       <Backdrop open={backdropOpen} onClick={() => setBackdropOpen(false)} className='absolute z-10' />

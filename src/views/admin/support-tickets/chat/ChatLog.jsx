@@ -71,7 +71,7 @@ const ScrollWrapper = ({ children, isBelowLgScreen, scrollRef, className }) => {
   }
 };
 
-const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen }) => {
+const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen, handleLoadMoreMessages }) => {
   // Props
   const { profileUser, contacts } = chatStore;
 
@@ -97,11 +97,13 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
 
   // Scroll to bottom on new message
   useEffect(() => {
-    if (activeUserChat && activeUserChat.chat && activeUserChat.chat.length) {
+    if (activeUserChat && activeUserChat?.chat && activeUserChat?.chat?.length) {
       scrollToBottom();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatStore]);
+
+  // console.log('activeUserChat =====', activeUserChat);
 
   return (
     <ScrollWrapper
@@ -114,7 +116,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
       <CardContent className='p-0'>
 
         <div className='flex justify-center p-4'>
-          <Button variant='contained' size='small' style={{ fontSize: '11px', padding: '4px 10px' }}>Load More</Button>
+          <Button variant='contained' size='small' style={{ fontSize: '11px', padding: '4px 10px' }} onClick={handleLoadMoreMessages}>Load More</Button>
         </div>
 
         {activeUserChat &&
@@ -176,7 +178,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
                           ) : (
                             msg.msgStatus?.isSent && <i className='ri-check-line text-base' />
                           )}
-                          {index === activeUserChat.chat.length - 1 ? (
+                          {index === activeUserChat?.chat?.length - 1 ? (
                             <Typography variant='caption'>
                               {new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
                             </Typography>
@@ -190,7 +192,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
                             </Typography>
                           ) : null}
                         </div>
-                      ) : index === activeUserChat.chat.length - 1 ? (
+                      ) : index === activeUserChat?.chat?.length - 1 ? (
                         <Typography key={index} variant='caption'>
                           {new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
                         </Typography>

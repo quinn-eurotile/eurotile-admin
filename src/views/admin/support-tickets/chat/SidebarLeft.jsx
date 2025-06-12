@@ -40,7 +40,7 @@ const renderChat = props => {
   // Props
   const { chatStore, getActiveUserData, setSidebarOpen, backdropOpen, setBackdropOpen, isBelowMdScreen } = props;
 
-  console.log('chatStore', chatStore);
+  // console.log('chatStore', chatStore);
 
   return chatStore.chats.map(chat => {
 
@@ -69,13 +69,13 @@ const renderChat = props => {
         />
         <div className='min-is-0 flex-auto'>
           <Typography color='inherit'>{contact?.fullName}</Typography>
-          {chat.chat.length ? (
+          {chat?.chat?.length ? (
             <Typography variant='body2' color={isChatActive ? 'inherit' : 'text.secondary'} className='truncate'>
-              {chat.chat[chat.chat.length - 1].message}
+              {chat.chat[chat?.chat?.length - 1]?.message}
             </Typography>
           ) : (
             <Typography variant='body2' color={isChatActive ? 'inherit' : 'text.secondary'} className='truncate'>
-              {contact.role}
+              {contact?.role}
             </Typography>
           )}
         </div>
@@ -87,9 +87,9 @@ const renderChat = props => {
               'text-textDisabled': !isChatActive
             })}
           >
-            {chat.chat.length ? formatDateToMonthShort(chat.chat[chat.chat.length - 1].time) : null}
+            {chat?.chat?.length ? formatDateToMonthShort(chat?.chat[chat?.chat?.length - 1]?.time) : null}
           </Typography>
-          {chat.unseenMsgs > 0 ? <Chip label={chat.unseenMsgs} color='error' size='small' /> : null}
+          {chat?.unseenMsgs > 0 ? <Chip label={chat?.unseenMsgs} color='error' size='small' /> : null}
         </div>
       </li>
     );

@@ -55,28 +55,14 @@ const ChatContent = props => {
     isBelowLgScreen,
     messageInputRef,
     socket,
-    handleLoadMore
+    handleLoadMoreMessages,
+    isLoadingMessages
   } = props;
 
   const { activeUser } = chatStore;
   // States
   const [userProfileRightOpen, setUserProfileRightOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const chatContainerRef = useRef(null);
-
-  const handleScroll = () => {
-    alert('handleScroll');
-    console.log('handleScroll', chatContainerRef);
-    if (!chatContainerRef.current || isLoading) return;
-
-    const { scrollTop } = chatContainerRef.current;
-    // Load more when user scrolls to top (with 100px threshold)
-    if (scrollTop < 100) {
-      setIsLoading(true);
-      handleLoadMore();
-      setIsLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (!socket.current) return;
@@ -200,10 +186,10 @@ const ChatContent = props => {
 
           <div
             ref={chatContainerRef}
-            onScroll={handleScroll}
+            // onScroll={handleScroll}
             className='flex-1 overflow-y-auto'
           >
-            {isLoading && (
+            {isLoadingMessages && (
               <div className='flex justify-center p-4'>
                 <Typography variant='body2' color='text.secondary'>
                   Loading older messages...
@@ -216,6 +202,7 @@ const ChatContent = props => {
               isBelowMdScreen={isBelowMdScreen}
               isBelowSmScreen={isBelowSmScreen}
               isBelowLgScreen={isBelowLgScreen}
+              handleLoadMoreMessages={handleLoadMoreMessages}
             />
           </div>
 
