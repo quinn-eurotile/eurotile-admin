@@ -199,7 +199,7 @@ const StepConfirmation = () => {
                   <Typography>Quantity: {product?.quantity}</Typography>
                 </div>
                 <div className="flex items-center">
-                  <Typography color="primary.main">{`$${product.price}`}</Typography>
+                  <Typography color="primary.main">{`$${(product.price * product.quantity).toFixed(2)}`}</Typography>
                   {product.originalPrice && (
                     <Typography color="text.disabled" className="line-through">
                       {`/$${product.originalPrice}`}
