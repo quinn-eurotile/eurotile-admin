@@ -189,13 +189,7 @@ const ChatContent = props => {
             // onScroll={handleScroll}
             className='flex-1 overflow-y-auto'
           >
-            {isLoadingMessages && (
-              <div className='flex justify-center p-4'>
-                <Typography variant='body2' color='text.secondary'>
-                  Loading older messages...
-                </Typography>
-              </div>
-            )}
+
 
             <ChatLog
               chatStore={chatStore}
@@ -203,6 +197,7 @@ const ChatContent = props => {
               isBelowSmScreen={isBelowSmScreen}
               isBelowLgScreen={isBelowLgScreen}
               handleLoadMoreMessages={handleLoadMoreMessages}
+              isLoadingMessages={isLoadingMessages}
             />
           </div>
 

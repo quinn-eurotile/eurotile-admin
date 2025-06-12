@@ -38,7 +38,7 @@ const ChatWrapper = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [ticketPage, setTicketPage] = useState(1);
   const [messagePage, setMessagePage] = useState(1);
-  const [rowsPerPage] = useState(1);
+  const [rowsPerPage] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
@@ -203,7 +203,7 @@ const ChatWrapper = () => {
   }, [backdropOpen]);
 
   return (
-    <div className={classNames(commonLayoutClasses.contentHeightFixed, 'flex is-full overflow-hidden rounded relative', {
+    <div className={classNames(commonLayoutClasses.contentHeightFixed, 'flex is-full rounded relative', {
       border: settings.skin === 'bordered',
       'shadow-md': settings.skin !== 'bordered'
     })}>
@@ -220,6 +220,7 @@ const ChatWrapper = () => {
         isBelowSmScreen={isBelowSmScreen}
         messageInputRef={messageInputRef}
         handleLoadMoreTickets={handleLoadMoreTickets}
+        isLoading={isLoading}
       />
 
       <ChatContent

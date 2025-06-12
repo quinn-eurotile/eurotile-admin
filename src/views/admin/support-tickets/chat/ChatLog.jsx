@@ -71,9 +71,12 @@ const ScrollWrapper = ({ children, isBelowLgScreen, scrollRef, className }) => {
   }
 };
 
-const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen, handleLoadMoreMessages }) => {
+const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen, handleLoadMoreMessages, isLoadingMessages }) => {
   // Props
   const { profileUser, contacts } = chatStore;
+
+  console.log('chatStore', chatStore);
+  console.log(' profileUser', profileUser);
 
   // Vars
   const activeUserChat = chatStore.chats.find(chat => chat.userId === chatStore.activeUser?.id);
@@ -115,8 +118,18 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen,
 
       <CardContent className='p-0'>
 
+
+
         <div className='flex justify-center p-4'>
-          <Button variant='contained' size='small' style={{ fontSize: '11px', padding: '4px 10px' }} onClick={handleLoadMoreMessages}>Load More</Button>
+          <Button onClick={handleLoadMoreMessages}
+            type='button'
+            size='small'
+            variant='contained'
+            disabled={isLoadingMessages}
+            startIcon={isLoadingMessages && <i className="ri-loader-line animate-spin" />}
+          >
+            {isLoadingMessages ? 'Processing...' : 'Load More'}
+          </Button>
         </div>
 
         {activeUserChat &&

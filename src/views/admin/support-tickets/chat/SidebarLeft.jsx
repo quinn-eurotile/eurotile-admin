@@ -119,13 +119,13 @@ const SidebarLeft = props => {
     isBelowMdScreen,
     isBelowSmScreen,
     messageInputRef,
-    handleLoadMoreTickets
+    handleLoadMoreTickets,
+    isLoading
   } = props;
 
   // States
   const [userSidebar, setUserSidebar] = useState(false);
   const [searchValue, setSearchValue] = useState();
-  const [isLoading, setIsLoading] = useState(false);
   const scrollContainerRef = useRef(null);
 
   const handleChange = (event, newValue) => {
@@ -138,24 +138,14 @@ const SidebarLeft = props => {
     messageInputRef.current?.focus();
   };
 
-  const handleScroll = () => {
-    if (!scrollContainerRef.current || isLoading) return;
 
-    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-    // Load more when user scrolls to bottom (with 100px threshold)
-    if (scrollHeight - scrollTop - clientHeight < 100) {
-      setIsLoading(true);
-      handleLoadMore();
-      setIsLoading(false);
-    }
-  };
 
   return (
     <>
       <Drawer
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        className='bs-full'
+        className='bs-full relative '
         variant={!isBelowMdScreen ? 'permanent' : 'persistent'}
         ModalProps={{
           disablePortal: true,
@@ -252,38 +242,30 @@ const SidebarLeft = props => {
             ) : null}
           </div>
         </div>
-        <ScrollWrapper isBelowLgScreen={isBelowLgScreen}>
-          <div
-            ref={scrollContainerRef}
-            onScroll={handleScroll}
-            className='overflow-y-auto'
-            style={{ height: 'calc(100vh - 80px)' }}
-          >
-            <ul className='p-3 pbs-4'>
-              <li className='flex justify-center p-4'>
-                <Button variant='contained' size='small' style={{ fontSize: '11px', padding: '4px 10px' }} onClick={handleLoadMoreTickets}>Load More</Button>
-              </li>
-              {renderChat({
-                chatStore,
-                getActiveUserData,
-                backdropOpen,
-                setSidebarOpen,
-                isBelowMdScreen,
-                setBackdropOpen
-              })}
-            </ul>
-            {isLoading && (
-              <>
-                <div className='flex justify-center p-4'>
-                  <Typography variant='body2' color='text.secondary'>
-                    Loading more tickets...
-                  </Typography>
-                </div>
-                <button className='bg-red-500' type='button' onClick={() => { console.log('load more') }}>Load More</button>
-              </>
-            )}
-          </div>
+        <ScrollWrapper isBelowLgScreen={isBelowLgScreen} className='overflow-y-auto ' style={{ height: 'calc(100vh - 290px)' }}>
+          <ul ref={scrollContainerRef} className='p-3 pbs-4 ' >
+            {renderChat({
+              chatStore,
+              getActiveUserData,
+              backdropOpen,
+              setSidebarOpen,
+              isBelowMdScreen,
+              setBackdropOpen
+            })}
+          </ul>
+
         </ScrollWrapper>
+        <div className='absolute bg-white bottom-0 flex justify-center left-0 p-3 right-0 z-10  '>
+          <Button onClick={handleLoadMoreTickets}
+            type='button'
+            size='small'
+            variant='contained'
+            disabled={isLoading}
+            startIcon={isLoading && <i className="ri-loader-line animate-spin" />}
+          >
+            {isLoading ? 'Processing...' : 'Load More'}
+          </Button>
+        </div>
         {/* <Box bgcolor={'#fff'} display={'flex'} justifyContent={'center'} padding={'15px 10px'}>
           <Button variant='contained' size='small' onClick={handleLoadMore}>Load More</Button>
         </Box> */}
