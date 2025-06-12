@@ -90,6 +90,11 @@ const OrderListTable = ({ orderData }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   // Input field value state
   const [payoutAmount, setPayoutAmount] = useState('');
+  const [eligibleCommission, setEligibleCommission] = useState(null);
+  const [totalCommission, setTotalCommission] = useState(null);
+
+
+
 
   // Open dialog handler
   const handleOpenDialog = () => {
@@ -101,26 +106,6 @@ const OrderListTable = ({ orderData }) => {
     setIsDialogOpen(false);
     setPayoutAmount(''); // Reset input on close
   };
-
-  const calculateEligibleCommission = () => {
-    const fourteenDaysAgo = moment().subtract(14, 'days');
-    const eligibleOrders = data.filter(order => {
-      const isShipped = order.orderStatus === 4;
-      const isOldEnough = moment(order.updatedAt).isBefore(fourteenDaysAgo);
-      return isShipped && isOldEnough;
-    });
-
-    return eligibleOrders.reduce((total, order) => total + parseFloat(order.commission), 0);
-  };
-
-  // Add state for eligible commission
-  const [eligibleCommission, setEligibleCommission] = useState(0);
-
-  // Update useEffect to calculate eligible commission when data changes
-  useEffect(() => {
-    const total = calculateEligibleCommission();
-    setEligibleCommission(total);
-  }, [data]);
 
   // Modify the handleSubmit function to validate payout amount
   const handleSubmit = () => {
@@ -167,7 +152,7 @@ const OrderListTable = ({ orderData }) => {
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await getOrderList(currentPage, pageSize, search, filter);
-      // console.log(response, 'responseresponseresponseresponse')
+      console.log(response, 'responseresponseresponseresponse33333')
       dispatch(callCommonAction({ loading: false }));
 
       if (response.statusCode === 200 && response.data) {
@@ -185,9 +170,11 @@ const OrderListTable = ({ orderData }) => {
           avatar: order?.createdByDetails?.userImage,
           username: order?.createdByDetails?.name,
           email: order?.createdByDetails?.email,
-          supportticketmsgs: order?.supportticketmsgs
+          supportticketmsgs: order?.supportticketmsgs,
         }));
         setData(formatted);
+        setEligibleCommission(response.data.eligibleCommission);
+        setTotalCommission(response.data.totalCommission);
         setTotalRecords(response.data.totalDocs || 0);
       }
     } catch (error) {
@@ -354,8 +341,8 @@ const OrderListTable = ({ orderData }) => {
           <Grid size={{ xs: 12, sm: 8 }}>
             <div className='flex items-center gap-2 justify-end pt-2'>
               <div className='flex flex-col items-end'>
-                <span>Total Commission: <strong>€{data.reduce((total, order) => total + parseFloat(order.commission), 0).toFixed(2)}</strong></span>
-                <span>Eligible for Payout: <strong>€{eligibleCommission.toFixed(2)}</strong></span>
+                <span>Total Commission: <strong>€{totalCommission?.toFixed(2)}</strong></span>
+                <span>Eligible for Payout: <strong>€{eligibleCommission?.toFixed(2)}</strong></span>
                 <Typography variant='caption' color='textSecondary'>
                   (Only includes commissions from orders shipped 14+ days ago)
                 </Typography>
@@ -413,7 +400,7 @@ const OrderListTable = ({ orderData }) => {
         <DialogContent>
           <div className='mb-4 mt-2'>
             <Typography variant='body2' color='textSecondary' gutterBottom>
-              Available for payout: €{eligibleCommission.toFixed(2)}
+              Available for payout: €{eligibleCommission?.toFixed(2)}
             </Typography>
           </div>
           <TextField
@@ -428,7 +415,7 @@ const OrderListTable = ({ orderData }) => {
               max: eligibleCommission,
               step: '0.01'
             }}
-            helperText={`Enter an amount between €0 and €${eligibleCommission.toFixed(2)}`}
+            helperText={`Enter an amount between €0 and €${eligibleCommission?.toFixed(2)}`}
           />
         </DialogContent>
         <DialogActions>
