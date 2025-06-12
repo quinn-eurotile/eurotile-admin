@@ -8,12 +8,14 @@ import CardContent from '@mui/material/CardContent';
 
 // Third-party Imports
 import classnames from 'classnames';
+import PerfectScrollbar from 'react-perfect-scrollbar';
 
 // Component Imports
 import CustomAvatar from '@core/components/mui/Avatar';
 
 // Util Imports
 import { getInitials } from '@/utils/getInitials';
+import { Box, Button } from '@mui/material';
 
 // Formats the chat data into a structured format for display.
 const formatedChatData = (chats, profileUser) => {
@@ -52,12 +54,33 @@ const formatedChatData = (chats, profileUser) => {
   return formattedChatData;
 };
 
-const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen }) => {
+// Wrapper for the chat log to handle scrolling
+const ScrollWrapper = ({ children, isBelowLgScreen, scrollRef, className }) => {
+  if (isBelowLgScreen) {
+    return (
+      <div ref={scrollRef} className={classnames('bs-full overflow-y-auto overflow-x-hidden', className)}>
+        {children}
+      </div>
+    );
+  } else {
+    return (
+      <PerfectScrollbar ref={scrollRef} options={{ wheelPropagation: false }} className={className}>
+        {children}
+      </PerfectScrollbar>
+    );
+  }
+};
+
+const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen, handleLoadMoreMessages, isLoadingMessages }) => {
   // Props
   const { profileUser, contacts } = chatStore;
 
+  console.log('chatStore', chatStore);
+  console.log(' profileUser', profileUser);
+
   // Vars
   const activeUserChat = chatStore.chats.find(chat => chat.userId === chatStore.activeUser?.id);
+
 
   // Refs
   const scrollRef = useRef(null);
@@ -65,21 +88,50 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
   // Function to scroll to bottom when new message is sent
   const scrollToBottom = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      if (isBelowLgScreen) {
+        // @ts-ignore
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      } else {
+        // @ts-ignore
+        scrollRef.current._container.scrollTop = scrollRef.current._container.scrollHeight;
+      }
     }
   };
 
   // Scroll to bottom on new message
   useEffect(() => {
-    if (activeUserChat && activeUserChat.chat && activeUserChat.chat.length) {
+    if (activeUserChat && activeUserChat?.chat && activeUserChat?.chat?.length) {
       scrollToBottom();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatStore]);
 
+  // console.log('activeUserChat =====', activeUserChat);
+
   return (
-    <div ref={scrollRef} className='bg-[var(--mui-palette-customColors-chatBg)]'>
+    <ScrollWrapper
+      isBelowLgScreen={isBelowLgScreen}
+      scrollRef={scrollRef}
+      className='bg-[var(--mui-palette-customColors-chatBg)]'
+    >
+
+
       <CardContent className='p-0'>
+
+
+
+        <div className='flex justify-center p-4'>
+          <Button onClick={handleLoadMoreMessages}
+            type='button'
+            size='small'
+            variant='contained'
+            disabled={isLoadingMessages}
+            startIcon={isLoadingMessages && <i className="ri-loader-line animate-spin" />}
+          >
+            {isLoadingMessages ? 'Processing...' : 'Load More'}
+          </Button>
+        </div>
+
         {activeUserChat &&
           formatedChatData(activeUserChat.chat, profileUser).map((msgGroup, index) => {
             const isSender = msgGroup.senderId === profileUser.id;
@@ -139,7 +191,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
                           ) : (
                             msg.msgStatus?.isSent && <i className='ri-check-line text-base' />
                           )}
-                          {index === activeUserChat.chat.length - 1 ? (
+                          {index === activeUserChat?.chat?.length - 1 ? (
                             <Typography variant='caption'>
                               {new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
                             </Typography>
@@ -153,7 +205,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
                             </Typography>
                           ) : null}
                         </div>
-                      ) : index === activeUserChat.chat.length - 1 ? (
+                      ) : index === activeUserChat?.chat?.length - 1 ? (
                         <Typography key={index} variant='caption'>
                           {new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
                         </Typography>
@@ -172,7 +224,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
             );
           })}
       </CardContent>
-    </div>
+    </ScrollWrapper>
   );
 };
 
