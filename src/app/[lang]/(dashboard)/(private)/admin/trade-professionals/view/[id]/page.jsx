@@ -11,11 +11,12 @@ import Grid from '@mui/material/Grid2';
 import { getOrderHistory } from '@/app/server/actions';
 import UserLeftOverview from '@/views/admin/trade-professionals/view/user-left-overview';
 import UserRight from '@/views/admin/trade-professionals/view/user-right';
-import { tradeProfessionalService } from '@/services/trade-professionals';
+import { tradeProfessionalEarning, tradeProfessionalService } from '@/services/trade-professionals';
 
 import OverViewTab from '@/views/admin/trade-professionals/view/user-right/overview';
 const SecurityTab = dynamic(() => import('@/views/admin/trade-professionals/view/user-right/security'));
 const OrderList = dynamic(() => import('@/views/admin/trade-professionals/view/user-right/orders/list'));
+const CommissionList = dynamic(() => import('@/views/admin/trade-professionals/view/user-right/commission/list'))
 // const BillingPlans = dynamic(() => import('@views/apps/user/view/user-right/billing-plans'))
 // const NotificationsTab = dynamic(() => import('@views/apps/user/view/user-right/notifications'))
 // const ConnectionsTab = dynamic(() => import('@views/apps/user/view/user-right/connections'))
@@ -45,6 +46,15 @@ export async function fetchById(id) {
   }
 }
 
+export async function fetchEarning(id) {
+  try {
+    return await tradeProfessionalEarning.getById(id);
+  } catch (error) {
+    console.error('Failed to fetch Trade Professional', error);
+  }
+}
+
+
 export async function update(id, data) {
   try {
     return await tradeProfessionalService.update(id, data);
@@ -69,11 +79,13 @@ const UserViewTab = async props => {
   const data = response?.data;
 
   const overviewTab = await OverViewTab({ data, params });
+  const commissionTab = await CommissionList({ userId })
 
   const tabContentList = {
     overview: overviewTab,
     //security: <SecurityTab userId={userId} data={data} />,
     orders: <OrderList />,
+    commission: commissionTab,
   };
 
   return (

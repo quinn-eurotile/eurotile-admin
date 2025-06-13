@@ -7,7 +7,8 @@ import {
      userTradeProfessionalClientService,
      userTradeProfessionalPassword,
      userProfile,
-     userTradeProfessionalService
+     userTradeProfessionalService,
+     tradeProfessionalCommission
 } from "@/services/trade-professionals";
 
 export const getTradeProfessionalDetails = async (userId) => {
@@ -80,6 +81,10 @@ export const deleteTradeProfessionalClient = async (id) => {
 
 export const updateTradeProfessionalClient = async (id, data) => {
      return await userTradeProfessionalClientService.update(id, data);
+};
+
+export const getTradeProfessionalCommissionList = async (currentPage, rowsPerPage, searchTerm, filteredData) => {
+     return await tradeProfessionalCommission.get(currentPage, rowsPerPage, searchTerm, filteredData);
 };
 
 /** End API for B2C Trade Professionals  Client */

@@ -60,7 +60,10 @@ const ChatContent = props => {
     messageInputRef,
     socket,
     handleLoadMoreMessages,
-    isLoadingMessages
+    isLoadingMessages,
+    hasPrevPageMessages,
+    hasNextPageMessages
+
   } = props;
 
   const { activeUser } = chatStore;
@@ -69,7 +72,7 @@ const ChatContent = props => {
   const chatContainerRef = useRef(null);
   const { data: session, status } = useSession();
 
-  console.log('session comming', session);
+  // console.log('session comming', session);
 
   useEffect(() => {
     if (!socket.current) return;
@@ -77,7 +80,7 @@ const ChatContent = props => {
     const handleReceiveMessage = (data) => {
       try {
         const parseData = typeof data === 'string' ? JSON.parse(data) : data;
-        console.log('Received message:', parseData);
+        // console.log('Received message:', parseData);
         dispatch(sendMsg({ data: parseData }));
       } catch (error) {
         console.error('Failed to parse received message:', error);
@@ -309,6 +312,9 @@ const ChatContent = props => {
               isBelowLgScreen={isBelowLgScreen}
               handleLoadMoreMessages={handleLoadMoreMessages}
               isLoadingMessages={isLoadingMessages}
+              hasNextPageMessages={hasNextPageMessages}
+              hasPrevPageMessages={hasPrevPageMessages}
+
             />
           </div>
 

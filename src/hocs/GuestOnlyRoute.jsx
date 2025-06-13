@@ -19,7 +19,7 @@ const GuestOnlyRoute = ({ children }) => {
       if (userRole.includes('Admin') || userRole.includes('Team Member')) {
         router.push(`/${lang}/admin/dashboards/crm`);
       } else if (userRole.includes('Trade Professional')) {
-        router.push(`/${lang}/trade-professional/dashboards/crm`);
+        router.push(`/${lang}/trade-professional/dashboard`);
       } else {
         router.push(`/${lang}/unauthorized`);
       }
