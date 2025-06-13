@@ -20,39 +20,40 @@ const AuthGuard = ({ children }) => {
       const lang = pathname.split('/')[1] || 'en';
       const loginUrl = `/${lang}/login?callbackUrl=${pathname}`;
       router.push(loginUrl);
-    } else {
-      const userRole = session?.user?.roleNames;
-      console.log('userRole', userRole);
-
-      // Check if the current path is products or checkout related
-      const isProductPath = pathname.includes('/products');
-      const isCheckoutPath = pathname.includes('/checkout');
-
-      // If user is on root path, redirect to appropriate dashboard
-      if (pathname === '/' || pathname === '/en' || pathname === '/fr') {
-        const lang = pathname === '/' ? 'en' : pathname.split('/')[1];
-
-        let dashboardUrl;
-        if (userRole.includes('Admin') || userRole.includes('Team Member')) {
-          dashboardUrl = `/${lang}/admin/dashboards/crm`;
-        } else if (userRole.includes('Trade Professional')) {
-          dashboardUrl = `/${lang}/trade-professional/dashboard`;
-        } else {
-          dashboardUrl = `/${lang}/unauthorized`;
-        }
-
-        router.push(dashboardUrl);
-      }
-      // Check role-based access for protected routes
-      else if (!isProductPath && !isCheckoutPath) {
-          if (pathname.includes('/admin') && !userRole.includes('Admin') && !userRole.includes('Team Member')) {
-          router.push('/en/unauthorized');
-        }
-        if (pathname.includes('/trade-professional') && !userRole.includes('Trade Professional')) {
-           router.push('/en/unauthorized');
-        }
-      }
     }
+    // else {
+    //   const userRole = session?.user?.roleNames;
+    //   console.log('userRole', userRole);
+
+    //   // Check if the current path is products or checkout related
+    //   const isProductPath = pathname.includes('/products');
+    //   const isCheckoutPath = pathname.includes('/checkout');
+
+    //   // If user is on root path, redirect to appropriate dashboard
+    //   if (pathname === '/' || pathname === '/en' || pathname === '/fr') {
+    //     const lang = pathname === '/' ? 'en' : pathname.split('/')[1];
+
+    //     let dashboardUrl;
+    //     if (userRole.includes('Admin') || userRole.includes('Team Member')) {
+    //       dashboardUrl = `/${lang}/admin/dashboards/crm`;
+    //     } else if (userRole.includes('Trade Professional')) {
+    //       dashboardUrl = `/${lang}/trade-professional/dashboard`;
+    //     } else {
+    //       dashboardUrl = `/${lang}/unauthorized`;
+    //     }
+
+    //     router.push(dashboardUrl);
+    //   }
+    //   // Check role-based access for protected routes
+    //   else if (!isProductPath && !isCheckoutPath) {
+    //       if (pathname.includes('/admin') && !userRole.includes('Admin') && !userRole.includes('Team Member')) {
+    //       router.push('/en/unauthorized');
+    //     }
+    //     if (pathname.includes('/trade-professional') && !userRole.includes('Trade Professional')) {
+    //        router.push('/en/unauthorized');
+    //     }
+    //   }
+    // }
   }, [session, status, pathname, router]);
 
   if (status === 'loading') {
