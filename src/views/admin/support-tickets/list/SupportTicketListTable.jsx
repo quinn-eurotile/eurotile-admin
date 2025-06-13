@@ -220,7 +220,7 @@ const SupportTicketListTable = () => {
           message: ticket?.message,
           status: ticket?.status,
           sender_roles: ticket?.sender_roles?.map((el) => el?.name).join(', ') || 'Unknown',
-          sender_name: ticket?.sender_detail?.map((el) => el?.name).join(', ') || '',
+          sender_name: ticket?.sender_detail?.name || '',
           order: ticket?.order,
           createdAt: ticket?.createdAt,
           updatedAt: ticket?.updatedAt,
