@@ -58,6 +58,7 @@ export const chatSlice = createSlice({
     },
     sendMsg: (state, action) => {
       const { data } = action.payload;
+      console.log('data comming', data);
       const existingChat = state.chats.find(chat => chat.userId === state.activeUser?.id);
 
       if (existingChat) {

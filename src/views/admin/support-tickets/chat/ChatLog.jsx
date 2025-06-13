@@ -155,7 +155,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen,
                     </CustomAvatar>
                   )
                 ) : profileUser.avatar ? (
-                  <Avatar alt={profileUser.fullName+'123'} src={profileUser.avatar} className='is-8 bs-8' />
+                  <Avatar alt={profileUser.fullName} src={profileUser.avatar} className='is-8 bs-8' />
                 ) : (
                   <CustomAvatar alt={profileUser.fullName} src={profileUser.avatar} size={32} />
                 )}

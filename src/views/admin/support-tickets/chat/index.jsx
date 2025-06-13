@@ -38,9 +38,13 @@ const ChatWrapper = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [ticketPage, setTicketPage] = useState(1);
   const [messagePage, setMessagePage] = useState(1);
-  const [rowsPerPage] = useState(5);
+  const [rowsPerPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
+  const [hasNextPageMessages, setHasNextPageMessages] = useState(false);
+  const [hasPrevPageMessages, setHasPrevPageMessages] = useState(false);
 
   // Refs
   const chatBoxRef = useRef(null);
@@ -64,6 +68,10 @@ const ChatWrapper = () => {
       console.log('response contact fetchChatData', response);
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
+        setHasNextPage(response?.data?.hasNextPage);
+        setHasPrevPage(response?.data?.hasPrevPage);
+        setHasNextPageMessages(response?.data?.hasNextPageMessages);
+        setHasPrevPageMessages(response?.data?.hasPrevPageMessages);
         const formatted = {
           contacts: response?.data?.docs,
           chats: response?.data?.chats,
@@ -89,7 +97,7 @@ const ChatWrapper = () => {
     try {
       const nextPage = ticketPage + 1;
       const response = await loadMoreTickets(null, nextPage, rowsPerPage, '', {});
-      // console.log('response load more tickets', response);
+      console.log('response load more tickets', response);
       if (response.statusCode === 200 && response.data) {
         const newData = response.data;
         // console.log('newData', newData);
