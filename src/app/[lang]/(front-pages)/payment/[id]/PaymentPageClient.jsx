@@ -16,6 +16,7 @@ import { TabContext, TabList, Tab } from '@mui/material';
 import CustomTabList from '@/components/mui/TabList';
 import { FormControlLabel, Switch } from '@mui/material';
 import {  createPaymentIntentPublic, removeCart, removeCartWhole } from '@/app/server/actions';
+import StripeWrapper from '@/components/payment/StripeWrapper';
 
 
 // Initialize Stripe
@@ -57,11 +58,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
           paymentMethod: 'stripe',
           tradeProfessionalId: cartData?.tradeProfessionalId || null,
           email: user?.email,
-          shippingAddress: {
-            firstName: user?.name?.split(' ')[0] || '',
-            lastName: user?.name?.split(' ').slice(1).join(' ') || '',
-            ...selectedAddress
-          }
+
         }
       });
 
@@ -85,7 +82,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
 
       if (confirmError) {
         setPaymentError(confirmError.message);
-      }   else {
+      } else {
         onPaymentSuccess({
           paymentIntentId: paymentIntent.id,
           orderId: orderId,
@@ -374,7 +371,7 @@ export default function PaymentPageClient({ initialData, cartId, clientId }) {
 
                   {/* Stripe payment form wrapped in Elements provider */}
                   <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <Elements stripe={stripePromise}>
+                    <StripeWrapper>
                       <StripePaymentForm
                         onPaymentSuccess={handlePaymentSuccess}
                         isProcessing={isProcessing}
@@ -386,7 +383,7 @@ export default function PaymentPageClient({ initialData, cartId, clientId }) {
                         selectedShipping={initialData?.client?.shippingMethod?._id}
                         user={initialData.client}
                       />
-                    </Elements>
+                    </StripeWrapper>
                   </div>
                 </CardContent>
               </Card>

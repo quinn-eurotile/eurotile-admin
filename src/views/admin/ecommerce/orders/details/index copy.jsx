@@ -17,9 +17,6 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
-import Box from '@mui/material/Box'
-import IconButton from '@mui/material/IconButton'
-import Tooltip from '@mui/material/Tooltip'
 
 // Third Party Imports
 import { format } from 'date-fns'
@@ -30,9 +27,8 @@ import { useDispatch } from 'react-redux'
 import { callCommonAction } from '@/redux-store/slices/common'
 
 // Services
-import { forwardToSuppliers, updateOrderStatus } from '@/app/server/actions'
+import { updateOrderStatus } from '@/app/server/actions'
 import OrderHistory from './OrderHistory'
-import { orderService } from '@/services/order'
 
 // Constants
 import {
@@ -57,7 +53,6 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
     const [order, setOrder] = useState(initialOrderData)
     const [trackingId, setTrackingId] = useState(initialOrderData?.trackingId || '')
     const [status, setStatus] = useState(initialOrderData?.orderStatus)
-    const [isSending, setIsSending] = useState(false)
     const dispatch = useDispatch()
 
     const handleUpdateStatus = async () => {
@@ -86,28 +81,6 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
         }
     }
 
-    const handleForwardToSuppliers = async () => {
-        try {
-            setIsSending(true)
-            const response = await  forwardToSuppliers(order._id)
-            if (response.success) {
-                toast.success('Order forwarded to suppliers successfully')
-                // Update order status if needed
-                setOrder(prev => ({
-                    ...prev,
-                    supplierStatuses: response.data.supplierStatuses
-                }))
-            } else {
-                toast.error(response.message || 'Failed to forward order to suppliers')
-            }
-        } catch (error) {
-            console.error('Error forwarding order:', error)
-            toast.error('Failed to forward order to suppliers')
-        } finally {
-            setIsSending(false)
-        }
-    }
-
     if (!order) return null
 
     console.log(initialOrderData,'orderorderorder');
@@ -119,20 +92,10 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                     <CardHeader
                         title={`Order ${order.orderId}`}
                         action={
-                            <div className='flex items-center gap-4'>
-                                <Button
-                                    variant='contained'
-                                    color='primary'
-                                    startIcon={<i className='ri-mail-send-line' />}
-                                    onClick={handleForwardToSuppliers}
-                                    disabled={isSending}
-                                >
-                                    {isSending ? 'Sending...' : 'Forward to Suppliers'}
-                                </Button>
+                            <div>
                                 <Chip
-                                    label={orderStatusObj[order.orderStatus]?.label || 'Unknown'}
-                                    color={orderStatusObj[order.orderStatus]?.color || 'primary'}
-                                    variant="outlined"
+                                    label={orderStatusObj[order.orderStatus]?.label}
+                                    color={orderStatusObj[order.orderStatus]?.color}
                                 />
                             </div>
                         }
@@ -161,16 +124,6 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                                             color={customerTypeObj[order.customerType]?.color}
                                         />
                                     </div>
-                                    <Typography>
-                                        <span className='font-medium'>Client of:</span> {order.clientOf?.name} {order.clientOf?.companyName}
-                                    </Typography>
-                                    <Typography>
-                                    <span className='font-medium'>Client email:</span> {order.clientOf?.email}
-                                    </Typography>
-                                    <Typography>
-                                        <span className='font-medium'>Commission:</span> {order.commission}
-                                    </Typography>
-
                                 </div>
                             </Grid>
                             <Grid size={{ xs: 12, md: 6 }}>
@@ -185,9 +138,6 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                                     <Typography>
                                         <span className='font-medium'>Shipping Method:</span> {order.shippingMethod}
                                     </Typography>
-                                    <Typography>
-                                        <span className='font-medium'>Order Type:</span> {order.isNextDayDelivery ? 'Next-day Delivery' : 'Standard Delivery (3-5 days)'}
-                                    </Typography>
                                     {order.trackingId && (
                                         <Typography>
                                             <span className='font-medium'>Tracking ID:</span> {order.trackingId}
@@ -199,45 +149,16 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
 
                         <Divider className='my-6' />
 
-                        <Typography variant='h6' className='mb-4'>Payment Information</Typography>
-                        <div className='space-y-2'>
-                            <Typography  component='div'>
-                                <span className='font-medium'>Payment Status:</span>{' '}
-                                <Chip
-                                    label={order.paymentStatus === 'paid' ? 'Succeeded' : 'Pending'}
-                                    color={order.paymentStatus === 'paid' ? 'success' : 'info'}
-                                    size="small"
-                                />
-                            </Typography>
-                            <Typography component='div'>
-                               <span className='font-medium'>Payment Method:</span> {order.paymentMethod === 'stripe' ? 'Credit Card' : order.paymentMethod === 'klarna' ? 'Klarna' : order.paymentMethod === 'cash_on_delivery' ? 'Cash on Delivery' : 'N/A'}
-                            </Typography>
-                            <Typography component='div'>
-                             <span className='font-medium'>Amount:</span> €{order.total ? (order.total).toFixed(2) : '0.00'}
-                            </Typography>
-                            <Typography component='div'>
-                                <span className='font-medium'>Currency:</span> {order.currency?.toUpperCase() || 'EUR'}
-                            </Typography>
-                            {order.paymentDetail?.receipt_email && (
-                                <Typography component='div'>
-                                    <span className='font-medium'>Receipt Email:</span> {order.paymentDetail.receipt_email}
-                                </Typography>
-                            )}
-                        </div>
-
-                        <Divider className='my-6' />
-
                         <Typography variant='h6' className='mb-4'>Order Items</Typography>
                         <div className='overflow-x-auto'>
-                            <table className='w-full text-left border-collapse'>
+                            <table className='w-full text-left'>
                                 <thead>
-                                    <tr className='bg-gray-50'>
-                                        <th className='p-4 font-medium text-gray-600'>Product</th>
-                                        <th className='p-4 font-medium text-gray-600'>Supplier</th>
-                                        <th className='p-4 font-medium text-gray-600'>Quantity</th>
-                                        <th className='p-4 font-medium text-gray-600'>Price</th>
-                                        <th className='p-4 font-medium text-gray-600'>Total</th>
-                                        <th className='p-4 font-medium text-gray-600'>Status</th>
+                                    <tr>
+                                        <th className='p-2'>Product</th>
+                                        <th className='p-2'>Supplier</th>
+                                        <th className='p-2'>Quantity</th>
+                                        <th className='p-2'>Price</th>
+                                        <th className='p-2'>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -255,67 +176,18 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                                             };
                                         }
 
-                                        // Find supplier status
-                                        const supplierStatus = order.supplierStatuses?.find(
-                                            status => status.supplierId === productDetail?.supplier?._id
-                                        );
-
                                         return (
-                                            <tr key={item._id} className='border-t hover:bg-gray-50'>
-                                                <td className='p-4'>
-                                                    <div className='flex items-center gap-3'>
-                                                        {productDetail?.product?.images?.[0] && (
-                                                            <img
-                                                                src={productDetail.product.images[0]}
-                                                                alt={productDetail.product.name}
-                                                                className='w-12 h-12 object-cover rounded'
-                                                            />
-                                                        )}
-                                                        <div className='flex flex-col'>
-                                                            <span className='font-medium'>{productDetail?.product?.name || 'Unknown Product'}</span>
-                                                            <span className='text-sm text-gray-500'>SKU: {productDetail?.product?.sku || 'N/A'}</span>
-                                                            {productDetail?.product?.dimensions && (
-                                                                <span className='text-sm text-gray-500'>
-                                                                    {productDetail.product.dimensions}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className='p-4'>
+                                            <tr key={item._id} className='border-t'>
+                                                <td className='p-2'>
                                                     <div className='flex flex-col'>
-                                                        <span className='font-medium'>{productDetail?.supplierName || 'N/A'}</span>
-                                                        {productDetail?.supplier?.email && (
-                                                            <span className='text-sm text-gray-500'>{productDetail.supplier.email}</span>
-                                                        )}
+                                                        <span>{productDetail?.product?.name || 'Unknown Product'}</span>
+                                                        <span className='text-sm text-gray-500'>SKU: {productDetail?.product?.sku || 'N/A'}</span>
                                                     </div>
                                                 </td>
-                                                <td className='p-4'>
-                                                    <div className='flex items-center gap-2'>
-                                                        <span className='font-medium'>{item.quantity}</span>
-                                                        {/* {item.quantity > 1 && (
-                                                            <Tooltip title="View individual items">
-                                                                <IconButton size="small">
-                                                                    <i className='ri-list-check' />
-                                                                </IconButton>
-                                                            </Tooltip>
-                                                        )} */}
-                                                    </div>
-                                                </td>
-                                                <td className='p-4'>€{item.price?.toFixed(2) || '0.00'}</td>
-                                                <td className='p-4 font-medium'>€{((item.price || 0) * (item.quantity || 0)).toFixed(2)}</td>
-                                                <td className='p-4'>
-                                                    <Chip
-                                                        label={supplierStatus?.status || 'Pending'}
-                                                        color={
-                                                            supplierStatus?.status === 'confirmed' ? 'success' :
-                                                            supplierStatus?.status === 'processing' ? 'info' :
-                                                            supplierStatus?.status === 'shipped' ? 'primary' :
-                                                            'warning'
-                                                        }
-                                                    size="small"
-                                                    />
-                                                </td>
+                                                <td className='p-2'>{productDetail?.supplierName || 'N/A'}</td>
+                                                <td className='p-2'>{item.quantity}</td>
+                                                <td className='p-2'>${item.price?.toFixed(2) || '0.00'}</td>
+                                                <td className='p-2'>${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</td>
                                             </tr>
                                         )
                                     })}
@@ -323,25 +195,25 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                                 <tfoot>
                                     <tr className='border-t'>
                                         <td colSpan={4} className='p-2 text-right font-medium'>Subtotal:</td>
-                                        <td className='p-2'>€{order?.subtotal?.toFixed(2)}</td>
+                                        <td className='p-2'>${order?.subtotal?.toFixed(2)}</td>
                                     </tr>
                                     <tr>
                                         <td colSpan={4} className='p-2 text-right font-medium'>Shipping:</td>
-                                        <td className='p-2'>€{order?.shipping?.toFixed(2)}</td>
+                                        <td className='p-2'>${order?.shipping?.toFixed(2)}</td>
                                     </tr>
                                     {order.discount > 0 && (
                                         <tr>
                                             <td colSpan={4} className='p-2 text-right font-medium'>Discount:</td>
-                                            <td className='p-2'>-€{order?.discount?.toFixed(2)}</td>
+                                            <td className='p-2'>-${order?.discount?.toFixed(2)}</td>
                                         </tr>
                                     )}
                                     <tr>
                                         <td colSpan={4} className='p-2 text-right font-medium'>Tax:</td>
-                                        <td className='p-2'>€{order?.tax?.toFixed(2)}</td>
+                                        <td className='p-2'>${order?.tax?.toFixed(2)}</td>
                                     </tr>
                                     <tr className='border-t'>
                                         <td colSpan={4} className='p-2 text-right font-medium'>Total:</td>
-                                        <td className='p-2 font-medium'>€{order?.total?.toFixed(2)}</td>
+                                        <td className='p-2 font-medium'>${order?.total?.toFixed(2)}</td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -391,14 +263,14 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                             <div className='space-y-4'>
                                 <div className='flex justify-between'>
                                     <Typography variant='body2'>Order Created</Typography>
-                                    <Typography variant='body2' color='info'>
+                                    <Typography variant='body2' color='textSecondary'>
                                         {formatDate(order?.createdAt)}
                                     </Typography>
                                 </div>
                                 {order?.updatedAt && order?.updatedAt !== order?.createdAt && (
                                     <div className='flex justify-between'>
                                         <Typography variant='body2'>Last Updated</Typography>
-                                        <Typography variant='body2' color='info'>
+                                        <Typography variant='body2' color='textSecondary'>
                                             {formatDate(order?.updatedAt)}
                                         </Typography>
                                     </div>
@@ -408,9 +280,7 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                     </CardContent>
                 </Card>
 
-                <Box mt={6}>
-                    <OrderHistory orderId={order._id} />
-                </Box>
+                <OrderHistory orderId={order._id} />
             </Grid>
         </Grid>
     )

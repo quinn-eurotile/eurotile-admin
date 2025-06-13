@@ -162,13 +162,13 @@ const OrderListTable = () => {
         header: 'Customer',
         cell: ({ row }) => (
           <div className='flex flex-col'>
-            <Typography color='text.primary'>{row.original.customerName}</Typography>
-            <Typography variant='body2' color='text.secondary'>
-              {row.original.customerEmail}
-              {row.original.onBehalfOf && (
-                <Typography variant='body2' color='text.secondary'>
-                  <Chip label={row.original.tradeProfessionalName + ' ' + row.original.tradeProfessionalEmail} color='primary' variant='outlined' size='small' />
-                </Typography>
+            <Typography color='text.primary'>{row?.original?.customerName}</Typography>
+            <Typography variant='body2' color='text.secondary' component='div'>
+              {row?.original?.customerEmail}
+              {row?.original?.onBehalfOf && (
+                <div style={{ marginTop: 4 }}>
+                  <Chip label={row?.original?.tradeProfessionalName + ' ' + row?.original?.tradeProfessionalEmail} color='primary' variant='outlined' size='small' />
+                </div>
               )}
             </Typography>
           </div>
