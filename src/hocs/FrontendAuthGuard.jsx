@@ -3,10 +3,9 @@
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
-import themeConfig from '@configs/themeConfig';
 import { CircularProgress } from '@mui/material';
 
-const AuthGuard = ({ children }) => {
+const FrontendAuthGuard = ({ children }) => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
@@ -27,6 +26,10 @@ const AuthGuard = ({ children }) => {
       // Check if the current path is products or checkout related
       const isProductPath = pathname.includes('/products');
       const isCheckoutPath = pathname.includes('/checkout');
+      const isFrontendPath = pathname.includes('/front-pages');
+      console.log(isProductPath, 'isProductPath');
+
+
 
       // If user is on root path, redirect to appropriate dashboard
       if (pathname === '/' || pathname === '/en' || pathname === '/fr') {
@@ -44,12 +47,12 @@ const AuthGuard = ({ children }) => {
         router.push(dashboardUrl);
       }
       // Check role-based access for protected routes
-      else if (!isProductPath && !isCheckoutPath) {
-          if (pathname.includes('/admin') && !userRole.includes('Admin') && !userRole.includes('Team Member')) {
+      else if (!isProductPath && !isCheckoutPath && !isFrontendPath) {
+        if (pathname.includes('/admin') && !userRole.includes('Admin') && !userRole.includes('Team Member')) {
           router.push('/en/unauthorized');
         }
         if (pathname.includes('/trade-professional') && !userRole.includes('Trade Professional')) {
-           router.push('/en/unauthorized');
+          router.push('/en/unauthorized');
         }
       }
     }
@@ -62,4 +65,4 @@ const AuthGuard = ({ children }) => {
   return session ? children : null;
 };
 
-export default AuthGuard;
+export default FrontendAuthGuard;

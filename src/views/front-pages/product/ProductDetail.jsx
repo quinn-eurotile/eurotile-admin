@@ -23,6 +23,7 @@ import { getSession, useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { calculateNewVariantTierValue, calculateTierValue } from "@/components/common/helper";
+import CircularLoader from "@/components/common/CircularLoader";
 
 
 export default function ProductDetailPage() {
@@ -137,7 +138,7 @@ export default function ProductDetailPage() {
 
     if (matchingVariation) {
       setSelectedVariation(matchingVariation);
-      
+
       // Reset image index when variation changes
       setCurrentImageIndex(0);
 
@@ -215,7 +216,7 @@ export default function ProductDetailPage() {
   };
 
   if (!product) {
-    return <div>Loading product details...</div>;
+    return  <CircularLoader/>         ;
   }
   // Map of tiers to human-friendly names and quantity ranges
   const tierData = [
@@ -346,13 +347,13 @@ export default function ProductDetailPage() {
   const handleQuantityChange = (e) => {
     const value = e.target.value;
     setQuantity(value);
-    
+
     // Validate quantity
     if (!value || value <= 0) {
       setQuantityError('Please enter a valid quantity');
       return;
     }
-    
+
     setQuantityError('');
     const values = calculateValues('sqm', value);
     if (values) {

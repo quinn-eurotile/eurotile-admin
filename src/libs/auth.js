@@ -113,6 +113,7 @@ export const authOptions = {
          */
         token.name = user.name;
         token.email = user.email;
+        token.role = user.roles;
         token.access_token = user.access_token;
         token.user = user.data;
       }
@@ -127,7 +128,7 @@ export const authOptions = {
         session.email = token.user.email;
         session.access_token = token.access_token;
         session.user = token.user;
-
+        session.role = token.role;
       }
 
       return session;

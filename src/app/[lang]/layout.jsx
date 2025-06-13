@@ -39,6 +39,7 @@ const RootLayout = async props => {
   const systemMode = await getSystemMode()
   const direction = i18n.langDirection[params.lang]
 
+
   return (
     <TranslationWrapper headersList={headersList} lang={params.lang}>
       <html id='__next' lang={params.lang} dir={direction} suppressHydrationWarning>

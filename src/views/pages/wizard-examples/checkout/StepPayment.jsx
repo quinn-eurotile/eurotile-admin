@@ -397,8 +397,8 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
             pill="true"
           >
             <Tab value="stripe" label="Credit Card (Stripe)" />
-            <Tab value="klarna" label="Klarna" />
-            <Tab value="cash-on-delivery" label="Cash On Delivery" />
+            {/* <Tab value="klarna" label="Klarna" />
+            <Tab value="cash-on-delivery" label="Cash On Delivery" /> */}
           </CustomTabList>
 
           <Grid container>
@@ -418,7 +418,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                 </StripeWrapper>
               </TabPanel>
 
-              <TabPanel value="klarna" className="p-0">
+              {/* <TabPanel value="klarna" className="p-0">
                 <Typography className="mbe-4" color="text.primary">
                   Pay with Klarna - Buy now, pay later options available.
                 </Typography>
@@ -440,7 +440,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                 <Button variant="contained" onClick={handleCashOnDelivery} disabled={isProcessing}>
                   Pay On Delivery
                 </Button>
-              </TabPanel>
+              </TabPanel> */}
             </Grid>
           </Grid>
         </TabContext>
