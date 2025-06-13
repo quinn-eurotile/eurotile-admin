@@ -26,6 +26,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { getChatMessageForTicket, loadMoreTickets, loadMoreMessages } from '@/app/server/support-ticket-chat';
 import { callCommonAction } from '@/redux-store/slices/common';
 import { getLocalizedUrl } from '@/utils/i18n';
+import { toast } from 'react-toastify';
 
 const ChatWrapper = () => {
   let { id } = useParams();
@@ -38,9 +39,13 @@ const ChatWrapper = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [ticketPage, setTicketPage] = useState(1);
   const [messagePage, setMessagePage] = useState(1);
-  const [rowsPerPage] = useState(5);
+  const [rowsPerPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
+  const [hasNextPageMessages, setHasNextPageMessages] = useState(false);
+  const [hasPrevPageMessages, setHasPrevPageMessages] = useState(false);
 
   // Refs
   const chatBoxRef = useRef(null);
@@ -64,6 +69,10 @@ const ChatWrapper = () => {
       console.log('response contact fetchChatData', response);
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
+        setHasNextPage(response?.data?.hasNextPage);
+        setHasPrevPage(response?.data?.hasPrevPage);
+        setHasNextPageMessages(response?.data?.hasNextPageMessages);
+        setHasPrevPageMessages(response?.data?.hasPrevPageMessages);
         const formatted = {
           contacts: response?.data?.docs,
           chats: response?.data?.chats,
@@ -89,11 +98,12 @@ const ChatWrapper = () => {
     try {
       const nextPage = ticketPage + 1;
       const response = await loadMoreTickets(null, nextPage, rowsPerPage, '', {});
-      // console.log('response load more tickets', response);
+      console.log('response load more tickets', response);
       if (response.statusCode === 200 && response.data) {
         const newData = response.data;
         // console.log('newData', newData);
-
+        setHasNextPage(response?.data?.hasNextPage);
+        setHasPrevPage(response?.data?.hasPrevPage);
         // Append new data to existing data
         dispatch(setChatData({
           ...chatStore,
@@ -117,6 +127,11 @@ const ChatWrapper = () => {
       const nextPage = messagePage + 1;
       const response = await loadMoreMessages(ticketId, nextPage, rowsPerPage, '', {});
       if (response.statusCode === 200 && response.data) {
+
+
+
+        setHasNextPageMessages(response?.data?.hasNextPageMessages);
+        setHasPrevPageMessages(response?.data?.hasPrevPageMessages);
         const newMessages = response.data.chats; // newMessages.chat is the array of old messages
         console.log('newData handleLoadMoreMessages', newMessages);
         const updatedChats = chatStore.chats.map(chat => {
@@ -163,7 +178,11 @@ const ChatWrapper = () => {
   const activeUser = ticketId => {
     if (!socket.current) return;
 
-    //router.push(getLocalizedUrl(`/admin/support-tickets/view/${ticketId}`, locale));
+    // router.push(getLocalizedUrl(`/admin/support-tickets/view/${ticketId}`, locale));
+    // const updatedUrl = getLocalizedUrl(`/admin/support-tickets/view/${ticketId}`, locale);
+
+    // Replace the URL without full reload
+    // router.replace(updatedUrl, undefined, { shallow: true })
 
     socket.current.emit("join", { ticketId });
     setTicketId(ticketId);
@@ -222,6 +241,8 @@ const ChatWrapper = () => {
         messageInputRef={messageInputRef}
         handleLoadMoreTickets={handleLoadMoreTickets}
         isLoading={isLoading}
+        hasPrevPage={hasPrevPage}
+        hasNextPage={hasNextPage}
       />
 
       <ChatContent
@@ -238,6 +259,8 @@ const ChatWrapper = () => {
         socket={socket}
         handleLoadMoreMessages={handleLoadMoreMessages}
         isLoadingMessages={isLoadingMessages}
+        hasNextPageMessages={hasNextPageMessages}
+        hasPrevPageMessages={hasPrevPageMessages}
       />
 
       <Backdrop open={backdropOpen} onClick={() => setBackdropOpen(false)} className='absolute z-10' />

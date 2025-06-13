@@ -23,6 +23,15 @@ const orderStatusObj = {
     [orderStatus.CANCELLED]: { label: 'Cancelled', color: 'error' }
 };
 
+const orderStatusMap = {
+    [orderStatus.NEW]: 'New',
+    [orderStatus.PENDING]: 'Pending',
+    [orderStatus.PROCESSING]: 'Processing',
+    [orderStatus.SHIPPED]: 'Shipped',
+    [orderStatus.DELIVERED]: 'Delivered',
+    [orderStatus.CANCELLED]: 'Cancelled'
+};
+
 // Customer Types
 const customerTypes = {
     RETAIL: 'retail',
@@ -98,6 +107,7 @@ export {
     adminSettingId,
     orderStatus,
     orderStatusObj,
+    orderStatusMap,
     customerTypes,
     customerTypeObj,
     paymentStatus,

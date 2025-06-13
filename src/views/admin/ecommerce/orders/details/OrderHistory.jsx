@@ -15,7 +15,7 @@ import TimelineDot from '@mui/lab/TimelineDot'
 import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent'
 
 // Constants
-import { orderHistoryActions, orderHistoryActionObj } from '@/configs/constant'
+import { orderHistoryActions, orderHistoryActionObj, orderStatusMap } from '@/configs/constant'
 import { getOrderHistory } from '@/app/server/actions'
 
 const formatDate = (dateString) => {
@@ -25,6 +25,13 @@ const formatDate = (dateString) => {
     } catch (error) {
         return 'Invalid date'
     }
+}
+
+const getStatusDescription = (event) => {
+    if (event.action === orderHistoryActions.STATUS_CHANGED && event.metadata?.previousStatus && event.metadata?.newStatus) {
+        return `Order status updated from ${orderStatusMap[event.metadata.previousStatus] || event.metadata.previousStatus} to ${orderStatusMap[event.metadata.newStatus] || event.metadata.newStatus}`
+    }
+    return event.description
 }
 
 const OrderHistory = ({ orderId }) => {
@@ -59,24 +66,24 @@ const OrderHistory = ({ orderId }) => {
                 <Timeline>
                     {history.map((event, index) => (
                         <TimelineItem key={event._id}>
-                            <TimelineOppositeContent color="text.secondary">
+                            <TimelineOppositeContent color="info">
                                 {formatDate(event.createdAt)}
                             </TimelineOppositeContent>
                             <TimelineSeparator>
-                                <TimelineDot color={orderHistoryActionObj[event.action]?.color || 'default'}>
+                                <TimelineDot color={orderHistoryActionObj[event.action]?.color ?? 'info'}>
                                     <i className={orderHistoryActionObj[event.action]?.icon || 'ri-question-line'} />
                                 </TimelineDot>
                                 {index < history.length - 1 && <TimelineConnector />}
                             </TimelineSeparator>
                             <TimelineContent>
                                 <Typography variant="body1">
-                                    {event.description}
+                                    {getStatusDescription(event)}
                                 </Typography>
-                                <Typography variant="caption" color="text.secondary">
+                              <Typography variant="caption" color="info">
                                     by {event.performedBy?.name || 'System'}
                                 </Typography>
                                 {event.metadata && (
-                                    <Typography variant="body2" className="mt-1">
+                                    <Typography variant="body2" className="mt-1"  >
                                         {event.action === orderHistoryActions.STATUS_CHANGED && event.metadata.trackingId && (
                                             <>Tracking ID: {event.metadata.trackingId}</>
                                         )}

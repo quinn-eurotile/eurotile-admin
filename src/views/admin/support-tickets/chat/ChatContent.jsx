@@ -18,6 +18,8 @@ import CustomAvatar from '@core/components/mui/Avatar';
 // Slice Imports
 import { sendMsg } from '@/redux-store/slices/chat';
 import { Box } from '@mui/material';
+import { useSession } from 'next-auth/react';
+
 
 // Renders the user avatar with badge and user information
 const UserAvatar = ({ activeUser, setUserProfileLeftOpen, setBackdropOpen }) => (
@@ -56,13 +58,19 @@ const ChatContent = props => {
     messageInputRef,
     socket,
     handleLoadMoreMessages,
-    isLoadingMessages
+    isLoadingMessages,
+    hasPrevPageMessages,
+    hasNextPageMessages
+
   } = props;
 
   const { activeUser } = chatStore;
   // States
   const [userProfileRightOpen, setUserProfileRightOpen] = useState(false);
   const chatContainerRef = useRef(null);
+  const { data: session, status } = useSession();
+
+  // console.log('session comming', session);
 
   useEffect(() => {
     if (!socket.current) return;
@@ -105,25 +113,66 @@ const ChatContent = props => {
   //   };
   // }, [socket, dispatch]);
 
-  const sendMessage = (messageContent) => {
-    if (!socket.current) return;
-    //let tId = props.ticketId;
-    // console.log('chatStore.profileUser?.id', chatStore.profileUser?.id, chatStore.activeUser?.id);
 
+  const sendMessage = (messageContent, file) => {
+    if (!socket.current) return;
+    let ticketId = props.ticketId;
+
+    // Create message data object
     const messageData = {
-      content: messageContent,
+      content: messageContent || '',
       senderId: chatStore.profileUser?.id,
       receiverId: chatStore.activeUser?.id,
+      sender_detail: {
+        _id: session?.user?.id,
+        name: session?.user?.name
+      },
       timestamp: new Date(),
-      ticketId: props.ticketId
+      ticketId: ticketId
     };
-    let ticketId = messageData.ticketId;
 
+    // If there's a file, convert it to base64
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64Image = e.target.result;
+        messageData.image = base64Image;
+        messageData.imageName = file.name;
+        messageData.imageType = file.type;
 
-    socket.current.emit("join", { ticketId });
-    // Emit the message to the server
-    socket.current.emit('sendMessage', JSON.stringify(messageData));
+        // Emit the message with image data
+        socket.current.emit("join", { ticketId });
+        socket.current.emit('sendMessage', messageData);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // Emit the message without image data
+      socket.current.emit("join", { ticketId });
+      socket.current.emit('sendMessage', messageData);
+    }
   };
+
+  // const sendMessage = (messageContent, file) => {
+
+  //   // console.log('chatStore.profileUser?.id', chatStore.profileUser?.id, chatStore.activeUser?.id);
+
+  //   const messageData = {
+  //     content: messageContent,
+  //     senderId: chatStore.profileUser?.id,
+  //     receiverId: chatStore.activeUser?.id,
+  //     sender_detail: {
+  //       _id: session?.user?.id,
+  //       name: session?.user?.name
+  //     },
+  //     timestamp: new Date(),
+  //     ticketId: ticketId
+  //   };
+
+
+  //   socket.current.emit("join", { ticketId });
+  //   // Emit the message to the server
+  //   socket.current.emit('sendMessage', JSON.stringify(messageData));
+  // };
 
   // Close user profile right drawer if backdrop is closed and user profile right drawer is open
   useEffect(() => {
@@ -198,6 +247,9 @@ const ChatContent = props => {
               isBelowLgScreen={isBelowLgScreen}
               handleLoadMoreMessages={handleLoadMoreMessages}
               isLoadingMessages={isLoadingMessages}
+              hasNextPageMessages={hasNextPageMessages}
+              hasPrevPageMessages={hasPrevPageMessages}
+
             />
           </div>
 
