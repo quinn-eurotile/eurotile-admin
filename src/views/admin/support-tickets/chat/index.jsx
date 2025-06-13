@@ -61,7 +61,7 @@ const ChatWrapper = () => {
       dispatch(callCommonAction({ loading: true }));
       const response = await getChatMessageForTicket(ticketId, currentPage, rowsPerPage, searchTerm, {});
 
-      console.log('response contact', response);
+      console.log('response contact fetchChatData', response);
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
         const formatted = {
@@ -89,9 +89,10 @@ const ChatWrapper = () => {
     try {
       const nextPage = ticketPage + 1;
       const response = await loadMoreTickets(null, nextPage, rowsPerPage, '', {});
-      console.log('response load more tickets', response);
+      // console.log('response load more tickets', response);
       if (response.statusCode === 200 && response.data) {
         const newData = response.data;
+        // console.log('newData', newData);
 
         // Append new data to existing data
         dispatch(setChatData({
@@ -117,7 +118,7 @@ const ChatWrapper = () => {
       const response = await loadMoreMessages(ticketId, nextPage, rowsPerPage, '', {});
       if (response.statusCode === 200 && response.data) {
         const newMessages = response.data.chats; // newMessages.chat is the array of old messages
-
+        console.log('newData handleLoadMoreMessages', newMessages);
         const updatedChats = chatStore.chats.map(chat => {
           if (chat.id === ticketId) {
             return {
