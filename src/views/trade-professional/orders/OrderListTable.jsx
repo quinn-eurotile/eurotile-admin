@@ -89,9 +89,10 @@ const OrderListTable = ({ orderData }) => {
   const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   // Input field value state
-  const [payoutAmount, setPayoutAmount] = useState('');
+  const [payoutAmount, setPayoutAmount] = useState(0);
   const [eligibleCommission, setEligibleCommission] = useState(null);
   const [totalCommission, setTotalCommission] = useState(null);
+  const [adminSettings, setAdminSettings] = useState(null);
 
 
 
@@ -104,7 +105,7 @@ const OrderListTable = ({ orderData }) => {
   // Close dialog handler
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
-    setPayoutAmount(''); // Reset input on close
+    setPayoutAmount(0); // Reset input on close
   };
 
   // Modify the handleSubmit function to validate payout amount
@@ -134,6 +135,7 @@ const OrderListTable = ({ orderData }) => {
       if (response.statusCode === 200 && response.data) {
         fetchOrderList(page, rowsPerPage);
         handleCloseDialog();
+        toast.success(response?.message);
       } else {
         toast.error(response?.message);
       }
@@ -152,7 +154,6 @@ const OrderListTable = ({ orderData }) => {
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await getOrderList(currentPage, pageSize, search, filter);
-      console.log(response, 'responseresponseresponseresponse33333')
       dispatch(callCommonAction({ loading: false }));
 
       if (response.statusCode === 200 && response.data) {
@@ -174,6 +175,7 @@ const OrderListTable = ({ orderData }) => {
         }));
         setData(formatted);
         setEligibleCommission(response.data.eligibleCommission);
+        setAdminSettings(response.data.adminSettings);
         setTotalCommission(response.data.totalCommission);
         setTotalRecords(response.data.totalDocs || 0);
       }
@@ -408,7 +410,7 @@ const OrderListTable = ({ orderData }) => {
             label='Amount to Transfer'
             variant='outlined'
             value={payoutAmount}
-            onChange={e => setPayoutAmount(e.target.value)}
+            onChange={e => setPayoutAmount(parseFloat(e.target.value))}
             type='number'
             inputProps={{
               min: 0,
@@ -417,6 +419,19 @@ const OrderListTable = ({ orderData }) => {
             }}
             helperText={`Enter an amount between €0 and €${eligibleCommission?.toFixed(2)}`}
           />
+          {payoutAmount > 0 && adminSettings?.vatOnCommission && (
+            <div className='mt-4 space-y-2'>
+              <Typography variant='body2'>
+                VAT Rate: {adminSettings.vatOnCommission}%
+              </Typography>
+              <Typography variant='body2'>
+                VAT Amount: €{((payoutAmount * adminSettings.vatOnCommission) / 100).toFixed(2)}
+              </Typography>
+              <Typography variant='body2' fontWeight='bold'>
+                Final Amount (after VAT): €{(payoutAmount - (payoutAmount * adminSettings.vatOnCommission) / 100).toFixed(2)}
+              </Typography>
+            </div>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
