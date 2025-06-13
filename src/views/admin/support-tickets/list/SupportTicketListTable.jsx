@@ -320,7 +320,7 @@ const SupportTicketListTable = () => {
         header: 'Issue Type',
         cell: ({ row }) => (
           <div className='flex items-center gap-3'>
-            {console.log('row.original?.issue_type', row.original?.issue_type)}
+
             <Chip
               variant='tonal'
               label={issueTypeOptions[row.original?.issue_type]?.label || ''}

@@ -249,3 +249,6 @@ export const getOrderHistory = async (orderId) => {
 export const createOrder = async (data) => {
   return await orderServices.create(data);
 };
+export const forwardToSuppliers = async (orderId) => {
+  return await orderServices.forwardToSuppliers(orderId);
+};

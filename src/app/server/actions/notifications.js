@@ -7,10 +7,10 @@ export async function getNotifications({ page, limit, filter }) {
     const response = await notificationServices.getNotifications(page, limit, filter);
     // Ensure we're returning the expected structure
     return {
-      notifications: response.data.data || [], // Handle the case where data might be null
-      totalPages: response.data.totalPages || 1,
-      currentPage: response.data.page || page,
-      total: response.data.total || 0
+      notifications: response?.data?.notifications || [], // Handle the case where data might be null
+      totalPages: response?.data?.totalPages || 1,
+      currentPage: response?.data?.page || page,
+      total: response?.data?.total || 0
     };
   } catch (error) {
     console.error('Error fetching notifications:', error);
@@ -58,7 +58,7 @@ export async function getUnreadNotificationCount() {
   try {
     const response = await notificationServices.getUnreadCount();
     return {
-      count: response.data.count || 0
+      count: response?.data?.count || 0
     };
   } catch (error) {
     console.error('Error getting unread count:', error);

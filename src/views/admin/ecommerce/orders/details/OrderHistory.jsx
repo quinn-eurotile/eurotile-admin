@@ -28,8 +28,8 @@ const formatDate = (dateString) => {
 }
 
 const getStatusDescription = (event) => {
-    if (event.action === orderHistoryActions.STATUS_CHANGED && event.metadata?.oldStatus && event.metadata?.newStatus) {
-        return `Order status updated from ${orderStatusMap[event.metadata.oldStatus] || event.metadata.oldStatus} to ${orderStatusMap[event.metadata.newStatus] || event.metadata.newStatus}`
+    if (event.action === orderHistoryActions.STATUS_CHANGED && event.metadata?.previousStatus && event.metadata?.newStatus) {
+        return `Order status updated from ${orderStatusMap[event.metadata.previousStatus] || event.metadata.previousStatus} to ${orderStatusMap[event.metadata.newStatus] || event.metadata.newStatus}`
     }
     return event.description
 }
@@ -66,11 +66,11 @@ const OrderHistory = ({ orderId }) => {
                 <Timeline>
                     {history.map((event, index) => (
                         <TimelineItem key={event._id}>
-                            <TimelineOppositeContent color="text.secondary">
+                            <TimelineOppositeContent color="info">
                                 {formatDate(event.createdAt)}
                             </TimelineOppositeContent>
                             <TimelineSeparator>
-                                <TimelineDot color={orderHistoryActionObj[event.action]?.color || 'default'}>
+                                <TimelineDot color={orderHistoryActionObj[event.action]?.color ?? 'info'}>
                                     <i className={orderHistoryActionObj[event.action]?.icon || 'ri-question-line'} />
                                 </TimelineDot>
                                 {index < history.length - 1 && <TimelineConnector />}
@@ -79,11 +79,11 @@ const OrderHistory = ({ orderId }) => {
                                 <Typography variant="body1">
                                     {getStatusDescription(event)}
                                 </Typography>
-                                <Typography variant="caption" color="text.secondary">
+                              <Typography variant="caption" color="info">
                                     by {event.performedBy?.name || 'System'}
                                 </Typography>
                                 {event.metadata && (
-                                    <Typography variant="body2" className="mt-1">
+                                    <Typography variant="body2" className="mt-1"  >
                                         {event.action === orderHistoryActions.STATUS_CHANGED && event.metadata.trackingId && (
                                             <>Tracking ID: {event.metadata.trackingId}</>
                                         )}

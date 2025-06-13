@@ -69,7 +69,7 @@ const NotificationDropdown = () => {
         limit: 10,
         filter: {}
       });
-
+      console.log(result,'result fetchNotifications');
       // Safely handle the response with null checks
       const notificationsList = result?.notifications || [];
       const totalPages = result?.totalPages || 1;
@@ -97,6 +97,7 @@ const NotificationDropdown = () => {
   const fetchUnreadCount = async () => {
     try {
       const result = await getUnreadNotificationCount();
+      console.log(result,'result');
       // Safely handle the count with null check
       setUnreadCount(result?.count || 0);
     } catch (error) {
@@ -127,14 +128,14 @@ const NotificationDropdown = () => {
         )
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-
+      console.log(notification.type , notification.metadata?.orderId?._id,'notification.metadata?.orderId?._id checkk');
       // Navigate based on notification type
-      if (notification.type === 'ORDER_STATUS' && notification.metadata?.orderId) {
-        router.push(`/orders/${notification.metadata.orderId}`);
-      } else if (notification.type === 'PAYMENT_CONFIRMATION' && notification.metadata?.paymentId) {
-        router.push(`/payments/${notification.metadata.paymentId}`);
-      } else if (notification.type === 'ADMIN_MESSAGE' && notification.metadata?.documentId) {
-        router.push(`/documents/${notification.metadata.documentId}`);
+      if (notification.type === 'ORDER_STATUS' || notification.type === 'ORDER_CREATION' && notification.metadata?.orderId?._id) {
+        router.push(`/admin/ecommerce/orders/${notification.metadata.orderId?._id}`);
+      } else if (notification.type === 'PAYMENT_CONFIRMATION' && notification.metadata?.paymentId?._id) {
+        router.push(`/admin/ecommerce/payments/${notification.metadata.paymentId?._id}`);
+      } else if (notification.type === 'ADMIN_MESSAGE' && notification.metadata?.documentId?._id) {
+        router.push(`/admin/ecommerce/documents/${notification.metadata.documentId?._id}`);
       }
 
       handleClose();

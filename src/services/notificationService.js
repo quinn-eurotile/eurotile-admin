@@ -1,7 +1,7 @@
 import { api } from '@/utils/api';
 import { createApiService } from './commonService';
 
-const NOTIFICATION_ENDPOINT = '/notifications';
+const NOTIFICATION_ENDPOINT = '/notification';
 
 export const notificationServices = createApiService(NOTIFICATION_ENDPOINT, {
   // Custom methods specific to notifications
