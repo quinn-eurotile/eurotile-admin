@@ -120,7 +120,9 @@ const SidebarLeft = props => {
     isBelowSmScreen,
     messageInputRef,
     handleLoadMoreTickets,
-    isLoading
+    isLoading,
+    hasNextPage,
+    hasPrevPage
   } = props;
 
   // States
@@ -255,17 +257,19 @@ const SidebarLeft = props => {
           </ul>
 
         </ScrollWrapper>
-        <div className='absolute bg-white bottom-0 flex justify-center left-0 p-3 right-0 z-10  '>
-          <Button onClick={handleLoadMoreTickets}
-            type='button'
-            size='small'
-            variant='contained'
-            disabled={isLoading}
-            startIcon={isLoading && <i className="ri-loader-line animate-spin" />}
-          >
-            {isLoading ? 'Processing...' : 'Load More'}
-          </Button>
-        </div>
+        {hasNextPage &&
+          <div className='absolute bg-white bottom-0 flex justify-center left-0 p-3 right-0 z-10  '>
+            <Button onClick={handleLoadMoreTickets}
+              type='button'
+              size='small'
+              variant='contained'
+              disabled={isLoading}
+              startIcon={isLoading && <i className="ri-loader-line animate-spin" />}
+            >
+              {isLoading ? 'Processing...' : 'Load More'}
+            </Button>
+          </div>
+        }
         {/* <Box bgcolor={'#fff'} display={'flex'} justifyContent={'center'} padding={'15px 10px'}>
           <Button variant='contained' size='small' onClick={handleLoadMore}>Load More</Button>
         </Box> */}

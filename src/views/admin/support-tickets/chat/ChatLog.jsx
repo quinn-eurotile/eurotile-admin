@@ -71,12 +71,13 @@ const ScrollWrapper = ({ children, isBelowLgScreen, scrollRef, className }) => {
   }
 };
 
-const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen, handleLoadMoreMessages, isLoadingMessages }) => {
+const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen, handleLoadMoreMessages, isLoadingMessages, hasNextPageMessages, hasPrevPageMessages }) => {
   // Props
   const { profileUser, contacts } = chatStore;
+  console.log(hasNextPageMessages,'hasNextPageMessages');
 
-  console.log('chatStore', chatStore);
-  console.log(' profileUser', profileUser);
+  // console.log('chatStore', chatStore);
+  // console.log(' profileUser', profileUser);
 
   // Vars
   const activeUserChat = chatStore.chats.find(chat => chat.userId === chatStore.activeUser?.id);
@@ -120,17 +121,20 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen,
 
 
 
-        <div className='flex justify-center p-4'>
-          <Button onClick={handleLoadMoreMessages}
-            type='button'
-            size='small'
-            variant='contained'
-            disabled={isLoadingMessages}
-            startIcon={isLoadingMessages && <i className="ri-loader-line animate-spin" />}
-          >
-            {isLoadingMessages ? 'Processing...' : 'Load More'}
-          </Button>
-        </div>
+        {hasNextPageMessages && (
+          <div className='flex justify-center p-4'>
+            <Button
+              onClick={handleLoadMoreMessages}
+              type='button'
+              size='small'
+              variant='contained'
+              disabled={isLoadingMessages}
+              startIcon={isLoadingMessages && <i className="ri-loader-line animate-spin" />}
+            >
+              {isLoadingMessages ? 'Processing...' : 'Load More'}
+            </Button>
+          </div>
+        )}
 
         {activeUserChat &&
           formatedChatData(activeUserChat.chat, profileUser).map((msgGroup, index) => {
