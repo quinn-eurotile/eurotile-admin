@@ -10,6 +10,7 @@ const USER_TRADE_PROFESSIONALS_PASSWORD_ENDPOINT = "/profile/password";
 const USER_PROFILE_ENDPOINT = "/profile";
 const TRADE_PROFESSIONALS_BUSINESS_USER_PROFILE_ENDPOINT = "/admin/trade-professional/business-profile";
 const TRADE_PROFESSIONALS_BUSINESS_ENDPOINT = "/admin/trade-professional/business";
+const TRADE_PROFESSIONALS_COMMISSION_ENDPOINT = "/user/trade-professional/commission";
 
 
 
@@ -20,6 +21,7 @@ export const userTradeProfessionalPassword = createApiService(USER_TRADE_PROFESS
 export const userTradeProfessionalBusinessProfile = createApiService(TRADE_PROFESSIONALS_BUSINESS_USER_PROFILE_ENDPOINT);
 export const userTradeProfessionalBusiness = createApiService(TRADE_PROFESSIONALS_BUSINESS_ENDPOINT);
 export const userProfile = createApiService(USER_PROFILE_ENDPOINT);
+export const tradeProfessionalCommission = createApiService(TRADE_PROFESSIONALS_COMMISSION_ENDPOINT);
 export const userTradeProfessionalService = createApiService(USER_TRADE_PROFESSIONALS_ENDPOINT, {
 
   getClientById: async (id) => {
