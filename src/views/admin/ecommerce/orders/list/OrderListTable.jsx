@@ -100,6 +100,7 @@ const OrderListTable = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [totalRecords, setTotalRecords] = useState(0)
   const [search, setSearch] = useState('')
+  const [rowSelection, setRowSelection] = useState({});
 
   const fetchOrders = async (currentPage = 1, searchTerm = '') => {
     try {
@@ -207,26 +208,18 @@ const OrderListTable = () => {
   const table = useReactTable({
     data,
     columns,
-    state: {
-      globalFilter
-    },
-    filterFns: {
-      fuzzy: fuzzyFilter
-    },
+    state: { rowSelection },
     getCoreRowModel: getCoreRowModel(),
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: fuzzyFilter,
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues()
-  })
+    onRowSelectionChange: setRowSelection
+  });
 
   const handleChangePage = (event, newPage) => setPage(newPage)
   const handleChangeRowsPerPage = event => {
     setRowsPerPage(parseInt(event.target.value, 10))
+    table.setPageSize(parseInt(event.target.value, 10))
     setPage(0)
   }
 
