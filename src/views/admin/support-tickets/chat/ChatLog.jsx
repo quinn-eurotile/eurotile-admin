@@ -215,9 +215,6 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen,
                             >
                               <i className="ri-file-text-line text-xl" />
                               <span>{msg?.fileName || 'Download file'}</span>
-                              {/* <span className="text-sm text-gray-500">
-                                ({(msg?.fileSize / 1024 / 1024).toFixed(2)} MB)
-                              </span> */}
                             </a>
                           )}
                         </div>

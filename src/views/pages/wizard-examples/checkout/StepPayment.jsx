@@ -90,7 +90,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
           shippingMethod: selectedShipping,
           paymentMethod: 'stripe',
           userId: user?._id,
-           email: user?.email,
+          email: user?.email,
 
 
         }
@@ -103,6 +103,11 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
       }
 
       const { clientSecret, orderId } = response.data;
+
+
+
+      console.log('clientSecret==============>', clientSecret);
+      console.log('orderId==============>', orderId);
 
       // Confirm payment with Stripe
       const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
