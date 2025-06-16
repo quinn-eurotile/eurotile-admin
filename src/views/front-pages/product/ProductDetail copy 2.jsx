@@ -568,9 +568,7 @@ export default function ProductDetailPage() {
       console.error(err);
     }
   };
-  const convertSlugToName = (slug) => {
-    return slug.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
-  };  
+
   // const cart = useSelector(state => state.cartReducer);
   // // console.log('Current Cart:', cart);
   // 🟩 Calculate thresholds and map them to discounts
@@ -617,8 +615,6 @@ export default function ProductDetailPage() {
   const sampleData = product?.samples ?
     (typeof product.samples === 'string' ? JSON.parse(product.samples) : product.samples)
     : null;
-
-  const selected = selectedVariation || {};
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -1146,48 +1142,72 @@ Eurotile">
 
             </TabPanel>
             <TabPanel value='2' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
-              <div className="grid md:grid-cols-3 gap-8">
-                {/* Product Details */}
+              <div className="grid md:grid-cols-2 gap-8 ">
                 <div>
-                  <h3 className="font-medium mb-4 text-redText">Product Details</h3>
-                  <ul className="text-sm space-y-2 list-none p-0">
-                    <li><span className="font-medium">Name:</span> {product.name || 'N/A'}</li>
-                    <li><span className="font-medium">SKU:</span> {product.sku || 'N/A'}</li>
+                  <h3 className="font-medium mb-4 text-redText">Technical Specifications</h3>
+                  <ul className="text-sm space-y-4 list-none p-0">
                     <li>
-                      <span className="font-medium">Collection:</span>
-                      {product.categories && product.categories.length > 0
-                        ? product.categories.map(cat => cat.name).join(', ')
-                        : 'N/A'}
-                    </li> 
-                    <li><span className="font-medium">Factory:</span> {product?.supplier?.companyName || 'N/A'}</li>
-                    {/* <li><span className="font-medium">Origin:</span> {product?.origin || 'N/A'}</li>
-                    <li><span className="font-medium">Style:</span> {product?.style || 'N/A'}</li> */}
+                      <span className="font-medium">SKU:</span> {product.sku}
+                    </li>
+                    <li>
+                      <span className="font-medium">Name:</span> {product.name}
+                    </li>
+                    <li>
+                      <span className="font-medium">Description:</span> {product.description}
+                    </li>
+                    <li>
+                      <span className="font-medium">Stock Status:</span> {product.stockStatusLabel}
+                    </li>
+                    <li>
+                      <span className="font-medium">Status:</span> {product.statusLabel}
+                    </li>
+                    <li>
+                      <span className="font-medium">Min Price (B2B):</span> {product.minPriceB2B}
+                    </li>
+                    <li>
+                      <span className="font-medium">Max Price (B2B):</span> {product.maxPriceB2B}
+                    </li>
+                    <li>
+                      <span className="font-medium">Min Price (B2C):</span> {product.minPriceB2C}
+                    </li>
+                    <li>
+                      <span className="font-medium">Max Price (B2C):</span> {product.maxPriceB2C}
+                    </li>
+
                   </ul>
                 </div>
-                {/* Technical Details */}
                 <div>
-                  <h3 className="font-medium mb-4 text-redText">Technical Details</h3>
-                  <ul className="text-sm space-y-2 list-none p-0">
-                  {selected?.attributeVariationsDetail?.length > 0 && selected?.attributeVariationsDetail?.map((variation) => ( 
-                       <li><span className="font-medium">{convertSlugToName(variation.metaKey)}:</span> {variation.metaValue || 'N/A'}</li>
-                     
+                  <h3 className="font-medium mb-4 text-redText">Product Variations</h3>
+                  {product?.productVariations?.map((variation) => (
+                    <div key={variation._id} className="mb-4 border p-2 rounded">
+                      <p><span className="font-medium">Description:</span> {variation.description}</p>
+                      <p><span className="font-medium">Stock Quantity:</span> {variation.stockQuantity}</p>
+                      <p><span className="font-medium">Weight:</span> {variation.weight} kg</p>
+                      <p><span className="font-medium">Regular Price (B2B):</span> {variation.regularPriceB2B}</p>
+                      <p><span className="font-medium">Regular Price (B2C):</span> {variation.regularPriceB2C}</p>
+                      <p><span className="font-medium">Sale Price:</span> {variation.salePrice}</p>
+                      <p><span className="font-medium">Pallet Size:</span> {variation.palletSize}</p>
+                      <p><span className="font-medium">Box Size:</span> {variation.boxSize}</p>
+                      <p><span className="font-medium">Number of Tiles:</span> {variation.numberOfTiles}</p>
+                      <p><span className="font-medium">Dimensions (L×W×H):</span> {variation.dimensions.length}×{variation.dimensions.width}×{variation.dimensions.height}</p>
+                      {variation.variationImages.length > 0 && (
+                        <div className="mt-2">
+                          <span className="font-medium">Variation Image:</span>
+                          <img
+                            src={variation.variationImages[0].filePath}
+                            alt="Variation"
+                            className="mt-1 w-32 h-32 object-cover rounded border"
+                          />
+                        </div>
+                      )}
+                    </div>
                   ))}
-                  {selected?.attributeVariationsDetail?.length === 0 && (
-                    <li><span className="font-medium">No Technical Details Available</span></li>
-                  )}
-                  </ul>
-                </div>
-                {/* Packaging Details */}
-                <div>
-                  <h3 className="font-medium mb-4 text-redText">Packaging Details</h3>
-                  <ul className="text-sm space-y-2 list-none p-0">
-                    <li><span className="font-medium">Box Size (sq.m):</span> {selected.boxSize || 'N/A'}</li>
-                    <li><span className="font-medium">SQ.M per Tile:</span> {selected.sqmPerTile || 'N/A'}</li>
-                    <li><span className="font-medium">Tiles per Box:</span> {selected.numberOfTiles || 'N/A'}</li>
-                    <li><span className="font-medium">Box Weight (KG):</span> {selected.boxWeight || 'N/A'}</li>
-                    <li><span className="font-medium">Pallet Size (sq.m):</span> {selected.palletSize || 'N/A'}</li>
-                    <li><span className="font-medium">Pallet Weight (KG):</span> {selected.palletWeight || 'N/A'}</li>
-                    <li><span className="font-medium">Boxes Per Pallet:</span> {selected.boxesPerPallet || 'N/A'}</li>
+
+                  <h3 className="font-medium mb-4 text-redText">Applications</h3>
+                  <ul className="text-sm space-y-4 list-none p-0">
+                    {product?.categories?.map((category) => (
+                      <li key={category._id} >{category?.name}</li>
+                    ))}
                   </ul>
                 </div>
               </div>
