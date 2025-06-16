@@ -1,5 +1,5 @@
 // React Imports
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // MUI Imports
 import Avatar from '@mui/material/Avatar';
@@ -40,6 +40,8 @@ const renderChat = props => {
   // Props
   const { chatStore, getActiveUserData, setSidebarOpen, backdropOpen, setBackdropOpen, isBelowMdScreen } = props;
 
+  // console.log('chatStore', chatStore);
+
   return chatStore.chats.map(chat => {
 
     const contact = chatStore?.contacts?.find(contact => contact.id === chat.userId) || chatStore.contacts[0];
@@ -67,13 +69,13 @@ const renderChat = props => {
         />
         <div className='min-is-0 flex-auto'>
           <Typography color='inherit'>{contact?.fullName}</Typography>
-          {chat.chat.length ? (
+          {chat?.chat?.length ? (
             <Typography variant='body2' color={isChatActive ? 'inherit' : 'text.secondary'} className='truncate'>
-              {chat.chat[chat.chat.length - 1].message}
+              {chat.chat[chat?.chat?.length - 1]?.message}
             </Typography>
           ) : (
             <Typography variant='body2' color={isChatActive ? 'inherit' : 'text.secondary'} className='truncate'>
-              {contact.role}
+              {contact?.role}
             </Typography>
           )}
         </div>
@@ -85,9 +87,9 @@ const renderChat = props => {
               'text-textDisabled': !isChatActive
             })}
           >
-            {chat.chat.length ? formatDateToMonthShort(chat.chat[chat.chat.length - 1].time) : null}
+            {chat?.chat?.length ? formatDateToMonthShort(chat?.chat[chat?.chat?.length - 1]?.time) : null}
           </Typography>
-          {chat.unseenMsgs > 0 ? <Chip label={chat.unseenMsgs} color='error' size='small' /> : null}
+          {chat?.unseenMsgs > 0 ? <Chip label={chat?.unseenMsgs} color='error' size='small' /> : null}
         </div>
       </li>
     );
@@ -117,12 +119,16 @@ const SidebarLeft = props => {
     isBelowMdScreen,
     isBelowSmScreen,
     messageInputRef,
-    handleLoadMore
+    handleLoadMoreTickets,
+    isLoading,
+    hasNextPage,
+    hasPrevPage
   } = props;
 
   // States
   const [userSidebar, setUserSidebar] = useState(false);
   const [searchValue, setSearchValue] = useState();
+  const scrollContainerRef = useRef(null);
 
   const handleChange = (event, newValue) => {
     setSearchValue(newValue);
@@ -134,12 +140,14 @@ const SidebarLeft = props => {
     messageInputRef.current?.focus();
   };
 
+
+
   return (
     <>
       <Drawer
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        className='bs-full'
+        className='bs-full relative '
         variant={!isBelowMdScreen ? 'permanent' : 'persistent'}
         ModalProps={{
           disablePortal: true,
@@ -236,8 +244,8 @@ const SidebarLeft = props => {
             ) : null}
           </div>
         </div>
-        <ScrollWrapper isBelowLgScreen={isBelowLgScreen}  >
-          <ul className='p-3 pbs-4'>
+        <ScrollWrapper isBelowLgScreen={isBelowLgScreen} className='overflow-y-auto ' style={{ height: 'calc(100vh - 290px)' }}>
+          <ul ref={scrollContainerRef} className='p-3 pbs-4 ' >
             {renderChat({
               chatStore,
               getActiveUserData,
@@ -247,7 +255,21 @@ const SidebarLeft = props => {
               setBackdropOpen
             })}
           </ul>
+
         </ScrollWrapper>
+        {hasNextPage &&
+          <div className='absolute bg-white bottom-0 flex justify-center left-0 p-3 right-0 z-10  '>
+            <Button onClick={handleLoadMoreTickets}
+              type='button'
+              size='small'
+              variant='contained'
+              disabled={isLoading}
+              startIcon={isLoading && <i className="ri-loader-line animate-spin" />}
+            >
+              {isLoading ? 'Processing...' : 'Load More'}
+            </Button>
+          </div>
+        }
         {/* <Box bgcolor={'#fff'} display={'flex'} justifyContent={'center'} padding={'15px 10px'}>
           <Button variant='contained' size='small' onClick={handleLoadMore}>Load More</Button>
         </Box> */}

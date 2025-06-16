@@ -125,6 +125,7 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
                   <MenuItem href={`/${locale}/admin/ecommerce/products/list`}>Product Management</MenuItem>
                   <MenuItem href={`/${locale}/admin/ecommerce/products/category/list`}>Category Management</MenuItem>
                   <MenuItem href={`/${locale}/admin/ecommerce/products/attribute`}>Attribute Management</MenuItem>
+                  <MenuItem href={`/${locale}/admin/ecommerce/orders/list`}>Orders Management</MenuItem>
                 </SubMenu>
               </SubMenu>
             </>

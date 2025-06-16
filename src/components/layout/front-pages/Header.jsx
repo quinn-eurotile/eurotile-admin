@@ -100,18 +100,6 @@ const Header = ({ mode }) => {
         searchTrigger.removeEventListener("click", () => { });
         closeSearch.removeEventListener("click", () => { });
       }
-      clearInterval(autoSlideInterval);
-      if (sliderPrev && sliderNext) {
-        sliderPrev.removeEventListener("click", () => { });
-        sliderNext.removeEventListener("click", () => { });
-      }
-      sliderDots.forEach((dot) => {
-        dot.removeEventListener("click", () => { });
-      });
-      if (productPrev && productNext) {
-        productPrev.removeEventListener("click", () => { });
-        productNext.removeEventListener("click", () => { });
-      }
       if (menuTrigger && mobileMenuClose) {
         menuTrigger.removeEventListener("click", () => { });
         mobileMenuClose.removeEventListener("click", () => { });
@@ -147,7 +135,7 @@ const Header = ({ mode }) => {
             </Link>
             {/* <div className="relative group">
               <button className="flex items-center text-white bg-transparent font-montserrat text-15">
-                Products 
+                Products
                 <i className="ri-arrow-down-s-line text-sm"></i>
               </button>
               <div className="absolute left-0 w-48 bg-white text-black rounded-md shadow-lg py-1 z-10 hidden group-hover:block">

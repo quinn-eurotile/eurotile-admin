@@ -1,5 +1,7 @@
 // React Imports
 import { useEffect, useState, useRef } from 'react';
+import moment from 'moment';
+import classnames from 'classnames';
 
 // MUI Imports
 import Button from '@mui/material/Button';
@@ -18,6 +20,8 @@ import CustomAvatar from '@core/components/mui/Avatar';
 // Slice Imports
 import { sendMsg } from '@/redux-store/slices/chat';
 import { Box } from '@mui/material';
+import { useSession } from 'next-auth/react';
+
 
 // Renders the user avatar with badge and user information
 const UserAvatar = ({ activeUser, setUserProfileLeftOpen, setBackdropOpen }) => (
@@ -54,25 +58,21 @@ const ChatContent = props => {
     isBelowSmScreen,
     isBelowLgScreen,
     messageInputRef,
-    socket
+    socket,
+    handleLoadMoreMessages,
+    isLoadingMessages,
+    hasPrevPageMessages,
+    hasNextPageMessages
+
   } = props;
 
   const { activeUser } = chatStore;
   // States
   const [userProfileRightOpen, setUserProfileRightOpen] = useState(false);
+  const chatContainerRef = useRef(null);
+  const { data: session, status } = useSession();
 
-  // useEffect(() => {
-  //   if (!socket.current) return;
-  //   // Listen for incoming messages
-  //   socket.current.on('receiveMessage', (data) => {
-  //     // console.log('Received message:', JSON.parse(data));
-  //     const parseData = JSON.parse(data);
-  //     // Update your chat store with the new message
-  //     dispatch(sendMsg({ msg: parseData?.message }));
-  //   });
-
-
-  // }, [socket]);
+  // console.log('session comming', session);
 
   useEffect(() => {
     if (!socket.current) return;
@@ -115,25 +115,69 @@ const ChatContent = props => {
   //   };
   // }, [socket, dispatch]);
 
-  const sendMessage = (messageContent) => {
-    if (!socket.current) return;
-    //let tId = props.ticketId;
-    // console.log('chatStore.profileUser?.id', chatStore.profileUser?.id, chatStore.activeUser?.id);
 
+  const sendMessage = (messageContent, file) => {
+
+    console.log('file', file);
+    if (!socket.current) return;
+    let ticketId = props.ticketId;
+
+    // Create message data object
     const messageData = {
-      content: messageContent,
+      content: messageContent || '',
       senderId: chatStore.profileUser?.id,
       receiverId: chatStore.activeUser?.id,
+      sender_detail: {
+        _id: session?.user?.id,
+        name: session?.user?.name
+      },
       timestamp: new Date(),
-      ticketId: props.ticketId
+      ticketId: ticketId
     };
-    let ticketId = messageData.ticketId;
 
+    // If there's a file, convert it to base64
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        messageData.image = file;
+        messageData.imageName = file.name;
+        messageData.imageType = file.type;
+        messageData.imageSize = file.size;
+        messageData.hasImage = true;
 
-    socket.current.emit("join", { ticketId });
-    // Emit the message to the server
-    socket.current.emit('sendMessage', JSON.stringify(messageData));
+        // Emit the message with image data
+        socket.current.emit("join", { ticketId });
+        socket.current.emit('sendMessage', messageData);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // Emit the message without image data
+      socket.current.emit("join", { ticketId });
+      socket.current.emit('sendMessage', messageData);
+    }
   };
+
+  // const sendMessage = (messageContent, file) => {
+
+  //   // console.log('chatStore.profileUser?.id', chatStore.profileUser?.id, chatStore.activeUser?.id);
+
+  //   const messageData = {
+  //     content: messageContent,
+  //     senderId: chatStore.profileUser?.id,
+  //     receiverId: chatStore.activeUser?.id,
+  //     sender_detail: {
+  //       _id: session?.user?.id,
+  //       name: session?.user?.name
+  //     },
+  //     timestamp: new Date(),
+  //     ticketId: ticketId
+  //   };
+
+
+  //   socket.current.emit("join", { ticketId });
+  //   // Emit the message to the server
+  //   socket.current.emit('sendMessage', JSON.stringify(messageData));
+  // };
 
   // Close user profile right drawer if backdrop is closed and user profile right drawer is open
   useEffect(() => {
@@ -142,6 +186,61 @@ const ChatContent = props => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backdropOpen]);
+
+  const renderMessage = (message) => {
+    const isOwnMessage = message.sender === chatStore.profileUser?.id;
+    const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
+
+    return (
+      <div
+        key={message._id}
+        className={classnames('flex items-start gap-3', {
+          'flex-row-reverse': isOwnMessage
+        })}
+      >
+        <CustomAvatar
+          src={isOwnMessage ? chatStore.profileUser?.avatar : chatStore.activeUser?.avatar}
+          skin='light'
+          size={34}
+        />
+        <div
+          className={classnames('flex flex-col gap-1', {
+            'items-end': isOwnMessage
+          })}
+        >
+          <div className='flex items-center gap-2'>
+            <Typography variant='subtitle2'>
+              {isOwnMessage ? chatStore.profileUser?.name : chatStore.activeUser?.name}
+            </Typography>
+            <Typography variant='caption'>{moment(message.createdAt).format('h:mm A')}</Typography>
+          </div>
+          <div
+            className={classnames('rounded-lg p-3', {
+              'bg-primary/10': isOwnMessage,
+              'bg-[var(--mui-palette-customColors-chatBg)]': !isOwnMessage
+            })}
+          >
+            {message.message && (
+              <Typography variant='body2'>{message.message}</Typography>
+            )}
+            {message.fileType === 'image' && message.filePath && (
+              <div className='mt-2'>
+                <img
+                  src={`${NEXT_PUBLIC_BACKEND_DOMAIN}${message.filePath}`}
+                  alt={message.fileName}
+                  className='max-w-[300px] rounded-lg'
+                  onError={(e) => {
+                    console.error('Image load error:', e);
+                    e.target.src = '/images/error-image.png'; // Fallback image
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return !chatStore.activeUser ? (
     <CardContent className='flex flex-col flex-auto items-center justify-center bs-full gap-[18px] bg-[var(--mui-palette-customColors-chatBg)]'>
@@ -191,66 +290,28 @@ const ChatContent = props => {
                 setUserProfileLeftOpen={setUserProfileRightOpen}
               />
             )}
-            {/* {isBelowMdScreen ? (
-              <OptionMenu
-                iconClassName='text-textSecondary'
-                options={[
-                  {
-                    text: 'View Contact',
-                    menuItemProps: {
-                      onClick: () => {
-                        setUserProfileRightOpen(true);
-                        setBackdropOpen(true);
-                      }
-                    }
-                  },
-                  'Mute Notifications',
-                  'Block Contact',
-                  'Clear Chat',
-                  'Block'
-                ]}
-              />
-            ) : (
-              <div className='flex items-center gap-1'>
-                <IconButton size='small'>
-                  <i className='ri-phone-line text-textSecondary' />
-                </IconButton>
-                <IconButton size='small'>
-                  <i className='ri-video-add-line text-textSecondary' />
-                </IconButton>
-                <IconButton size='small'>
-                  <i className='ri-search-line text-textSecondary' />
-                </IconButton>
-                <OptionMenu
-                  iconClassName='text-textSecondary'
-                  options={[
-                    {
-                      text: 'View Contact',
-                      menuItemProps: {
-                        onClick: () => {
-                          setUserProfileRightOpen(true);
-                          setBackdropOpen(true);
-                        }
-                      }
-                    },
-                    'Mute Notifications',
-                    'Block Contact',
-                    'Clear Chat',
-                    'Block'
-                  ]}
-                />
-              </div>
-            )} */}
+
           </div>
 
+          <div
+            ref={chatContainerRef}
+            // onScroll={handleScroll}
+            className='flex-1 overflow-y-auto'
+          >
 
 
-          <ChatLog
-            chatStore={chatStore}
-            isBelowMdScreen={isBelowMdScreen}
-            isBelowSmScreen={isBelowSmScreen}
-            isBelowLgScreen={isBelowLgScreen}
-          />
+            <ChatLog
+              chatStore={chatStore}
+              isBelowMdScreen={isBelowMdScreen}
+              isBelowSmScreen={isBelowSmScreen}
+              isBelowLgScreen={isBelowLgScreen}
+              handleLoadMoreMessages={handleLoadMoreMessages}
+              isLoadingMessages={isLoadingMessages}
+              hasNextPageMessages={hasNextPageMessages}
+              hasPrevPageMessages={hasPrevPageMessages}
+
+            />
+          </div>
 
           <SendMsgForm
             dispatch={dispatch}

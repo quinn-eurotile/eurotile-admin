@@ -129,6 +129,15 @@ const SupportTicketListTable = () => {
   const canDeleteSupportTicket = usePermission("delete-support-ticket");
   const canViewSupportTicket = usePermission("view-support-ticket");
 
+  const issueTypeOptions = {
+    1: { label: 'Order Issue', color: 'info' },
+    2: { label: 'Payment Issue', color: 'default' },
+    3: { label: 'Invoice Issue', color: 'warning' },
+    4: { label: 'Product Issue', color: 'primary' },
+    5: { label: 'General Issue', color: 'error' }
+  }
+
+
   // Hooks
   const { lang: locale } = useParams();
 
@@ -207,10 +216,11 @@ const SupportTicketListTable = () => {
           id: ticket?._id,
           ticketNumber: ticket?.ticketNumber,
           subject: ticket?.subject,
+          issue_type: ticket?.issue_type,
           message: ticket?.message,
           status: ticket?.status,
           sender_roles: ticket?.sender_roles?.map((el) => el?.name).join(', ') || 'Unknown',
-          sender_name: ticket?.sender_detail?.map((el) => el?.name).join(', ') || '',
+          sender_name: ticket?.sender_detail?.name || '',
           order: ticket?.order,
           createdAt: ticket?.createdAt,
           updatedAt: ticket?.updatedAt,
@@ -278,9 +288,15 @@ const SupportTicketListTable = () => {
           <div onClick={() => router.push(getLocalizedUrl(`/admin/support-tickets/view/${row.original.id}`, locale))} className='flex cursor-pointer items-center gap-4'>
             {getAvatar({ avatar: row?.original?.avatar, subject: row?.original?.subject })}
             <div className='flex flex-col'>
-              <Typography className='font-medium' color='text.primary'>
-                {row.original.subject}
-              </Typography>
+              <Tooltip title={row.original?.subject}>
+                <Typography
+                  variant='body2'
+                  color='text.primary'
+                  sx={{ maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                >
+                  {row.original?.subject}
+                </Typography>
+              </Tooltip>
               <Typography variant='body2'>#{row?.original?.ticketNumber}</Typography>
             </div>
           </div>
@@ -289,11 +305,33 @@ const SupportTicketListTable = () => {
       columnHelper.accessor('message', {
         header: 'Description',
         cell: ({ row }) => (
-          <Typography className='capitalize' color='text.primary'>
-            {row.original?.message}
-          </Typography>
+          <Tooltip title={row.original?.message}>
+            <Typography
+              variant='body2'
+              color='text.primary'
+              sx={{ maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            >
+              {row.original?.message}
+            </Typography>
+          </Tooltip>
         )
       }),
+      columnHelper.accessor('issue_type', {
+        header: 'Issue Type',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-3'>
+
+            <Chip
+              variant='tonal'
+              label={issueTypeOptions[row.original?.issue_type]?.label || ''}
+              size='small'
+              color={issueTypeOptions[row.original?.issue_type]?.color || ''}
+              className='capitalize'
+            />
+          </div>
+        )
+      }),
+
       columnHelper.accessor('sender_detail', {
         header: 'Customer Name',
         cell: ({ row }) => (
@@ -370,29 +408,29 @@ const SupportTicketListTable = () => {
         )
       }),
       columnHelper.accessor('createdAt', {
-              header: 'Requested Date & Time',
-              cell: ({ row }) => <Typography>{moment(row.original?.createdAt).format('MMMM Do YYYY, h:mm:ss a')}</Typography>
-            }),
+        header: 'Requested Date & Time',
+        cell: ({ row }) => <Typography>{moment(row.original?.createdAt).format('MMMM Do YYYY, h:mm:ss a')}</Typography>
+      }),
       columnHelper.accessor('action', {
         header: 'Action',
         cell: ({ row }) => (
           <div className='flex items-center'>
             {canUpdateSupportTicket &&
-                <IconButton onClick={() => handleEdit(row.original.id)}>
-                  <i className='ri-edit-line text-textSecondary' />
-                </IconButton>
+              <IconButton onClick={() => handleEdit(row.original.id)}>
+                <i className='ri-edit-line text-textSecondary' />
+              </IconButton>
             }
             {canDeleteSupportTicket &&
-                <IconButton onClick={() => handleDeleteConfirmation(row.original.id)}>
-                  <i className='ri-delete-bin-7-line text-textSecondary' />
-                </IconButton>
+              <IconButton onClick={() => handleDeleteConfirmation(row.original.id)}>
+                <i className='ri-delete-bin-7-line text-textSecondary' />
+              </IconButton>
             }
             {canViewSupportTicket &&
-                <IconButton>
-                  <Link href={getLocalizedUrl(`/admin/support-tickets/view/${row.original.id}`, locale)} className='flex'>
-                    <i className='ri-eye-line text-textSecondary' />
-                  </Link>
-                </IconButton>
+              <IconButton>
+                <Link href={getLocalizedUrl(`/admin/support-tickets/view/${row.original.id}`, locale)} className='flex'>
+                  <i className='ri-eye-line text-textSecondary' />
+                </Link>
+              </IconButton>
             }
           </div>
         ),

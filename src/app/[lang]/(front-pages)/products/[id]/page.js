@@ -1,6 +1,6 @@
 import ProductDetail from "@/views/front-pages/product/ProductDetail"
 
-const ProductDetailPage = async () => {
+const ProductDetailPage = () => {
   return (
         <ProductDetail />
   );

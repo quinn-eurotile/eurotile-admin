@@ -16,6 +16,8 @@ export const toTitleCase = (str) => {
   });
 };
 
+
+
 export function calculateTierValue(costPrice, currentExchangeRate, tierAddOn, tierMultiplyBy) {
   const price = Number(costPrice);
   const exchangeRate = Number(currentExchangeRate);

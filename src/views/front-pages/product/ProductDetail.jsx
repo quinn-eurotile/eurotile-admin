@@ -22,6 +22,8 @@ import { addToCart } from "@/redux-store/slices/cart";
 import { getSession, useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { calculateNewVariantTierValue, calculateTierValue } from "@/components/common/helper";
+import CircularLoader from "@/components/common/CircularLoader";
 
 
 export default function ProductDetailPage() {
@@ -32,9 +34,9 @@ export default function ProductDetailPage() {
   const { data: session, status } = useSession();
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [quantity, setQuantity] = useState("1");
-  const [tiles, setTiles] = useState("10");
-  const [pallets, setPallets] = useState("1");
+  const [quantity, setQuantity] = useState();
+  const [tiles, setTiles] = useState();
+  const [pallets, setPallets] = useState();
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedFinish, setSelectedFinish] = useState("");
   const [pricingTier, setPricingTier] = useState("Tier 5");
@@ -63,6 +65,11 @@ export default function ProductDetailPage() {
     full: false
   });
 
+  const [quantityError, setQuantityError] = useState('');
+
+  // Get vid from URL
+  const searchParams = new URLSearchParams(window.location.search);
+  const vid = searchParams.get('vid');
 
   // console.log('Current cart state:', cart);
   const fetchProductDetails = async () => {
@@ -70,6 +77,25 @@ export default function ProductDetailPage() {
       const response = await getProductDetails(productId);
       if (response?.success && response?.data) {
         setProduct(response.data);
+
+        // If vid exists in URL, find and set the corresponding variation
+        if (vid) {
+          const variation = response.data.productVariations.find(v => v._id === vid);
+          if (variation) {
+            setSelectedVariation(variation);
+
+            // Pre-select attribute variations based on the selected variation
+            const initialAttributes = {};
+            variation.attributeVariations.forEach(attrVarId => {
+              const attrVar = response.data.attributeVariations.find(av => av._id === attrVarId);
+              if (attrVar) {
+                initialAttributes[attrVar.productAttribute] = attrVarId;
+              }
+            });
+            console.log('initialAttributes', initialAttributes);
+            setSelectedAttributes(initialAttributes);
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to fetch product details:', error);
@@ -77,16 +103,20 @@ export default function ProductDetailPage() {
   };
 
 
+
+
   useEffect(() => {
     if (productId) {
       fetchProductDetails();
     }
-  }, [productId]);
-    useEffect(() => {
-    if (product?.productVariations?.length > 0) {
+  }, [productId, vid]);
+
+  // Remove the automatic selection of first variation if vid is present
+  useEffect(() => {
+    if (product?.productVariations?.length > 0 && !vid) {
       setSelectedVariation(product.productVariations[0]);
     }
-  }, [product]);
+  }, [product, vid]);
 
   const handleVariationChange = (attributeId, variationId) => {
     // Step 1: Update the selectedAttributes with the selected variationId
@@ -95,25 +125,31 @@ export default function ProductDetailPage() {
 
     // Step 2: Find the matching variation
     const matchingVariation = product?.productVariations?.find(variation => {
-      const variationAttributes = variation.attributes;
-      const selectedAttributeIds = Object.keys(newAttributes);
-      if (variationAttributes.length !== selectedAttributeIds.length) {
-        return true;
-      }
+      // Check if all selected attributes match the variation's attribute variations
+      return variation.attributeVariations.every(attrVarId => {
+        // Find the attribute variation in the product's attribute variations
+        const attrVar = product.attributeVariations.find(av => av._id === attrVarId);
+        if (!attrVar) return false;
 
-      return variationAttributes.every(attrId => {
-        const selectedVariationId = newAttributes[attrId];
-        return variation.attributeVariations.includes(selectedVariationId);
+        // Check if this attribute variation is selected
+        return newAttributes[attrVar.productAttribute] === attrVarId;
       });
     });
-
-
 
     if (matchingVariation) {
       setSelectedVariation(matchingVariation);
 
-      if (matchingVariation.variationImages?.length > 0) {
-        setCurrentImageIndex(0);
+      // Reset image index when variation changes
+      setCurrentImageIndex(0);
+
+      // Update pricing tier based on the new variation
+      if (matchingVariation.regularPriceB2B) {
+        updatePricingTier(quantity);
+      }
+
+      // Update calculated values if they exist
+      if (calculatedValues.sqm > 0) {
+        calculateValues('sqm', calculatedValues.sqm);
       }
     } else {
       setSelectedVariation(null);
@@ -121,13 +157,31 @@ export default function ProductDetailPage() {
   };
 
 
+  // Update pricing tier based on quantity
+  const updatePricingTier = (qty) => {
+    if (!selectedVariation) return;
+
+    const numQty = Number.parseFloat(qty) || 0;
+
+    if (numQty >= 1300) {
+      setPricingTier("Tier 1");
+    } else if (numQty >= 153) {
+      setPricingTier("Tier 2");
+    } else if (numQty >= 51) {
+      setPricingTier("Tier 3");
+    } else if (numQty >= 30) {
+      setPricingTier("Tier 4");
+    } else {
+      setPricingTier("Tier 5");
+    }
+  };
+
   // Update product images to use variation images
-  const productImages =
-    (selectedVariation?.variationImages?.length
-      ? selectedVariation.variationImages.map(img => img.filePath)
-      : product?.productFeaturedImage?.filePath
-        ? [product.productFeaturedImage.filePath]
-        : ["/images/pages/product-img1.jpg"]);
+  const productImages = selectedVariation?.variationImages?.length
+    ? selectedVariation.variationImages.map(img => img.filePath)
+    : product?.productFeaturedImage?.filePath
+      ? [product.productFeaturedImage.filePath]
+      : ["/placeholder.svg"];
 
   // console.log('selectedVariation', selectedVariation);
   // console.log('productImages', productImages);
@@ -143,29 +197,6 @@ export default function ProductDetailPage() {
   const selectImage = (index) => {
     setCurrentImageIndex(index);
   };
-
-  // Update pricing tier based on quantity
-  const updatePricingTier = (qty) => {
-    const numQty = Number.parseInt(qty) || 0;
-
-    if (numQty < 30) {
-      setPricingTier("Tier 5");
-    } else if (numQty < 51) {
-      setPricingTier("Tier 4");
-    } else if (numQty < 153) {
-      setPricingTier("Tier 3");
-    } else if (numQty < 1300) {
-      setPricingTier("Tier 2");
-    } else {
-      setPricingTier("Tier 1");
-    }
-
-
-
-  };
-
-
-
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -183,8 +214,9 @@ export default function ProductDetailPage() {
     minPrice: product?.minPriceB2B,
     maxPrice: product?.maxPriceB2B
   };
+
   if (!product) {
-    return <div>Loading product details...</div>;
+    return  <CircularLoader/>         ;
   }
   // Map of tiers to human-friendly names and quantity ranges
   const tierData = [
@@ -223,33 +255,49 @@ export default function ProductDetailPage() {
       return null;
     }
 
-    // Use palletSize as tilesPerPallet
-    const tilesPerPallet = parseFloat(selectedVariation.boxesPerPallet) * parseFloat(selectedVariation.numberOfTiles) || 1;
-    // Use sqmPerTile if available, else fallback to 1 to avoid division by 0
-    const sqmPerTile = selectedVariation.sqmPerTile || 1;
+    // Get values from the selected variation
+    const sqmPerTile = parseFloat(selectedVariation.sqmPerTile) || 1;
+    const tilesPerBox = parseFloat(selectedVariation.numberOfTiles) || 1;
 
     let newValues = { ...calculatedValues };
 
     switch (type) {
       case 'sqm':
+        // Calculate number of tiles needed to cover the square meters
+        const tiles = Math.ceil(parseFloat(value) / sqmPerTile);
+        // Calculate number of boxes needed
+        const boxes = Math.ceil(tiles / tilesPerBox);
+
         newValues = {
           sqm: parseFloat(value) || 0,
-          tiles: Math.ceil((parseFloat(value) || 0) / sqmPerTile),
-          pallets: Math.ceil(Math.ceil((parseFloat(value) || 0) / sqmPerTile) / tilesPerPallet)
+          tiles: tiles,
+          pallets: boxes // We're using pallets field to store boxes count
         };
         break;
+
       case 'tiles':
+        // Calculate square meters from tiles
+        const sqmFromTiles = parseFloat(value) * sqmPerTile;
+        // Calculate number of boxes needed
+        const boxesFromTiles = Math.ceil(parseFloat(value) / tilesPerBox);
+
         newValues = {
-          sqm: (parseInt(value) || 0) * sqmPerTile,
-          tiles: parseInt(value) || 0,
-          pallets: Math.ceil((parseInt(value) || 0) / tilesPerPallet)
+          sqm: sqmFromTiles,
+          tiles: parseFloat(value) || 0,
+          pallets: boxesFromTiles // We're using pallets field to store boxes count
         };
         break;
-      case 'pallets':
+
+      case 'pallets': // This case is for boxes input
+        // Calculate number of tiles from boxes
+        const tilesFromBoxes = parseFloat(value) * tilesPerBox;
+        // Calculate square meters from tiles
+        const sqmFromBoxes = tilesFromBoxes * sqmPerTile;
+
         newValues = {
-          tiles: parseInt(value) * tilesPerPallet,
-          sqm: (parseInt(value) * tilesPerPallet) * sqmPerTile,
-          pallets: parseInt(value) || 0
+          sqm: sqmFromBoxes,
+          tiles: tilesFromBoxes,
+          pallets: parseFloat(value) || 0 // We're using pallets field to store boxes count
         };
         break;
     }
@@ -257,14 +305,15 @@ export default function ProductDetailPage() {
     // Calculate the tier discount
     const sqm = newValues.sqm;
     let pricingTier;
+    let pricePerSqm;
 
-    if (sqm > 1300) {
+    if (sqm >= 1300) {
       pricingTier = 'tierFirst';
-    } else if (sqm > 153) {
+    } else if (sqm >= 153) {
       pricingTier = 'tierSecond';
-    } else if (sqm > 51) {
+    } else if (sqm >= 51) {
       pricingTier = 'tierThird';
-    } else if (sqm > 30) {
+    } else if (sqm >= 30) {
       pricingTier = 'tierFourth';
     } else {
       pricingTier = 'tierFifth';
@@ -274,12 +323,20 @@ export default function ProductDetailPage() {
     if (tierData) {
       const { tierAddOn, tierMultiplyBy } = tierData;
       // Calculate price per sqm for this tier
-    const pricePerSqm = tierAddOn + tierMultiplyBy;
+      pricePerSqm = calculateTierValue(
+        selectedVariation.purchasedPrice,
+        1.17,
+        tierAddOn,
+        tierMultiplyBy
+      );
+    } else {
+      // If no tier data, use regular price
+      pricePerSqm = selectedVariation.regularPriceB2C;
+    }
 
     newValues.tier = pricingTier;
     newValues.pricePerSqm = pricePerSqm;
     newValues.calculatedPrice = pricePerSqm * sqm;
-    }
 
     setCalculatedValues(newValues);
     updatePricingTier(newValues.sqm);
@@ -288,32 +345,20 @@ export default function ProductDetailPage() {
   };
 
   const handleQuantityChange = (e) => {
-    const values = calculateValues('sqm', e.target.value);
+    const value = e.target.value;
+    setQuantity(value);
 
-    // console.log(values, 'values');
+    // Validate quantity
+    if (!value || value <= 0) {
+      setQuantityError('Please enter a valid quantity');
+      return;
+    }
 
+    setQuantityError('');
+    const values = calculateValues('sqm', value);
     if (values) {
-      setQuantity(e.target.value);
       setTiles(values.tiles.toString());
       setPallets(values.pallets.toString());
-    }
-  };
-
-  const handleTilesChange = (e) => {
-    const values = calculateValues('tiles', e.target.value);
-    if (values) {
-      setQuantity(values.sqm.toString());
-      setTiles(e.target.value);
-      setPallets(values.pallets.toString());
-    }
-  };
-
-  const handlePalletsChange = (e) => {
-    const values = calculateValues('pallets', e.target.value);
-    if (values) {
-      setQuantity(values.sqm.toString());
-      setTiles(values.tiles.toString());
-      setPallets(e.target.value);
     }
   };
 
@@ -328,8 +373,9 @@ export default function ProductDetailPage() {
       return;
     }
 
-    if (calculatedValues.sqm > selectedVariation.stockQuantity) {
-      setError('Not enough stock available');
+    // Check if number of boxes exceeds stock quantity
+    if (calculatedValues.pallets > selectedVariation.stockQuantity) {
+      setError(`Not enough stock available. Only ${selectedVariation.stockQuantity} boxes in stock.`);
       return;
     }
 
@@ -340,7 +386,8 @@ export default function ProductDetailPage() {
       numberOfTiles: calculatedValues.tiles,
       numberOfPallets: calculatedValues.pallets,
       attributes: selectedAttributes,
-      price: calculatedValues.pricePerSqm || selectedVariation.regularPriceB2C
+      price: calculatedValues.pricePerSqm,
+      totalPrice: calculatedValues.calculatedPrice
     };
 
     setSelectedVariations([...selectedVariations, newVariation]);
@@ -365,6 +412,12 @@ export default function ProductDetailPage() {
   };
 
   const handleAddToCart = async () => {
+    // Validate quantity first
+    if (!quantity || quantity <= 0) {
+      setQuantityError('Please enter a valid quantity');
+      return;
+    }
+
     if (selectedVariations.length === 0 && !selectedVariation) {
       setError('Please select at least one variation');
       return;
@@ -373,19 +426,20 @@ export default function ProductDetailPage() {
     // If there are no saved variations but current selection exists
     if (selectedVariations.length === 0 && selectedVariation) {
       if (!calculatedValues.sqm) {
-        setError('Please enter quantity');
+        setQuantityError('Please enter a valid quantity');
         return;
       }
 
-      if (calculatedValues.sqm > selectedVariation.stockQuantity) {
-        setError('Not enough stock available');
+      // Check if number of boxes exceeds stock quantity
+      if (calculatedValues.pallets > selectedVariation.stockQuantity) {
+        setError(`Not enough stock available. Only ${selectedVariation.stockQuantity} boxes in stock.`);
         return;
       }
     }
 
     // If client order is enabled, show price dialog
     if (isClientOrder) {
-      setCustomPrice(selectedVariation.regularPriceB2C.toString());
+      setCustomPrice(calculatedValues.pricePerSqm.toString());
       setPriceError("");
       setOpenPriceDialog(true);
       return;
@@ -396,7 +450,6 @@ export default function ProductDetailPage() {
       let cartItems = [];
 
       if (!openSampleDialog) {
-
         // Add saved variations
         selectedVariations.forEach(variation => {
           cartItems.push({
@@ -421,12 +474,11 @@ export default function ProductDetailPage() {
             numberOfTiles: calculatedValues.tiles,
             numberOfPallets: calculatedValues.pallets,
             attributes: selectedAttributes,
-            price: selectedVariation.regularPriceB2C,
+            price: calculatedValues.pricePerSqm,
             isSample: false,
             sampleAttributes: null
           });
         }
-
       }
 
       // Add selected samples if any
@@ -437,10 +489,6 @@ export default function ProductDetailPage() {
       selectedTypes.forEach(type => {
         const sampleInfo = sampleData[type];
         const samplePrice = type === 'small' && sampleInfo.freePerMonth ? 0 : sampleInfo.price;
-
-        console.log('samplePrice', sampleInfo);
-
-
 
         cartItems.push({
           productId: product._id,
@@ -599,13 +647,13 @@ export default function ProductDetailPage() {
                 <span className="text-sm text-gray-600 ml-1">3.5k Reviews</span>
               </div>
 
-                            <div className="mt-3 mb-4">
+              {/* <div className="mt-3 mb-4">
                 <p className="text-md text-redText mb-3">£{displayPrice?.minPrice} - £{displayPrice?.maxPrice}/SQ.M</p>
                 <p className="flex items-center gap-2 text-sm">
                   <span>Current Stock:</span>
-                  <span className="text-green-600 font-medium"> {selectedVariation?.stockQuantity || ''} SQ.M</span>
+                  <span className="text-green-600 font-medium"> {selectedVariation?.stockQuantity || ''} Boxes</span>
                 </p>
-              </div>
+              </div> */}
 
               <p className="text-sm text-gray-600 my-4">
                 {product?.shortDescription || ''}
@@ -737,7 +785,12 @@ export default function ProductDetailPage() {
                           <tr key={tier.tierKey} className="border-t text-black/50">
                             <td className="px-4 py-2 border-r">{tier.label}</td>
                             <td className="px-4 py-2 border-r">{tier.tierName}</td>
-                            <td className="px-4 py-2">£{price.toFixed(2)} (inc. VAT)</td>
+                            <td className="px-4 py-2">£{calculateTierValue(
+                              selectedVariation?.purchasedPrice,
+                              1.17,
+                              selectedVariation?.tierDiscount?.[tier.tierKey]?.tierAddOn,
+                              selectedVariation?.tierDiscount?.[tier.tierKey]?.tierMultiplyBy
+                            ).toFixed(2)} (inc. VAT)</td>
                           </tr>
                         );
                       })}
@@ -768,7 +821,7 @@ export default function ProductDetailPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   {product?.attributes?.map(attributeId => {
-                                        // Get ALL variations for this attributeId
+                    // Get ALL variations for this attributeId
                     const attributeVariations = product.attributeVariations.filter(
                       av => av.productAttribute === attributeId
                     );
@@ -830,36 +883,58 @@ export default function ProductDetailPage() {
                   <div className="rounded-md">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Quantity (SQ.M)</label>
                     <input
-                      type="text"
+                      type="number"
                       value={quantity}
                       placeholder="Enter quantity in SQ.M"
-                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
+                      className={`w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border ${
+                        quantityError ? 'border-red-500' : 'border-[#ccc]'
+                      } !rounded-[10px]`}
                       onChange={handleQuantityChange}
+                      min="0"
+                      step="0.01"
                     />
+                    {quantityError && (
+                      <p className="text-red-500 text-sm mt-1">{quantityError}</p>
+                    )}
                   </div>
 
                   <div className="rounded-md">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Number of Tiles</label>
                     <input
-                      type="text"
+                      type="number"
                       value={tiles}
                       className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
-                      onChange={handleTilesChange}
-                      placeholder="Enter number of tiles"
+                      placeholder="AutoCalculated"
+                      disabled={true}
                     />
                   </div>
 
                   <div className="rounded-md">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Number of Pallets</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Boxes</label>
                     <input
-                      type="text"
+                      type="number"
                       className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
                       value={pallets}
-                      onChange={handlePalletsChange}
-                      placeholder="Enter number of pallets"
+                      placeholder="AutoCalculated"
+                      disabled={true}
                     />
                   </div>
                 </div>
+
+                {calculatedValues.sqm > 0 && (
+                  <div className="mb-6 p-4 bg-bgLight rounded-md">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600">Price per SQ.M:</p>
+                        <p className="text-lg font-medium text-red-800">£{calculatedValues.pricePerSqm?.toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Total Price:</p>
+                        <p className="text-lg font-medium text-red-800">£{calculatedValues.calculatedPrice?.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {error && (
                   <div className="text-red-500 mb-4">{error}</div>
@@ -897,6 +972,7 @@ export default function ProductDetailPage() {
                   <Button
                     className="flex-1 bg-red-800 hover:bg-red-900 text-white"
                     onClick={handleAddVariation}
+                    disabled={!quantity || quantity <= 0 || !!quantityError}
                   >
                     <i className="ri-add-line me-2 text-lg"></i>
                     Add Variation
@@ -904,6 +980,7 @@ export default function ProductDetailPage() {
                   <Button
                     className="flex-1 bg-red-800 hover:bg-red-900 text-white"
                     onClick={handleAddToCart}
+                    disabled={!quantity || quantity <= 0 || !!quantityError}
                   >
                     <i className="ri-shopping-cart-line me-2 text-lg"></i>
                     Add To Cart

@@ -58,6 +58,8 @@ const StepCart = ({ handleNext }) => {
     calculateOrderSummary
   } = useContext(CheckoutContext);
 
+  console.log(cartItems, 'cartItems.............');
+
   useEffect(() => {
     if (!openFade) {
       setTimeout(() => {
@@ -74,7 +76,7 @@ const StepCart = ({ handleNext }) => {
     setError("");
     try {
       const response = await updateCartItem(itemId, newQuantity);
-      // // console.log(response, 'response updateCartItem');
+       console.log(response, 'response updateCartItem');
       if (response.success) {
         const { items, orderSummary: newOrderSummary } = response.data;
         setCartItems(items);
@@ -229,7 +231,7 @@ const StepCart = ({ handleNext }) => {
                 <img
                   height={140}
                   width={140}
-                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=140&width=140"}
+                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product?.variation?.variationImages[0]?.filePath}` || "/placeholder.svg?height=140&width=140"}
                   alt={product?.product?.name || 'Product Image'}
                   className="object-cover rounded-lg"
                 />
@@ -244,8 +246,8 @@ const StepCart = ({ handleNext }) => {
                 <div className="flex flex-col sm:flex-row items-center sm:justify-between w-full">
                   <div className="flex flex-col gap-2 items-center sm:items-start">
                     <Typography className="font-medium" color="text.primary">
-                      {product?.isSample ? 
-                        `${product?.product?.name} (${product?.sampleAttributes?.type} Sample)` : 
+                      {product?.isSample ?
+                        `${product?.product?.name} (${product?.sampleAttributes?.type} Sample)` :
                         product?.product?.name}
                     </Typography>
 
@@ -272,7 +274,7 @@ const StepCart = ({ handleNext }) => {
                             Tiles: {product?.numberOfTiles || 0}
                           </Typography>
                           <Typography color="text.secondary" className="text-sm">
-                            Pallets: {product?.numberOfPallets || 0}
+                            Boxes: {product?.numberOfPallets || 0}
                           </Typography>
                         </>
                       )}
@@ -332,7 +334,7 @@ const StepCart = ({ handleNext }) => {
                       )}
                     </div>
 
-                    <Button
+                    {/* <Button
                       variant="outlined"
                       size="small"
                       onClick={() => moveToWishlist(product._id)}
@@ -340,7 +342,7 @@ const StepCart = ({ handleNext }) => {
                       className="mt-2"
                     >
                       Move to wishlist
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
               </div>
@@ -348,7 +350,7 @@ const StepCart = ({ handleNext }) => {
           </div>
         )}
 
-        <Typography
+        {/* <Typography
           href="/"
           component={Link}
           onClick={(e) => e.preventDefault()}
@@ -361,7 +363,7 @@ const StepCart = ({ handleNext }) => {
             rtlIconClass="ri-arrow-left-s-line"
             className="text-base"
           />
-        </Typography>
+        </Typography> */}
       </Grid>
 
       <Grid size={{ xs: 12, lg: 4 }} className="flex flex-col gap-2">
@@ -375,7 +377,7 @@ const StepCart = ({ handleNext }) => {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <Typography color="text.primary">Bag Total</Typography>
-                <Typography>£{orderSummary.subtotal?.toFixed(2)}</Typography>
+                <Typography>£{orderSummary?.subtotal?.toFixed(2)}</Typography>
               </div>
 
               {/* <div className="flex flex-col gap-2">
@@ -420,8 +422,8 @@ const StepCart = ({ handleNext }) => {
               <div className="flex items-center justify-between">
                 <Typography color="text.primary">Shipping Charges</Typography>
                 <div className="flex items-center gap-2">
-                  {orderSummary.shipping > 0 ? (
-                    <Typography>£{orderSummary.shipping?.toFixed(2)}</Typography>
+                  {orderSummary?.shipping > 0 ? (
+                    <Typography>£{orderSummary?.shipping?.toFixed(2)}</Typography>
                   ) : (
                     <>
                       <Typography color="text.disabled" className="line-through">
@@ -434,8 +436,8 @@ const StepCart = ({ handleNext }) => {
               </div>
 
               <div className="flex items-center justify-between">
-                <Typography color="text.primary">VAT ({orderSummary.vatRate || 0}%)</Typography>
-                <Typography>£{orderSummary.vat?.toFixed(2)}</Typography>
+                <Typography color="text.primary">VAT ({orderSummary?.vatRate || 0}%)</Typography>
+                <Typography>£{orderSummary?.vat?.toFixed(2)}</Typography>
               </div>
 
               {error && (
@@ -452,7 +454,7 @@ const StepCart = ({ handleNext }) => {
                 Total Amount
               </Typography>
               <Typography className="font-medium" color="text.primary">
-                £{orderSummary.total?.toFixed(2)}
+                £{orderSummary?.total?.toFixed(2)}
               </Typography>
             </div>
           </CardContent>

@@ -89,7 +89,13 @@ const OrderListTable = ({ orderData }) => {
   const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   // Input field value state
-  const [payoutAmount, setPayoutAmount] = useState('');
+  const [payoutAmount, setPayoutAmount] = useState(0);
+  const [eligibleCommission, setEligibleCommission] = useState(null);
+  const [totalCommission, setTotalCommission] = useState(null);
+  const [adminSettings, setAdminSettings] = useState(null);
+
+
+
 
   // Open dialog handler
   const handleOpenDialog = () => {
@@ -99,28 +105,8 @@ const OrderListTable = ({ orderData }) => {
   // Close dialog handler
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
-    setPayoutAmount(''); // Reset input on close
+    setPayoutAmount(0); // Reset input on close
   };
-
-  const calculateEligibleCommission = () => {
-    const fourteenDaysAgo = moment().subtract(14, 'days');
-    const eligibleOrders = data.filter(order => {
-      const isShipped = order.orderStatus === 4;
-      const isOldEnough = moment(order.updatedAt).isBefore(fourteenDaysAgo);
-      return isShipped && isOldEnough;
-    });
-
-    return eligibleOrders.reduce((total, order) => total + parseFloat(order.commission), 0);
-  };
-
-  // Add state for eligible commission
-  const [eligibleCommission, setEligibleCommission] = useState(0);
-
-  // Update useEffect to calculate eligible commission when data changes
-  useEffect(() => {
-    const total = calculateEligibleCommission();
-    setEligibleCommission(total);
-  }, [data]);
 
   // Modify the handleSubmit function to validate payout amount
   const handleSubmit = () => {
@@ -149,6 +135,7 @@ const OrderListTable = ({ orderData }) => {
       if (response.statusCode === 200 && response.data) {
         fetchOrderList(page, rowsPerPage);
         handleCloseDialog();
+        toast.success(response?.message);
       } else {
         toast.error(response?.message);
       }
@@ -167,7 +154,6 @@ const OrderListTable = ({ orderData }) => {
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await getOrderList(currentPage, pageSize, search, filter);
-      // console.log(response, 'responseresponseresponseresponse')
       dispatch(callCommonAction({ loading: false }));
 
       if (response.statusCode === 200 && response.data) {
@@ -185,9 +171,12 @@ const OrderListTable = ({ orderData }) => {
           avatar: order?.createdByDetails?.userImage,
           username: order?.createdByDetails?.name,
           email: order?.createdByDetails?.email,
-          supportticketmsgs: order?.supportticketmsgs
+          supportticketmsgs: order?.supportticketmsgs,
         }));
         setData(formatted);
+        setEligibleCommission(response.data.eligibleCommission);
+        setAdminSettings(response.data.adminSettings);
+        setTotalCommission(response.data.totalCommission);
         setTotalRecords(response.data.totalDocs || 0);
       }
     } catch (error) {
@@ -354,8 +343,8 @@ const OrderListTable = ({ orderData }) => {
           <Grid size={{ xs: 12, sm: 8 }}>
             <div className='flex items-center gap-2 justify-end pt-2'>
               <div className='flex flex-col items-end'>
-                <span>Total Commission: <strong>€{data.reduce((total, order) => total + parseFloat(order.commission), 0).toFixed(2)}</strong></span>
-                <span>Eligible for Payout: <strong>€{eligibleCommission.toFixed(2)}</strong></span>
+                <span>Total Commission: <strong>€{totalCommission?.toFixed(2)}</strong></span>
+                <span>Eligible for Payout: <strong>€{eligibleCommission?.toFixed(2)}</strong></span>
                 <Typography variant='caption' color='textSecondary'>
                   (Only includes commissions from orders shipped 14+ days ago)
                 </Typography>
@@ -413,7 +402,7 @@ const OrderListTable = ({ orderData }) => {
         <DialogContent>
           <div className='mb-4 mt-2'>
             <Typography variant='body2' color='textSecondary' gutterBottom>
-              Available for payout: €{eligibleCommission.toFixed(2)}
+              Available for payout: €{eligibleCommission?.toFixed(2)}
             </Typography>
           </div>
           <TextField
@@ -421,15 +410,28 @@ const OrderListTable = ({ orderData }) => {
             label='Amount to Transfer'
             variant='outlined'
             value={payoutAmount}
-            onChange={e => setPayoutAmount(e.target.value)}
+            onChange={e => setPayoutAmount(parseFloat(e.target.value))}
             type='number'
             inputProps={{
               min: 0,
               max: eligibleCommission,
               step: '0.01'
             }}
-            helperText={`Enter an amount between €0 and €${eligibleCommission.toFixed(2)}`}
+            helperText={`Enter an amount between €0 and €${eligibleCommission?.toFixed(2)}`}
           />
+          {payoutAmount > 0 && adminSettings?.vatOnCommission && (
+            <div className='mt-4 space-y-2'>
+              <Typography variant='body2'>
+                VAT Rate: {adminSettings.vatOnCommission}%
+              </Typography>
+              <Typography variant='body2'>
+                VAT Amount: €{((payoutAmount * adminSettings.vatOnCommission) / 100).toFixed(2)}
+              </Typography>
+              <Typography variant='body2' fontWeight='bold'>
+                Final Amount (after VAT): €{(payoutAmount - (payoutAmount * adminSettings.vatOnCommission) / 100).toFixed(2)}
+              </Typography>
+            </div>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>

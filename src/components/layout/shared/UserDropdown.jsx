@@ -27,6 +27,9 @@ import { signOut, useSession } from 'next-auth/react';
 // Hook Imports
 import { useSettings } from '@core/hooks/useSettings';
 
+// Component Imports
+import NotificationDropdown from './NotificationDropdown';
+
 // Util Imports
 import { getLocalizedUrl } from '@/utils/i18n';
 
@@ -90,6 +93,7 @@ const UserDropdown = () => {
         }} >
           <i className="ri-message-2-line mt-2"></i>
         </Typography>
+        <NotificationDropdown />
         <Badge
           ref={anchorRef}
           overlap='circular'

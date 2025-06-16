@@ -1,23 +1,37 @@
-// Next Imports
-import { redirect } from 'next/navigation'
+'use client';
 
-// Third-party Imports
-import { getServerSession } from 'next-auth'
+import { useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter, usePathname } from 'next/navigation';
+import { CircularProgress } from '@mui/material';
 
-// Config Imports
-import themeConfig from '@configs/themeConfig'
+const GuestOnlyRoute = ({ children }) => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const pathname = usePathname();
 
-// Util Imports
-import { getLocalizedUrl } from '@/utils/i18n'
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (session) {
+      // Get the language from the URL or default to 'en'
+      const lang = pathname.split('/')[1] || 'en';
+      const userRole = session?.user?.roleNames;
+      if (userRole.includes('Admin') || userRole.includes('Team Member')) {
+        router.push(`/${lang}/admin/dashboards/crm`);
+      } else if (userRole.includes('Trade Professional')) {
+        router.push(`/${lang}/trade-professional/dashboard`);
+      } else {
+        router.push(`/${lang}/unauthorized`);
+      }
 
-const GuestOnlyRoute = async ({ children, lang }) => {
-  const session = await getServerSession()
+    }
+  }, [session, status, pathname, router]);
 
-  if (session) {
-    redirect(getLocalizedUrl(themeConfig.homePageUrl, lang))
+  if (status === 'loading') {
+    return <CircularProgress />;
   }
 
-  return <>{children}</>
-}
+  return !session ? children : null;
+};
 
-export default GuestOnlyRoute
+export default GuestOnlyRoute;

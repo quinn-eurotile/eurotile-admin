@@ -24,7 +24,7 @@ const AdminSettingsForm = () => {
         formState: { errors, isSubmitting }
     } = useForm({
         defaultValues: {
-            commissionRate: '',
+            currencyConversionRate: '',
             vatOnOrder: '',
             vatOnCommission: '',
         }
@@ -37,10 +37,10 @@ const AdminSettingsForm = () => {
     const getAdminSetting = async () => {
         try {
             dispatch(callCommonAction({ loading: true }));
-            const response = await getAdminSettingDetail(adminSettingId);
+            const response = await getAdminSettingDetail();
             dispatch(callCommonAction({ loading: false }));
             if (response.statusCode === 200) {
-                setValue('commissionRate', response?.data?.commissionRate || '');
+                setValue('currencyConversionRate', response?.data?.currencyConversionRate || '');
                 setValue('vatOnOrder', response?.data?.vatOnOrder || '');
                 setValue('vatOnCommission', response?.data?.vatOnCommission || '');
             }
@@ -73,12 +73,12 @@ const AdminSettingsForm = () => {
                         <Grid size={{ xs: 12, sm: 4 }}>
                             <TextField
                                 fullWidth
-                                label='Commission Rate (%)'
+                                label='Currency Conversion Rate'
                                 type='number'
                                 InputLabelProps={{ shrink: true }}
-                                {...register('commissionRate', { required: 'Commission rate is required' })}
-                                error={!!errors.commissionRate}
-                                helperText={errors.commissionRate?.message}
+                                {...register('currencyConversionRate', { required: 'Currency Conversion Rate is required' })}
+                                error={!!errors.currencyConversionRate}
+                                helperText={errors.currencyConversionRate?.message}
                             />
                         </Grid>
                         <Grid size={{ xs: 12, sm: 4 }}>

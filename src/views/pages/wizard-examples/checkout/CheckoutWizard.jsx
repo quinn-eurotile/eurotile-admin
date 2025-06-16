@@ -138,43 +138,60 @@ const steps = [
 
 // Styled Components
 const Stepper = styled(MuiStepper)(({ theme }) => ({
-  justifyContent: 'center',
-  '& .MuiStep-root': {
-    '& + svg': {
-      display: 'none',
-      color: 'var(--mui-palette-text-disabled)'
+  justifyContent: "center",
+  "& .MuiStep-root": {
+    "& + svg": {
+      display: "none",
+      color: "var(--mui-palette-text-disabled)",
     },
-    '& .MuiStepLabel-label': {
-      display: 'flex',
-      cursor: 'pointer',
-      alignItems: 'center',
+    "& .MuiStepLabel-label": {
+      display: "flex",
+      cursor: "pointer",
+      alignItems: "center",
       svg: {
         marginRight: theme.spacing(1.5),
-        fill: 'var(--mui-palette-text-primary)'
+        fill: "var(--mui-palette-text-primary)",
       },
-      '&.Mui-active, &.Mui-completed': {
-        '& .MuiTypography-root': {
-          color: 'var(--mui-palette-primary-main)'
+      "&.Mui-active": {
+        "& .MuiTypography-root": {
+          color: "var(--mui-palette-primary-main)",
+          fontWeight: 600,
         },
-        '& svg': {
-          fill: 'var(--mui-palette-primary-main)'
-        }
-      }
-    },
-    '&.Mui-completed + i': {
-      color: 'var(--mui-palette-primary-main) !important'
-    },
-    [theme.breakpoints.up('md')]: {
-      paddingBottom: 0,
-      '& + svg': {
-        display: 'block'
+        "& svg": {
+          fill: "var(--mui-palette-primary-main)",
+        },
       },
-      '& .MuiStepLabel-label': {
-        display: 'block'
-      }
-    }
-  }
-}))
+      "&.Mui-completed": {
+        "& .MuiTypography-root": {
+          color: "var(--mui-palette-success-main)",
+        },
+        "& svg": {
+          fill: "var(--mui-palette-success-main)",
+        },
+      },
+      "&.Mui-disabled": {
+        "& .MuiTypography-root": {
+          color: "var(--mui-palette-text-disabled)",
+        },
+        "& svg": {
+          fill: "var(--mui-palette-text-disabled)",
+        },
+      },
+    },
+    "&.Mui-completed + i": {
+      color: "var(--mui-palette-success-main) !important",
+    },
+    [theme.breakpoints.up("md")]: {
+      paddingBottom: 0,
+      "& + svg": {
+        display: "block",
+      },
+      "& .MuiStepLabel-label": {
+        display: "block",
+      },
+    },
+  },
+}));
 
 const getStepContent = (step, handleNext, handleBack, checkoutData) => {
   switch (step) {
@@ -385,20 +402,62 @@ const CheckoutWizard = ({ initialData }) => {
     )
   }
 
-  console.log(initialData,'adminSettings');
-
 
   return (
     <CheckoutContext.Provider value={contextValue}>
       <Card>
         <CardContent>
           <StepperWrapper>
-            <Stepper activeStep={activeStep} connector={<DirectionalIcon />}>
-              {steps.map((step, index) => (
-                <Step key={index}>
-                  <StepLabel icon={step.icon}>{step.title}</StepLabel>
-                </Step>
-              ))}
+            <Stepper
+              className="gap-10 md:gap-4"
+              activeStep={activeStep}
+              connector={
+                <DirectionalIcon
+                  ltrIconClass="ri-arrow-right-s-line"
+                  rtlIconClass="ri-arrow-left-s-line"
+                  className="mli-12 hidden md:block text-lg text-textDisabled"
+                />
+              }
+            >
+              {steps.map((step, index) => {
+                // Only allow clicking on steps up to the current step, but not on the last step
+                const isStepClickable = index <= activeStep && activeStep !== 3;
+                return (
+                  <Step
+                    key={index}
+                    onClick={() => {
+                      if (isStepClickable) {
+                        setActiveStep(index);
+                        localStorage.setItem("checkoutStep", index.toString());
+                      }
+                    }}
+                    sx={{
+                      cursor: isStepClickable ? 'pointer' : 'not-allowed',
+                      opacity: isStepClickable ? 1 : 0.5,
+                    }}
+                  >
+                    <StepLabel 
+                      icon={<></>} 
+                      className={`text-center ${!isStepClickable ? 'Mui-disabled' : ''}`}
+                    >
+                      {step.icon}
+                      <Typography 
+                        className="step-title"
+                        sx={{
+                          color: index === activeStep 
+                            ? 'primary.main' 
+                            : index < activeStep 
+                              ? 'success.main' 
+                              : 'text.disabled',
+                          fontWeight: index === activeStep ? 600 : 400,
+                        }}
+                      >
+                        {step.title}
+                      </Typography>
+                    </StepLabel>
+                  </Step>
+                );
+              })}
             </Stepper>
           </StepperWrapper>
         </CardContent>

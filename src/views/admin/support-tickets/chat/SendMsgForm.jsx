@@ -11,6 +11,7 @@ import Paper from '@mui/material/Paper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import CircularProgress from '@mui/material/CircularProgress';
 
 // Third-party Imports
 import Picker from '@emoji-mart/react';
@@ -65,9 +66,12 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
   const [msg, setMsg] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
   const [openEmojiPicker, setOpenEmojiPicker] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Refs
   const anchorRef = useRef(null);
+  const fileInputRef = useRef(null);
   const open = Boolean(anchorEl);
 
   const handleToggle = () => {
@@ -82,13 +86,61 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
     setAnchorEl(null);
   };
 
-  const handleSendMsg = async (event, msg) => {
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setSelectedImage({
+          file,
+          preview: e.target.result
+        });
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      toast.error('Error processing image');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSendMsg = async (event) => {
     event.preventDefault();
 
-    if (msg.trim() !== '') {
-      // Save to backend
-      sendMessage(msg);
+    console.log('selectedImage', selectedImage);
+
+    if (msg.trim() === '' && !selectedImage) return;
+
+    try {
+      setIsUploading(true);
+      // Send message with both text and image
+      await sendMessage(msg, selectedImage?.file);
+
+      // Reset form
       setMsg('');
+      setSelectedImage(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      toast.error('Error sending message');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -123,7 +175,14 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
               <MenuItem onClick={handleClose} className='p-0'>
                 <label htmlFor='upload-img' className='plb-2 pli-5'>
                   <i className='ri-attachment-2 text-textPrimary' />
-                  <input hidden type='file' id='upload-img' />
+                  <input
+                    hidden
+                    type='file'
+                    id='upload-img'
+                    accept='image/*'
+                    onChange={handleImageUpload}
+                    ref={fileInputRef}
+                  />
                 </label>
               </MenuItem>
             </Menu>
@@ -134,7 +193,6 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
               isBelowSmScreen={isBelowSmScreen}
               onChange={value => {
                 setMsg(msg + value);
-
                 if (messageInputRef.current) {
                   messageInputRef.current.focus();
                 }
@@ -153,27 +211,54 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
               isBelowSmScreen={isBelowSmScreen}
               onChange={value => {
                 setMsg(msg + value);
-
                 if (messageInputRef.current) {
                   messageInputRef.current.focus();
                 }
               }}
             />
-            {/* <IconButton size='small'>
-              <i className='ri-mic-line text-textPrimary' />
-            </IconButton> */}
-            <IconButton size='small' component='label' htmlFor='upload-img'>
-              <i className='ri-attachment-2 text-textPrimary' />
-              <input hidden type='file' id='upload-img' />
+            <IconButton
+              size='small'
+              component='label'
+              htmlFor='upload-img'
+              disabled={isUploading}
+            >
+              {isUploading ? (
+                <CircularProgress size={20} />
+              ) : (
+                <i className='ri-attachment-2 text-textPrimary' />
+              )}
+              <input
+                hidden
+                type='file'
+                id='upload-img'
+                accept='image/*'
+                onChange={handleImageUpload}
+                ref={fileInputRef}
+              />
             </IconButton>
           </>
         )}
         {isBelowSmScreen ? (
-          <CustomIconButton variant='contained' color='primary' type='submit'>
-            <i className='ri-send-plane-line' />
+          <CustomIconButton
+            variant='contained'
+            color='primary'
+            type='submit'
+            disabled={isUploading || (msg.trim() === '' && !selectedImage)}
+          >
+            {isUploading ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              <i className='ri-send-plane-line' />
+            )}
           </CustomIconButton>
         ) : (
-          <Button variant='contained' color='primary' type='submit' endIcon={<i className='ri-send-plane-line' />}>
+          <Button
+            variant='contained'
+            color='primary'
+            type='submit'
+            endIcon={isUploading ? <CircularProgress size={20} color="inherit" /> : <i className='ri-send-plane-line' />}
+            disabled={isUploading || (msg.trim() === '' && !selectedImage)}
+          >
             Send
           </Button>
         )}
@@ -181,16 +266,45 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
     );
   };
 
+  // Show selected image preview
+  const renderImagePreview = () => {
+    if (!selectedImage) return null;
+
+    return (
+      <div className="relative p-2 bg-[var(--mui-palette-background-paper)]">
+        <img
+          src={selectedImage.preview}
+          alt="Preview"
+          className="max-h-32 rounded"
+        />
+        <IconButton
+          size="small"
+          className="absolute top-1 right-1 bg-black/50 hover:bg-black/70"
+          onClick={() => {
+            setSelectedImage(null);
+            if (fileInputRef.current) {
+              fileInputRef.current.value = '';
+            }
+          }}
+        >
+          <i className="ri-close-line text-white" />
+        </IconButton>
+      </div>
+    );
+  };
+
   useEffect(() => {
     setMsg('');
+    setSelectedImage(null);
   }, [activeUser.id]);
 
   return (
     <form
       autoComplete='off'
-      onSubmit={event => handleSendMsg(event, msg)}
-      className=' bg-[var(--mui-palette-customColors-chatBg)]'
+      onSubmit={handleSendMsg}
+      className='bg-[var(--mui-palette-customColors-chatBg)]'
     >
+      {renderImagePreview()}
       <TextField
         fullWidth
         multiline
@@ -208,7 +322,7 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
         }}
         onKeyDown={e => {
           if (e.key === 'Enter' && !e.shiftKey) {
-            handleSendMsg(e, msg);
+            handleSendMsg(e);
           }
         }}
         size='small'

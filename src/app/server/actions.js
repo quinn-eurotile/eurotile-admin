@@ -22,6 +22,7 @@ import { productExportServices, productFrontListServices, productServices } from
 import { addressService } from '@/services/address';
 import { adminSettingServices } from '@/services/adminSetting';
 import { cartApi } from '@/services/cart/index';
+import { orderServices } from '@/services/order';
 
 export const getEcommerceData = async () => {
   return eCommerceData;
@@ -63,9 +64,9 @@ export const getStatisticsData = async () => {
   return statisticsData;
 };
 
-export const getOrderHistory = async () => {
-  return eCommerceData.orderData;
-};
+// export const getOrderHistory = async () => {
+//   return eCommerceData.orderData;
+// };
 
 export const getteamMemberList = async () => {
   const response = await sendRequest('/admin/forgot-password', 'POST', { email });
@@ -189,6 +190,9 @@ export const removeCartItem = async (id) => {
 export const removeCart = async (id) => {
   return await cartApi.removeCart(id);
 };
+export const removeCartByUserId = async (userId) => {
+  return await cartApi.removeCartByUserId(userId);
+};
 export const removeCartWhole = async (id) => {
   return await cartApi.removeCartWhole(id);
 };
@@ -221,18 +225,30 @@ export const verifyKlarnaPayment = async (orderId) => {
 
 export const sendPaymentLinkToClient = async (data) => {
   return await cartApi.sendPaymentLinkToClient(data);
-  
+
 };
 
 export const getPaymentCart = async (cartId, clientId) => {
-  return await cartApi.getPaymentCart(cartId, clientId);  
+  return await cartApi.getPaymentCart(cartId, clientId);
  };
- export const updateOrderStatus = async (data) => {
-  return await cartApi.updateOrderStatus(data);  
+export const updateOrderStatus = async (id , data) => {
+  return await cartApi.updateOrderStatus(id,data);
  };
  export const getOrderById = async (orderId) => {
-  return await cartApi.getOrderById(orderId);  
- };
-
-
-
+  return await cartApi.getOrderById(orderId);
+};
+export const getOrderList = async (currentPage, rowsPerPage, searchTerm, filteredData) => {
+  return await orderServices.get(currentPage, rowsPerPage, searchTerm, filteredData);
+};
+export const getOrderStats = async () => {
+  return await orderServices.getStats();
+};
+export const getOrderHistory = async (orderId) => {
+  return await orderServices.getOrderHistory(orderId);
+};
+export const createOrder = async (data) => {
+  return await orderServices.create(data);
+};
+export const forwardToSuppliers = async (orderId) => {
+  return await orderServices.forwardToSuppliers(orderId);
+};

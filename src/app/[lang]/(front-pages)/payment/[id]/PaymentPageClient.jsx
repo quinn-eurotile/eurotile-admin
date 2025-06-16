@@ -11,18 +11,19 @@ import Grid from '@mui/material/Grid2';
 import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
 import { Elements, useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js'; 
+import { loadStripe } from '@stripe/stripe-js';
 import { TabContext, TabList, Tab } from '@mui/material';
 import CustomTabList from '@/components/mui/TabList';
-import { FormControlLabel, Switch } from '@mui/material'; 
+import { FormControlLabel, Switch } from '@mui/material';
 import {  createPaymentIntentPublic, removeCart, removeCartWhole } from '@/app/server/actions';
- 
+import StripeWrapper from '@/components/payment/StripeWrapper';
+
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
 // Stripe payment form component
-const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, selectedAddress, selectedShipping, orderSummary, user, cartItems }) => {
+const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, selectedAddress, selectedShipping, orderSummary, user, cartItems, cartData }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [saveCard, setSaveCard] = useState(true);
@@ -30,44 +31,44 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-  
+
     if (!stripe || !elements) {
       return;
     }
-  
+
     setIsProcessing(true);
     setPaymentError(null);
-    // console.log("orderSummary:", orderSummary);
-  
-  
+
     try {
       // Create payment intent using our API
       const response = await createPaymentIntentPublic({
         amount: Math.round(orderSummary.total * 100), // Convert to cents
-        currency: "usd",
+        currency: "usd", // Changed to EUR to match StepPayment
         saveCard,
         customerId: user?._id,
         cartItems: cartItems,
         orderData: {
+          userId: user?._id,
           subtotal: orderSummary.subtotal,
           shipping: orderSummary.shipping,
           tax: orderSummary.tax || 0,
           total: orderSummary.total,
           shippingAddress: selectedAddress,
-          shippingMethod: selectedShipping,
+          shippingMethod: selectedShipping || 'standard',
           paymentMethod: 'stripe',
-          userId: user?._id
+          tradeProfessionalId: cartData?.tradeProfessionalId || null,
+          email: user?.email,
+
         }
       });
-      console.log("response 3333333333333:", response); // Add this line to see the paymentIntent object
-  
+
       if (!response.success) {
         setPaymentError(response.message || "Failed to create payment intent");
         return;
       }
-  
-      const { clientSecret,orderId } = response.data;
-  
+
+      const { clientSecret, orderId } = response.data;
+
       // Confirm payment with Stripe
       const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
@@ -78,10 +79,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
           },
         },
       });
-  
-      console.log('paymentIntent:', paymentIntent);
-      console.log('confirmError:', confirmError);
-  
+
       if (confirmError) {
         setPaymentError(confirmError.message);
       } else {
@@ -92,10 +90,9 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
           status: true
         });
       }
-      // setPaymentError("Payment verification failed. Please contact support.");
     } catch (error) {
       console.error("Error creating payment intent:", error);
-      setPaymentError("An unexpected error occurred.");
+      setPaymentError(error.message || "An unexpected error occurred.");
     } finally {
       setIsProcessing(false);
     }
@@ -118,12 +115,9 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
                   '::placeholder': {
                     color: '#aab7c4',
                   },
-                  padding: '10px 0',
                 },
               },
-              hidePostalCode: true,
             }}
-            className="min-h-[40px]"
           />
         </div>
       </div>
@@ -131,10 +125,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
       {/* Error Message */}
       {paymentError && (
         <div className="mt-4">
-          <Alert 
-            severity="error"
-            className="rounded-lg"
-          >
+          <Alert severity="error" className="rounded-lg">
             {paymentError}
           </Alert>
         </div>
@@ -144,17 +135,13 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
       <div className="py-2">
         <FormControlLabel
           control={
-            <Switch 
-              checked={saveCard} 
+            <Switch
+              checked={saveCard}
               onChange={(e) => setSaveCard(e.target.checked)}
               color="primary"
             />
           }
-          label={
-            <Typography variant="body2" className="text-gray-700">
-              Save card for future payments
-            </Typography>
-          }
+          label="Save card for future payments"
         />
       </div>
 
@@ -183,7 +170,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
               <span>Processing...</span>
             </div>
           ) : (
-            `Pay £${orderSummary.total.toFixed(2)}`
+            `Pay €${orderSummary.total.toFixed(2)}`
           )}
         </Button>
       </div>
@@ -250,8 +237,8 @@ export default function PaymentPageClient({ initialData, cartId, clientId }) {
         <Alert severity="error" className="mb-4">
           {error}
         </Alert>
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           onClick={() => router.push('/')}
           sx={{
             backgroundColor: '#991b1b',
@@ -334,9 +321,9 @@ export default function PaymentPageClient({ initialData, cartId, clientId }) {
                       </div>
                     ))}
                   </div>
-                  
+
                   <Divider className="my-4" />
-                  
+
                   <div className="space-y-2 bg-white p-4 rounded-lg">
                     <div className="flex justify-between">
                       <Typography>Subtotal:</Typography>
@@ -363,7 +350,7 @@ export default function PaymentPageClient({ initialData, cartId, clientId }) {
                   <Typography variant="h6" gutterBottom className="font-semibold">
                     Payment Details
                   </Typography>
-                  
+
                   {/* Shipping Address */}
                   <div className="mb-6 bg-gray-50 p-4 rounded-lg">
                     <Typography variant="subtitle1" gutterBottom className="font-medium">
@@ -384,18 +371,19 @@ export default function PaymentPageClient({ initialData, cartId, clientId }) {
 
                   {/* Stripe payment form wrapped in Elements provider */}
                   <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <Elements stripe={stripePromise}>
+                    <StripeWrapper>
                       <StripePaymentForm
                         onPaymentSuccess={handlePaymentSuccess}
                         isProcessing={isProcessing}
                         setIsProcessing={setIsProcessing}
-                        orderSummary={totals} 
-                        cartItems={initialData?.cartItems} 
+                        orderSummary={totals}
+                        cartItems={initialData?.cartItems}
+                        cartData={initialData?.cartData}
                         selectedAddress={initialData?.client?.addressDetails?._id}
                         selectedShipping={initialData?.client?.shippingMethod?._id}
                         user={initialData.client}
                       />
-                    </Elements>
+                    </StripeWrapper>
                   </div>
                 </CardContent>
               </Card>
@@ -405,4 +393,4 @@ export default function PaymentPageClient({ initialData, cartId, clientId }) {
       </Card>
     </div>
   );
-} 
+}

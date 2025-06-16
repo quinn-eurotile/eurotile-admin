@@ -34,7 +34,7 @@ import { CheckoutContext } from "./CheckoutWizard";
 // Stripe and Klarna imports (you'll need to install these)
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { createPaymentIntent, createKlarnaSession, verifyKlarnaPayment, verifyStripePayment, removeCart } from "@/app/server/actions";
+import { createPaymentIntent, createKlarnaSession, verifyKlarnaPayment, verifyStripePayment, removeCart, removeCartByUserId } from "@/app/server/actions";
 import { paymentApi } from "@/services/payment";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
@@ -52,6 +52,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, selectedAddress, selectedShipping, orderSummary, user, cartItems }) => {
 
   // console.log(JSON.stringify(user), 'user 317');
+
 
 
   const stripe = useStripe();
@@ -80,6 +81,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
         customerId: user?._id,
         cartItems: cartItems,
         orderData: {
+          userId: user?._id,
           subtotal: orderSummary.subtotal,
           shipping: orderSummary.shipping,
           tax: orderSummary.tax || 0,
@@ -87,7 +89,10 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
           shippingAddress: selectedAddress,
           shippingMethod: selectedShipping,
           paymentMethod: 'stripe',
-          userId: user?._id
+          userId: user?._id,
+           email: user?.email,
+
+
         }
       });
       console.log("response 3333333333333:", response); // Add this line to see the paymentIntent object
@@ -97,7 +102,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
         return;
       }
 
-      const { clientSecret } = response.data;
+      const { clientSecret, orderId } = response.data;
 
       // Confirm payment with Stripe
       const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
@@ -118,6 +123,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
       } else {
         onPaymentSuccess({
           paymentIntentId: paymentIntent.id,
+          orderId: orderId,
           paymentMethod: "stripe",
           status: true
         });
@@ -172,21 +178,16 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
   );
 };
 
-const StepPayment = ({ handleNext, handleBack }) => {
-  // Context
-  const {
-    cartItems,
-    orderSummary,
-    selectedAddress,
-    selectedShipping,
-    addresses,
-    user,
-    adminSettings,
-    setStepValid,
-    loading,
-    setOrderData
-  } = useContext(CheckoutContext);
+const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, selectedShipping, addresses, user }) => {
+
+  console.log("cartItems:", cartItems);
+  // console.log("orderSummary:", orderSummary);
+  // console.log("selectedAddress:", selectedAddress);
+  // console.log("selectedShipping:", selectedShipping);
+  // console.log("addresses:", addresses);
   const { data: session, status } = useSession();
+  // Context
+  const { setStepValid, loading, setOrderData } = useContext(CheckoutContext);
   const [mounted, setMounted] = useState(false);
   const [value, setValue] = useState("stripe");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -203,9 +204,80 @@ const StepPayment = ({ handleNext, handleBack }) => {
     setPaymentData(null);
     setError("");
   };
+  const calculateTotals = () => {
+    if (!cartItems || cartItems.length === 0) return {
+      subtotal: 0,
+      discount: 0,
+      shipping: 0,
+      total: 0
+    };
 
-  // Get selected address details
-  const selectedAddressDetails = addresses.find((addr) => addr.id === selectedAddress);
+    const subtotal = cartItems.reduce((sum, item) => {
+      return sum + (item.price * item.quantity);
+    }, 0);
+
+    const discount = orderSummary?.discount || 0;
+    const shipping = orderSummary?.shipping || 0;
+    const total = subtotal - discount + shipping;
+
+    return {
+      subtotal,
+      discount,
+      shipping,
+      total
+    };
+  };
+
+  const totals = calculateTotals();
+
+  // Handle Klarna payment
+  const handleKlarnaPayment = async () => {
+    setIsProcessing(true);
+    setError("");
+    try {
+      const response = await createKlarnaSession({
+        amount: Math.round(orderSummary.total * 100),
+        currency: "USD",
+        order_lines: cartItems.map(item => ({
+          name: item.productName,
+          quantity: item.quantity,
+          unit_price: Math.round(item.price * 100),
+          total_amount: Math.round(item.price * item.quantity * 100)
+        })),
+        shipping_address: {
+          given_name: selectedAddress?.name?.split(' ')[0] || '',
+          family_name: selectedAddress?.name?.split(' ').slice(1).join(' ') || '',
+          email: selectedAddress?.email,
+          street_address: selectedAddress?.street,
+          city: selectedAddress?.city,
+          postal_code: selectedAddress?.zipCode,
+          country: 'US',
+          phone: selectedAddress?.phone
+        }
+      });
+
+      if (response.success && response.data.redirect_url) {
+        // Save payment method before redirect
+        setPaymentData({
+          paymentMethod: "klarna",
+          sessionId: response.data.session_id
+        });
+
+        // Store session ID in localStorage for verification after redirect
+        localStorage.setItem('klarnaSessionId', response.data.session_id);
+
+        // Redirect to Klarna checkout
+        window.location.href = response.data.redirect_url;
+      } else {
+        setError(response.message || "Failed to initialize Klarna payment");
+      }
+    } catch (error) {
+      console.error("Klarna payment error:", error);
+      setError("Failed to initialize Klarna payment. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   // Handle Cash on Delivery
   const handleCashOnDelivery = () => {
@@ -213,47 +285,11 @@ const StepPayment = ({ handleNext, handleBack }) => {
       paymentMethod: "cash_on_delivery",
       details: {
         deliveryAddress: selectedAddress,
-        amount: orderSummary.total,
-        vat: orderSummary.vat,
-        vatRate: orderSummary.vatRate
+        amount: orderSummary.total
       }
     });
     setStepValid(2, true);
     handleNext();
-  };
-
-  // Handle Stripe payment
-  const handleStripePayment = async () => {
-    setIsProcessing(true);
-    try {
-      const response = await fetch("/api/payment/stripe/create-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          items: cartItems,
-          shipping: orderSummary.shipping,
-          vat: orderSummary.vat,
-          vatRate: orderSummary.vatRate,
-          total: orderSummary.total,
-          shippingAddress: selectedAddressDetails
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        window.location.href = data.url;
-      } else {
-        setError(data.message || "Failed to initialize payment");
-      }
-    } catch (error) {
-      console.error("Payment error:", error);
-      setError("Failed to initialize payment. Please try again.");
-    } finally {
-      setIsProcessing(false);
-    }
   };
 
   // Handle successful payment
@@ -266,7 +302,7 @@ const StepPayment = ({ handleNext, handleBack }) => {
       }
 
     };
-   // Delete the cart using the existing removeCart action
+    // Delete the cart using the existing removeCart action
     try {
       // const response = await removeCart(cartItems[0]?.cartId);
       // console.log("response removeCartWholeremoveCartWhole:", response);
@@ -283,6 +319,8 @@ const StepPayment = ({ handleNext, handleBack }) => {
     //   paymentDetails.status = verifyResponse.data.status;
     // }
     // await removeCart();
+    const response = await removeCartByUserId(user?._id);
+    console.log("response removeCartWholeremoveCartWhole:", response);
     setPaymentData(paymentDetails);
     setStepValid(2, true);
     handleNext();
@@ -318,6 +356,9 @@ const StepPayment = ({ handleNext, handleBack }) => {
 
     checkKlarnaPayment();
   }, []);
+
+  // Get selected address details
+  const selectedAddressDetails = addresses?.find((addr) => addr.id === selectedAddress);
 
   const handlePaymentComplete = (paymentData) => {
     // Store payment data for order completion
@@ -356,8 +397,8 @@ const StepPayment = ({ handleNext, handleBack }) => {
             pill="true"
           >
             <Tab value="stripe" label="Credit Card (Stripe)" />
-            <Tab value="klarna" label="Klarna" />
-            <Tab value="cash-on-delivery" label="Cash On Delivery" />
+            {/* <Tab value="klarna" label="Klarna" />
+            <Tab value="cash-on-delivery" label="Cash On Delivery" /> */}
           </CustomTabList>
 
           <Grid container>
@@ -368,7 +409,7 @@ const StepPayment = ({ handleNext, handleBack }) => {
                     onPaymentSuccess={handlePaymentSuccess}
                     isProcessing={isProcessing}
                     setIsProcessing={setIsProcessing}
-                    orderSummary={orderSummary}
+                    orderSummary={totals}
                     user={session?.user}
                     cartItems={cartItems}
                     selectedAddress={selectedAddress}
@@ -377,13 +418,13 @@ const StepPayment = ({ handleNext, handleBack }) => {
                 </StripeWrapper>
               </TabPanel>
 
-              <TabPanel value="klarna" className="p-0">
+              {/* <TabPanel value="klarna" className="p-0">
                 <Typography className="mbe-4" color="text.primary">
                   Pay with Klarna - Buy now, pay later options available.
                 </Typography>
                 <Button
                   variant="contained"
-                  onClick={handleStripePayment}
+                  onClick={handleKlarnaPayment}
                   disabled={isProcessing}
                   className="bg-pink-500 hover:bg-pink-600"
                 >
@@ -399,7 +440,7 @@ const StepPayment = ({ handleNext, handleBack }) => {
                 <Button variant="contained" onClick={handleCashOnDelivery} disabled={isProcessing}>
                   Pay On Delivery
                 </Button>
-              </TabPanel>
+              </TabPanel> */}
             </Grid>
           </Grid>
         </TabContext>
@@ -431,18 +472,18 @@ const StepPayment = ({ handleNext, handleBack }) => {
                 <img
                   width={64}
                   height={64}
-                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item?.product?.productFeaturedImage?.filePath}` || "/placeholder.svg?height=140&width=140"}
+                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${item?.variation?.variationImages[0]?.filePath}` || "/placeholder.svg?height=140&width=140"}
                   alt={item?.product?.name || 'Product Image'}
                   className="object-cover rounded-lg"
                 />
                 <div>
                   <Typography variant="body2">
-                    {item?.isSample ? 
-                      `${item?.product?.name} (${item?.sampleAttributes?.type} Sample)` : 
+                    {item?.isSample ?
+                      `${item?.product?.name} (${item?.sampleAttributes?.type} Sample)` :
                       item?.product?.name}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Qty: {item.quantity} × £{item.price}
+                    Qty: {item.quantity} × ${item.price}
                   </Typography>
                 </div>
               </div>
@@ -451,7 +492,7 @@ const StepPayment = ({ handleNext, handleBack }) => {
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between gap-2">
                 <Typography color="text.primary">Order Total</Typography>
-                <Typography>£{orderSummary.subtotal?.toFixed(2) || "0.00"}</Typography>
+                <Typography>${totals.subtotal?.toFixed(2) || "0.00"}</Typography>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <Typography color="text.primary">Delivery Charges</Typography>
@@ -459,18 +500,14 @@ const StepPayment = ({ handleNext, handleBack }) => {
                   {orderSummary.shipping === 0 ? (
                     <>
                       <Typography color="text.disabled" className="line-through">
-                        £5.00
+                        $5.00
                       </Typography>
                       <Chip variant="tonal" size="small" color="success" label="Free" />
                     </>
                   ) : (
-                    <Typography>£{orderSummary.shipping?.toFixed(2) || "0.00"}</Typography>
+                    <Typography>${orderSummary.shipping?.toFixed(2) || "0.00"}</Typography>
                   )}
                 </div>
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                <Typography color="text.primary">VAT ({orderSummary.vatRate || 0}%)</Typography>
-                <Typography>£{orderSummary.vat?.toFixed(2) || "0.00"}</Typography>
               </div>
             </div>
           </CardContent>
@@ -481,7 +518,7 @@ const StepPayment = ({ handleNext, handleBack }) => {
                 <Typography className="font-medium" color="text.primary">
                   Total Amount
                 </Typography>
-                <Typography className="font-medium">£{orderSummary.total?.toFixed(2) || "0.00"}</Typography>
+                <Typography className="font-medium">${totals.total?.toFixed(2) || "0.00"}</Typography>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <Typography className="font-medium" color="text.primary">

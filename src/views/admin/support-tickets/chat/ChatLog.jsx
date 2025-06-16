@@ -15,6 +15,7 @@ import CustomAvatar from '@core/components/mui/Avatar';
 
 // Util Imports
 import { getInitials } from '@/utils/getInitials';
+import { Box, Button } from '@mui/material';
 
 // Formats the chat data into a structured format for display.
 const formatedChatData = (chats, profileUser) => {
@@ -70,9 +71,13 @@ const ScrollWrapper = ({ children, isBelowLgScreen, scrollRef, className }) => {
   }
 };
 
-const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen }) => {
+const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen, handleLoadMoreMessages, isLoadingMessages, hasNextPageMessages, hasPrevPageMessages }) => {
   // Props
   const { profileUser, contacts } = chatStore;
+  console.log(hasNextPageMessages,'hasNextPageMessages');
+
+  // console.log('chatStore', chatStore);
+  // console.log(' profileUser', profileUser);
 
   // Vars
   const activeUserChat = chatStore.chats.find(chat => chat.userId === chatStore.activeUser?.id);
@@ -96,11 +101,13 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
 
   // Scroll to bottom on new message
   useEffect(() => {
-    if (activeUserChat && activeUserChat.chat && activeUserChat.chat.length) {
+    if (activeUserChat && activeUserChat?.chat && activeUserChat?.chat?.length) {
       scrollToBottom();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatStore]);
+
+  // console.log('activeUserChat =====', activeUserChat);
 
   return (
     <ScrollWrapper
@@ -112,9 +119,22 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
 
       <CardContent className='p-0'>
 
-        {/*   <Box bgcolor={'#fff'} display={'flex'} justifyContent={'center'} position={'absolute'} top={'5px'}>
-          <Button variant='contained' size='small' style={{ fontSize: '11px', padding: '4px 10px' }}>Load More</Button>
-        </Box> */}
+
+
+        {hasNextPageMessages && (
+          <div className='flex justify-center p-4'>
+            <Button
+              onClick={handleLoadMoreMessages}
+              type='button'
+              size='small'
+              variant='contained'
+              disabled={isLoadingMessages}
+              startIcon={isLoadingMessages && <i className="ri-loader-line animate-spin" />}
+            >
+              {isLoadingMessages ? 'Processing...' : 'Load More'}
+            </Button>
+          </div>
+        )}
 
         {activeUserChat &&
           formatedChatData(activeUserChat.chat, profileUser).map((msgGroup, index) => {
@@ -135,7 +155,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
                       skin='light'
                       size={32}
                     >
-                      {getInitials(contacts.find(contact => contact.id === activeUserChat?.userId)?.fullName)}
+                      {getInitials(activeUserChat?.chat?.find(msg => msg.senderId === msgGroup.senderId)?.sender_detail?.name)}
                     </CustomAvatar>
                   )
                 ) : profileUser.avatar ? (
@@ -175,7 +195,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
                           ) : (
                             msg.msgStatus?.isSent && <i className='ri-check-line text-base' />
                           )}
-                          {index === activeUserChat.chat.length - 1 ? (
+                          {index === activeUserChat?.chat?.length - 1 ? (
                             <Typography variant='caption'>
                               {new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
                             </Typography>
@@ -189,7 +209,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen 
                             </Typography>
                           ) : null}
                         </div>
-                      ) : index === activeUserChat.chat.length - 1 ? (
+                      ) : index === activeUserChat?.chat?.length - 1 ? (
                         <Typography key={index} variant='caption'>
                           {new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
                         </Typography>
