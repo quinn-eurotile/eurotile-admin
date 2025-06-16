@@ -28,7 +28,7 @@ export function calculateTierValue(costPrice, currentExchangeRate, tierAddOn, ti
   }
 
   const base = price / exchangeRate;
-  const result = ((base + addOn) * 1.20) * (multiplier/100);
+  const result = ((base + addOn) * 1.20) * (multiplier / 100);
   return parseFloat(result.toFixed(2));
 }
 
@@ -50,7 +50,11 @@ export function calculateNewVariantTierValue(costPrice, currentExchangeRate, tie
   if (!tierConfig) return 0;
 
   const base = price / exchangeRate;
-  const result = ((base + tierConfig.addOn) * 1.20) * (tierConfig.multiplyBy/100);
+  const result = ((base + tierConfig.addOn) * 1.20) * (tierConfig.multiplyBy / 100);
   return parseFloat(result.toFixed(2));
 }
 
+
+export function convertSlugToName(slug) {
+  return slug?.replace(/-/g, ' ')?.replace(/\b\w/g, c => c.toUpperCase());
+}

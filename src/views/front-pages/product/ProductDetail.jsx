@@ -22,7 +22,7 @@ import { addToCart } from "@/redux-store/slices/cart";
 import { getSession, useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { calculateNewVariantTierValue, calculateTierValue } from "@/components/common/helper";
+import { calculateNewVariantTierValue, calculateTierValue, convertSlugToName } from "@/components/common/helper";
 import CircularLoader from "@/components/common/CircularLoader";
 
 
@@ -75,6 +75,7 @@ export default function ProductDetailPage() {
   const fetchProductDetails = async () => {
     try {
       const response = await getProductDetails(productId);
+      console.log(response,'responseresponseresponseresponse')
       if (response?.success && response?.data) {
         setProduct(response.data);
 
@@ -682,7 +683,7 @@ export default function ProductDetailPage() {
                             15x15cm Sample
                             <span className="block text-gray-400" style={{ fontSize: '12px' }}>
                               {sampleData.small.freePerMonth
-                                ? '(1 Free Sample per Month for Trade professional)'
+                                ? '(2 free samples every month)'
                                 : `(Price: £${sampleData.small.price})`}
                             </span>
                           </span>}
@@ -826,10 +827,13 @@ export default function ProductDetailPage() {
                       av => av.productAttribute === attributeId
                     );
 
+
                     if (attributeVariations.length === 0) return null;
 
                     // Use the first variation to get the label (like 'size' or 'color')
-                    const label = attributeVariations[0].metaKey;
+                    // const label = attributeVariations[0].metaKey;
+
+                    const label = convertSlugToName(attributeVariations[0].metaKey);
 
                     return (
                       <div key={attributeId} className="mb-4">

@@ -1,5 +1,5 @@
 
-import OrderDetails from '@/views/admin/ecommerce/orders/details';
+
 
 /**
  * ! If you need data using an API call, uncomment the below API code, update the `process.env.API_URL` variable in the
@@ -7,6 +7,9 @@ import OrderDetails from '@/views/admin/ecommerce/orders/details';
  * ! Also, remove the above server action import and the action itself from the `src/app/server/actions.ts` file to clean up unused code
  * ! because we've used the server action for getting our static data.
  */
+
+import OrderDetails from "@/views/trade-professional/orders/details"
+
 /* const getEcommerceData = async () => {
   // Vars
   const res = await fetch(`${process.env.API_URL}/apps/ecommerce`)
