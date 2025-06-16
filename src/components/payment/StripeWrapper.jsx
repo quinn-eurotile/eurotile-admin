@@ -7,8 +7,9 @@ import { loadStripe } from '@stripe/stripe-js'
 // Make sure to call loadStripe outside of a component's render to avoid
 // recreating the Stripe object on every render.
 // This is your test publishable API key.
-const stripePromise = loadStripe('pk_test_51LhZcgBARYeMiOla5gy0wQoWZpfiRbBYaGn7L2lcFRpYvQSMtERA13xkDpJb7hs6YymPcGjl1jCQhOTp2cBuwz8Y00PfZyW2xJ')
 
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 // Stripe appearance object
 const appearance = {
   theme: 'stripe',

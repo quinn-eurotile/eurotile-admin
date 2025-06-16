@@ -76,7 +76,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
       // Create payment intent using our API
       const response = await createPaymentIntent({
         amount: Math.round(orderSummary.total * 100), // Convert to cents
-        currency: "usd",
+        currency: "gbp",
         saveCard,
         customerId: user?._id,
         cartItems: cartItems,
