@@ -64,6 +64,10 @@ export const chatSlice = createSlice({
       if (existingChat) {
         existingChat.chat.push({
           message: data.message,
+          fileType: data?.fileType ?? null,
+          fileSize: data?.fileSize ?? null,
+          filePath: data?.filePath ?? null,
+          fileName: data?.fileName ?? null,
           time: new Date(),
           senderId: data.sender,
           msgStatus: {
@@ -74,11 +78,11 @@ export const chatSlice = createSlice({
         });
 
         // Increment unseenMsgs
-    // if (typeof existingChat.unseenMsgs === 'number') {
-    //   existingChat.unseenMsgs += 1;
-    // } else {
-    //   existingChat.unseenMsgs = 1;
-    // }
+      // if (typeof existingChat.unseenMsgs === 'number') {
+      //   existingChat.unseenMsgs += 1;
+      // } else {
+      //   existingChat.unseenMsgs = 1;
+      // }
 
         // Remove the chat from its current position
         state.chats = state.chats.filter(chat => chat.userId !== state.activeUser?.id);

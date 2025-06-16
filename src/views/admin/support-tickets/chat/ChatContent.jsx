@@ -80,7 +80,7 @@ const ChatContent = props => {
     const handleReceiveMessage = (data) => {
       try {
         const parseData = typeof data === 'string' ? JSON.parse(data) : data;
-        // console.log('Received message:', parseData);
+        console.log('Received message:', parseData);
         dispatch(sendMsg({ data: parseData }));
       } catch (error) {
         console.error('Failed to parse received message:', error);

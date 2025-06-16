@@ -27,11 +27,16 @@ const formatedChatData = (chats, profileUser) => {
   };
 
   chats.forEach((chat, index) => {
+    console.log('chat ', chat)
     if (chatMessageSenderId === chat.senderId) {
       msgGroup.messages.push({
         time: chat.time,
-        message: chat.message,
-        msgStatus: chat.msgStatus
+        message: chat?.message,
+        fileType: chat?.fileType,
+        fileSize: chat?.fileSize,
+        filePath: chat?.filePath,
+        fileName: chat?.fileName,
+        msgStatus: chat?.msgStatus
       });
     } else {
       chatMessageSenderId = chat.senderId;
@@ -42,6 +47,10 @@ const formatedChatData = (chats, profileUser) => {
           {
             time: chat.time,
             message: chat.message,
+            fileType: chat?.fileType,
+            fileSize: chat?.fileSize,
+            filePath: chat?.filePath,
+            fileName: chat?.fileName,
             msgStatus: chat.msgStatus
           }
         ]
@@ -74,7 +83,7 @@ const ScrollWrapper = ({ children, isBelowLgScreen, scrollRef, className }) => {
 const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen, handleLoadMoreMessages, isLoadingMessages, hasNextPageMessages, hasPrevPageMessages }) => {
   // Props
   const { profileUser, contacts } = chatStore;
-  console.log(hasNextPageMessages,'hasNextPageMessages');
+  console.log(hasNextPageMessages, 'hasNextPageMessages');
 
   // console.log('chatStore', chatStore);
   // console.log(' profileUser', profileUser);
@@ -172,16 +181,48 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen,
                   })}
                 >
                   {msgGroup.messages.map((msg, index) => (
-                    <Typography
-                      key={index}
-                      className={classnames('whitespace-pre-wrap pli-4 plb-2 shadow-xs', {
-                        'bg-backgroundPaper rounded-e rounded-b': !isSender,
-                        'bg-primary text-[var(--mui-palette-primary-contrastText)] rounded-s rounded-b': isSender
-                      })}
-                      style={{ wordBreak: 'break-word' }}
-                    >
-                      {msg.message}
-                    </Typography>
+                    <div key={index} className={classnames('whitespace-pre-wrap pli-4 plb-2 shadow-xs', {
+                      'bg-backgroundPaper rounded-e rounded-b': !isSender,
+                      ' text-[var(--mui-palette-primary-contrastText)] rounded-s rounded-b': isSender
+                    })}>
+                      {console.log('msg content here', msg)}
+                      {msg.message && (
+                        <Typography style={{ wordBreak: 'break-word' }}>
+                          {msg.message}
+                        </Typography>
+                      )}
+                      {msg?.filePath && (
+                        <div className="mt-2">
+                          {msg?.fileType === 'image' ? (
+                            <img
+                              src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${msg?.filePath}`}
+                              alt={msg?.fileName || 'Uploaded image'}
+                              className="max-w-[150px] rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => window.open(`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${msg?.filePath}`, '_blank')}
+                            />
+                          ) : msg?.fileType === 'video' ? (
+                            <video
+                              src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${msg?.filePath}`}
+                              controls
+                              className="max-w-[300px] rounded-lg"
+                            />
+                          ) : (
+                            <a
+                              href={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${msg?.filePath}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-primary hover:underline"
+                            >
+                              <i className="ri-file-text-line text-xl" />
+                              <span>{msg?.fileName || 'Download file'}</span>
+                              {/* <span className="text-sm text-gray-500">
+                                ({(msg?.fileSize / 1024 / 1024).toFixed(2)} MB)
+                              </span> */}
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   ))}
                   {msgGroup.messages.map(
                     (msg, index) =>

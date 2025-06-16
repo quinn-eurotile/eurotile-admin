@@ -13,7 +13,7 @@ const AuthGuard = ({ children }) => {
 
   useEffect(() => {
     if (status === 'loading') return;
-    console.log('session', session);
+    //console.log('session', session);
 
     if (!session) {
       // Get the language from the URL or default to 'en'

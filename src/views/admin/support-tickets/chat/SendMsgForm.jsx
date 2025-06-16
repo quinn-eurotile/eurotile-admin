@@ -22,6 +22,7 @@ import { sendMsg } from '@/redux-store/slices/chat';
 
 // Component Imports
 import CustomIconButton from '@core/components/mui/IconButton';
+import { toast } from 'react-toastify';
 
 // Emoji Picker Component for selecting emojis
 const EmojiPicker = ({ onChange, isBelowSmScreen, openEmojiPicker, setOpenEmojiPicker, anchorRef }) => {
@@ -91,14 +92,15 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+    const allowedTypes = ['image/', 'application/pdf'];
+    if (!allowedTypes.some(type => file.type.startsWith(type))) {
+      toast.error('Please upload an image, PDF');
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size should be less than 5MB');
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size should be less than 10MB');
       return;
     }
 
@@ -108,12 +110,13 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
       reader.onload = (e) => {
         setSelectedImage({
           file,
-          preview: e.target.result
+          preview: file.type.startsWith('image/') ? e.target.result : null,
+          type: file.type
         });
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      toast.error('Error processing image');
+      toast.error('Error processing file');
     } finally {
       setIsUploading(false);
     }
@@ -179,7 +182,7 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
                     hidden
                     type='file'
                     id='upload-img'
-                    accept='image/*'
+                    accept='image/*,application/pdf,video/*'
                     onChange={handleImageUpload}
                     ref={fileInputRef}
                   />
@@ -231,7 +234,7 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
                 hidden
                 type='file'
                 id='upload-img'
-                accept='image/*'
+                accept='image/*,application/pdf,video/*'
                 onChange={handleImageUpload}
                 ref={fileInputRef}
               />
@@ -266,17 +269,30 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
     );
   };
 
-  // Show selected image preview
-  const renderImagePreview = () => {
+  // Show selected file preview
+  const renderFilePreview = () => {
     if (!selectedImage) return null;
 
     return (
       <div className="relative p-2 bg-[var(--mui-palette-background-paper)]">
-        <img
-          src={selectedImage.preview}
-          alt="Preview"
-          className="max-h-32 rounded"
-        />
+        {selectedImage.type.startsWith('image/') ? (
+          <img
+            src={selectedImage.preview}
+            alt="Preview"
+            className="max-h-32 rounded"
+          />
+        ) : selectedImage.type.startsWith('video/') ? (
+          <video
+            src={selectedImage.preview}
+            className="max-h-32 rounded"
+            controls
+          />
+        ) : (
+          <div className="flex items-center gap-2 p-2 bg-gray-100 rounded">
+            <i className="ri-file-pdf-line text-2xl text-red-500" />
+            <span className="text-sm">{selectedImage.file.name}</span>
+          </div>
+        )}
         <IconButton
           size="small"
           className="absolute top-1 right-1 bg-black/50 hover:bg-black/70"
@@ -304,7 +320,7 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
       onSubmit={handleSendMsg}
       className='bg-[var(--mui-palette-customColors-chatBg)]'
     >
-      {renderImagePreview()}
+      {renderFilePreview()}
       <TextField
         fullWidth
         multiline
