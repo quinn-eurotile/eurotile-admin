@@ -237,7 +237,7 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                                         <th className='p-4 font-medium text-gray-600'>Quantity</th>
                                         <th className='p-4 font-medium text-gray-600'>Price</th>
                                         <th className='p-4 font-medium text-gray-600'>Total</th>
-                                        <th className='p-4 font-medium text-gray-600'>Status</th>
+                                        {/* <th className='p-4 font-medium text-gray-600'>Status</th> */}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -304,7 +304,7 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                                                 </td>
                                                 <td className='p-4'>€{item.price?.toFixed(2) || '0.00'}</td>
                                                 <td className='p-4 font-medium'>€{((item.price || 0) * (item.quantity || 0)).toFixed(2)}</td>
-                                                <td className='p-4'>
+                                                {/* <td className='p-4'>
                                                     <Chip
                                                         label={supplierStatus?.status || 'Pending'}
                                                         color={
@@ -315,7 +315,7 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
                                                         }
                                                     size="small"
                                                     />
-                                                </td>
+                                                </td> */}
                                             </tr>
                                         )
                                     })}

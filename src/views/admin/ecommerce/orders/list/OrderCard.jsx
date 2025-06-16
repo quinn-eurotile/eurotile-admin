@@ -31,7 +31,6 @@ const OrderCard = () => {
     try {
       dispatch(callCommonAction({ loading: true }))
       const response = await getOrderStats()
-      console.log(response, 'response getOrderStatsgetOrderStats')
       if (response?.statusCode === 200 && response.data) {
         setStats(response.data)
       }

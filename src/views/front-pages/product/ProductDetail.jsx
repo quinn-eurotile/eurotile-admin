@@ -6,7 +6,7 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Select from '@mui/material/Select';
 import { useEffect, useState } from "react";
-import { Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, FormControl, FormControlLabel, Grid2, InputLabel, MenuItem, Radio, RadioGroup } from "@mui/material";
+import { Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, FormControl, FormControlLabel, Grid2, IconButton, InputLabel, MenuItem, Radio, RadioGroup, Tooltip } from "@mui/material";
 import Tab from '@mui/material/Tab';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
@@ -66,6 +66,8 @@ export default function ProductDetailPage() {
   });
 
   const [quantityError, setQuantityError] = useState('');
+  const [tilesError, setTilesError] = useState('');
+  const [palletsError, setPalletsError] = useState('');
 
   // Get vid from URL
   const searchParams = new URLSearchParams(window.location.search);
@@ -75,7 +77,7 @@ export default function ProductDetailPage() {
   const fetchProductDetails = async () => {
     try {
       const response = await getProductDetails(productId);
-      console.log(response,'responseresponseresponseresponse')
+      console.log(response, 'responseresponseresponseresponse')
       if (response?.success && response?.data) {
         setProduct(response.data);
 
@@ -217,7 +219,7 @@ export default function ProductDetailPage() {
   };
 
   if (!product) {
-    return  <CircularLoader/>         ;
+    return <CircularLoader />;
   }
   // Map of tiers to human-friendly names and quantity ranges
   const tierData = [
@@ -349,17 +351,47 @@ export default function ProductDetailPage() {
     const value = e.target.value;
     setQuantity(value);
 
-    // Validate quantity
     if (!value || value <= 0) {
-      setQuantityError('Please enter a valid quantity');
-      return;
+      setQuantityError('Quantity (SQ.M) is required');
+    } else {
+      setQuantityError('');
+      const values = calculateValues('sqm', value);
+      if (values) {
+        setTiles(values.tiles.toString());
+        setPallets(values.pallets.toString());
+      }
     }
+  };
 
-    setQuantityError('');
-    const values = calculateValues('sqm', value);
-    if (values) {
-      setTiles(values.tiles.toString());
-      setPallets(values.pallets.toString());
+  const handleTilesChange = (e) => {
+    const value = e.target.value;
+    setTiles(value);
+
+    if (!value || value <= 0) {
+      setTilesError('Number of Tiles is required');
+    } else {
+      setTilesError('');
+      const values = calculateValues('tiles', value);
+      if (values) {
+        setQuantity(values.sqm.toString());
+        setPallets(values.pallets.toString());
+      }
+    }
+  };
+
+  const handlePalletsChange = (e) => {
+    const value = e.target.value;
+    setPallets(value);
+
+    if (!value || value <= 0) {
+      setPalletsError('Boxes is required');
+    } else {
+      setPalletsError('');
+      const values = calculateValues('pallets', value);
+      if (values) {
+        setQuantity(values.sqm.toString());
+        setTiles(values.tiles.toString());
+      }
     }
   };
 
@@ -634,6 +666,17 @@ export default function ProductDetailPage() {
                   </div>
                 ))}
               </div>
+
+              {/* <div className="bg-errorLighter border-b-2 flex items-center justify-between mt-10 px-3 rounded">
+                <h4 className="font-normal uppercase">high resolution image pack</h4>
+                <p className="text-sm text-red-800 my-4">
+                  <a href="#" className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-900">Download 22.8MB</a>
+                </p>
+              </div> */}
+
+
+
+
             </div>
 
             {/* Product Details */}
@@ -781,9 +824,12 @@ export default function ProductDetailPage() {
                     <tbody>
                       {selectedVariation && tierData.map((tier) => {
                         const discount = selectedVariation?.tierDiscount?.[tier.tierKey];
-                        const price = discount.tierAddOn + discount.tierMultiplyBy;
+                        const isActive = calculatedValues.tier === tier.tierKey;
                         return (
-                          <tr key={tier.tierKey} className="border-t text-black/50">
+                          <tr
+                            key={tier.tierKey}
+                            className={`border-t text-black/50 ${isActive ? 'bg-red-100 text-red-800 font-semibold' : ''}`}
+                          >
                             <td className="px-4 py-2 border-r">{tier.label}</td>
                             <td className="px-4 py-2 border-r">{tier.tierName}</td>
                             <td className="px-4 py-2">£{calculateTierValue(
@@ -878,10 +924,10 @@ export default function ProductDetailPage() {
 
 
 
-                  <div className="bg-bgLight rounded-md px-4 py-2 flex items-center mb-4 border border-light !rounded-[10px]
+                  {/* <div className="bg-bgLight rounded-md px-4 py-2 flex items-center mb-4 border border-light !rounded-[10px]
 !rounded-[10px]">
                     <span className="text-sm text-center w-full">{pricingTier}</span>
-                  </div>
+                  </div> */}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   <div className="rounded-md">
@@ -890,12 +936,11 @@ export default function ProductDetailPage() {
                       type="number"
                       value={quantity}
                       placeholder="Enter quantity in SQ.M"
-                      className={`w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border ${
-                        quantityError ? 'border-red-500' : 'border-[#ccc]'
-                      } !rounded-[10px]`}
+                      className={`w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border ${quantityError ? 'border-red-500' : 'border-[#ccc]'} !rounded-[10px]`}
                       onChange={handleQuantityChange}
-                      min="0"
+                      min="1"
                       step="0.01"
+                      required
                     />
                     {quantityError && (
                       <p className="text-red-500 text-sm mt-1">{quantityError}</p>
@@ -907,21 +952,33 @@ export default function ProductDetailPage() {
                     <input
                       type="number"
                       value={tiles}
-                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
-                      placeholder="AutoCalculated"
-                      disabled={true}
+                      className={`w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border ${tilesError ? 'border-red-500' : 'border-[#ccc]'} !rounded-[10px]`}
+                      placeholder="Enter number of tiles"
+                      onChange={handleTilesChange}
+                      min="1"
+                      step="1"
+                      required
                     />
+                    {tilesError && (
+                      <p className="text-red-500 text-sm mt-1">{tilesError}</p>
+                    )}
                   </div>
 
                   <div className="rounded-md">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Boxes</label>
                     <input
                       type="number"
-                      className="w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border border-[#ccc] !rounded-[10px]"
+                      className={`w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border ${palletsError ? 'border-red-500' : 'border-[#ccc]'} !rounded-[10px]`}
                       value={pallets}
-                      placeholder="AutoCalculated"
-                      disabled={true}
+                      placeholder="Enter number of boxes"
+                      onChange={handlePalletsChange}
+                      min="1"
+                      step="1"
+                      required
                     />
+                    {palletsError && (
+                      <p className="text-red-500 text-sm mt-1">{palletsError}</p>
+                    )}
                   </div>
                 </div>
 
@@ -976,7 +1033,9 @@ export default function ProductDetailPage() {
                   <Button
                     className="flex-1 bg-red-800 hover:bg-red-900 text-white"
                     onClick={handleAddVariation}
-                    disabled={!quantity || quantity <= 0 || !!quantityError}
+                    disabled={
+                      !quantity || quantity <= 0 || !!quantityError || !!tilesError || !!palletsError
+                    }
                   >
                     <i className="ri-add-line me-2 text-lg"></i>
                     Add Variation
@@ -984,7 +1043,9 @@ export default function ProductDetailPage() {
                   <Button
                     className="flex-1 bg-red-800 hover:bg-red-900 text-white"
                     onClick={handleAddToCart}
-                    disabled={!quantity || quantity <= 0 || !!quantityError}
+                    disabled={
+                      !quantity || quantity <= 0 || !!quantityError || !!tilesError || !!palletsError
+                    }
                   >
                     <i className="ri-shopping-cart-line me-2 text-lg"></i>
                     Add To Cart
@@ -1002,6 +1063,12 @@ export default function ProductDetailPage() {
                   <div className="flex items-center w-1/2 text-red-800">
                     <i className="ri-box-3-line"></i>
                     <span className="text-darkGrey">Nationwide Delivery Included</span>
+                    <Tooltip title="Express 3-5 days delivery options available subject to availability. Relatable icon that fits
+Eurotile">
+                      <IconButton>
+                        <i class="ri-information-line"></i>
+                      </IconButton>
+                    </Tooltip>
                   </div>
 
                   {/* <div className="flex items-center w-1/2 rounded-sm text-redText bg-redText/25 px-4 py-2">
