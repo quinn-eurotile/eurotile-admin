@@ -117,6 +117,8 @@ const ChatContent = props => {
 
 
   const sendMessage = (messageContent, file) => {
+
+    console.log('file', file);
     if (!socket.current) return;
     let ticketId = props.ticketId;
 
@@ -137,18 +139,11 @@ const ChatContent = props => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const base64Image = e.target.result;
-        messageData.image = base64Image;
+        messageData.image = file;
         messageData.imageName = file.name;
         messageData.imageType = file.type;
+        messageData.imageSize = file.size;
         messageData.hasImage = true;
-
-        console.log('Sending message with image:', {
-          content: messageData.content,
-          imageName: messageData.imageName,
-          imageType: messageData.imageType,
-          hasImage: messageData.hasImage
-        });
 
         // Emit the message with image data
         socket.current.emit("join", { ticketId });
