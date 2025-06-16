@@ -139,6 +139,7 @@ const AddSupportTicketDrawer = ({ open, handleClose, refreshList, editData, setE
       if (response?.statusCode === 200 || response?.statusCode === 201) {
         refreshList()
         handleClose()
+        setFeaturedImageFile(null)
         reset()
         return
       }

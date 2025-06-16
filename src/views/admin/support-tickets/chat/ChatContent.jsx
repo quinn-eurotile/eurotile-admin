@@ -1,5 +1,7 @@
 // React Imports
 import { useEffect, useState, useRef } from 'react';
+import moment from 'moment';
+import classnames from 'classnames';
 
 // MUI Imports
 import Button from '@mui/material/Button';
@@ -78,7 +80,7 @@ const ChatContent = props => {
     const handleReceiveMessage = (data) => {
       try {
         const parseData = typeof data === 'string' ? JSON.parse(data) : data;
-        // console.log('Received message:', parseData);
+        console.log('Received message:', parseData);
         dispatch(sendMsg({ data: parseData }));
       } catch (error) {
         console.error('Failed to parse received message:', error);
@@ -115,6 +117,8 @@ const ChatContent = props => {
 
 
   const sendMessage = (messageContent, file) => {
+
+    console.log('file', file);
     if (!socket.current) return;
     let ticketId = props.ticketId;
 
@@ -135,10 +139,11 @@ const ChatContent = props => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const base64Image = e.target.result;
-        messageData.image = base64Image;
+        messageData.image = file;
         messageData.imageName = file.name;
         messageData.imageType = file.type;
+        messageData.imageSize = file.size;
+        messageData.hasImage = true;
 
         // Emit the message with image data
         socket.current.emit("join", { ticketId });
@@ -181,6 +186,61 @@ const ChatContent = props => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backdropOpen]);
+
+  const renderMessage = (message) => {
+    const isOwnMessage = message.sender === chatStore.profileUser?.id;
+    const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
+
+    return (
+      <div
+        key={message._id}
+        className={classnames('flex items-start gap-3', {
+          'flex-row-reverse': isOwnMessage
+        })}
+      >
+        <CustomAvatar
+          src={isOwnMessage ? chatStore.profileUser?.avatar : chatStore.activeUser?.avatar}
+          skin='light'
+          size={34}
+        />
+        <div
+          className={classnames('flex flex-col gap-1', {
+            'items-end': isOwnMessage
+          })}
+        >
+          <div className='flex items-center gap-2'>
+            <Typography variant='subtitle2'>
+              {isOwnMessage ? chatStore.profileUser?.name : chatStore.activeUser?.name}
+            </Typography>
+            <Typography variant='caption'>{moment(message.createdAt).format('h:mm A')}</Typography>
+          </div>
+          <div
+            className={classnames('rounded-lg p-3', {
+              'bg-primary/10': isOwnMessage,
+              'bg-[var(--mui-palette-customColors-chatBg)]': !isOwnMessage
+            })}
+          >
+            {message.message && (
+              <Typography variant='body2'>{message.message}</Typography>
+            )}
+            {message.fileType === 'image' && message.filePath && (
+              <div className='mt-2'>
+                <img
+                  src={`${NEXT_PUBLIC_BACKEND_DOMAIN}${message.filePath}`}
+                  alt={message.fileName}
+                  className='max-w-[300px] rounded-lg'
+                  onError={(e) => {
+                    console.error('Image load error:', e);
+                    e.target.src = '/images/error-image.png'; // Fallback image
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return !chatStore.activeUser ? (
     <CardContent className='flex flex-col flex-auto items-center justify-center bs-full gap-[18px] bg-[var(--mui-palette-customColors-chatBg)]'>
