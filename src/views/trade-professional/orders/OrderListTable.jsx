@@ -76,7 +76,7 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
 
 const columnHelper = createColumnHelper();
 
-const OrderListTable = ({ orderData }) => {
+const OrderListTable = ({ orderData, isDashboard = false }) => {
   const dispatch = useDispatch();
   const { lang: locale } = useParams();
   const [rowSelection, setRowSelection] = useState({});
@@ -336,10 +336,12 @@ const OrderListTable = ({ orderData }) => {
       </div>
 
       <CardContent className='pt-0'>
-        <Grid container spacing={5}>
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <TableFilters setFilter={setFilter} filter={filter} className='w-full' />
+       
+          <Grid container spacing={5}>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TableFilters setFilter={setFilter} filter={filter} className='w-full' />
           </Grid>
+          {!isDashboard && (
           <Grid size={{ xs: 12, sm: 8 }}>
             <div className='flex items-center gap-2 justify-end pt-2'>
               <div className='flex flex-col items-end'>
@@ -359,8 +361,10 @@ const OrderListTable = ({ orderData }) => {
                 Payout
               </Button>
             </div>
+            </Grid>
+          )}
           </Grid>
-        </Grid>
+        
       </CardContent>
 
       <div className='overflow-x-auto'>

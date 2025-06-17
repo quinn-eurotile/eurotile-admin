@@ -4,8 +4,8 @@ import Button from '@mui/material/Button';
 import { useParams } from 'next/navigation';
 
 export default function ProductGrid({ products }) {
-  const { lang: locale} = useParams();
-  // console.log(products, 'productsproducts');
+  const { lang: locale } = useParams();
+  console.log(products, 'productsproducts');
 
   return (
     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
@@ -21,24 +21,40 @@ export default function ProductGrid({ products }) {
             className="block"
           >
             <div className='p-2 bg-bgLight rounded-lg mb-3'>
-              <div className='relative aspect-square overflow-hidden rounded-md'>
+              <div className="relative aspect-square overflow-hidden rounded-md group">
+                {/* Default Image */}
                 <Image
                   src={
-                    product?.avatar && product?.avatar.trim()
-                      ? `${process?.env?.NEXT_PUBLIC_BACKEND_DOMAIN}${product?.avatar}`
+                    product?.avatar?.trim()
+                      ? `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product.avatar}`
                       : '/placeholder.svg'
                   }
                   alt={product?.name || 'Product'}
                   fill
-                  className='object-cover group-hover:scale-105 transition-transform duration-300'
+                  className="object-cover transition-opacity duration-300 group-hover:opacity-0"
                   sizes="(max-width: 768px) 100vw, 33vw"
-                  priority={index < 6} // Optional performance improvement
+                  priority={index < 6}
+                />
+
+                {/* Hover Image */}
+                <Image
+                  src={
+                    product?.avatar1?.trim()
+                      ? `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product.avatar1}`
+                      : `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product.avatar}` // fallback to main image
+                  }
+                  alt={product?.name || 'Product Hover'}
+                  fill
+                  className="object-cover absolute top-0 left-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100"
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  priority={false}
                 />
               </div>
+
             </div>
           </Link>
           <div className='text-center'>
-            <Link 
+            <Link
               href={{
                 pathname: `/${locale}/products/${product?.id}`,
                 query: { vid: product?.variationId }
