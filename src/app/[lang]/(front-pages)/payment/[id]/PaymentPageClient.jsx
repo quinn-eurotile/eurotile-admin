@@ -19,9 +19,7 @@ import {  createPaymentIntentPublic, removeCart, removeCartWhole } from '@/app/s
 import StripeWrapper from '@/components/payment/StripeWrapper';
 
 
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
-
+ 
 // Stripe payment form component
 const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, selectedAddress, selectedShipping, orderSummary, user, cartItems, cartData }) => {
   const stripe = useStripe();
@@ -187,12 +185,13 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
 };
 
 export default function PaymentPageClient({ initialData, cartId, clientId }) {
+ 
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('stripe');
   const [isProcessing, setIsProcessing] = useState(false);
-
+   
   useEffect(() => {
     // Validate required data
     if (!initialData?.cartItems?.length || !initialData.client) {

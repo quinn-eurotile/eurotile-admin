@@ -12,7 +12,7 @@ async function fetchCartData(cartId) {
   try {
     const response = await getCartById(cartId);
 
-    console.log(response,'response cartServices');
+  
     
     return response || {};
   } catch (error) {
@@ -37,8 +37,6 @@ const PaymentPage = async props => {
 
   const cartId = params.id;
   const clientId = searchParams.client;
-
-  console.log('Payment page params:', { params, searchParams });
 
   if (!cartId || !clientId) {
     notFound();
@@ -80,7 +78,6 @@ const PaymentPage = async props => {
     notFound();
   }
 
-  console.log('Payment page initialData:', initialData);
 
   return <>
     <PaymentPageClient 

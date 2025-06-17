@@ -502,6 +502,7 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
     dispatch(addToCart(response.data));
     toast.success('Products added to cart successfully');
     setPriceDialogOpen(false);
+    window.location.reload();
   };
 
   if (loading) {
@@ -807,7 +808,7 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
                       <TextField
                         label="Price per SQ.M"
                         type="number"
-                        value={currentPrice}
+                        // value={currentPrice}
                         onChange={(e) => handlePriceChange(item._id, Number(e.target.value))}
                         error={!validatePrice(item, currentPrice)}
                         helperText={`Base price: £${basePrice} (Range: £${basePrice} - £${maxPrice})`}

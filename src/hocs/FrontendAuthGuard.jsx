@@ -12,6 +12,8 @@ const FrontendAuthGuard = ({ children }) => {
 
   useEffect(() => {
     if (status === 'loading') return;
+    // Skip auth for payment pages
+    if (pathname.includes('/payment')) return;
     //console.log('session', session);
 
     if (!session) {
@@ -19,7 +21,8 @@ const FrontendAuthGuard = ({ children }) => {
       const lang = pathname.split('/')[1] || 'en';
       const loginUrl = `/${lang}/login?callbackUrl=${pathname}`;
       router.push(loginUrl);
-    } else {
+    } 
+    else {
       const userRole = session?.user?.roleNames;
       //console.log('userRole', userRole);
 

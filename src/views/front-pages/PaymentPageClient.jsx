@@ -79,8 +79,7 @@ const PaymentPageClient = ({ initialData }) => {
   const [selectCountry, setSelectCountry] = useState('')
   const [selectInput, setSelectInput] = useState('credit-card')
   const [error, setError] = useState(null)
-  const cartData = initialData?.data
-
+  const cartData = initialData?.data 
   const handleCountryChange = event => {
     setSelectCountry(event.target.value)
   }
