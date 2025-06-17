@@ -21,29 +21,65 @@ import CustomAvatar from '@core/components/mui/Avatar';
 import { sendMsg } from '@/redux-store/slices/chat';
 import { Box } from '@mui/material';
 import { useSession } from 'next-auth/react';
+import { checkUserRoleIsAdmin } from '@/components/common/userRole'
+import { useParams, useRouter } from 'next/navigation';
 
 
 // Renders the user avatar with badge and user information
-const UserAvatar = ({ activeUser, setUserProfileLeftOpen, setBackdropOpen }) => (
-  <div
-    className='flex items-center gap-4 cursor-pointer'
-    onClick={() => {
-      setUserProfileLeftOpen(true);
-      setBackdropOpen(true);
-    }}
-  >
-    <AvatarWithBadge
-      alt={activeUser?.fullName}
-      src={activeUser?.avatar}
-      color={activeUser?.avatarColor}
-      badgeColor={statusObj[activeUser?.status || 'offline']}
-    />
-    <div>
-      <Typography color='text.primary'>{activeUser?.fullName}</Typography>
-      <Typography variant='body2'>{activeUser?.role}</Typography>
+const UserAvatar = ({ activeUser, setUserProfileLeftOpen, setBackdropOpen }) => {
+  const router = useRouter();
+  const { lang: locale } = useParams();
+
+  const handleOrderClick = async (e) => {
+    e.stopPropagation(); // Prevent triggering the parent onClick
+    const orderId = activeUser?.orderDetail?._id;
+    const isAdminUser = await checkUserRoleIsAdmin()
+
+    if (!orderId) return;
+
+    if (!isAdminUser) {
+      return router.push(`/${locale}/trade-professional/orders/view/${orderId}`);
+    } else {
+      return router.push(`/${locale}/admin/orders/${orderId}`);
+    }
+  };
+
+  return (
+    <div
+      className='flex items-center gap-4 cursor-pointer'
+      onClick={() => {
+        setUserProfileLeftOpen(true);
+        setBackdropOpen(true);
+      }}
+    >
+      <AvatarWithBadge
+        alt={activeUser?.fullName}
+        src={activeUser?.avatar}
+        color={activeUser?.avatarColor}
+        badgeColor={statusObj[activeUser?.status || 'offline']}
+      />
+      <div>
+        <Typography color='text.primary'>{activeUser?.fullName}</Typography>
+        <Typography variant='body2'>{activeUser?.role}</Typography>
+        {activeUser?.orderDetail && (
+          <Typography
+            variant='body2'
+            color='text.secondary'
+            onClick={handleOrderClick}
+            sx={{
+              cursor: 'pointer',
+              '&:hover': {
+                textDecoration: 'underline'
+              }
+            }}
+          >
+            Order #{activeUser.orderDetail.orderId || activeUser.orderDetail.orderNumber}
+          </Typography>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const ChatContent = props => {
 
@@ -118,7 +154,6 @@ const ChatContent = props => {
 
   const sendMessage = (messageContent, file) => {
 
-    console.log('file', file);
     if (!socket.current) return;
     let ticketId = props.ticketId;
 

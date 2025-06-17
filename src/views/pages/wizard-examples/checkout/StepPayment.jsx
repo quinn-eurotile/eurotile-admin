@@ -167,12 +167,12 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
             <Alert severity="error">{paymentError}</Alert>
           </Grid>
         )}
-        <Grid size={{ xs: 12 }}>
+        {/* <Grid size={{ xs: 12 }}>
           <FormControlLabel
             control={<Switch checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} />}
             label="Save Card for future billing?"
           />
-        </Grid>
+        </Grid> */}
         <Grid size={{ xs: 12 }} className="flex gap-4">
           <Button type="submit" variant="contained" disabled={!stripe || isProcessing}>
             {isProcessing ? <CircularProgress size={24} /> : "Pay with Stripe"}

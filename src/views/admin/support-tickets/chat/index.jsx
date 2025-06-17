@@ -39,7 +39,7 @@ const ChatWrapper = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [ticketPage, setTicketPage] = useState(1);
   const [messagePage, setMessagePage] = useState(1);
-  const [rowsPerPage] = useState(1);
+  const [rowsPerPage] = useState(10);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -61,7 +61,7 @@ const ChatWrapper = () => {
   const isBelowSmScreen = useMediaQuery(theme => theme.breakpoints.down('sm'));
 
   const fetchChatData = async (currentPage = 1, searchTerm = '') => {
-    console.log('fetchChatData api call', ticketId, currentPage, rowsPerPage, searchTerm);
+    // console.log('fetchChatData api call', ticketId, currentPage, rowsPerPage, searchTerm);
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await getChatMessageForTicket(ticketId, currentPage, rowsPerPage, searchTerm, {});
