@@ -79,61 +79,61 @@ const AddProduct = () => {
         // Map productVariations array with complete data structure
         const productVariations = Array.isArray(product.productVariations)
           ? product.productVariations.map(variation => {
-              // Extract attribute information from the product's attributeVariations
-              const attributes = product.attributeVariations.map(attr => ({
-                _id: attr._id,
-                productAttribute: attr.productAttribute,
-                metaKey: attr.metaKey,
-                metaValue: attr.metaValue,
-                measurementUnit: attr.productMeasurementUnit
-                  ? {
-                      _id: attr.productMeasurementUnit,
-                      name: '' // This will be filled if available
-                    }
-                  : null
-              }))
+            // Extract attribute information from the product's attributeVariations
+            const attributes = product.attributeVariations.map(attr => ({
+              _id: attr._id,
+              productAttribute: attr.productAttribute,
+              metaKey: attr.metaKey,
+              metaValue: attr.metaValue,
+              measurementUnit: attr.productMeasurementUnit
+                ? {
+                  _id: attr.productMeasurementUnit,
+                  name: '' // This will be filled if available
+                }
+                : null
+            }))
 
-              return {
-                _id: variation?._id,
-                variationId: variation?._id,
-                description: variation.description || '',
-                stockStatus: variation.stockStatus || '',
-                stockQuantity: variation.stockQuantity || 0,
-                allowBackorders: variation.allowBackorders || false,
-                weight: variation.weight || 0,
-                dimensions: {
-                  length: variation.dimensions?.length || 0,
-                  width: variation.dimensions?.width || 0,
-                  height: variation.dimensions?.height || 0
-                },
-                regularPriceB2B: variation.regularPriceB2B || 0,
-                regularPriceB2C: variation.regularPriceB2C || 0,
-                tierDiscount: variation.tierDiscount || {},
-                salePrice: variation.salePrice || 0,
-                purchasedPrice: variation.purchasedPrice || 0,
-                numberOfTiles: variation?.numberOfTiles || 0,
-                boxSize: variation?.boxSize || 0,
-                palletSize: variation?.palletSize || 0,
-                sqmPerTile: variation?.sqmPerTile || 0,
-                palletWeight: variation?.palletWeight || 0,
-                boxesPerPallet: variation?.boxesPerPallet || 0,
-                boxWeight: variation?.boxWeight || 0,
-                customImageUrl: variation.customImageUrl || '',
-                variationImages: variation.variationImages || [],
-                image: variation.image || '',
-                shippingClass: variation.shippingClass || '',
-                taxClass: variation.taxClass || '',
-                status: variation.status || false,
-                attributes: attributes, // Add the attributes array
-                // Add attribute key-value pairs for the UI display
-                ...product.attributeVariations.reduce((acc, attr) => {
-                  const key = attr.metaKey.toLowerCase()
-                  const value = attr.metaValue
-                  acc[key] = value
-                  return acc
-                }, {})
-              }
-            })
+            return {
+              _id: variation?._id,
+              variationId: variation?._id,
+              description: variation.description || '',
+              stockStatus: variation.stockStatus || '',
+              stockQuantity: variation.stockQuantity || 0,
+              allowBackorders: variation.allowBackorders || false,
+              weight: variation.weight || 0,
+              dimensions: {
+                length: variation.dimensions?.length || 0,
+                width: variation.dimensions?.width || 0,
+                height: variation.dimensions?.height || 0
+              },
+              regularPriceB2B: variation.regularPriceB2B || 0,
+              regularPriceB2C: variation.regularPriceB2C || 0,
+              tierDiscount: variation.tierDiscount || {},
+              salePrice: variation.salePrice || 0,
+              purchasedPrice: variation.purchasedPrice || 0,
+              numberOfTiles: variation?.numberOfTiles || 0,
+              boxSize: variation?.boxSize || 0,
+              palletSize: variation?.palletSize || 0,
+              sqmPerTile: variation?.sqmPerTile || 0,
+              palletWeight: variation?.palletWeight || 0,
+              boxesPerPallet: variation?.boxesPerPallet || 0,
+              boxWeight: variation?.boxWeight || 0,
+              customImageUrl: variation.customImageUrl || '',
+              variationImages: variation.variationImages || [],
+              image: variation.image || '',
+              shippingClass: variation.shippingClass || '',
+              taxClass: variation.taxClass || '',
+              status: variation.status || false,
+              attributes: attributes, // Add the attributes array
+              // Add attribute key-value pairs for the UI display
+              ...product.attributeVariations.reduce((acc, attr) => {
+                const key = attr.metaKey.toLowerCase()
+                const value = attr.metaValue
+                acc[key] = value
+                return acc
+              }, {})
+            }
+          })
           : []
 
         // Map productImages array if needed, example:
@@ -294,7 +294,7 @@ const AddProduct = () => {
         response = await createProduct(formData)
       }
 
-      // console.log('API Response:', response);
+      console.log('API Response:', response);
 
       if (response.success) {
         router.push(`/${locale}/admin/ecommerce/products/list`)
