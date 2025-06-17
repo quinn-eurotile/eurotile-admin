@@ -61,7 +61,7 @@ const ChatWrapper = () => {
   const isBelowSmScreen = useMediaQuery(theme => theme.breakpoints.down('sm'));
 
   const fetchChatData = async (currentPage = 1, searchTerm = '') => {
-    console.log('fetchChatData api call', ticketId, currentPage, rowsPerPage, searchTerm);
+    // console.log('fetchChatData api call', ticketId, currentPage, rowsPerPage, searchTerm);
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await getChatMessageForTicket(ticketId, currentPage, rowsPerPage, searchTerm, {});
