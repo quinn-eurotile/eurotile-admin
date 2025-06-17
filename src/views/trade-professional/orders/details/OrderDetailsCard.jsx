@@ -32,19 +32,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Preview from '../preview';
+import html2pdf from 'html2pdf.js';
 
-const fuzzyFilter = (row, columnId, value, addMeta) => {
-  // Rank the item
-  const itemRank = rankItem(row.getValue(columnId), value);
-
-  // Store the itemRank info
-  addMeta({
-    itemRank
-  });
-
-  // Return if the item should be filtered in/out
-  return itemRank.passed;
-};
 
 //   {
 //     productName: 'OnePlus 7 Pro',
@@ -84,7 +73,7 @@ const fuzzyFilter = (row, columnId, value, addMeta) => {
 const columnHelper = createColumnHelper();
 
 const OrderTable = ({ orderedProduct }) => {
-  // console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct');
+  console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct');
 
   // States
   const [rowSelection, setRowSelection] = useState({});
@@ -147,7 +136,7 @@ const OrderTable = ({ orderedProduct }) => {
                 <Typography color='text.primary' className='font-medium'>
                   {productDetail?.product?.name || 'N/A'}
                 </Typography>
-                <Typography variant='body2'>{productDetail?.supplier?.name || 'Unknown'}</Typography>
+                <Typography variant='body2'>{productDetail?.supplierName}</Typography>
               </div>
             </div>
           );
@@ -280,6 +269,21 @@ const OrderDetailsCard = ({ data }) => {
     setPayoutAmount(''); // Reset input on close
   };
 
+  const handleDownloadInvoice = () => {
+    const element = document.getElementById('invoice-pdf-content');
+    if (element) {
+      html2pdf()
+        .set({
+          margin: 0,
+          filename: `Invoice-${data?.orderId || 'invoice'}.pdf`,
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        })
+        .from(element)
+        .save();
+    }
+  };
+
   // console.log('data comming', data);
 
   return (
@@ -287,8 +291,10 @@ const OrderDetailsCard = ({ data }) => {
       <div className='flex items-center justify-between px-4'>
         <CardHeader className='px-0' title='Order Details' />
         <Button variant='contained' color='success' onClick={handleOpenDialog}>
+          <i className="ri-eye-line me-2 text-md"></i>
           View Invoice
         </Button>
+        
       </div>
       <OrderTable orderedProduct={data} />
       <CardContent className='flex justify-end'>
@@ -336,9 +342,19 @@ const OrderDetailsCard = ({ data }) => {
         </div>
       </CardContent>
 
-      <Dialog open={isDialogOpen} onClose={handleCloseDialog} fullWidth maxWidth='lg'>
-        <DialogTitle sx={{ m: 0, ps: 4 }}>
+      <Dialog open={isDialogOpen} onClose={handleCloseDialog} fullWidth maxWidth='md'>
+        <DialogTitle sx={{ m: 0, paddingRight: '50px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Order Invoice
+          <Button
+            variant='contained'
+            color='primary'
+            size='small'
+            sx={{ marginLeft: 2 }}
+            onClick={handleDownloadInvoice}
+          >
+            <i className="ri-download-line me-2 text-md"></i>
+            Download Invoice
+          </Button>
           <IconButton
             aria-label='close'
             onClick={handleCloseDialog}
@@ -353,7 +369,9 @@ const OrderDetailsCard = ({ data }) => {
           </IconButton>
         </DialogTitle>
         <DialogContent>
-          <Preview orderId={data?._id} />
+          <div id="invoice-pdf-content">
+            <Preview orderId={data?._id} />
+          </div>
         </DialogContent>
       </Dialog>
     </Card>

@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { getOrderDetails } from '@/app/server/order';
 import { Box, CircularProgress } from '@mui/material';
 import { callCommonAction } from '@/redux-store/slices/common'
+import InvoiceTemplate from './InvoiceTemplate';
 
 const Preview = ({ orderId }) => {
   // console.log(orderId,'orderIdorderId')
@@ -49,7 +50,8 @@ const Preview = ({ orderId }) => {
     return (
       <Grid spacing={6}>
         <Grid size={{ xs: 12, md: 9 }}>
-          <PreviewCard invoiceData={data} />
+          {/* <PreviewCard invoiceData={data} /> */}
+          <InvoiceTemplate invoiceData={data} />
         </Grid>
         {/* <Grid size={{ xs: 12, md: 3 }}>
           <PreviewActions id={id} onButtonClick={handleButtonClick} />
