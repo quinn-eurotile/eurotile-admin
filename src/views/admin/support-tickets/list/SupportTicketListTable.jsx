@@ -129,6 +129,12 @@ const SupportTicketListTable = () => {
   const canDeleteSupportTicket = usePermission("delete-support-ticket");
   const canViewSupportTicket = usePermission("view-support-ticket");
 
+
+  console.log('canUpdateSupportTicket', canUpdateSupportTicket)
+  console.log('canAddSupportTicket', canAddSupportTicket)
+  console.log('canViewSupportTicket', canViewSupportTicket)
+  console.log('canDeleteSupportTicket', canDeleteSupportTicket)
+
   const issueTypeOptions = {
     1: { label: 'Order Issue', color: 'info' },
     2: { label: 'Payment Issue', color: 'default' },
@@ -426,13 +432,13 @@ const SupportTicketListTable = () => {
                 <i className='ri-delete-bin-7-line text-textSecondary' />
               </IconButton>
             }
-            {canViewSupportTicket &&
+            {/* {canViewSupportTicket &&
               <IconButton>
                 <Link href={getLocalizedUrl(`/admin/support-tickets/view/${row.original.id}`, locale)} className='flex'>
                   <i className='ri-eye-line text-textSecondary' />
                 </Link>
               </IconButton>
-            }
+            } */}
           </div>
         ),
         enableSorting: false

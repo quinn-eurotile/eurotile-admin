@@ -71,7 +71,10 @@ export default function ProductDetailPage() {
 
   // Get vid from URL
   const searchParams = new URLSearchParams(window.location.search);
-  const vid = searchParams.get('vid');
+  const [vid, setVid] = useState(searchParams.get('vid'));
+
+
+
 
   // console.log('Current cart state:', cart);
   const fetchProductDetails = async () => {
@@ -570,7 +573,7 @@ export default function ProductDetailPage() {
   };
   const convertSlugToName = (slug) => {
     return slug.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
-  };  
+  };
   // const cart = useSelector(state => state.cartReducer);
   // // console.log('Current Cart:', cart);
   // 🟩 Calculate thresholds and map them to discounts
@@ -678,7 +681,30 @@ export default function ProductDetailPage() {
                 </p>
               </div> */}
 
-
+              <div className="mt-10">
+                <h3 className="text-lg font-medium text-black-800 mb-5">Other Colors Available In This Collection</h3>
+                <div className="flex flex-wrap gap-2">
+                  {product?.productVariations?.filter(pV => pV?.id !== vid)?.map((variation, i) => (
+                    variation.variationImages?.[0] && (
+                      <div
+                        key={i}
+                        className={`border cursor-pointer rounded-md ${currentImageIndex === i ? "ring-2 ring-red-800" : ""}`}
+                        onClick={() => { router.push(`/${locale}/products/${product?.id}?vid=${variation?.id}`); setVid(variation?.id) }}
+                      >
+                        <div className="relative w-[80px] h-[80px]">
+                          <Image
+                            width={80}
+                            height={80}
+                            src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${variation.variationImages[0].filePath}` || "/placeholder.svg"}
+                            alt={`Variation ${i + 1}`}
+                            className="object-cover rounded-md w-full h-full"
+                          />
+                        </div>
+                      </div>
+                    )
+                  ))}
+                </div>
+              </div>
 
 
             </div>
@@ -1158,7 +1184,7 @@ Eurotile">
                       {product.categories && product.categories.length > 0
                         ? product.categories.map(cat => cat.name).join(', ')
                         : 'N/A'}
-                    </li> 
+                    </li>
                     <li><span className="font-medium">Factory:</span> {product?.supplier?.companyName || 'N/A'}</li>
                     {/* <li><span className="font-medium">Origin:</span> {product?.origin || 'N/A'}</li>
                     <li><span className="font-medium">Style:</span> {product?.style || 'N/A'}</li> */}
@@ -1168,13 +1194,13 @@ Eurotile">
                 <div>
                   <h3 className="font-medium mb-4 text-redText">Technical Details</h3>
                   <ul className="text-sm space-y-2 list-none p-0">
-                  {selected?.attributeVariationsDetail?.length > 0 && selected?.attributeVariationsDetail?.map((variation) => ( 
-                       <li><span className="font-medium">{convertSlugToName(variation.metaKey)}:</span> {variation.metaValue || 'N/A'}</li>
-                     
-                  ))}
-                  {selected?.attributeVariationsDetail?.length === 0 && (
-                    <li><span className="font-medium">No Technical Details Available</span></li>
-                  )}
+                    {selected?.attributeVariationsDetail?.length > 0 && selected?.attributeVariationsDetail?.map((variation) => (
+                      <li><span className="font-medium">{convertSlugToName(variation.metaKey)}:</span> {variation.metaValue || 'N/A'}</li>
+
+                    ))}
+                    {selected?.attributeVariationsDetail?.length === 0 && (
+                      <li><span className="font-medium">No Technical Details Available</span></li>
+                    )}
                   </ul>
                 </div>
                 {/* Packaging Details */}

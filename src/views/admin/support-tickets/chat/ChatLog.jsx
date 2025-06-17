@@ -214,7 +214,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen,
                               className="flex items-center gap-2 text-primary hover:underline"
                             >
                               <i className="ri-file-text-line text-xl" />
-                              <span>{msg?.fileName || 'Download file'}</span>
+                              <span>{msg?.fileName || 'View file'}</span>
                             </a>
                           )}
                         </div>
