@@ -962,7 +962,7 @@ export default function ProductDetailPage() {
               </div>
 
               <div className="my-6">
-                <h2 className="font-normal mb-4">Create Order Here</h2>
+                <h2 className="font-normal mb-4">Create Your Order Here</h2>
 
                 {/* <FormControlLabel
                   control={
@@ -1217,10 +1217,6 @@ export default function ProductDetailPage() {
 
 
           <Divider className="mb-12" />
-
-
-
-
 
           <TabContext value={Tabvalue}>
             <TabList
