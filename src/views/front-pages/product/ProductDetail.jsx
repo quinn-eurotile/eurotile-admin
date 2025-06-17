@@ -5,7 +5,7 @@ import Link from "next/link";
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Select from '@mui/material/Select';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, FormControl, FormControlLabel, Grid2, IconButton, InputLabel, MenuItem, Radio, RadioGroup, Tooltip } from "@mui/material";
 import Tab from '@mui/material/Tab';
 import TabList from '@mui/lab/TabList';
@@ -15,7 +15,7 @@ import Typography from '@mui/material/Typography';
 import ColorSelector from "./ColorSelector";
 import RelatedProductGrid from "./related-product";
 import { addCart, getProductDetails } from "@/app/server/actions";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "@/redux-store/slices/cart";
 
@@ -24,12 +24,80 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { calculateNewVariantTierValue, calculateTierValue, convertSlugToName } from "@/components/common/helper";
 import CircularLoader from "@/components/common/CircularLoader";
+import axios from "axios";
 
+function ProductImageZoom({ src, alt }) {
+  const sourceRef = useRef(null);
+  const targetRef = useRef(null);
+  const containerRef = useRef(null);
+
+  const [opacity, setOpacity] = useState(0);
+  const [offset, setOffset] = useState({ left: 0, top: 0 });
+
+  const handleMouseEnter = () => setOpacity(1);
+  const handleMouseLeave = () => setOpacity(0);
+
+  const handleMouseMove = (e) => {
+    const targetRect = targetRef.current.getBoundingClientRect();
+    const sourceRect = sourceRef.current.getBoundingClientRect();
+    const containerRect = containerRef.current.getBoundingClientRect();
+
+    const xRatio = (targetRect.width - containerRect.width) / sourceRect.width;
+    const yRatio = (targetRect.height - containerRect.height) / sourceRect.height;
+
+    const left = Math.max(Math.min(e.pageX - sourceRect.left, sourceRect.width), 0);
+    const top = Math.max(Math.min(e.pageY - sourceRect.top, sourceRect.height), 0);
+
+    setOffset({
+      left: left * -xRatio,
+      top: top * -yRatio
+    });
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative aspect-square overflow-hidden rounded-md border border-primary"
+      style={{ width: "100%", height: "100%", cursor: "zoom-in" }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onMouseMove={handleMouseMove}
+    >
+      {/* Main image */}
+      <img
+        ref={sourceRef}
+        src={src}
+        alt={alt}
+        className="w-full h-full object-cover"
+        draggable={false}
+      />
+      {/* Zoomed image */}
+      <img
+        ref={targetRef}
+        src={src}
+        alt={alt}
+        style={{
+          position: "absolute",
+          left: offset.left,
+          top: offset.top,
+          width: "200%",
+          height: "200%",
+          opacity: opacity,
+          pointerEvents: "none",
+          transition: "opacity 0.2s"
+        }}
+        draggable={false}
+      />
+    </div>
+  );
+}
 
 export default function ProductDetailPage() {
 
   const router = useRouter();
   const { lang: locale, id: productId } = useParams();
+  const searchParams = useSearchParams();
+  const [vid, setVid] = useState(searchParams.get('vid'));
   const [product, setProduct] = useState(null);
   const { data: session, status } = useSession();
 
@@ -69,14 +137,6 @@ export default function ProductDetailPage() {
   const [tilesError, setTilesError] = useState('');
   const [palletsError, setPalletsError] = useState('');
 
-  // Get vid from URL
-  const searchParams = new URLSearchParams(window.location.search);
-  const [vid, setVid] = useState(searchParams.get('vid'));
-
-
-
-
-  // console.log('Current cart state:', cart);
   const fetchProductDetails = async () => {
     try {
       const response = await getProductDetails(productId);
@@ -84,22 +144,34 @@ export default function ProductDetailPage() {
       if (response?.success && response?.data) {
         setProduct(response.data);
 
-        // If vid exists in URL, find and set the corresponding variation
+        // If vid is not present, select first option for each attribute variation
+        if (!vid && response.data.attributes) {
+          const initialSelections = {};
+          response.data.attributes.forEach(attributeId => {
+            const variations = response.data.attributeVariations.filter(
+              av => av.productAttribute === attributeId
+            );
+            if (variations.length > 0) {
+              initialSelections[attributeId] = variations[0]._id;
+            }
+          });
+          setSelectedAttributes(initialSelections);
+        }
+
+        // If vid is present, find and set the selected variation
         if (vid) {
           const variation = response.data.productVariations.find(v => v._id === vid);
           if (variation) {
             setSelectedVariation(variation);
-
-            // Pre-select attribute variations based on the selected variation
-            const initialAttributes = {};
+            // Set selected attributes based on the variation
+            const initialSelections = {};
             variation.attributeVariations.forEach(attrVarId => {
               const attrVar = response.data.attributeVariations.find(av => av._id === attrVarId);
               if (attrVar) {
-                initialAttributes[attrVar.productAttribute] = attrVarId;
+                initialSelections[attrVar.productAttribute] = attrVarId;
               }
             });
-            console.log('initialAttributes', initialAttributes);
-            setSelectedAttributes(initialAttributes);
+            setSelectedAttributes(initialSelections);
           }
         }
       }
@@ -107,9 +179,6 @@ export default function ProductDetailPage() {
       console.error('Failed to fetch product details:', error);
     }
   };
-
-
-
 
   useEffect(() => {
     if (productId) {
@@ -123,6 +192,11 @@ export default function ProductDetailPage() {
       setSelectedVariation(product.productVariations[0]);
     }
   }, [product, vid]);
+
+  useEffect(() => {
+    // Update vid when URL changes
+    setVid(searchParams.get('vid'));
+  }, [searchParams]);
 
   const handleVariationChange = (attributeId, variationId) => {
     // Step 1: Update the selectedAttributes with the selected variationId
@@ -161,7 +235,6 @@ export default function ProductDetailPage() {
       setSelectedVariation(null);
     }
   };
-
 
   // Update pricing tier based on quantity
   const updatePricingTier = (qty) => {
@@ -429,9 +502,9 @@ export default function ProductDetailPage() {
     setSelectedVariations([...selectedVariations, newVariation]);
 
     // Reset form
-    setQuantity("1");
-    setTiles("10");
-    setPallets("1");
+    // setQuantity("1");
+    // setTiles("10");
+    // setPallets("1");
     setSelectedAttributes({});
     setCalculatedValues({
       sqm: 0,
@@ -448,28 +521,31 @@ export default function ProductDetailPage() {
   };
 
   const handleAddToCart = async () => {
-    // Validate quantity first
-    if (!quantity || quantity <= 0) {
-      setQuantityError('Please enter a valid quantity');
-      return;
-    }
-
-    if (selectedVariations.length === 0 && !selectedVariation) {
-      setError('Please select at least one variation');
-      return;
-    }
-
-    // If there are no saved variations but current selection exists
-    if (selectedVariations.length === 0 && selectedVariation) {
-      if (!calculatedValues.sqm) {
+    // Skip quantity validation if it's a sample order
+    if (!openSampleDialog) {
+      // Validate quantity first
+      if (!quantity || quantity <= 0) {
         setQuantityError('Please enter a valid quantity');
         return;
       }
 
-      // Check if number of boxes exceeds stock quantity
-      if (calculatedValues.pallets > selectedVariation.stockQuantity) {
-        setError(`Not enough stock available. Only ${selectedVariation.stockQuantity} boxes in stock.`);
+      if (selectedVariations.length === 0 && !selectedVariation) {
+        setError('Please select at least one variation');
         return;
+      }
+
+      // If there are no saved variations but current selection exists
+      if (selectedVariations.length === 0 && selectedVariation) {
+        if (!calculatedValues.sqm) {
+          setQuantityError('Please enter a valid quantity');
+          return;
+        }
+
+        // Check if number of boxes exceeds stock quantity
+        if (calculatedValues.pallets > selectedVariation.stockQuantity) {
+          setError(`Not enough stock available. Only ${selectedVariation.stockQuantity} boxes in stock.`);
+          return;
+        }
       }
     }
 
@@ -545,7 +621,6 @@ export default function ProductDetailPage() {
           }
         });
       });
-
 
       const response = await addCart({
         items: cartItems,
@@ -635,28 +710,21 @@ export default function ProductDetailPage() {
           <div className="grid md:grid-cols-2 gap-8 mb-5">
             {/* Product Images */}
             <div>
-              {/* {`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${productImages[currentImageIndex]}`} */}
-              <div className="mb-4 relative p-4 bg-bgLight rounded-lg">
-                <div className="relative aspect-square">
-                  <Image
-                    src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${productImages[currentImageIndex]}` || "/placeholder.svg"}
-                    alt="Travertini Bianco Cross Cut"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+              <div className="mb-4 relative p-4 bg-bgLight rounded-md">
+                <ProductImageZoom
+                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${productImages[currentImageIndex]}` || "/placeholder.svg"}
+                  alt={product?.name || "Product image"}
+                />
                 <button
                   className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full w-[30px] h-[30px] cursor-pointer"
                   onClick={prevImage}
                 >
-                  {/* <ChevronLeft className="h-5 w-5" /> */}
                   <i className="ri-arrow-left-s-line text-lg"></i>
                 </button>
                 <button
                   className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 p-1 rounded-full w-[30px] h-[30px] cursor-pointer"
                   onClick={nextImage}
                 >
-                  {/* <ChevronRight className="h-5 w-5" /> */}
                   <i className="ri-arrow-right-s-line text-lg"></i>
                 </button>
               </div>
@@ -681,30 +749,37 @@ export default function ProductDetailPage() {
                 </p>
               </div> */}
 
+
               <div className="mt-10">
                 <h3 className="text-lg font-medium text-black-800 mb-5">Other Colors Available In This Collection</h3>
                 <div className="flex flex-wrap gap-2">
-                  {product?.productVariations?.filter(pV => pV?.id !== vid)?.map((variation, i) => (
-                    variation.variationImages?.[0] && (
-                      <div
-                        key={i}
-                        className={`border cursor-pointer rounded-md ${currentImageIndex === i ? "ring-2 ring-red-800" : ""}`}
-                        onClick={() => { router.push(`/${locale}/products/${product?.id}?vid=${variation?.id}`); setVid(variation?.id) }}
-                      >
-                        <div className="relative w-[80px] h-[80px]">
-                          <Image
-                            width={80}
-                            height={80}
-                            src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${variation.variationImages[0].filePath}` || "/placeholder.svg"}
-                            alt={`Variation ${i + 1}`}
-                            className="object-cover rounded-md w-full h-full"
-                          />
+                  {product?.productVariations
+                    ?.filter(variation => variation._id !== vid) // Use _id instead of id
+                    ?.map((variation, i) => (
+                      variation.variationImages?.[0] && (
+                        <div
+                          key={variation._id} // Use _id for key instead of index
+                          className={`border cursor-pointer rounded-md ${currentImageIndex === i ? "ring-2 ring-red-800" : ""}`}
+                          onClick={() => {
+                            router.push(`/${locale}/products/${product?._id}?vid=${variation._id}`);
+                            setVid(variation._id);
+                          }}
+                        >
+                          <div className="relative w-[80px] h-[80px]">
+                            <Image
+                              width={80}
+                              height={80}
+                              src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${variation.variationImages[0].filePath}` || "/placeholder.svg"}
+                              alt={`Variation ${i + 1}`}
+                              className="object-cover rounded-md w-full h-full"
+                            />
+                          </div>
                         </div>
-                      </div>
-                    )
-                  ))}
+                      )
+                    ))}
                 </div>
               </div>
+
 
 
             </div>
@@ -712,7 +787,18 @@ export default function ProductDetailPage() {
             {/* Product Details */}
             <div>
               <h1 className="text-3xl font-medium text-red-800">{product.name || ""}</h1>
-              <p className="text-sm text-gray-600">From {product?.supplier?.companyName || ''}</p>
+              <p className="text-sm text-gray-600">
+                From:{" "}
+                <Link
+                  href={{
+                    pathname: `/${locale}/products`,
+                    query: { supplier: product?.supplier?._id }
+                  }}
+                  className="underline hover:text-primary cursor-pointer"
+                >
+                  {product?.supplier?.companyName || ''}
+                </Link>
+              </p>
 
               <div className="flex items-center gap-1 my-2">
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -833,15 +919,13 @@ export default function ProductDetailPage() {
 
               <div className="my-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-normal">Pricing Tiers (inc. Shipping & Duties) </h3>
-
-                  <p className="text-sm text-red-800 my-4">
-                    <a href="#" className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-900" onClick={() => setOpenSampleDialog(true)}>Need A Sample?</a>
-                  </p>
+                  <h2 className="font-normal">Pricing Tiers (inc. Shipping & Duties) </h2>
+                  {product.allowSample &&
+                    <p className="text-sm text-red-800 my-4">
+                      <a href="#" className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-900" onClick={() => setOpenSampleDialog(true)}>Need A Sample?</a>
+                    </p>
+                  }
                 </div>
-
-
-
                 <div className=" rounded-md overflow-hidden">
                   <table className="w-full text-sm border border-collapse border-bgLight">
                     <thead className="bg-bgLight">
@@ -878,7 +962,7 @@ export default function ProductDetailPage() {
               </div>
 
               <div className="my-6">
-                <h3 className="font-normal mb-4">Create Order Here</h3>
+                <h2 className="font-normal mb-4">Create Your Order Here</h2>
 
                 {/* <FormControlLabel
                   control={
@@ -903,6 +987,8 @@ export default function ProductDetailPage() {
                       av => av.productAttribute === attributeId
                     );
 
+                    console.log('attributeVariations', attributeVariations)
+
 
                     if (attributeVariations.length === 0) return null;
 
@@ -914,36 +1000,49 @@ export default function ProductDetailPage() {
                     return (
                       <div key={attributeId} className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          {label}
+                          {'Tile ' + label}
                         </label>
                         <FormControl fullWidth>
                           <Select
+                            size="small"
+                            className="rounded-md"
                             value={selectedAttributes[attributeId] || ''}
                             onChange={(e) => handleVariationChange(attributeId, e.target.value)}
                             displayEmpty
                             sx={{
+                              height: 38,
                               backgroundColor: '#f4f0ed',
                               borderRadius: '10px',
-                              '& .MuiSelect-select': {
-                                padding: '12px'
-                              }
+                              '.MuiOutlinedInput-root': {
+                                height: 38,
+                              },
+                              '.MuiSelect-select': {
+                                height: 38,
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '0 12px',
+                              },
                             }}
                           >
-
-                            {attributeVariations.map(variation => (
+                            <MenuItem value="" disabled>
+                              Choose Tile {label}
+                            </MenuItem>
+                            {attributeVariations.map((variation) => (
                               <MenuItem
                                 key={variation._id}
                                 value={variation._id}
                                 sx={{
                                   '&.Mui-selected': {
-                                    backgroundColor: 'rgba(185, 28, 28, 0.08)'
+                                    backgroundColor: 'rgba(185, 28, 28, 0.08)',
                                   },
                                   '&.Mui-selected:hover': {
-                                    backgroundColor: 'rgba(185, 28, 28, 0.12)'
-                                  }
+                                    backgroundColor: 'rgba(185, 28, 28, 0.12)',
+                                  },
                                 }}
                               >
                                 {variation.metaValue}
+                                {variation.productMeasurementUnit &&
+                                  ` ${variation.productMeasurementUnit.symbol}`}
                               </MenuItem>
                             ))}
                           </Select>
@@ -963,10 +1062,11 @@ export default function ProductDetailPage() {
                   <div className="rounded-md">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Quantity (SQ.M)</label>
                     <input
+                      size="small"
                       type="number"
                       value={quantity}
-                      placeholder="Enter quantity in SQ.M"
-                      className={`w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border ${quantityError ? 'border-red-500' : 'border-[#ccc]'} !rounded-[10px]`}
+                      placeholder="Enter Quantity in SQ.M"
+                      className={`w-full outline-none h-[38px] bg-bgLight px-3 py-4 rounded-md text-sm text-black border ${quantityError ? 'border-red-500' : 'border-[#ccc]'} `}
                       onChange={handleQuantityChange}
                       min="1"
                       step="0.01"
@@ -982,8 +1082,8 @@ export default function ProductDetailPage() {
                     <input
                       type="number"
                       value={tiles}
-                      className={`w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border ${tilesError ? 'border-red-500' : 'border-[#ccc]'} !rounded-[10px]`}
-                      placeholder="Enter number of tiles"
+                      className={`w-full outline-none h-[38px] bg-bgLight px-3 py-4 rounded-md text-sm text-black border ${tilesError ? 'border-red-500' : 'border-[#ccc]'} `}
+                      placeholder="Enter Number of Tiles"
                       onChange={handleTilesChange}
                       min="1"
                       step="1"
@@ -998,9 +1098,9 @@ export default function ProductDetailPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Boxes</label>
                     <input
                       type="number"
-                      className={`w-full outline-none h-auto bg-bgLight px-3 py-4 rounded-sm text-sm text-black border ${palletsError ? 'border-red-500' : 'border-[#ccc]'} !rounded-[10px]`}
+                      className={`w-full outline-none h-[38px] bg-bgLight px-3 py-4 rounded-md text-sm text-black border ${palletsError ? 'border-red-500' : 'border-[#ccc]'} `}
                       value={pallets}
-                      placeholder="Enter number of boxes"
+                      placeholder="Enter Number of Boxes"
                       onChange={handlePalletsChange}
                       min="1"
                       step="1"
@@ -1091,22 +1191,21 @@ export default function ProductDetailPage() {
 
                 <div className="flex items-center gap-4 mt-4 text-sm">
                   <div className="flex items-center w-1/2 text-red-800">
-                    <i className="ri-box-3-line"></i>
+                    <i className="ri-truck-line me-2"></i>
                     <span className="text-darkGrey">Nationwide Delivery Included</span>
-                    <Tooltip title="Express 3-5 days delivery options available subject to availability. Relatable icon that fits
-Eurotile">
+                    <Tooltip title="Express 3-5 days delivery options available subject to availability.">
                       <IconButton>
                         <i class="ri-information-line"></i>
                       </IconButton>
                     </Tooltip>
                   </div>
 
-                  {/* <div className="flex items-center w-1/2 rounded-sm text-redText bg-redText/25 px-4 py-2">
+                  {/* <div className="flex items-center w-1/2 rounded-md text-redText bg-redText/25 px-4 py-2">
                     <i className="ri-discount-percent-line me-1"></i>
                     Add 10.08 sq.m more to unlock 5% off
                   </div> */}
                   {calculatedValues?.sqm !== undefined && (
-                    <div className="flex items-center w-1/2 rounded-sm text-redText bg-redText/25 px-4 py-2">
+                    <div className="flex items-center w-1/2 rounded-md text-redText bg-redText/25 px-4 py-2">
                       <i className="ri-discount-percent-line me-1"></i>
                       {getNextTierMessage(calculatedValues.sqm)}
                     </div>
@@ -1119,10 +1218,6 @@ Eurotile">
 
           <Divider className="mb-12" />
 
-
-
-
-
           <TabContext value={Tabvalue}>
             <TabList
               onChange={handleTab}
@@ -1134,7 +1229,7 @@ Eurotile">
                 label="Additional Information"
                 className={
                   `${Tabvalue === '1'
-                    ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:10px] [border-top-right-radius:10px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
+                    ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:5px] [border-top-right-radius:5px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
                     : 'rounded-md'} px-4 py-2 flex items-center gap-2 capitalize font-montserrat text-15`
                 }
 
@@ -1147,7 +1242,7 @@ Eurotile">
                 label="Product Details"
                 className={
                   `${Tabvalue === '2'
-                    ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:10px] [border-top-right-radius:10px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
+                    ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:5px] [border-top-right-radius:5px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
                     : 'rounded-md'} px-4 py-2 flex items-center gap-2 capitalize font-montserrat text-15`
                 }
                 disableRipple
@@ -1158,7 +1253,7 @@ Eurotile">
                 label="Reviews"
                 className={
                   `${Tabvalue === '3'
-                    ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:10px] [border-top-right-radius:10px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
+                    ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:5px] [border-top-right-radius:5px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
                     : 'rounded-md'} px-4 py-2 flex items-center gap-2 capitalize font-montserrat text-15`
                 }
                 disableRipple
@@ -1195,7 +1290,7 @@ Eurotile">
                   <h3 className="font-medium mb-4 text-redText">Technical Details</h3>
                   <ul className="text-sm space-y-2 list-none p-0">
                     {selected?.attributeVariationsDetail?.length > 0 && selected?.attributeVariationsDetail?.map((variation) => (
-                      <li><span className="font-medium">{convertSlugToName(variation.metaKey)}:</span> {variation.metaValue || 'N/A'}</li>
+                      <li><span className="font-medium">{convertSlugToName(variation.metaKey)}:</span> {variation.metaValue || 'N/A'} {variation.productMeasurementUnit?.symbol}</li>
 
                     ))}
                     {selected?.attributeVariationsDetail?.length === 0 && (

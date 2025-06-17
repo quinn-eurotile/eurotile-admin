@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import { useSearchParams } from 'next/navigation';
 
 import { useEffect, useState } from 'react'
 import { CircularProgress, Container, Menu, MenuItem, Pagination, TablePagination, Typography } from '@mui/material'
@@ -18,6 +19,9 @@ import Pagination from "@/components/pagination"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"*/
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams();
+  const supplierFilter = searchParams.get('supplier');
+
   const [rowSelection, setRowSelection] = useState({})
   const [data, setData] = useState([])
   const [reawFilterData, setReawFilterData] = useState([])
@@ -28,7 +32,7 @@ export default function ProductsPage() {
   const [filter, setFilter] = useState({
     search_string: '',
     categories: [],
-    supplier: '',
+    supplier: supplierFilter || '',
     attributeVariations: [],
     sortBy: '_id',
     sortOrder: -1
@@ -67,6 +71,8 @@ export default function ProductsPage() {
         sortOrder: filter?.sortOrder ?? '-1'
       })
 
+      console.log('response response', response)
+
       //dispatch(callCommonAction({ loading: false }))
       if (response.statusCode === 200 && response.data) {
 
@@ -80,6 +86,7 @@ export default function ProductsPage() {
           sku: item?.productDetail?.sku,
           status: item?.status,
           avatar: item?.variationImagesDetail?.[0]?.filePath,
+          avatar1: item?.variationImagesDetail?.[1]?.filePath,
           price: item?.regularPriceB2B,
           matchedVariationPrice: item?.matchedVariationPrice ?? 0
         }))

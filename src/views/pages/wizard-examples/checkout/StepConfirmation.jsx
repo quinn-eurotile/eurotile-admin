@@ -75,7 +75,6 @@ const StepConfirmation = () => {
   };
 
   const totals = calculateTotals();
-  console.log('cartItems', cartItems);
 
   return (
     <Grid container spacing={6}>

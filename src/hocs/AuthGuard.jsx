@@ -14,7 +14,7 @@ const AuthGuard = ({ children }) => {
   useEffect(() => {
     if (status === 'loading') return;
     //console.log('session', session);
-
+    if (pathname.includes('/payment')) return;
     if (!session) {
       // Get the language from the URL or default to 'en'
       const lang = pathname.split('/')[1] || 'en';

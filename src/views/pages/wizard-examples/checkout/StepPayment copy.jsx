@@ -163,8 +163,8 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
           />
         </Grid>
         <Grid size={{ xs: 12 }} className="flex gap-4">
-          <Button type="submit" variant="contained" disabled={!stripe || isProcessing}>
-            {isProcessing ? <CircularProgress size={24} /> : "Pay with Stripe"}
+          <Button loading={isProcessing} variant="outlined" disabled={!stripe || isProcessing}>
+            Pay with Stripe
           </Button>
         </Grid>
       </Grid>
