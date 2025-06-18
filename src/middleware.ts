@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
-import { adminRole, tradeProfessionalRole } from './configs/constant'
+import { adminRole, tradeProfessionalRole, retailCustomerRole } from './configs/constant'
 
 interface Role { id: string }
 interface User { roles: Role[]; id: string; email: string }
@@ -9,6 +9,8 @@ interface CustomToken { user: User }
 
 const ADMIN_PREFIX = '/en/admin'
 const TRADE_PREFIX = '/en/trade-professional'
+const RETAIL_PREFIX = '/en/user'
+
 const PUBLIC_ROUTES = [
   '/en/login',
   '/en/register',
@@ -32,6 +34,8 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/en/admin/dashboards/crm', request.url))
       } else if (roleIds.includes(tradeProfessionalRole.id)) {
         return NextResponse.redirect(new URL('/en/trade-professional/dashboard', request.url))
+      } else if (roleIds.includes(retailCustomerRole.id)) {
+        return NextResponse.redirect(new URL('/en/user/dashboard', request.url))
       }
     }
     return NextResponse.next()
@@ -46,6 +50,7 @@ export async function middleware(request: NextRequest) {
   const roleIds = token.user.roles.map(role => role.id)
   const isAdmin = roleIds.includes(adminRole?.id)
   const isTrade = roleIds.includes(tradeProfessionalRole?.id)
+  const isRetailCustomer = roleIds.includes(retailCustomerRole?.id)
 
   if (isAdmin && pathname.startsWith(TRADE_PREFIX)) {
     return NextResponse.redirect(new URL('/en/admin/dashboards/crm', request.url))
@@ -55,7 +60,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/en/trade-professional/dashboard', request.url))
   }
 
-  if (!isAdmin && !isTrade) {
+  if (isRetailCustomer && pathname.startsWith(RETAIL_PREFIX)) {
+    return NextResponse.redirect(new URL('/en/user/dashboard', request.url))
+  }
+
+  if (!isAdmin && !isTrade && !isRetailCustomer) {
     return NextResponse.redirect(new URL('/unauthorized', request.url))
   }
 
