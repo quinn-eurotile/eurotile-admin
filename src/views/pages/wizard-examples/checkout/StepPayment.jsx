@@ -208,8 +208,11 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
               {isProcessing ? 'Submitting...' : 'Pay with Stripe'}
             </Button>
           ) : (
-            <div className="flex gap-4 justify-center">
+            <div className="flex gap-4  flex-col">
+              <p><strong>Ready to place your order?</strong><br/>
+              Click below to confirm and complete your purchase.</p>
               <Button
+              className="w-auto"
               size="large"
               type='submit'
               variant='contained'

@@ -152,6 +152,7 @@ export const getCartData = async (userId) => {
     },
   };
 };
+
 export const addCart = async (data) => {
   return await cartApi.create(data);
 };
