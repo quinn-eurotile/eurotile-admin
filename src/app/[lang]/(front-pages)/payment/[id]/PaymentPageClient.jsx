@@ -203,7 +203,8 @@ export default function PaymentPageClient({ initialData, cartId, clientId }) {
   const handlePaymentSuccess = async (paymentResult) => {
     try {
       setIsProcessing(true);
-
+      console.log('paymentResult: paymentResult', paymentResult);
+      console.log('cartId: cartId', cartId);
       // Delete the cart using the existing removeCart action
       try {
        const response = await removeCartWhole(cartId);

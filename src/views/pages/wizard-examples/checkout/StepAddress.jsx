@@ -502,6 +502,7 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
     dispatch(addToCart(response.data));
     toast.success('Products added to cart successfully');
     setPriceDialogOpen(false);
+    window.location.reload();
   };
 
   if (loading) {

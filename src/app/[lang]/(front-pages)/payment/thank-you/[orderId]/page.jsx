@@ -82,7 +82,7 @@ const OrderDetails = ({ orderDetails }) => {
                     
                     <div className="text-left mb-4">
                       <Typography variant="body2" color="text.secondary">
-                        Order ID: {orderDetails._id}
+                        Order ID: {orderDetails.orderId}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Date: {new Date(orderDetails.createdAt).toLocaleDateString()}

@@ -48,12 +48,31 @@ const StripeWrapper = dynamic(
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
 
+function calculateCartTotal(cartItems) {
+  return cartItems.reduce((total, item) => {
+    let pricePerItem = 0;
+
+    if (item.isSample) {
+      // Use sampleAttributes.price if available, else fallback to 0
+      pricePerItem = Number(item.sampleAttributes?.price ?? 0);
+    } else {
+      pricePerItem = Number(item.price ?? 0);
+    }
+
+    return total + pricePerItem * (item.quantity ?? 1);
+  }, 0);
+}
+
+let cartTotal = 0;
+
 // Stripe Payment Form Component
 const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, selectedAddress, selectedShipping, orderSummary, user, cartItems }) => {
 
   // console.log(JSON.stringify(user), 'user 317');
 
+  // console.log("orderSummary:", orderSummary, "cartItems:", cartItems);
 
+  cartTotal = calculateCartTotal(cartItems);
 
   const stripe = useStripe();
   const elements = useElements();
@@ -70,7 +89,6 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
     setIsProcessing(true);
     setPaymentError(null);
     // console.log("orderSummary:", orderSummary);
-
 
     try {
       // Create payment intent using our API
@@ -91,11 +109,20 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
           paymentMethod: 'stripe',
           userId: user?._id,
           email: user?.email,
-
-
         }
       });
-      console.log("response 3333333333333:", response); // Add this line to see the paymentIntent object
+
+      if (cartTotal === 0 && response?.data?.orderId) {
+        onPaymentSuccess({
+          paymentIntentId: null,
+          orderId: response.data.orderId,
+          paymentMethod: "free",
+          status: true
+        });
+        return;
+      }
+
+      console.log('response: data data', response.data);
 
       if (!response.success) {
         setPaymentError(response.message || "Failed to create payment intent");
@@ -103,11 +130,6 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
       }
 
       const { clientSecret, orderId } = response.data;
-
-
-
-      console.log('clientSecret==============>', clientSecret);
-      console.log('orderId==============>', orderId);
 
       // Confirm payment with Stripe
       const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
@@ -119,9 +141,6 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
           },
         },
       });
-
-      console.log('paymentIntent:', paymentIntent);
-      console.log('confirmError:', confirmError);
 
       if (confirmError) {
         setPaymentError(confirmError.message);
@@ -145,23 +164,25 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
   return (
     <form onSubmit={handleSubmit}>
       <Grid container spacing={5}>
-        <Grid size={{ xs: 12 }}>
-          <div className="p-4 border rounded">
-            <CardElement
-              options={{
-                style: {
-                  base: {
-                    fontSize: "16px",
-                    color: "#424770",
-                    "::placeholder": {
-                      color: "#aab7c4",
+        {cartTotal > 0 &&
+          <Grid size={{ xs: 12 }}>
+            <div className="p-4 border rounded">
+              <CardElement
+                options={{
+                  style: {
+                    base: {
+                      fontSize: "16px",
+                      color: "#424770",
+                      "::placeholder": {
+                        color: "#aab7c4",
+                      },
                     },
                   },
-                },
-              }}
-            />
-          </div>
-        </Grid>
+                }}
+              />
+            </div>
+          </Grid>
+        }
         {paymentError && (
           <Grid size={{ xs: 12 }}>
             <Alert severity="error">{paymentError}</Alert>
@@ -177,14 +198,30 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
           {/* <Button type="submit" variant="contained" disabled={!stripe || isProcessing}>
             {true ? <CircularProgress size={24} /> : "Pay with Stripe"}
           </Button> */}
-          <Button
-            type='submit'
-            variant='contained'
-            disabled={!stripe || isProcessing}
-            startIcon={isProcessing && <i className="ri-loader-line animate-spin" />}
-          >
-            {isProcessing ? 'Submitting...' : 'Pay with Stripe'}
-          </Button>
+          {cartTotal > 0 ? (
+            <Button
+              type='submit'
+              variant='contained'
+              disabled={!stripe || isProcessing}
+              startIcon={isProcessing && <i className="ri-loader-line animate-spin" />}
+            >
+              {isProcessing ? 'Submitting...' : 'Pay with Stripe'}
+            </Button>
+          ) : (
+            <div className="flex gap-4 justify-center">
+              <Button
+              size="large"
+              type='submit'
+              variant='contained'
+              disabled={!stripe || isProcessing}
+              startIcon={isProcessing && <i className="ri-loader-line animate-spin" />}
+            >
+              {isProcessing ? 'Submitting...' : 'Confirm Order'}
+            </Button>
+              
+            </div>
+            
+          )}
         </Grid>
       </Grid>
     </form>
@@ -217,6 +254,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
     setPaymentData(null);
     setError("");
   };
+
   const calculateTotals = () => {
     if (!cartItems || cartItems.length === 0) return {
       subtotal: 0,
@@ -332,6 +370,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
     //   paymentDetails.status = verifyResponse.data.status;
     // }
     // await removeCart();
+    console.log('user?._id: user?._id', user);
     const response = await removeCartByUserId(user?._id);
     console.log("response removeCartWholeremoveCartWhole:", response);
     setPaymentData(paymentDetails);
@@ -409,7 +448,9 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
             aria-label="payment methods"
             pill="true"
           >
-            <Tab value="stripe" label="Credit Card (Stripe)" />
+            {cartTotal > 0 && (
+              <Tab value="stripe" label="Credit Card (Stripe)" />
+            ) }
             {/* <Tab value="klarna" label="Klarna" />
             <Tab value="cash-on-delivery" label="Cash On Delivery" /> */}
           </CustomTabList>
