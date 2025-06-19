@@ -175,10 +175,10 @@ const OrderListTable = () => {
           </div>
         )
       }),
-      columnHelper.accessor('items', {
-        header: 'Items',
-        cell: ({ row }) => <Typography>{row.original.items}</Typography>
-      }),
+      // columnHelper.accessor('items', {
+      //   header: 'Items',
+      //   cell: ({ row }) => <Typography>{row.original.items}</Typography>
+      // }),
       columnHelper.accessor('total', {
         header: 'Total',
         cell: ({ row }) => <Typography>${row.original.total.toFixed(2)}</Typography>
@@ -249,7 +249,7 @@ const OrderListTable = () => {
           placeholder='Search Orders'
           className='max-sm:is-full'
         />
-        <div className='flex items-center max-sm:flex-col gap-4 max-sm:is-full is-auto'>
+        {/* <div className='flex items-center max-sm:flex-col gap-4 max-sm:is-full is-auto'>
           <Button
             color='secondary'
             variant='outlined'
@@ -258,7 +258,7 @@ const OrderListTable = () => {
           >
             Export
           </Button>
-        </div>
+        </div> */}
       </div>
       <div className='overflow-x-auto'>
         <table className={tableStyles.table}>
