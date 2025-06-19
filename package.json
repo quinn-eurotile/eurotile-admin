@@ -66,6 +66,7 @@
     "html2pdf.js": "^0.9.0",
     "input-otp": "1.4.1",
     "jspdf": "^3.0.1",
+    "jszip": "^3.10.1",
     "keen-slider": "6.8.6",
     "lucide-react": "^0.513.0",
     "mapbox-gl": "3.9.0",
