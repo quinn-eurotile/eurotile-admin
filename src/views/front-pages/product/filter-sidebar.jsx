@@ -109,18 +109,18 @@ export default function FilterSidebar({
 
   const filterContent = (
     <>
-    <div className='relative mb-6'>
-          <input
-            type='text'
-            placeholder='Search'
-            value={searchText}
-            onChange={e => setSearchText(e.target.value)}
-            className='w-full border-0 border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-black'
-          />
-          <i className='ri-search-line text-xl absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400'></i>
-        </div>
+      <div className='relative mb-6'>
+        <input
+          type='text'
+          placeholder='Search'
+          value={searchText}
+          onChange={e => setSearchText(e.target.value)}
+          className='w-full border-0 border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-black'
+        />
+        <i className='ri-search-line text-xl absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400'></i>
+      </div>
       <div className='overflow-y-auto overflow-x-hidden max-h-[600px]'>
-        
+
 
         {/* Categories Filter */}
         {reawFilterData?.nestedCategories?.length > 0 && (

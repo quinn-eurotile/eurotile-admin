@@ -27,6 +27,27 @@ import CircularLoader from "@/components/common/CircularLoader";
 import axios from "axios";
 import { getLocalizedUrl } from "@/utils/i18n";
 import { redirect } from "next/navigation";
+import { saveAs } from 'file-saver';
+import JSZip from 'jszip';
+
+// OUTSIDE the component
+const calculateImageSize = async (variation, backendDomain) => {
+  if (!variation || !variation.variationImages || variation.variationImages.length === 0) {
+    return null;
+  }
+  let totalSize = 0;
+  for (const img of variation.variationImages) {
+    const url = `${backendDomain}${img.filePath}`;
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      const size = response.headers.get('content-length');
+      if (size) totalSize += parseInt(size, 10);
+    } catch (err) {
+      // ignore errors for size
+    }
+  }
+  return (totalSize / (1024 * 1024)).toFixed(1);
+};
 
 function ProductImageZoom({ src, alt }) {
   const sourceRef = useRef(null);
@@ -140,6 +161,8 @@ export default function ProductDetailPage() {
   const [palletsError, setPalletsError] = useState('');
   const pathname = usePathname();
 
+  const [zipSizeMB, setZipSizeMB] = useState(null);
+
   const fetchProductDetails = async () => {
     try {
       const response = await getProductDetails(productId);
@@ -201,6 +224,11 @@ export default function ProductDetailPage() {
     setVid(searchParams.get('vid'));
   }, [searchParams]);
 
+  useEffect(() => {
+    calculateImageSize(selectedVariation, process.env.NEXT_PUBLIC_BACKEND_DOMAIN)
+      .then(size => setZipSizeMB(size));
+  }, [selectedVariation]);
+
   const handleVariationChange = (attributeId, variationId) => {
     // Step 1: Update the selectedAttributes with the selected variationId
     const newAttributes = { ...selectedAttributes, [attributeId]: variationId };
@@ -221,19 +249,18 @@ export default function ProductDetailPage() {
 
     if (matchingVariation) {
       setSelectedVariation(matchingVariation);
-
-      // Reset image index when variation changes
       setCurrentImageIndex(0);
-
-      // Update pricing tier based on the new variation
       if (matchingVariation.regularPriceB2B) {
         updatePricingTier(quantity);
       }
-
-      // Update calculated values if they exist
       if (calculatedValues.sqm > 0) {
         calculateValues('sqm', calculatedValues.sqm);
       }
+      // Update the URL search params with the selected variation id
+      const params = new URLSearchParams(window.location.search);
+      params.set('vid', matchingVariation._id);
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      router.push(newUrl, { scroll: false });
     } else {
       setSelectedVariation(null);
     }
@@ -718,6 +745,30 @@ export default function ProductDetailPage() {
 
   const selected = selectedVariation || {};
 
+  // Helper to download all images for the selected variant as a zip
+  const handleDownloadImages = async () => {
+    if (!selectedVariation || !selectedVariation.variationImages || selectedVariation.variationImages.length === 0) {
+      toast.error('No images found for this variant.');
+      return;
+    }
+    const zip = new JSZip();
+    let totalSize = 0;
+    for (const img of selectedVariation.variationImages) {
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${img.filePath}`;
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        totalSize += blob.size;
+        zip.file(img.fileName || 'image.jpg', blob);
+      } catch (err) {
+        toast.error('Failed to fetch image: ' + (img.fileName || 'image'));
+      }
+    }
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    setZipSizeMB((zipBlob.size / (1024 * 1024)).toFixed(1));
+    saveAs(zipBlob, `${product?.name || 'images'}-variant.zip`);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navigation */}
@@ -762,43 +813,60 @@ export default function ProductDetailPage() {
                 ))}
               </div>
 
-              {/* <div className="bg-errorLighter border-b-2 flex items-center justify-between mt-10 px-3 rounded">
+              <div className="bg-errorLighter border-b-2 flex items-center justify-between mt-10 px-3 rounded">
                 <h4 className="font-normal uppercase">high resolution image pack</h4>
-                <p className="text-sm text-red-800 my-4">
-                  <a href="#" className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-900">Download 22.8MB</a>
+                <p className="text-sm text-red-800 my-4 flex items-center gap-2">
+                  <button type="button" onClick={handleDownloadImages} className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-900">
+                    Download Images{zipSizeMB ? ` (${zipSizeMB} MB)` : ''}
+                  </button>
                 </p>
-              </div> */}
-
-
-              <div className="mt-10">
-                <h3 className="text-lg font-medium text-black-800 mb-5">Other Colors Available In This Collection</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product?.productVariations
-                    ?.filter(variation => variation._id !== vid) // Use _id instead of id
-                    ?.map((variation, i) => (
-                      variation.variationImages?.[0] && (
-                        <div
-                          key={variation._id} // Use _id for key instead of index
-                          className={`border cursor-pointer rounded-md ${currentImageIndex === i ? "ring-2 ring-red-800" : ""}`}
-                          onClick={() => {
-                            router.push(`/${locale}/products/${product?._id}?vid=${variation._id}`);
-                            setVid(variation._id);
-                          }}
-                        >
-                          <div className="relative w-[80px] h-[80px]">
-                            <Image
-                              width={80}
-                              height={80}
-                              src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${variation.variationImages[0].filePath}` || "/placeholder.svg"}
-                              alt={`Variation ${i + 1}`}
-                              className="object-cover rounded-md w-full h-full"
-                            />
-                          </div>
-                        </div>
-                      )
-                    ))}
-                </div>
               </div>
+
+              {product?.productVariations.length > 1 && (
+
+                <div className="mt-10">
+                  <h3 className="text-lg font-medium text-black-800 mb-5">
+                    Other Colors Available In <strong> {product?.categories?.map(cat => cat.name).join(', ')} Collection </strong>
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {product?.productVariations
+                      ?.filter(variation => variation._id !== vid) // Use _id instead of id
+                      ?.map((variation, i) => {
+                        if (!variation.variationImages?.[0]) return null;
+                        // Find the color attribute variation for this variation
+                        const colorAttrVar = variation.attributeVariationsDetail?.find(
+                          av => av.metaKey?.toLowerCase() === 'color'
+                        );
+                        return (
+                          <div key={variation._id} className="flex flex-col items-center">
+                            <div
+                              className={`border cursor-pointer rounded-md ${currentImageIndex === i ? "ring-2 ring-red-800" : ""}`}
+                              onClick={() => {
+                                router.push(`/${locale}/products/${product?._id}?vid=${variation._id}`);
+                                setVid(variation._id);
+                              }}
+                            >
+                              <div className="relative w-[80px] h-[80px]">
+                                <Image
+                                  width={80}
+                                  height={80}
+                                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${variation.variationImages[0].filePath}` || "/placeholder.svg"}
+                                  alt={`Variation ${i + 1}`}
+                                  className="object-cover rounded-md w-full h-full"
+                                />
+                              </div>
+                            </div>
+                            {colorAttrVar && (
+                              <div className="text-xs text-center mt-2 font-medium text-gray-700">
+                                {colorAttrVar.metaValue}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
 
 
 
@@ -1367,17 +1435,37 @@ export default function ProductDetailPage() {
 
 
           <div className="mt-12">
-            <h2 className="text-2xl font-medium text-red-800 mb-6 text-center">More Products</h2>
-            {/* <RelatedProductGrid products={product?.associatedProduct} /> */}
-            <RelatedProductGrid products={product?.associatedProducts || []} />
+            <Tooltip
+              title={
+                "Tiles from the same supplier qualify for combined pricing tiers —\nbundle more to unlock bigger savings."
+              }
+              arrow
+            >
+              <h2 className="text-2xl font-medium text-red-800 mb-6 text-center">
+                Add more from{" "}
+                <Link
+                  href={{
+                    pathname: `/${locale}/products`,
+                    query: { supplier: product?.supplier?._id },
+                  }}
+                  className="underline hover:text-primary cursor-pointer"
+                >
+                  {product?.supplier?.companyName || ""}
+                </Link>{" "}
+                for better discounts
+              </h2>
+            </Tooltip>
 
+            <RelatedProductGrid products={product?.associatedProducts || []} />
           </div>
+
         </div>
 
-      </main>
+      </main >
 
       {/* Custom Price Dialog */}
-      <Dialog open={openPriceDialog} onClose={() => setOpenPriceDialog(false)}>
+      < Dialog open={openPriceDialog} onClose={() => setOpenPriceDialog(false)
+      }>
         <DialogTitle>Set Custom Price</DialogTitle>
         <DialogContent>
           <div className="mt-2 mb-4 text-sm text-gray-600">
@@ -1406,9 +1494,9 @@ export default function ProductDetailPage() {
             Add to Cart
           </Button>
         </DialogActions>
-      </Dialog>
+      </Dialog >
 
-    </div>
+    </div >
   );
 }
 
