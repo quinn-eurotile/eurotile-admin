@@ -185,12 +185,6 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen,
                       'bg-backgroundPaper rounded-e rounded-b': !isSender,
                       ' text-[var(--mui-palette-primary-contrastText)] rounded-s rounded-b': isSender
                     })}>
-                      {//console.log('msg content here', msg)}
-                      {msg.message && (
-                        <Typography style={{ wordBreak: 'break-word' }}>
-                          {msg.message}
-                        </Typography>
-                      )}
                       {msg?.filePath && (
                         <div className="mt-2">
                           {msg?.fileType === 'image' ? (
