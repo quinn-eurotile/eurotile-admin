@@ -135,6 +135,7 @@ export default function FilterSidebar({
                         label={category.name}
                         name='categories'
                         onChange={() => handleCheckboxChange('categories', category._id)}
+                        checked={filter.categories.includes(category._id)}
                       />
                     </div>
                     {category.children?.length > 0 && (
@@ -146,6 +147,7 @@ export default function FilterSidebar({
                               label={subCategory.name}
                               name='categories'
                               onChange={() => handleCheckboxChange('categories', subCategory._id)}
+                              checked={filter.categories.includes(subCategory._id)}
                             />
                           </div>
                         ))}

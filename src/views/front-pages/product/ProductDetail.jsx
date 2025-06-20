@@ -22,7 +22,7 @@ import { addToCart } from "@/redux-store/slices/cart";
 import { getSession, useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import {  calculateTierValue, convertSlugToName } from "@/components/common/helper";
+import { calculateTierValue, convertSlugToName } from "@/components/common/helper";
 import CircularLoader from "@/components/common/CircularLoader";
 import axios from "axios";
 import { getLocalizedUrl } from "@/utils/i18n";
@@ -553,12 +553,12 @@ export default function ProductDetailPage() {
   const handleAddToCart = async () => {
 
     const fullPath = `${pathname}?${searchParams.toString()}`;
- 
+
     const userId = session?.user?.id;
     if (!userId) {
       redirect(getLocalizedUrl('/en/login?', locale) + `&callbackUrl=${fullPath}`);
       // router.push(getLocalizedUrl('/en/login?', locale) + `&callbackUrl=${fullPath}`);
- 
+
     }
     // Skip quantity validation if it's a sample order
     if (!openSampleDialog) {
@@ -816,17 +816,31 @@ export default function ProductDetailPage() {
               <div className="bg-errorLighter border-b-2 flex items-center justify-between mt-10 px-3 rounded">
                 <h4 className="font-normal uppercase">high resolution image pack</h4>
                 <p className="text-sm text-red-800 my-4 flex items-center gap-2">
-                  <button type="button" onClick={handleDownloadImages} className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-900">
+                  <button type="button" onClick={handleDownloadImages} className="bg-red-800 cursor-pointer text-white px-4 py-2 rounded hover:bg-red-900">
                     Download Images{zipSizeMB ? ` (${zipSizeMB} MB)` : ''}
                   </button>
                 </p>
               </div>
 
               {product?.productVariations.length > 1 && (
-
                 <div className="mt-10">
                   <h3 className="text-lg font-medium text-black-800 mb-5">
-                    Other Colors Available In <strong> {product?.categories?.map(cat => cat.name).join(', ')} Collection </strong>
+                    Other Colors Available In{' '}
+                    {product?.categories?.map((cat, idx) => (
+                      <Link
+                        key={cat._id}
+                        href={{
+                          pathname: `/${locale}/products`,
+                          query: { category: cat._id }
+                        }}
+                        className="underline hover:text-primary cursor-pointer"
+                        style={{ marginRight: 4 }}
+                      >
+                        {cat.name}
+                        {idx < product.categories.length - 1 ? ', ' : ''}
+                      </Link>
+                    ))}
+                    Collection
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {product?.productVariations
@@ -846,7 +860,7 @@ export default function ProductDetailPage() {
                                 setVid(variation._id);
                               }}
                             >
-                              <div className="relative w-[80px] h-[80px]">
+                              <div className="relative w-[180px] h-[180px]">
                                 <Image
                                   width={80}
                                   height={80}
@@ -857,7 +871,7 @@ export default function ProductDetailPage() {
                               </div>
                             </div>
                             {colorAttrVar && (
-                              <div className="text-xs text-center mt-2 font-medium text-gray-700">
+                              <div className="text-md text-center mt-2 font-semibold text-gray-700">
                                 {colorAttrVar.metaValue}
                               </div>
                             )}
@@ -876,7 +890,7 @@ export default function ProductDetailPage() {
             <div>
               <h1 className="text-3xl font-medium text-red-800">{product.name || ""}</h1>
               <p className="text-sm text-gray-600">
-                From:{" "}
+                <span className="font-semibold">From:</span>{" "}
                 <Link
                   href={{
                     pathname: `/${locale}/products`,
@@ -886,6 +900,23 @@ export default function ProductDetailPage() {
                 >
                   {product?.supplier?.companyName || ''}
                 </Link>
+              </p>
+              <p className="text-sm text-gray-600">
+                <span className="font-semibold">Collection:</span>{" "}
+                {product?.categories?.map((cat, idx) => (
+                  <Link
+                    key={cat._id}
+                    href={{
+                      pathname: `/${locale}/products`,
+                      query: { category: cat._id }
+                    }}
+                    className="underline hover:text-primary cursor-pointer"
+                    style={{ marginRight: 4 }}
+                  >
+                    {cat.name}
+                    {idx < product.categories.length - 1 ? ', ' : ''}
+                  </Link>
+                ))}
               </p>
 
               <div className="flex items-center gap-1 my-2">
@@ -1204,11 +1235,11 @@ export default function ProductDetailPage() {
                   <div className="mb-6 p-4 bg-bgLight rounded-md">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-600">Price per SQ.M:</p>
+                        <p className="text-lg text-gray-600">Price per SQ.M:</p>
                         <p className="text-lg font-medium text-red-800">£{calculatedValues.pricePerSqm?.toFixed(2)}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Total Price:</p>
+                        <p className="text-lg text-gray-600">Total Price:</p>
                         <p className="text-lg font-medium text-red-800">£{calculatedValues.calculatedPrice?.toFixed(2)}</p>
                       </div>
                     </div>
@@ -1248,16 +1279,15 @@ export default function ProductDetailPage() {
                 )}
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  {/* <Button
+                  <Button
                     className="flex-1 bg-red-800 hover:bg-red-900 text-white"
-                    onClick={handleAddVariation}
                     disabled={
                       !quantity || quantity <= 0 || !!quantityError || !!tilesError || !!palletsError
                     }
                   >
-                    <i className="ri-add-line me-2 text-lg"></i>
-                    Add Variation
-                  </Button> */}
+                    <i className="ri-mail-line me-2 text-lg"></i>
+                    Get a Quote
+                  </Button>
                   <Button
                     className="flex-1 bg-red-800 hover:bg-red-900 text-white"
                     onClick={handleAddToCart}

@@ -21,6 +21,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 export default function ProductsPage() {
   const searchParams = useSearchParams();
   const supplierFilter = searchParams.get('supplier');
+  const categoryFilter = searchParams.get('category');
 
   const [rowSelection, setRowSelection] = useState({})
   const [data, setData] = useState([])
@@ -31,7 +32,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState({
     search_string: '',
-    categories: [],
+    categories: categoryFilter ? [categoryFilter] : [],
     supplier: supplierFilter || '',
     attributeVariations: [],
     sortBy: '_id',
@@ -41,6 +42,15 @@ export default function ProductsPage() {
   const [filterOpen, setFilterOpen] = useState(false)
   //const dispatch = useDispatch()
   const [anchorEl, setAnchorEl] = useState(null);
+
+  useEffect(() => {
+    if (categoryFilter) {
+      setFilter(prev => ({
+        ...prev,
+        categories: [categoryFilter]
+      }));
+    }
+  }, [categoryFilter]);
 
   useEffect(() => {
     fetchProductList(page + 1, rowsPerPage)
