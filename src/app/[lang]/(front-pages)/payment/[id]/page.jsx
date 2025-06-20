@@ -50,7 +50,8 @@ const PaymentPage = async props => {
       discount: 0,
       shipping: 0,
       subtotal: 0,
-      total: 0
+      total: 0,
+      shippingOption: null
     }
   };
 

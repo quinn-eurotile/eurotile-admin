@@ -23,7 +23,6 @@ const GuestOnlyRoute = ({ children }) => {
       } else {
         router.push(`/${lang}/unauthorized`);
       }
-
     }
   }, [session, status, pathname, router]);
 

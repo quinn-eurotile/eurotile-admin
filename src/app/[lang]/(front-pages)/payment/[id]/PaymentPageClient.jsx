@@ -40,7 +40,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
     try {
       // Create payment intent using our API
       const response = await createPaymentIntentPublic({
-        amount: Math.round(orderSummary.total * 100), // Convert to cents
+        amount: Math.round(cartData.total * 100), // Convert to cents
         currency: "usd", // Changed to EUR to match StepPayment
         saveCard,
         customerId: user?._id,
@@ -48,9 +48,10 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
         orderData: {
           userId: user?._id,
           subtotal: orderSummary.subtotal,
-          shipping: orderSummary.shipping,
+          shipping: cartData?.shipping,
           tax: orderSummary.tax || 0,
-          total: orderSummary.total,
+          total: cartData.total,
+          shippingOption: cartData.shippingOption,
           shippingAddress: selectedAddress,
           shippingMethod: selectedShipping || 'standard',
           paymentMethod: 'stripe',
@@ -168,7 +169,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
               <span>Processing...</span>
             </div>
           ) : (
-            `Pay €${orderSummary.total.toFixed(2)}`
+            `Pay €${cartData.total.toFixed(2)}`
           )}
         </Button>
       </div>
@@ -191,7 +192,7 @@ export default function PaymentPageClient({ initialData, cartId, clientId }) {
   const [error, setError] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('stripe');
   const [isProcessing, setIsProcessing] = useState(false);
-   
+   console.log('initialData', initialData);
   useEffect(() => {
     // Validate required data
     if (!initialData?.cartItems?.length || !initialData.client) {
@@ -203,12 +204,12 @@ export default function PaymentPageClient({ initialData, cartId, clientId }) {
   const handlePaymentSuccess = async (paymentResult) => {
     try {
       setIsProcessing(true);
-      console.log('paymentResult: paymentResult', paymentResult);
-      console.log('cartId: cartId', cartId);
+      //console.log('paymentResult: paymentResult', paymentResult);
+      //console.log('cartId: cartId', cartId);
       // Delete the cart using the existing removeCart action
       try {
        const response = await removeCartWhole(cartId);
-       console.log("response removeCartWholeremoveCartWhole:", response);
+       //console.log("response removeCartWholeremoveCartWhole:", response);
       } catch (cartError) {
         console.error('Failed to delete cart, but payment was successful:', cartError);
       }
@@ -258,7 +259,8 @@ export default function PaymentPageClient({ initialData, cartId, clientId }) {
       subtotal: 0,
       discount: 0,
       shipping: 0,
-      total: 0
+      total: 0,
+      shippingOption: null
     };
 
     const subtotal = initialData?.cartItems.reduce((sum, item) => {
@@ -267,13 +269,15 @@ export default function PaymentPageClient({ initialData, cartId, clientId }) {
 
     const discount = initialData?.orderSummary?.discount || 0;
     const shipping = initialData?.orderSummary?.shipping || 0;
+    const shippingOption = initialData?.orderSummary?.shippingOption || null;
     const total = subtotal - discount + shipping;
 
     return {
       subtotal,
       discount,
       shipping,
-      total
+      total,
+      shippingOption
     };
   };
 
@@ -331,12 +335,16 @@ export default function PaymentPageClient({ initialData, cartId, clientId }) {
                     </div>
                     <div className="flex justify-between">
                       <Typography>Shipping:</Typography>
-                      <Typography>£{totals?.shipping.toFixed(2)}</Typography>
+                      <Typography>£{parseFloat(initialData?.cartData?.shipping)?.toFixed(2)}</Typography>
+                    </div>
+                    <div className="flex justify-between">
+                      <Typography>Vat:</Typography>
+                      <Typography>£{parseFloat(initialData?.cartData?.vat)?.toFixed(2)}</Typography>
                     </div>
                     <Divider className="my-2" />
                     <div className="flex justify-between font-bold">
                       <Typography variant="h6">Total:</Typography>
-                      <Typography variant="h6" color="primary">£{totals?.total.toFixed(2)}</Typography>
+                      <Typography variant="h6" color="primary">£{initialData?.cartData?.total.toFixed(2)}</Typography>
                     </div>
                   </div>
                 </CardContent>

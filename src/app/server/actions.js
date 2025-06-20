@@ -23,6 +23,7 @@ import { addressService } from '@/services/address';
 import { adminSettingServices } from '@/services/adminSetting';
 import { cartApi } from '@/services/cart/index';
 import { orderServices } from '@/services/order';
+import { shippingOption } from '@/services/shippingOption';
 
 export const getEcommerceData = async () => {
   return eCommerceData;
@@ -89,6 +90,14 @@ export const getProductList = async (currentPage, rowsPerPage, searchTerm, filte
 
 export const getAllProductList = async () => {
   return await productExportServices.getAll();
+};
+
+export const getAllShippingOptions = async () => {
+  return await shippingOption.getAll();
+};
+
+export const updateShippingOption = async (id, data) => {
+  return await shippingOption.update(id, data);
 };
 
 export const getFrontProductList = async (currentPage, rowsPerPage, searchTerm, filteredData) => {

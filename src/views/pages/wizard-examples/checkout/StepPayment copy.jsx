@@ -51,7 +51,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 // Stripe Payment Form Component
 const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, selectedAddress, selectedShipping, orderSummary, user, cartItems }) => {
 
-  // console.log(JSON.stringify(user), 'user 317');
+  // //console.log(JSON.stringify(user), 'user 317');
 
 
   const stripe = useStripe();
@@ -68,7 +68,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
 
     setIsProcessing(true);
     setPaymentError(null);
-    // console.log("orderSummary:", orderSummary);
+    // //console.log("orderSummary:", orderSummary);
 
 
     try {
@@ -90,7 +90,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
           userId: user?._id
         }
       });
-      console.log("response 3333333333333:", response); // Add this line to see the paymentIntent object
+      //console.log("response 3333333333333:", response); // Add this line to see the paymentIntent object
 
       if (!response.success) {
         setPaymentError(response.message || "Failed to create payment intent");
@@ -110,8 +110,8 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
         },
       });
 
-      console.log('paymentIntent:', paymentIntent);
-      console.log('confirmError:', confirmError);
+      //console.log('paymentIntent:', paymentIntent);
+      //console.log('confirmError:', confirmError);
 
       if (confirmError) {
         setPaymentError(confirmError.message);
@@ -174,11 +174,11 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
 
 const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, selectedShipping, addresses, user }) => {
 
-  console.log("cartItems:", cartItems);
-  // console.log("orderSummary:", orderSummary);
-  // console.log("selectedAddress:", selectedAddress);
-  // console.log("selectedShipping:", selectedShipping);
-  // console.log("addresses:", addresses);
+  //console.log("cartItems:", cartItems);
+  // //console.log("orderSummary:", orderSummary);
+  // //console.log("selectedAddress:", selectedAddress);
+  // //console.log("selectedShipping:", selectedShipping);
+  // //console.log("addresses:", addresses);
   const { data: session, status } = useSession();
   // Context
   const { setStepValid, loading, setOrderData } = useContext(CheckoutContext);
@@ -299,7 +299,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
     // Delete the cart using the existing removeCart action
     try {
       // const response = await removeCart(cartItems[0]?.cartId);
-      // console.log("response removeCartWholeremoveCartWhole:", response);
+      // //console.log("response removeCartWholeremoveCartWhole:", response);
     } catch (cartError) {
       console.error('Failed to delete cart, but payment was successful:', cartError);
     }
@@ -314,7 +314,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
     // }
     // await removeCart();
     const response = await removeCartByUserId(user?._id);
-    console.log("response removeCartWholeremoveCartWhole:", response);
+    //console.log("response removeCartWholeremoveCartWhole:", response);
     setPaymentData(paymentDetails);
     setStepValid(2, true);
     handleNext();

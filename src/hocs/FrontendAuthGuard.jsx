@@ -14,7 +14,7 @@ const FrontendAuthGuard = ({ children }) => {
     if (status === 'loading') return;
     // Skip auth for payment pages
     if (pathname.includes('/payment')) return;
-    //console.log('session', session);
+    ////console.log('session', session);
 
     if (!session) {
       // Get the language from the URL or default to 'en'
@@ -24,13 +24,13 @@ const FrontendAuthGuard = ({ children }) => {
     } 
     else {
       const userRole = session?.user?.roleNames;
-      //console.log('userRole', userRole);
+      ////console.log('userRole', userRole);
 
       // Check if the current path is products or checkout related
       const isProductPath = pathname.includes('/products');
       const isCheckoutPath = pathname.includes('/checkout');
       const isFrontendPath = pathname.includes('/front-pages');
-      //console.log(isProductPath, 'isProductPath');
+      ////console.log(isProductPath, 'isProductPath');
 
 
 

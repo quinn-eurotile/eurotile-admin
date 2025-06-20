@@ -14,7 +14,7 @@ const InvoiceTemplate = ({ invoiceData }) => {
   const total = invoiceData?.total || 0;
   const currency = '£';
 
-  console.log(invoiceData,'545455455454544545');
+  //console.log(invoiceData,'545455455454544545');
 
   return (
     <div style={{ margin: 0, padding: 0, fontFamily: 'Arial, sans-serif', backgroundColor: '#f5f5f5', fontSize: 14 }}>

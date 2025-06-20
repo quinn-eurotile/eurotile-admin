@@ -35,7 +35,7 @@ import OpenDialogOnElementClick from "@components/dialogs/OpenDialogOnElementCli
 
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard";
-import { addCart, deleteAddresses, getAddresses, getAllClients, removeCart, removeCartByUserId, sendPaymentLinkToClient } from "@/app/server/actions";
+import { addCart, deleteAddresses, getAddresses, getAllClients, getAllShippingOptions, removeCart, removeCartByUserId, sendPaymentLinkToClient } from "@/app/server/actions";
 import { cartApi } from "@/services/cart";
 import { tradeProfessionalsApi } from "@/services/trade-professionals";
 import { FormControl } from "@mui/material";
@@ -57,7 +57,7 @@ const VerticalContent = styled(Typography, {
   textAlign: "center",
 });
 
-const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => {
+const StepAddress = ({ handleNext, cartItems }) => {
   // Context
   const {
     addresses,
@@ -66,6 +66,7 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
     setSelectedAddress,
     selectedShipping,
     setSelectedShipping,
+    orderSummary,
     setOrderSummary,
     setStepValid,
     loading,
@@ -98,7 +99,9 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
   const { data: session, status } = useSession();
   const dispatch = useDispatch();
   // const router = useRouter();
-  //// console.log(isClientOrder, 'isClientOrder');
+  //// //console.log(isClientOrder, 'isClientOrder');
+  const [shippingLoading, setShippingLoading] = useState(false);
+  const [shippingData, setShippingData] = useState([]);
 
   // Button props for add address
   const buttonProps = {
@@ -107,49 +110,114 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
     className: "self-start",
   };
 
+  // const getShippingMethodName = async () => {
+  //   const shippingOption = await getAllShippingOptions();
+  //   setShippingData(shippingOption?.data);
+  //   //console.log(shippingOption, 'shippingOption')
+  //   return shippingOption;
+  // };
 
-  // Shipping options
-  const shippingOptions = [
-    {
-      value: "standard",
-      title: "Standard",
-      asset: "ri-user-3-line",
-      content: (
-        <>
-          <Chip size="small" variant="tonal" label="Free" color="success" className="absolute inline-end-5" />
-          <VerticalContent variant="body2" className="my-auto">
-            Get your product in 1 Week.
-          </VerticalContent>
-        </>
-      ),
-    },
-    {
-      value: "express",
-      title: "Express",
-      asset: "ri-star-smile-line",
-      content: (
-        <>
-          <Chip label="$10" variant="tonal" size="small" color="secondary" className="absolute inline-end-5" />
-          <VerticalContent variant="body2" className="my-auto">
-            Get your product in 3-4 days.
-          </VerticalContent>
-        </>
-      ),
-    },
-    {
-      value: "overnight",
-      title: "Overnight",
-      asset: "ri-vip-crown-line",
-      content: (
-        <>
-          <Chip label="$15" variant="tonal" size="small" color="secondary" className="absolute inline-end-5" />
-          <VerticalContent variant="body2" className="my-auto">
-            Get your product in 1 day.
-          </VerticalContent>
-        </>
-      ),
-    },
-  ];
+  // useEffect(() => {
+  //   getShippingMethodName();
+  // }, []);
+
+
+  // // Shipping options
+  // const shippingOptions = [
+  //   {
+  //     value: "standard",
+  //     title: "Standard Delivery",
+  //     asset: "ri-user-3-line",
+  //     content: (
+  //       <>
+  //         <Chip size="small" variant="tonal" label="Free" color="success" className="absolute inline-end-5" />
+  //         <VerticalContent variant="body2" className="my-auto">
+  //           Get your product in 1 Week.
+  //         </VerticalContent>
+  //       </>
+  //     ),
+  //   },
+  //   {
+  //     value: "express",
+  //     title: "Express",
+  //     asset: "ri-star-smile-line",
+  //     content: (
+  //       <>
+  //         <Chip label="$10" variant="tonal" size="small" color="secondary" className="absolute inline-end-5" />
+  //         <VerticalContent variant="body2" className="my-auto">
+  //           Get your product in 3-4 days.
+  //         </VerticalContent>
+  //       </>
+  //     ),
+  //   },
+  //   {
+  //     value: "overnight",
+  //     title: "Overnight",
+  //     asset: "ri-vip-crown-line",
+  //     content: (
+  //       <>
+  //         <Chip label="$15" variant="tonal" size="small" color="secondary" className="absolute inline-end-5" />
+  //         <VerticalContent variant="body2" className="my-auto">
+  //           Get your product in 1 day.
+  //         </VerticalContent>
+  //       </>
+  //     ),
+  //   },
+  // ];
+
+  const [shippingOptions, setShippingOptions] = useState([]);
+
+  const getShippingMethodName = async () => {
+    try {
+      const response = await getAllShippingOptions();
+      const shippingOptionList = response?.data || [];
+      // Map API response to UI format
+      const formattedOptions = shippingOptionList.map((item, index) => ({
+        value: item._id,
+        title: item.name,
+        cost: item.cost,
+        minDays: item.minDays,
+        maxDays: item.maxDays,
+        description: item.description,
+        asset: getAssetIcon(index),
+        content: (
+          <>
+            <Chip
+              size="small"
+              variant="tonal"
+              label={item.cost === 0 ? "Free" : `£${item.cost}`}
+              color={item.cost === 0 ? "success" : "secondary"}
+              className="absolute inline-end-5"
+            />
+            <VerticalContent variant="body2" className="my-auto">
+              {`Get your product in ${item.minDays === item.maxDays ? `${item.minDays} day${item.minDays > 1 ? "s" : ""}` : `${item.minDays}-${item.maxDays} days`}.`}
+            </VerticalContent>
+          </>
+        ),
+      }));
+      setSelectedShipping(formattedOptions[0]?.value);
+   
+      setShippingOptions(formattedOptions);
+      handleShippingChange(formattedOptions[0]?.value, formattedOptions);
+    } catch (error) {
+      console.error("Failed to load shipping methods:", error);
+    }
+  };
+
+  // Example asset icon logic (optional customization)
+  const getAssetIcon = (index) => {
+    const icons = ["ri-user-3-line", "ri-star-smile-line", "ri-vip-crown-line"];
+    return icons[index] || "ri-truck-line";
+  };
+
+  // Call this in useEffect
+  useEffect(() => {
+    getShippingMethodName();
+  }, []);
+
+
+
+
 
   // Handle address selection
   const handleAddressChange = (value) => {
@@ -158,42 +226,37 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
   };
 
   // Handle shipping option change
-  const handleShippingChange = async (value) => {
+  const handleShippingChange = async (selectedId, formattedOptions) => {
+    console.log('shippingOptions', formattedOptions);
     setIsUpdating(true);
     try {
-      // Calculate shipping cost based on selected method
-      const shippingCost = value === 'express' ? 10 : value === 'overnight' ? 15 : 0;
-
+      // Find the selected shipping option by _id
+      const selectedOption = formattedOptions.find(opt => opt.value === selectedId);
+      const shippingCost = selectedOption ? selectedOption.cost : 0;
       // Calculate new total with shipping
       const subtotal = cartItems?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
-      const total = subtotal + shippingCost;
+      const totalShippingCost = cartItems?.reduce((sum, item) => sum + (item.quantity * shippingCost), 0) || 0;
+      const total = subtotal + totalShippingCost + orderSummary?.vat;
 
+      //console.log('shippingCost', shippingCost);
       // Update shipping method and costs in context
-      setSelectedShipping(value);
-      setOrderSummary(prev => ({
-        ...prev,
-        shipping: shippingCost,
-        total: total
-      }));
-
-      // Update cart with new shipping method
-      // const response = await cartApi.updateCart({
-      //   userId: user?._id,
-      //   shippingMethod: value,
-      //   shippingCost: shippingCost,
-      //   total: total
-      // });
-
-      // if (!response.success) {
-      // Revert changes if API call fails
-      setSelectedShipping(prev => prev);
-      setOrderSummary(prev => prev);
-      // toast.error(response.message || 'Failed to update shipping method');
-      // }
+      setSelectedShipping(selectedId);
+      setOrderSummary(prev => {
+        const updatedSummary = {
+          ...prev,
+          shipping: totalShippingCost,
+          shippingOption: selectedId,
+          total: total,
+          selectedOption: selectedOption
+        };
+        console.log('updatedSummary', updatedSummary);
+        calculateOrderSummaryData(updatedSummary); // ✅ latest state
+        return updatedSummary;
+      });
+      // Optionally update cart on backend here
     } catch (error) {
       console.error("Error updating shipping method:", error);
       toast.error('Failed to update shipping method');
-      // Revert changes on error
       setSelectedShipping(prev => prev);
       setOrderSummary(prev => prev);
     } finally {
@@ -425,7 +488,7 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
     setClientLoading(true);
     try {
       const response = await getAllClients();
-      // // console.log(response, 'response 55 getAllClients');
+      // // //console.log(response, 'response 55 getAllClients');
 
       if (response.success) {
         setClients(response.data);
@@ -513,6 +576,7 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
     );
   }
   const sentClientToPayment = async () => {
+    console.log('sentClientToPayment orderSummary', orderSummary);
     setIsUpdating(true);
     try {
       // Generate a unique cart identifier
@@ -520,8 +584,10 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
 
       // Calculate totals
       const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const shippingCost = selectedShipping === 'express' ? 10 : selectedShipping === 'overnight' ? 15 : 0;
-      const total = subtotal + shippingCost;
+      const shippingCost = orderSummary?.shipping || 0;
+      const totalShippingCost = cartItems.reduce((sum, item) => sum + (shippingCost * item.quantity), 0);
+      const shippingOption = orderSummary?.shippingOption || null;
+      const total = subtotal + totalShippingCost + orderSummary?.vat;
 
       // Prepare data for payment link
       const paymentLinkData = {
@@ -537,19 +603,24 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
         shippingMethod: selectedShipping,
         orderSummary: {
           subtotal,
-          shipping: shippingCost,
-          total
+          shipping: totalShippingCost,
+          total,
+          vat: orderSummary?.vat,
+          shippingOption,
         },
         tradeProfessionalId: session?.user?.id
       };
+
+
+      console.log('paymentLinkData', paymentLinkData);
 
       const response = await sendPaymentLinkToClient(paymentLinkData);
 
       if (response.success) {
 
         toast.success('Payment link sent to client successfully');
-        const response = await removeCartByUserId(user?._id);
-        console.log("response removeCartWholeremoveCartWhole:", response);
+        await removeCartByUserId(user?._id);
+        //console.log("response removeCartWholeremoveCartWhole:", response);
         // router.push('/en/products');
         // Clear the cart or handle post-success actions
       } else {
@@ -563,7 +634,48 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
     }
   };
 
-  // // console.log(clients, 'kkkk');
+  // // //console.log(clients, 'kkkk');
+
+  const calculateOrderSummaryData = (orderSummaryData) => {
+    return (
+      <div className="flex flex-col gap-4 rounded border p-4">
+        <Typography variant="h6">Order Summary</Typography>
+        <CardContent className="flex flex-col gap-4 p-0">
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2 justify-between flex-wrap">
+              <Typography color="text.primary">Subtotal</Typography>
+              <Typography>£{orderSummaryData?.subtotal?.toFixed(2) || "0.00"}</Typography>
+            </div>
+            <div className="flex justify-between flex-wrap">
+              <Typography color="text.primary">Shipping</Typography>
+              <div className="flex gap-2">
+                {orderSummaryData?.shipping > 0 ? (
+                  <Typography>£{orderSummaryData?.shipping?.toFixed(2)}</Typography>
+                ) : (
+                  <Chip size="small" variant="tonal" color="success" label="Free" />
+                )}
+              </div>
+            </div>
+            {orderSummary?.vat > 0 && (
+              <div className="flex justify-between flex-wrap">
+                <Typography color="text.primary">VAT ({orderSummary?.vatRate}%)</Typography>
+                <Typography>£{orderSummary?.vat?.toFixed(2)}</Typography>
+              </div>
+            )}
+          </div>
+        </CardContent>
+        <Divider />
+        <CardContent className="flex items-center justify-between flex-wrap p-0">
+          <Typography className="font-medium" color="text.primary">
+            Total
+          </Typography>
+          <Typography className="font-medium" color="text.primary">
+            £{orderSummary?.total?.toFixed(2) || "0.00"}
+          </Typography>
+        </CardContent>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -644,11 +756,10 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
                 if (item.asset && typeof item.asset === "string") {
                   asset = <i className={classnames(item.asset, "text-[28px]")} />;
                 }
-
                 return (
                   <CustomInputVertical
                     type="radio"
-                    key={index}
+                    key={item.value}
                     gridProps={{
                       size: {
                         sm: 4,
@@ -657,7 +768,7 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
                     }}
                     selected={selectedShipping}
                     name="shipping-option"
-                    handleChange={handleShippingChange}
+                    handleChange={() => handleShippingChange(item.value, shippingOptions)}
                     data={typeof item.asset === "string" ? { ...item, asset } : item}
                     disabled={isUpdating}
                   />
@@ -671,42 +782,9 @@ const StepAddress = ({ handleNext, cartItems, orderSummary, adminSettings }) => 
 
         <Grid size={{ xs: 12, lg: 4 }} className="flex flex-col gap-4">
           {/* Order Summary Card */}
-          <div className="flex flex-col gap-4 rounded border p-4">
-            <Typography variant="h6">Order Summary</Typography>
-            <CardContent className="flex flex-col gap-4 p-0">
-              <div className="flex flex-col gap-2">
-                <div className="flex gap-2 justify-between flex-wrap">
-                  <Typography color="text.primary">Subtotal</Typography>
-                  <Typography>£{orderSummary?.subtotal?.toFixed(2) || "0.00"}</Typography>
-                </div>
-                <div className="flex justify-between flex-wrap">
-                  <Typography color="text.primary">Shipping</Typography>
-                  <div className="flex gap-2">
-                    {orderSummary?.shipping > 0 ? (
-                      <Typography>£{orderSummary?.shipping?.toFixed(2)}</Typography>
-                    ) : (
-                      <Chip size="small" variant="tonal" color="success" label="Free" />
-                    )}
-                  </div>
-                </div>
-                {orderSummary?.vat > 0 && (
-                  <div className="flex justify-between flex-wrap">
-                    <Typography color="text.primary">VAT ({orderSummary?.vatRate}%)</Typography>
-                    <Typography>£{orderSummary?.vat?.toFixed(2)}</Typography>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-            <Divider />
-            <CardContent className="flex items-center justify-between flex-wrap p-0">
-              <Typography className="font-medium" color="text.primary">
-                Total
-              </Typography>
-              <Typography className="font-medium" color="text.primary">
-                £{orderSummary?.total?.toFixed(2) || "0.00"}
-              </Typography>
-            </CardContent>
-          </div>
+          {
+            calculateOrderSummaryData(orderSummary)
+          }
 
           <div className="flex justify-end">
 

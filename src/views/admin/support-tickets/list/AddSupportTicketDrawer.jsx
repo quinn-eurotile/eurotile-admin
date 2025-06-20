@@ -62,7 +62,7 @@ const AddSupportTicketDrawer = ({ open, handleClose, refreshList, editData, setE
       const response = await getOrderListForSupportTicket();
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
-        console.log(response?.data, 'response?.dataresponse?.dataresponse?.data')
+        //console.log(response?.data, 'response?.dataresponse?.dataresponse?.data')
         setOrders(response?.data);
       }
     } catch (error) {

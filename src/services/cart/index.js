@@ -7,7 +7,7 @@ export const cartApi = createApiService(CART_API, {
   getCart: async userId => {
     try {
       const response = await api.get(`${CART_API}/${userId}`)
-      // console.log(response.data, 'response.data 317');
+      // //console.log(response.data, 'response.data 317');
 
       return response.data
     } catch (error) {
@@ -32,7 +32,7 @@ export const cartApi = createApiService(CART_API, {
         id: itemId,
         quantity
       })
-      // // console.log(response, 'response.data 317');
+      // // //console.log(response, 'response.data 317');
 
       return response
     } catch (error) {
@@ -120,7 +120,7 @@ export const cartApi = createApiService(CART_API, {
   },
   // Payment methods
   createPaymentIntent: async data => {
-    console.log('createPaymentIntent ajsxbsaxbsx =================', data)
+    //console.log('createPaymentIntent ajsxbsaxbsx =================', data)
     return await api.post(`${PAYMENT_ENDPOINT}/stripe/create-payment-intent`, data)
   },
   verifyStripePayment: async paymentIntentId => {

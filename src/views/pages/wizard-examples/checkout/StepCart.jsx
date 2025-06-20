@@ -58,7 +58,7 @@ const StepCart = ({ handleNext }) => {
     calculateOrderSummary
   } = useContext(CheckoutContext);
 
-  console.log(cartItems, 'cartItems.............');
+  //console.log(cartItems, 'cartItems.............');
 
   useEffect(() => {
     if (!openFade) {
@@ -76,7 +76,7 @@ const StepCart = ({ handleNext }) => {
     setError("");
     try {
       const response = await updateCartItem(itemId, newQuantity);
-       console.log(response, 'response updateCartItem');
+       //console.log(response, 'response updateCartItem');
       if (response.success) {
         const { items, orderSummary: newOrderSummary } = response.data;
         setCartItems(items);
@@ -177,7 +177,7 @@ const StepCart = ({ handleNext }) => {
       </div>
     );
   }
-  // // console.log(JSON.stringify(orderSummary, null, 2), 'orderSummary');
+  // // //console.log(JSON.stringify(orderSummary, null, 2), 'orderSummary');
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-4">
@@ -419,7 +419,7 @@ const StepCart = ({ handleNext }) => {
                 )}
               </div> */}
 
-              <div className="flex items-center justify-between">
+              {/* <div className="flex items-center justify-between">
                 <Typography color="text.primary">Shipping Charges</Typography>
                 <div className="flex items-center gap-2">
                   {orderSummary?.shipping > 0 ? (
@@ -433,7 +433,7 @@ const StepCart = ({ handleNext }) => {
                     </>
                   )}
                 </div>
-              </div>
+              </div> */}
 
               <div className="flex items-center justify-between">
                 <Typography color="text.primary">VAT ({orderSummary?.vatRate || 0}%)</Typography>

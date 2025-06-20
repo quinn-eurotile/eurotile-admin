@@ -148,7 +148,7 @@ const CommissionListTable = ({userId}) => {
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await getTradeProfessionalCommissionList(currentPage, pageSize, search, filter);
-      console.log('response', response);
+      //console.log('response', response);
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
         // Define mappings

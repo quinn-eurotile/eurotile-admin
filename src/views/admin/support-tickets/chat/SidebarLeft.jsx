@@ -40,7 +40,7 @@ const renderChat = props => {
   // Props
   const { chatStore, getActiveUserData, setSidebarOpen, backdropOpen, setBackdropOpen, isBelowMdScreen } = props;
 
-  // console.log('chatStore', chatStore);
+  // //console.log('chatStore', chatStore);
 
   return chatStore.chats.map(chat => {
 

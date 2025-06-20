@@ -83,7 +83,7 @@ const OrderDetails = ({ orderData: initialOrderData }) => {
 
     if (!order) return null
 
-    console.log(initialOrderData,'orderorderorder');
+    //console.log(initialOrderData,'orderorderorder');
 
     return (
         <Grid container spacing={6}>

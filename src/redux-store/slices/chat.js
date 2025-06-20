@@ -21,7 +21,7 @@ export const chatSlice = createSlice({
   initialState,
   reducers: {
     setChatData: (state, action) => {
-      // console.log(action.payload, 'action.payload');
+      // //console.log(action.payload, 'action.payload');
       state.contacts = action.payload.contacts;
       state.chats = action.payload.chats;
       state.profileUser = action.payload.profileUser;
@@ -58,7 +58,7 @@ export const chatSlice = createSlice({
     },
     sendMsg: (state, action) => {
       const { data } = action.payload;
-      console.log('data comming', data);
+      //console.log('data comming', data);
       const existingChat = state.chats.find(chat => chat.userId === state.activeUser?.id);
 
       if (existingChat) {

@@ -71,7 +71,7 @@ export default function ProductsPage() {
         sortOrder: filter?.sortOrder ?? '-1'
       })
 
-      console.log('response response', response)
+      //console.log('response response', response)
 
       //dispatch(callCommonAction({ loading: false }))
       if (response.statusCode === 200 && response.data) {

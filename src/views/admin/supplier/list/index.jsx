@@ -104,7 +104,7 @@ const SupplierMemberList = ({ initialData, fetchSupplierList, deleteTeamMember, 
     0: 'Inactive'
   }
   const handleSupplierStatusToggle = async rowData => {
-    // console.log("rowDatarowData", rowData)
+    // //console.log("rowDatarowData", rowData)
     const currentStatus = rowData.status
     const newStatus = currentStatus === 1 ? 0 : 1
     await updateStatus(rowData.id, newStatus)

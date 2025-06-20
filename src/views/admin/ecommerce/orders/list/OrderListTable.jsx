@@ -105,10 +105,10 @@ const OrderListTable = () => {
   const fetchOrders = async (currentPage = 1, searchTerm = '') => {
     try {
       dispatch(callCommonAction({ loading: true }))
-      console.log(filteredData, 'filteredData')
+      //console.log(filteredData, 'filteredData')
 
       const response = await getOrderList(currentPage, rowsPerPage, searchTerm, filteredData)
-      console.log(response, 'response')
+      //console.log(response, 'response')
       if (response?.statusCode === 200 && response.data) {
         const formatted = response.data.docs.map(order => ({
           id: order._id,
@@ -203,7 +203,7 @@ const OrderListTable = () => {
     ],
     [locale]
   )
-  console.log(data, 'data')
+  //console.log(data, 'data')
 
   const table = useReactTable({
     data,

@@ -15,16 +15,18 @@ import Typography from '@mui/material/Typography';
 import ColorSelector from "./ColorSelector";
 import RelatedProductGrid from "./related-product";
 import { addCart, getProductDetails } from "@/app/server/actions";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "@/redux-store/slices/cart";
 
 import { getSession, useSession } from "next-auth/react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-import { calculateNewVariantTierValue, calculateTierValue, convertSlugToName } from "@/components/common/helper";
+import {  calculateTierValue, convertSlugToName } from "@/components/common/helper";
 import CircularLoader from "@/components/common/CircularLoader";
 import axios from "axios";
+import { getLocalizedUrl } from "@/utils/i18n";
+import { redirect } from "next/navigation";
 
 function ProductImageZoom({ src, alt }) {
   const sourceRef = useRef(null);
@@ -136,11 +138,12 @@ export default function ProductDetailPage() {
   const [quantityError, setQuantityError] = useState('');
   const [tilesError, setTilesError] = useState('');
   const [palletsError, setPalletsError] = useState('');
+  const pathname = usePathname();
 
   const fetchProductDetails = async () => {
     try {
       const response = await getProductDetails(productId);
-      console.log(response, 'responseresponseresponseresponse')
+      //console.log(response, 'responseresponseresponseresponse')
       if (response?.success && response?.data) {
         setProduct(response.data);
 
@@ -262,8 +265,8 @@ export default function ProductDetailPage() {
       ? [product.productFeaturedImage.filePath]
       : ["/placeholder.svg"];
 
-  // console.log('selectedVariation', selectedVariation);
-  // console.log('productImages', productImages);
+  // //console.log('selectedVariation', selectedVariation);
+  // //console.log('productImages', productImages);
   // Update product images to use variation images
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % productImages.length);
@@ -403,7 +406,7 @@ export default function ProductDetailPage() {
       const { tierAddOn, tierMultiplyBy } = tierData;
       // Calculate price per sqm for this tier
       pricePerSqm = calculateTierValue(
-        selectedVariation.purchasedPrice,
+        selectedVariation.regularPriceB2B,
         1.17,
         tierAddOn,
         tierMultiplyBy
@@ -521,6 +524,15 @@ export default function ProductDetailPage() {
   };
 
   const handleAddToCart = async () => {
+
+    const fullPath = `${pathname}?${searchParams.toString()}`;
+ 
+    const userId = session?.user?.id;
+    if (!userId) {
+      redirect(getLocalizedUrl('/en/login?', locale) + `&callbackUrl=${fullPath}`);
+      // router.push(getLocalizedUrl('/en/login?', locale) + `&callbackUrl=${fullPath}`);
+ 
+    }
     // Skip quantity validation if it's a sample order
     if (!openSampleDialog) {
       // Validate quantity first
@@ -627,6 +639,13 @@ export default function ProductDetailPage() {
         userId: session?.user?.id
       });
 
+      //console.log('response: response', response);
+
+      if (response.statusCode === 422) {
+        toast.error(response.message);
+        return;
+      }
+
       if (response.success) {
         dispatch(addToCart(response.data));
         toast.success('Products added to cart successfully');
@@ -642,7 +661,8 @@ export default function ProductDetailPage() {
         setError(response.message || 'Failed to add items to cart');
       }
     } catch (err) {
-      setError('Error adding items to cart');
+      toast.error(err.message || 'Error adding items to cart');
+      setError(err.message || 'Error adding items to cart');
       console.error(err);
     }
   };
@@ -650,7 +670,7 @@ export default function ProductDetailPage() {
     return slug.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
   };
   // const cart = useSelector(state => state.cartReducer);
-  // // console.log('Current Cart:', cart);
+  // // //console.log('Current Cart:', cart);
   // 🟩 Calculate thresholds and map them to discounts
   const getDynamicTierData = () => {
     // const { tierDiscount } = selectedVariation;
@@ -947,7 +967,7 @@ export default function ProductDetailPage() {
                             <td className="px-4 py-2 border-r">{tier.label}</td>
                             <td className="px-4 py-2 border-r">{tier.tierName}</td>
                             <td className="px-4 py-2">£{calculateTierValue(
-                              selectedVariation?.purchasedPrice,
+                              selectedVariation?.regularPriceB2B,
                               1.17,
                               selectedVariation?.tierDiscount?.[tier.tierKey]?.tierAddOn,
                               selectedVariation?.tierDiscount?.[tier.tierKey]?.tierMultiplyBy
@@ -987,7 +1007,7 @@ export default function ProductDetailPage() {
                       av => av.productAttribute === attributeId
                     );
 
-                    console.log('attributeVariations', attributeVariations)
+                    //console.log('attributeVariations', attributeVariations)
 
 
                     if (attributeVariations.length === 0) return null;
@@ -1160,7 +1180,7 @@ export default function ProductDetailPage() {
                 )}
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Button
+                  {/* <Button
                     className="flex-1 bg-red-800 hover:bg-red-900 text-white"
                     onClick={handleAddVariation}
                     disabled={
@@ -1169,7 +1189,7 @@ export default function ProductDetailPage() {
                   >
                     <i className="ri-add-line me-2 text-lg"></i>
                     Add Variation
-                  </Button>
+                  </Button> */}
                   <Button
                     className="flex-1 bg-red-800 hover:bg-red-900 text-white"
                     onClick={handleAddToCart}

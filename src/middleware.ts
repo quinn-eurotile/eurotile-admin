@@ -46,6 +46,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  if (pathname.startsWith('/en/checkout')) {
+    return NextResponse.next()
+  }
+
   // 3. Role-based routing
   const roleIds = token.user.roles.map(role => role.id)
   const isAdmin = roleIds.includes(adminRole?.id)
@@ -73,6 +77,15 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder files (images, etc.)
+     * - /en/products (product pages, excluded from middleware)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|images|en/products|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot)).*)',
   ],
 }

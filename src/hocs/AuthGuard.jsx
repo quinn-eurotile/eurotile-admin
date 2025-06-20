@@ -13,7 +13,7 @@ const AuthGuard = ({ children }) => {
 
   useEffect(() => {
     if (status === 'loading') return;
-    //console.log('session', session);
+    ////console.log('session', session);
     if (pathname.includes('/payment')) return;
     if (!session) {
       // Get the language from the URL or default to 'en'
@@ -23,7 +23,7 @@ const AuthGuard = ({ children }) => {
     }
     // else {
     //   const userRole = session?.user?.roleNames;
-    //   console.log('userRole', userRole);
+    //   //console.log('userRole', userRole);
 
     //   // Check if the current path is products or checkout related
     //   const isProductPath = pathname.includes('/products');

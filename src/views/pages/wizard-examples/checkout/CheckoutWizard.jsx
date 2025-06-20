@@ -217,7 +217,7 @@ const getStepContent = (step, handleNext, handleBack, checkoutData) => {
 const CheckoutWizard = ({ initialData }) => {
   // Get user session
   const { data: session, status } = useSession()
-  // console.log(initialData, 'initialData 3142');
+  // //console.log(initialData, 'initialData 3142');
   // States
   const [activeStep, setActiveStep] = useState(0)
   const [cartItems, setCartItems] = useState(initialData?.cartItems || [])
@@ -244,7 +244,7 @@ const CheckoutWizard = ({ initialData }) => {
   const [open, setOpen] = useState(false)
   const [addressData, setAddressData] = useState(null)
 
-  console.log('stepValidation', stepValidation)
+  //console.log('stepValidation', stepValidation)
   // Check if step is valid
   const isStepValid = step => stepValidation[step]
 
@@ -346,8 +346,8 @@ const CheckoutWizard = ({ initialData }) => {
 
     // Get other values
     const discount = orderSummary?.discount || 0;
-    const shipping = selectedShipping === "express" ? 10 :
-                    selectedShipping === "overnight" ? 15 : 0;
+    const shipping = orderSummary?.shipping || 0;
+    const shippingOption = orderSummary?.shippingOption || null;
 
     // Calculate VAT on subtotal minus discount
     const vatRate = initialData?.adminSettings?.vatOnOrder || 0;
@@ -362,7 +362,8 @@ const CheckoutWizard = ({ initialData }) => {
       shipping,
       vat,
       total,
-      vatRate
+      vatRate,
+      shippingOption
     };
   }, [cartItems, orderSummary?.discount, selectedShipping, initialData?.adminSettings?.vatOnOrder]);
 

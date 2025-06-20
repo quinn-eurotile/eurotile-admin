@@ -38,7 +38,7 @@ const Layout = async ({ children }) => {
     <Providers direction='ltr'>
       <BlankLayout systemMode={systemMode}>
         <IntersectionProvider>
-          <FrontendAuthGuard>
+          {/* <FrontendAuthGuard> */}
             <FrontLayout>
               {children}
               <ScrollToTop className='mui-fixed'>
@@ -50,7 +50,7 @@ const Layout = async ({ children }) => {
                 </Button>
               </ScrollToTop>
             </FrontLayout>
-          </FrontendAuthGuard>
+          {/* </FrontendAuthGuard> */}
         </IntersectionProvider>
       </BlankLayout>
     </Providers>

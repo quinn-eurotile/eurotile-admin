@@ -69,7 +69,7 @@ const NotificationDropdown = () => {
         limit: 10,
         filter: {}
       });
-      console.log(result,'result fetchNotifications');
+      //console.log(result,'result fetchNotifications');
       // Safely handle the response with null checks
       const notificationsList = result?.notifications || [];
       const totalPages = result?.totalPages || 1;
@@ -97,7 +97,7 @@ const NotificationDropdown = () => {
   const fetchUnreadCount = async () => {
     try {
       const result = await getUnreadNotificationCount();
-      console.log(result,'result');
+      //console.log(result,'result');
       // Safely handle the count with null check
       setUnreadCount(result?.count || 0);
     } catch (error) {
@@ -128,7 +128,7 @@ const NotificationDropdown = () => {
         )
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
-      console.log(notification.type , notification.metadata?.orderId?._id,'notification.metadata?.orderId?._id checkk');
+      //console.log(notification.type , notification.metadata?.orderId?._id,'notification.metadata?.orderId?._id checkk');
       // Navigate based on notification type
       if (notification.type === 'ORDER_STATUS' || notification.type === 'ORDER_CREATION' && notification.metadata?.orderId?._id) {
         router.push(`/admin/ecommerce/orders/${notification.metadata.orderId?._id}`);

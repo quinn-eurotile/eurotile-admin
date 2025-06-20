@@ -66,11 +66,11 @@ function calculateCartTotal(cartItems) {
 let cartTotal = 0;
 
 // Stripe Payment Form Component
-const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, selectedAddress, selectedShipping, orderSummary, user, cartItems }) => {
+const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, selectedAddress, selectedShipping, orderSummary, user, cartItems, setOrderSummary }) => {
 
-  // console.log(JSON.stringify(user), 'user 317');
+  // //console.log(JSON.stringify(user), 'user 317');
 
-  // console.log("orderSummary:", orderSummary, "cartItems:", cartItems);
+  // //console.log("orderSummary:", orderSummary, "cartItems:", cartItems);
 
   cartTotal = calculateCartTotal(cartItems);
 
@@ -88,7 +88,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
 
     setIsProcessing(true);
     setPaymentError(null);
-    // console.log("orderSummary:", orderSummary);
+    // //console.log("orderSummary:", orderSummary);
 
     try {
       // Create payment intent using our API
@@ -106,6 +106,7 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
           total: orderSummary.total,
           shippingAddress: selectedAddress,
           shippingMethod: selectedShipping,
+          shippingOption: orderSummary.shippingOption,
           paymentMethod: 'stripe',
           userId: user?._id,
           email: user?.email,
@@ -122,14 +123,14 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
         return;
       }
 
-      console.log('response: data data', response.data);
+      //console.log('response: data data', response.data);
 
       if (!response.success) {
         setPaymentError(response.message || "Failed to create payment intent");
         return;
       }
 
-      const { clientSecret, orderId } = response.data;
+      const { clientSecret, orderId, order } = response.data;
 
       // Confirm payment with Stripe
       const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
@@ -145,6 +146,11 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
       if (confirmError) {
         setPaymentError(confirmError.message);
       } else {
+        setOrderSummary(prev => ({
+          ...prev,
+          orderId : orderId,
+          order:order
+        }));
         onPaymentSuccess({
           paymentIntentId: paymentIntent.id,
           orderId: orderId,
@@ -233,14 +239,14 @@ const StripePaymentForm = ({ onPaymentSuccess, isProcessing, setIsProcessing, se
 
 const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selectedAddress, selectedShipping, addresses, user }) => {
 
-  console.log("cartItems:", cartItems);
-  // console.log("orderSummary:", orderSummary);
-  // console.log("selectedAddress:", selectedAddress);
-  // console.log("selectedShipping:", selectedShipping);
-  // console.log("addresses:", addresses);
+  //console.log("cartItems:", cartItems);
+  // //console.log("orderSummary:", orderSummary);
+  // //console.log("selectedAddress:", selectedAddress);
+  // //console.log("selectedShipping:", selectedShipping);
+  // //console.log("addresses:", addresses);
   const { data: session, status } = useSession();
   // Context
-  const { setStepValid, loading, setOrderData } = useContext(CheckoutContext);
+  const { setStepValid, loading, setOrderData, setOrderSummary } = useContext(CheckoutContext);
   const [mounted, setMounted] = useState(false);
   const [value, setValue] = useState("stripe");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -359,7 +365,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
     // Delete the cart using the existing removeCart action
     try {
       // const response = await removeCart(cartItems[0]?.cartId);
-      // console.log("response removeCartWholeremoveCartWhole:", response);
+      // //console.log("response removeCartWholeremoveCartWhole:", response);
     } catch (cartError) {
       console.error('Failed to delete cart, but payment was successful:', cartError);
     }
@@ -373,9 +379,9 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
     //   paymentDetails.status = verifyResponse.data.status;
     // }
     // await removeCart();
-    console.log('user?._id: user?._id', user);
+    //console.log('user?._id: user?._id', user);
     const response = await removeCartByUserId(user?._id);
-    console.log("response removeCartWholeremoveCartWhole:", response);
+    //console.log("response removeCartWholeremoveCartWhole:", response);
     setPaymentData(paymentDetails);
     setStepValid(2, true);
     handleNext();
@@ -415,16 +421,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
   // Get selected address details
   const selectedAddressDetails = addresses?.find((addr) => addr.id === selectedAddress);
 
-  const handlePaymentComplete = (paymentData) => {
-    // Store payment data for order completion
-    setOrderData(prev => ({
-      ...prev,
-      payment: paymentData
-    }));
-
-    // Move to confirmation step
-    handleNext();
-  };
+ 
 
   if (!mounted || loading) {
     return (
@@ -471,6 +468,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                     cartItems={cartItems}
                     selectedAddress={selectedAddress}
                     selectedShipping={selectedShipping}
+                    setOrderSummary={setOrderSummary}
                   />
                 </StripeWrapper>
               </TabPanel>
@@ -566,6 +564,12 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                   )}
                 </div>
               </div>
+              <div className="flex items-center justify-between gap-2">
+                <Typography color="text.primary">Vat</Typography>
+                <div className="flex gap-2">
+                    <Typography>${orderSummary.vat?.toFixed(2) || "0.00"}</Typography>
+                </div>
+              </div>
             </div>
           </CardContent>
           <Divider />
@@ -575,7 +579,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
                 <Typography className="font-medium" color="text.primary">
                   Total Amount
                 </Typography>
-                <Typography className="font-medium">${totals.total?.toFixed(2) || "0.00"}</Typography>
+                <Typography className="font-medium">${orderSummary.total?.toFixed(2) || "0.00"}</Typography>
               </div>
               <div className="flex items-center justify-between gap-2">
                 <Typography className="font-medium" color="text.primary">

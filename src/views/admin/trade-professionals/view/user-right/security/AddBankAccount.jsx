@@ -44,7 +44,7 @@ const AddBankAccount = () => {
     const fetchAccountStatus = async () => {
         try {
             const response = await getStripeAccountStatus();
-            console.log('Account Status:', response); // Log the response for debugging purpose
+            //console.log('Account Status:', response); // Log the response for debugging purpose
             if (response?.data?.success) {
                 setAccountStatus(response?.data?.data);
             }
@@ -57,7 +57,7 @@ const AddBankAccount = () => {
     const onSubmit = async () => {
         try {
             const response = await addBankAccountForTradeProfessional();
-            console.log('Response:', response); // Log the response for debugging purpose
+            //console.log('Response:', response); // Log the response for debugging purpose
             if (response.success && response.data?.object === "account_link") {
                 window.open(response.data.url, '_blank');
                 // Refresh status after a short delay to allow for completion

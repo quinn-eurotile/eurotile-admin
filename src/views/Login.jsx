@@ -105,7 +105,16 @@ const Login = ({ mode }) => {
       redirect: false
     })
 
-    if (res && res.ok && res.error === null) {
+    if (res && res.ok && res.error === null) {  
+
+      const callbackUrl = searchParams.get('callbackUrl');
+      //console.log(callbackUrl, 'callbackUrl')
+      if (callbackUrl) {
+        //console.log(callbackUrl, 'callbackUrl 5656565565')
+        router.push(callbackUrl);
+        return false;
+      }
+      
       const redirectURL = await getDashboardRedirectUrl()
       router.replace(redirectURL)
     } else {

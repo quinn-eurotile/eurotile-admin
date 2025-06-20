@@ -61,12 +61,12 @@ const ChatWrapper = () => {
   const isBelowSmScreen = useMediaQuery(theme => theme.breakpoints.down('sm'));
 
   const fetchChatData = async (currentPage = 1, searchTerm = '') => {
-    // console.log('fetchChatData api call', ticketId, currentPage, rowsPerPage, searchTerm);
+    // //console.log('fetchChatData api call', ticketId, currentPage, rowsPerPage, searchTerm);
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await getChatMessageForTicket(ticketId, currentPage, rowsPerPage, searchTerm, {});
 
-      console.log('response contact fetchChatData', response);
+      //console.log('response contact fetchChatData', response);
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
         setHasNextPage(response?.data?.hasNextPage);
@@ -98,10 +98,10 @@ const ChatWrapper = () => {
     try {
       const nextPage = ticketPage + 1;
       const response = await loadMoreTickets(null, nextPage, rowsPerPage, '', {});
-      console.log('response load more tickets', response);
+      //console.log('response load more tickets', response);
       if (response.statusCode === 200 && response.data) {
         const newData = response.data;
-        // console.log('newData', newData);
+        // //console.log('newData', newData);
         setHasNextPage(response?.data?.hasNextPage);
         setHasPrevPage(response?.data?.hasPrevPage);
         // Append new data to existing data
@@ -133,7 +133,7 @@ const ChatWrapper = () => {
         setHasNextPageMessages(response?.data?.hasNextPageMessages);
         setHasPrevPageMessages(response?.data?.hasPrevPageMessages);
         const newMessages = response.data.chats; // newMessages.chat is the array of old messages
-        console.log('newData handleLoadMoreMessages', newMessages);
+        //console.log('newData handleLoadMoreMessages', newMessages);
         const updatedChats = chatStore.chats.map(chat => {
           if (chat.id === ticketId) {
             return {

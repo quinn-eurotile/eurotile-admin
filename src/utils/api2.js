@@ -10,7 +10,7 @@ export const api2 =   () => {
     const sendRequest = async (endpoint, method = 'GET', body = null) => {
       const session = await getSession();
 
-      // console.log(
+      // //console.log(
         session,'session'
       );
 

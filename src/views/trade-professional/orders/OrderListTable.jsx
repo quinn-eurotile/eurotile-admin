@@ -130,7 +130,7 @@ const OrderListTable = ({ orderData, isDashboard = false }) => {
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await payoutProcess({ amount: parseFloat(amount) });
-      console.log(response, 'responseresponseresponseresponse');
+      //console.log(response, 'responseresponseresponseresponse');
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
         fetchOrderList(page, rowsPerPage);

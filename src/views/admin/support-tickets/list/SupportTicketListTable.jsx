@@ -1,11 +1,11 @@
 'use client';
-
+ 
 // React Imports
 import { useEffect, useState, useMemo } from 'react';
 import Grid from '@mui/material/Grid2';
 // Next Imports
 import Link from 'next/link';
-
+ 
 // MUI Imports
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
@@ -19,7 +19,7 @@ import IconButton from '@mui/material/IconButton';
 import { styled } from '@mui/material/styles';
 import TablePagination from '@mui/material/TablePagination';
 import usePermission from '../../../../components/common/usePermission';
-
+ 
 // Third-party Imports
 import classnames from 'classnames';
 import { rankItem } from '@tanstack/match-sorter-utils';
@@ -35,20 +35,20 @@ import {
   getPaginationRowModel,
   getSortedRowModel
 } from '@tanstack/react-table';
-
+ 
 // Component Imports
 import TableFilters from './TableFilters';
 import AddSupportTicketDrawer from './AddSupportTicketDrawer';
 import OptionMenu from '@core/components/option-menu';
 import CustomAvatar from '@core/components/mui/Avatar';
-
+ 
 // Util Imports
 import { getInitials } from '@/utils/getInitials';
-import { getLocalizedUrl } from '@/utils/i18n';
-
+import { getLocalizedUrl, getRoleBasedSupportTicketUrl } from '@/utils/i18n';
+ 
 // Style Imports
 import tableStyles from '@core/styles/table.module.css';
-
+ 
 import { deleteSupportTicket, createSupportTicket, getSupportTicketList } from '@/app/server/support-ticket';
 import { callCommonAction } from '@/redux-store/slices/common';
 import ConfirmationDialog from '@/components/dialogs/confirmation-dialog';
@@ -59,14 +59,15 @@ import Image from 'next/image';
 import { Box, Tooltip } from '@mui/material';
 import { useParams, useRouter } from 'next/navigation';
 import moment from 'moment';
-
+import { useSession } from 'next-auth/react';
+ 
 // Styled Components
 const Icon = styled('i')({});
-
+ 
 const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...props }) => {
   // States
   const [value, setValue] = useState(initialValue);
-
+ 
   useEffect(() => {
     setValue(initialValue);
   }, [initialValue]);
@@ -74,14 +75,14 @@ const DebouncedInput = ({ value: initialValue, onChange, debounce = 500, ...prop
     const timeout = setTimeout(() => {
       onChange(value);
     }, debounce);
-
+ 
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
-
+ 
   return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />;
 };
-
+ 
 const ticketStatusLabel = {
   1: 'Open',
   2: 'Closed',
@@ -91,7 +92,7 @@ const ticketStatusLabel = {
   6: 'Rejected',
   7: 'Cancelled'
 };
-
+ 
 const ticketStatusObj = {
   1: 'secondary',
   2: 'default',
@@ -101,10 +102,10 @@ const ticketStatusObj = {
   6: 'warning',
   7: 'error'
 };
-
+ 
 // Column Definitions
 const columnHelper = createColumnHelper();
-
+ 
 const SupportTicketListTable = () => {
   // Hooks
   const router = useRouter();
@@ -117,24 +118,24 @@ const SupportTicketListTable = () => {
   const [totalRecords, setTotalRecords] = useState(0);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState({ status: '' });
-  const [globalFilter, setGlobalFilter] = useState('');
   const [openConfirmation, setOpenConfirmation] = useState(false); // State for dialog
   const [selectedId, setSelectedId] = useState(null);
   const [statsData, setStatsData] = useState(null);
   const [editData, setEditData] = useState(null);
-  const NEXT_PUBLIC_BACKEND_DOMAIN = process.env.NEXT_PUBLIC_BACKEND_DOMAIN;
-
+  const { data: session } = useSession();
+ 
+  const roleIds = session?.user?.roles?.map(role => role.id)
+ 
   const canAddSupportTicket = usePermission("create-support-ticket");
   const canUpdateSupportTicket = usePermission("update-support-ticket");
   const canDeleteSupportTicket = usePermission("delete-support-ticket");
-  const canViewSupportTicket = usePermission("view-support-ticket");
-
-
-  console.log('canUpdateSupportTicket', canUpdateSupportTicket)
-  console.log('canAddSupportTicket', canAddSupportTicket)
-  console.log('canViewSupportTicket', canViewSupportTicket)
-  console.log('canDeleteSupportTicket', canDeleteSupportTicket)
-
+ 
+ 
+  // //console.log('canUpdateSupportTicket', canUpdateSupportTicket)
+  // //console.log('canAddSupportTicket', canAddSupportTicket)
+  // //console.log('canViewSupportTicket', canViewSupportTicket)
+  // //console.log('canDeleteSupportTicket', canDeleteSupportTicket)
+ 
   const issueTypeOptions = {
     1: { label: 'Order Issue', color: 'info' },
     2: { label: 'Payment Issue', color: 'default' },
@@ -142,15 +143,15 @@ const SupportTicketListTable = () => {
     4: { label: 'Product Issue', color: 'primary' },
     5: { label: 'General Issue', color: 'error' }
   }
-
-
+ 
+ 
   // Hooks
   const { lang: locale } = useParams();
-
+ 
   useEffect(() => {
     fetchSupportTickets(page + 1, rowsPerPage);
   }, [page, rowsPerPage, search, filter]);
-
+ 
   const fetchSupportTickets = async (currentPage = 1, pageSize = rowsPerPage) => {
     try {
       dispatch(callCommonAction({ loading: true }));
@@ -165,7 +166,7 @@ const SupportTicketListTable = () => {
           pending: 'warning',
           rejected: 'error'
         };
-
+ 
         const statusTitles = {
           open: 'Open Tickets',
           in_progress: 'In Progress Tickets',
@@ -173,7 +174,7 @@ const SupportTicketListTable = () => {
           pending: 'Pending Tickets',
           rejected: 'Rejected Tickets'
         };
-
+ 
         const statusIcons = {
           open: 'ri-user-follow-line',
           in_progress: 'ri-loader-4-line',
@@ -181,11 +182,11 @@ const SupportTicketListTable = () => {
           pending: 'ri-time-line',
           rejected: 'ri-close-line'
         };
-
+ 
         // Get response data
         const totalDocs = response?.data?.totalDocs || 0;
         const statusSummary = response?.data?.statusSummary || {};
-
+ 
         // Get percentage trend
         const getTrend = count => {
           const percentage = totalDocs ? ((count / totalDocs) * 100).toFixed(2) : 0;
@@ -194,7 +195,7 @@ const SupportTicketListTable = () => {
             trend: percentage >= 50 ? 'positive' : 'negative'
           };
         };
-
+ 
         // Build stats array dynamically
         const stats = [
           {
@@ -216,7 +217,7 @@ const SupportTicketListTable = () => {
             };
           })
         ];
-
+ 
         setStatsData(stats);
         const formatted = response?.data?.docs?.map(ticket => ({
           id: ticket?._id,
@@ -234,8 +235,8 @@ const SupportTicketListTable = () => {
           username: ticket?.subject,
           supportticketmsgs: ticket?.supportticketmsgs
         }));
-
-
+ 
+ 
         setPage(page);
         setData(formatted);
         setTotalRecords(response.data.totalDocs || 0);
@@ -245,11 +246,11 @@ const SupportTicketListTable = () => {
       console.error('Failed to fetch team members', error);
     }
   };
-
+ 
   const refreshList = async () => {
     await fetchSupportTickets();
   };
-
+ 
   const deleteMethod = async valueInBoolean => {
     if (valueInBoolean) {
       try {
@@ -263,36 +264,37 @@ const SupportTicketListTable = () => {
       }
     }
   };
-
+ 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
-
+ 
   const handleChangeRowsPerPage = event => {
     const newSize = parseInt(event.target.value, 10);
     setRowsPerPage(newSize);
     table.setPageSize(newSize)
     setPage(0);
   };
-
+ 
   const handleDeleteConfirmation = id => {
     setSelectedId(id);
     setOpenConfirmation(true);
   };
-
+ 
   // Handle Edit (open AddUserDrawer with current data)
   const handleEdit = id => {
     const selectedData = data.find(result => result.id === id);
     setEditData(selectedData);
     setAddSupportTicketOpen(true);
   };
-
+ 
+ 
   const columns = useMemo(
     () => [
       columnHelper.accessor('subject', {
         header: 'Subject',
         cell: ({ row }) => (
-          <div onClick={() => router.push(getLocalizedUrl(`/admin/support-tickets/view/${row.original.id}`, locale))} className='flex cursor-pointer items-center gap-4'>
+          <div onClick={() => router.push(getRoleBasedSupportTicketUrl(row.original.id, roleIds, locale))} className='flex cursor-pointer items-center gap-4'>
             {getAvatar({ avatar: row?.original?.avatar, subject: row?.original?.subject })}
             <div className='flex flex-col'>
               <Tooltip title={row.original?.subject}>
@@ -327,7 +329,7 @@ const SupportTicketListTable = () => {
         header: 'Issue Type',
         cell: ({ row }) => (
           <div className='flex items-center gap-3'>
-
+ 
             <Chip
               variant='tonal'
               label={issueTypeOptions[row.original?.issue_type]?.label || ''}
@@ -338,12 +340,12 @@ const SupportTicketListTable = () => {
           </div>
         )
       }),
-
+ 
       columnHelper.accessor('sender_detail', {
         header: 'Customer Name',
         cell: ({ row }) => (
-          //// console.log('row.originalrow.original', row)
-
+          //// //console.log('row.originalrow.original', row)
+ 
           < Typography className='capitalize' color='text.primary' >
             {row.original?.sender_name}
           </Typography >
@@ -363,7 +365,7 @@ const SupportTicketListTable = () => {
           const filePath = row?.original?.supportticketmsgs?.filePath;
           const fileType = row?.original?.supportticketmsgs?.fileType;
           const fileURL = `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${filePath}`;
-
+ 
           return (
             <Box>
               {filePath ?
@@ -399,7 +401,7 @@ const SupportTicketListTable = () => {
           );
         }
       }),
-
+ 
       columnHelper.accessor('status', {
         header: 'Status',
         cell: ({ row }) => (
@@ -434,7 +436,7 @@ const SupportTicketListTable = () => {
             }
             {/* {canViewSupportTicket &&
               <IconButton>
-                <Link href={getLocalizedUrl(`/admin/support-tickets/view/${row.original.id}`, locale)} className='flex'>
+                <Link href={getRoleBasedSupportTicketUrl(row.original.id, session?.user?.roles, locale)} className='flex'>
                   <i className='ri-eye-line text-textSecondary' />
                 </Link>
               </IconButton>
@@ -445,10 +447,10 @@ const SupportTicketListTable = () => {
       })
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data]
+    [data, session, locale]
   );
-
-  const table = useReactTable({
+ 
+ const table = useReactTable({
     data,
     columns,
     state: { rowSelection },
@@ -458,10 +460,10 @@ const SupportTicketListTable = () => {
     getPaginationRowModel: getPaginationRowModel(),
     onRowSelectionChange: setRowSelection
   });
-
+ 
   const getAvatar = params => {
     const { avatar, fullName } = params;
-
+ 
     if (avatar) {
       return <CustomAvatar src={avatar} skin='light' size={34} />;
     } else {
@@ -472,7 +474,7 @@ const SupportTicketListTable = () => {
       );
     }
   };
-
+ 
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
@@ -558,7 +560,7 @@ const SupportTicketListTable = () => {
               )}
             </table>
           </div>
-
+ 
           <TablePagination
             component='div'
             count={totalRecords}
@@ -591,5 +593,5 @@ const SupportTicketListTable = () => {
     </Grid>
   );
 };
-
+ 
 export default SupportTicketListTable;

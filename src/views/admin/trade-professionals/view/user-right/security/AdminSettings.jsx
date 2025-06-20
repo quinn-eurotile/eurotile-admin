@@ -38,7 +38,7 @@ const AdminSettingsForm = () => {
         try {
             dispatch(callCommonAction({ loading: true }));
             const response = await getAdminSettingDetail(adminSettingId);
-            console.log(response, 'responseresponseresponse')
+            //console.log(response, 'responseresponseresponse')
             dispatch(callCommonAction({ loading: false }));
             if (response.statusCode === 200) {
                 setValue('currencyConversionRate', response?.data?.currencyConversionRate || '');

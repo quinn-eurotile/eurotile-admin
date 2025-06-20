@@ -9,7 +9,7 @@ import { useParams } from "next/navigation";
 
 export default function RelatedProductGrid({ products }) {
 
-  console.log(products, 'hello');
+  //console.log(products, 'hello');
   const { lang: locale} = useParams();
   if (!products || products.length === 0) {
     return <div>No related products available.</div>;

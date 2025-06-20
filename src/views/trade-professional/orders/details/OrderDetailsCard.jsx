@@ -73,7 +73,7 @@ import html2pdf from 'html2pdf.js';
 const columnHelper = createColumnHelper();
 
 const OrderTable = ({ orderedProduct }) => {
-  console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct');
+  //console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct');
 
   // States
   const [rowSelection, setRowSelection] = useState({});
@@ -284,7 +284,7 @@ const OrderDetailsCard = ({ data }) => {
     }
   };
 
-  // console.log('data comming', data);
+  // //console.log('data comming', data);
 
   return (
     <Card>

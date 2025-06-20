@@ -38,7 +38,7 @@ const userData = {
 }
 
 const CustomerDetails = ({ orderData, data }) => {
-  // console.log(orderData, 'orderDataorderData')
+  // //console.log(orderData, 'orderDataorderData')
   // Vars
   const typographyProps = (children, color, className) => ({
     children,

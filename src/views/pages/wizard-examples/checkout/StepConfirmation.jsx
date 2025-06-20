@@ -18,7 +18,8 @@ import { CheckoutContext } from "./CheckoutWizard";
 
 const StepConfirmation = () => {
   const { cartItems, orderSummary, selectedAddress, addresses, selectedShipping, user } = useContext(CheckoutContext);
-
+  const checkoutContext = useContext(CheckoutContext);
+  console.log('checkoutContext in StepConfirmation', checkoutContext);
   // Get selected address details
   const selectedAddressDetails = addresses.find((addr) => addr.id === selectedAddress);
 
@@ -76,13 +77,31 @@ const StepConfirmation = () => {
 
   const totals = calculateTotals();
 
+  const formatDate = (daysFromNow) => {
+    const date = new Date();
+    date.setDate(date.getDate() + daysFromNow);
+  
+    const day = date.getDate();
+    const month = date.toLocaleString("default", { month: "long" });
+    const year = date.getFullYear();
+  
+    // Add ordinal suffix
+    const getOrdinal = (n) => {
+      const s = ["th", "st", "nd", "rd"];
+      const v = n % 100;
+      return s[(v - 20) % 10] || s[v] || s[0];
+    };
+  
+    return `${day}${getOrdinal(day)} ${month} ${year}`;
+  };
+
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12 }}>
         <div className="flex items-center flex-col text-center gap-4">
           <Typography variant="h4">Thank You! 😇</Typography>
           <Typography>
-            Your order <span className="font-medium text-textPrimary">{orderId}</span> has been placed!
+            Your order <span className="font-medium text-textPrimary">{orderSummary.order.orderId}</span> has been placed!
           </Typography>
           <div>
             <Typography>
@@ -93,10 +112,6 @@ const StepConfirmation = () => {
               If the email hasn't arrived within two minutes, please check your spam folder to see if the email was
               routed there.
             </Typography>
-          </div>
-          <div className="flex items-center gap-2">
-            <i className="ri-time-line text-xl" />
-            <Typography>Time placed: {currentDate}</Typography>
           </div>
         </div>
       </Grid>
@@ -164,10 +179,15 @@ const StepConfirmation = () => {
                 Shipping Method
               </Typography>
             </div>
-            <Typography className="font-medium">Preferred Method:</Typography>
+            <Typography variant="h6" className="font-medium">{orderSummary?.selectedOption?.title}</Typography>
             <div>
-              <Typography>{getShippingMethodName()}</Typography>
-              <Typography>{getShippingDescription()}</Typography>
+              <Typography>
+                 <span className="font-medium text-black">Estimated Delivery Date:</span>{" "}
+                 <br/>
+                {orderSummary?.selectedOption?.minDays && orderSummary?.selectedOption?.maxDays
+                  ? `${formatDate(orderSummary.selectedOption.minDays)} - ${formatDate(orderSummary.selectedOption.maxDays)}`
+                  : "N/A"}
+              </Typography>
             </div>
           </div>
         </div>

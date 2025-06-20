@@ -79,7 +79,7 @@ const fuzzyFilter = (row, columnId, value, addMeta) => {
 const columnHelper = createColumnHelper()
 
 const OrderTable = ({ orderedProduct }) => {
-  // console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct')
+  // //console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct')
 
   // States
   const [rowSelection, setRowSelection] = useState({})

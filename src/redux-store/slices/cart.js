@@ -29,7 +29,7 @@ export const cartSlice = createSlice({
     addToCart: (state, action) => {
         const newItem = action.payload;
 
-        // console.log(newItem,'chek');
+        // //console.log(newItem,'chek');
 
 
         const existingItem = state.items.find(item => item.productId === newItem.productId && item.variationId === newItem.variationId);

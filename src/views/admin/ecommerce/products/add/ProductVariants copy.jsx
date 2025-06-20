@@ -94,7 +94,7 @@ export default function ProductVariants({
     setValue('productVariations', defaultProductVariations, { shouldValidate: true })
   }, [productAttributes, defaultAttribute, defaultAttributeVariations, defaultProductVariations, setValue])
 
-  // console.log(defaultProductVariations,'defaultAttributeVariationsdefaultAttributeVariations')
+  // //console.log(defaultProductVariations,'defaultAttributeVariationsdefaultAttributeVariations')
 
   const initialProductVariationsRef = useRef([])
 
@@ -142,7 +142,7 @@ export default function ProductVariants({
 
     // Create new variations array
     const newVariations = combinations.map((combo, newIndex) => {
-      // console.log("under 1", combo)
+      // //console.log("under 1", combo)
       let variationAttributes = {}
       const formattedAttributes = []
       variationAttributes = { ...productVariationsValues[newIndex] }
@@ -160,8 +160,8 @@ export default function ProductVariants({
       }
     })
 
-    // console.log('newVariations',newVariations, );
-    // console.log('selectedAttributeValues', selectedAttributeValues);
+    // //console.log('newVariations',newVariations, );
+    // //console.log('selectedAttributeValues', selectedAttributeValues);
     return newVariations
   }
 
@@ -224,7 +224,7 @@ export default function ProductVariants({
 
     // Generate new variations while preserving existing data
     const newVariations = generateVariations(selectedAttributeValues, currentVariations)
-    // console.log(newVariations,'newVariationsnewVariations')
+    // //console.log(newVariations,'newVariationsnewVariations')
 
     // Update form with merged variations
     setValue('productVariations', newVariations, { shouldValidate: true })

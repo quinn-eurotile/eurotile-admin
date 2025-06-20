@@ -125,7 +125,7 @@ const SendMsgForm = ({ dispatch, activeUser, isBelowSmScreen, messageInputRef, s
   const handleSendMsg = async (event) => {
     event.preventDefault();
 
-    console.log('selectedImage', selectedImage);
+    //console.log('selectedImage', selectedImage);
 
     if (msg.trim() === '' && !selectedImage) return;
 

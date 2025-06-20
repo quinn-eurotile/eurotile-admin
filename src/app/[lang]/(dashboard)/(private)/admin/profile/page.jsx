@@ -19,6 +19,7 @@ import { tradeProfessionalService } from '@/services/trade-professionals'
 // import OverViewTab from '@/views/admin/trade-professionals/view/user-right/overview'
 // import OrderList from '@/views/admin/trade-professionals/view/user-right/orders/list';
 const SecurityTab = dynamic(() => import('@/views/admin/trade-professionals/view/user-right/security'))
+const ShippingTab = dynamic(() => import('@/views/admin/trade-professionals/view/admin-right/shipping'))
 const BillingPlans = dynamic(() => import('@views/apps/user/view/user-right/billing-plans'))
 const NotificationsTab = dynamic(() => import('@views/apps/user/view/user-right/notifications'))
 const ConnectionsTab = dynamic(() => import('@views/apps/user/view/user-right/connections'))
@@ -76,6 +77,7 @@ const Profile = async props => {
 
   const tabContentList = {
     security: <SecurityTab userId={userId} data={data}/>,
+    shipping: <ShippingTab userId={userId} data={data}/>,
   }
 
   return (

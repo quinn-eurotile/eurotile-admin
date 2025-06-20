@@ -202,11 +202,12 @@ const CheckoutWizard = () => {
   const [cartItems, setCartItems] = useState([]);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
-  const [selectedShipping, setSelectedShipping] = useState("standard");
+  const [selectedShipping, setSelectedShipping] = useState(null);
   const [orderSummary, setOrderSummary] = useState({
     subtotal: 0,
     shipping: 0,
     total: 0,
+    shippingOption: null,
   });
   const [loading, setLoading] = useState(true);
   const [stepValidation, setStepValidation] = useState({
@@ -241,7 +242,7 @@ const CheckoutWizard = () => {
 
   // Load data on component mount
   useEffect(() => {
-    console.log('dscs')
+    //console.log('dscs')
 
     const fetchData = async () => {
 
@@ -264,14 +265,15 @@ const CheckoutWizard = () => {
           const subtotal = cartData.items.reduce((sum, item) => sum + item.price * item.count, 0);
           setOrderSummary({
             subtotal,
-            shipping: 0, // Free shipping by default
+            shipping: 5, // Free shipping by default
             total: subtotal,
+            shippingOption: cartData?.shippingOption || null,
           });
 
           // Set cart step validation based on items
           setStepValid(0, cartData.items.length > 0);
         }
-        // // console.log(session?.user, 'session?.user')
+        // // //console.log(session?.user, 'session?.user')
         // Fetch user addresses if logged in
         if (session?.user) {
 
@@ -301,7 +303,7 @@ const CheckoutWizard = () => {
     fetchData();
   }, [session]);
 
-  console.log(cartItems, 'Seven Time cartItems.............');
+  //console.log(cartItems, 'Seven Time cartItems.............');
 
   // Checkout context value
   const checkoutData = {

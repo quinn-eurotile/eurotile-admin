@@ -84,7 +84,7 @@ const fuzzyFilter = (row, columnId, value, addMeta) => {
 const columnHelper = createColumnHelper();
 
 const OrderTable = ({ orderedProduct }) => {
-  // console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct');
+  // //console.log(orderedProduct?.orderDetails, 'orderedProductorderedProduct');
 
   // States
   const [rowSelection, setRowSelection] = useState({});
@@ -280,7 +280,7 @@ const OrderDetailsCard = ({ data }) => {
     setPayoutAmount(''); // Reset input on close
   };
 
-  // console.log('data comming', data);
+  // //console.log('data comming', data);
 
   return (
     <Card>

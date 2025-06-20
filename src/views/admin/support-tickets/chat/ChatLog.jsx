@@ -27,7 +27,7 @@ const formatedChatData = (chats, profileUser) => {
   };
 
   chats.forEach((chat, index) => {
-    console.log('chat ', chat)
+    //console.log('chat ', chat)
     if (chatMessageSenderId === chat.senderId) {
       msgGroup.messages.push({
         time: chat.time,
@@ -83,10 +83,10 @@ const ScrollWrapper = ({ children, isBelowLgScreen, scrollRef, className }) => {
 const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen, handleLoadMoreMessages, isLoadingMessages, hasNextPageMessages, hasPrevPageMessages }) => {
   // Props
   const { profileUser, contacts } = chatStore;
-  console.log(hasNextPageMessages, 'hasNextPageMessages');
+  //console.log(hasNextPageMessages, 'hasNextPageMessages');
 
-  // console.log('chatStore', chatStore);
-  // console.log(' profileUser', profileUser);
+  // //console.log('chatStore', chatStore);
+  // //console.log(' profileUser', profileUser);
 
   // Vars
   const activeUserChat = chatStore.chats.find(chat => chat.userId === chatStore.activeUser?.id);
@@ -116,7 +116,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatStore]);
 
-  // console.log('activeUserChat =====', activeUserChat);
+  // //console.log('activeUserChat =====', activeUserChat);
 
   return (
     <ScrollWrapper
@@ -185,7 +185,7 @@ const ChatLog = ({ chatStore, isBelowLgScreen, isBelowMdScreen, isBelowSmScreen,
                       'bg-backgroundPaper rounded-e rounded-b': !isSender,
                       ' text-[var(--mui-palette-primary-contrastText)] rounded-s rounded-b': isSender
                     })}>
-                      {console.log('msg content here', msg)}
+                      {//console.log('msg content here', msg)}
                       {msg.message && (
                         <Typography style={{ wordBreak: 'break-word' }}>
                           {msg.message}

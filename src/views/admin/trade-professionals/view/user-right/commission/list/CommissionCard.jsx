@@ -16,7 +16,7 @@ import CustomAvatar from '@core/components/mui/Avatar'
 
 
 const CommissionCard = ({ payoutData }) => {
-  console.log('payoutData..........', payoutData)
+  //console.log('payoutData..........', payoutData)
 
   const data = [
     {
