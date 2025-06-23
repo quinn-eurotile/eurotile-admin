@@ -12,9 +12,11 @@ import TextField from '@mui/material/TextField';
 import FormHelperText from '@mui/material/FormHelperText';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
+import InputAdornment from '@mui/material/InputAdornment';
+// import PhotoCamera from '@mui/icons-material/PhotoCamera';
 
 // React Hook Form
-import { useForm, Controller  } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 
 // Services
 import { categoryService } from '@/services/category';
@@ -22,6 +24,9 @@ import { createCategory, getAllCategory, updateCategory } from '@/app/[lang]/(da
 
 const AddCategoryDrawer = ({ open, handleClose, editData }) => {
   const [parentOptions, setParentOptions] = useState([]);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageError, setImageError] = useState('');
 
   const {
     control,
@@ -53,6 +58,15 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
       setValue('name', editData.name || '');
       setValue('parent', editData?.parent?.id || '');
       setValue('status', editData.status?.toString() || '1');
+      if (editData.image) {
+        setImagePreview(editData.image);
+      } else {
+        setImagePreview(null);
+      }
+      setImageFile(null);
+    } else {
+      setImagePreview(null);
+      setImageFile(null);
     }
   }, [editData, setValue]);
 
@@ -72,11 +86,29 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
     fetchCategories();
   }, [open]);
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setImageFile(file);
+    if (file) {
+      setImagePreview(URL.createObjectURL(file));
+    } else {
+      setImagePreview(null);
+    }
+  };
+
   const onSubmit = async (formValues) => {
+    // Image required validation
+    if (!imageFile && !editData?.image) {
+      setImageError('Category image is required');
+      return;
+    } else {
+      setImageError('');
+    }
     try {
       const transformedValues = {
         ...formValues,
-        parent: formValues.parent || null
+        parent: formValues.parent || null,
+        image: imageFile || undefined,
       };
 
       const response = editData
@@ -91,14 +123,14 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
         reset();
         return;
       }
-       if(statusCode === 422 ){
+      if (statusCode === 422) {
         const errors = response?.data || {};
-      for (const [field, messages] of Object.entries(errors)) {
-        setError(field, {
-          message: messages?.[0] || 'Invalid input',
-        });
+        for (const [field, messages] of Object.entries(errors)) {
+          setError(field, {
+            message: messages?.[0] || 'Invalid input',
+          });
+        }
       }
-       }
 
       // Handle field-level validation errors returned from API
       const serverErrors = response?.data?.errors || {};
@@ -113,8 +145,6 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
       console.error('Submission failed:', error);
     }
   };
-
-
 
   const handleDrawerClose = () => {
     handleClose();
@@ -142,17 +172,20 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
 
       <div className="p-5">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+          {/* Image Upload Field */}
+
+
           <FormControl fullWidth error={Boolean(errors.name)}>
-          <TextField
-            fullWidth
-            label="Category Name"
-            placeholder="Enter category name"
-            value={watch('name') ?? ''}
-            {...register('name', { required: 'Category name is required' })}
-            error={Boolean(errors.name)}
-            helperText={errors.name?.message}
-          />
-        </FormControl>
+            <TextField
+              fullWidth
+              label="Category Name"
+              placeholder="Enter category name"
+              value={watch('name') ?? ''}
+              {...register('name', { required: 'Category name is required' })}
+              error={Boolean(errors.name)}
+              helperText={errors.name?.message}
+            />
+          </FormControl>
 
 
           {/* Parent Category Select */}
@@ -168,7 +201,7 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
                     ? parentOptions.filter(option => option._id !== editData.id)
                     : parentOptions
                   ).map(option => (
-                    <MenuItem key={option._id} value={option._id}   disabled={option.status === 0}  >
+                    <MenuItem key={option._id} value={option._id} disabled={option.status === 0}  >
                       {option.name}
                     </MenuItem>
                   ))}
@@ -177,6 +210,8 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
             />
             {errors.parent && <FormHelperText>{errors.parent.message}</FormHelperText>}
           </FormControl>
+
+
 
           {/* Status Select */}
           <FormControl fullWidth error={Boolean(errors.status)}>
@@ -191,6 +226,32 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
             </Select>
             {errors.status && (
               <FormHelperText>{errors.status.message}</FormHelperText>
+            )}
+          </FormControl>
+
+          <FormControl fullWidth>
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<i className="ri-image-add-line" />}
+            >
+              {imageFile ? 'Change Image' : 'Upload Image'}
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleImageChange}
+              />
+            </Button>
+            {imagePreview && (
+              <img
+                src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${imagePreview}`}
+                alt="Category Preview"
+                style={{ marginTop: 10, maxHeight: 120, maxWidth: '100%', borderRadius: 8 }}
+              />
+            )}
+            {imageError && (
+              <FormHelperText error>{imageError}</FormHelperText>
             )}
           </FormControl>
 

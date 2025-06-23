@@ -105,7 +105,7 @@ const userStatusNameObj = {
 // Column Definitions
 const columnHelper = createColumnHelper();
 
-const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus}) => {
+const CategoryList = ({ fetchCategoryList, deleteCategory, updateCategoryStatus }) => {
 	const [addUserOpen, setAddUserOpen] = useState(false);
 	const [rowSelection, setRowSelection] = useState({});
 	const dispatch = useDispatch();
@@ -125,16 +125,32 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 
 
 	const columns = useMemo(() => [
+		columnHelper.accessor('image', {
+			header: 'Image',
+			cell: ({ row }) =>
+				row.original.image ? (
+					<img
+						src={
+							row.original.image.startsWith('http')
+								? row.original.image
+								: `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${row.original.image.replace(/\\/g, '/')}`
+						}
+						alt={row.original.name}
+						style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8 }}
+					/>
+				) : (
+					<span style={{ color: '#aaa' }}>No Image</span>
+				),
+			enableSorting: false,
+		}),
 		columnHelper.accessor('name', {
 			header: 'Name',
 			cell: ({ row }) => (
 				<div className='flex items-center gap-4'>
-					{getAvatar({ avatar: row.original.avatar, fullName: row.original.name })}
 					<div className='flex flex-col'>
 						<Typography className='font-medium' color='text.primary'>
 							{row.original.name}
 						</Typography>
-						<Typography variant='body2'>{row.original.username}</Typography>
 					</div>
 				</div>
 			)
@@ -180,7 +196,7 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 							{currentStatus === 1 ? (
 								<i className='ri-eye-line text-textSecondary' title='Set Inactive' />
 							) : (
-                <i className='ri-eye-off-line text-textSecondary' title='Set Active' />
+								<i className='ri-eye-off-line text-textSecondary' title='Set Active' />
 							)}
 						</IconButton>
 					</div>
@@ -215,7 +231,7 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 
 	// Fetch members on page or rowsPerPage change
 	useEffect(() => {
-    if (!filteredData || filteredData.length === 0) return
+		if (!filteredData || filteredData.length === 0) return
 		fetchCategories(page + 1, search, filteredData);
 	}, [page, rowsPerPage, search, filteredData]);
 
@@ -223,6 +239,7 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 		try {
 			dispatch(callCommonAction({ loading: true }));
 			const response = await fetchCategoryList(currentPage, rowsPerPage, searchTerm, filteredData);
+			console.log('response categories', response)
 			dispatch(callCommonAction({ loading: false }));
 			if (response.statusCode === 200 && response.data) {
 				const formatted = response?.data?.docs?.map(category => ({
@@ -230,6 +247,7 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 					name: category.name,
 					parent: category.parent,
 					status: category.status,
+					image: category.image,
 					avatar: '',
 					username: category.name.split(' ')[0]
 				}));
@@ -244,14 +262,14 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 		}
 	};
 
-  useEffect(()=>{
-    fetchCategories();
-  },[])
+	useEffect(() => {
+		fetchCategories();
+	}, [])
 
 	const handleChangePage = (event, newPage) => setPage(newPage);
 
 	const handleChangeRowsPerPage = event => {
-    table.setPageSize(parseInt(event.target.value))
+		table.setPageSize(parseInt(event.target.value))
 		setRowsPerPage(parseInt(event.target.value, 10));
 		setPage(0);
 	};
@@ -278,10 +296,10 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 
 			if (response.success) {
 				// Remove the deleted user from the table
-        refreshList();
-			}else{
-          toast.error(response.message || 'Failed to delete.');
-       }
+				refreshList();
+			} else {
+				toast.error(response.message || 'Failed to delete.');
+			}
 			setOpenConfirmDialog(false); // Close the dialog after deletion
 		} catch (error) {
 			console.error("Error deleting team member:", error);
@@ -291,7 +309,7 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 
 	// Handle Edit (open AddUserDrawer with current data)
 	const handleEdit = (id) => {
-    setEditData(null);
+		setEditData(null);
 		const selectedData = data.find(result => result.id === id);
 		setEditData(selectedData);
 		setSelectedCatId(id);  // Store the selected member's ID
@@ -318,7 +336,7 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 	return (
 
 		<>
-			{commonReducer?.loading &&  <CircularLoader /> }
+			{commonReducer?.loading && <CircularLoader />}
 			<Grid container spacing={6}>
 				<Grid size={{ xs: 12 }}>
 					<Card>
@@ -326,14 +344,14 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 						<TableFilters setFilters={setFilteredData} />
 						<Divider />
 						<div className='flex justify-between p-5 gap-4 flex-col items-start sm:flex-row sm:items-center'>
-              <div>
-							{/* <Button
+							<div>
+								{/* <Button
 								color='secondary'
 								variant='outlined'
 								startIcon={<i className='ri-upload-2-line text-xl' />}
 								className='max-sm:is-full'
 							>Export</Button> */}
-              </div>
+							</div>
 							<div className='flex justify-between  items-center gap-x-4 gap-4 flex-col max-sm:is-full sm:flex-row'>
 								<DebouncedInput
 									value={globalFilter ?? ''}
@@ -342,7 +360,7 @@ const CategoryList = ({fetchCategoryList, deleteCategory, updateCategoryStatus})
 									className='max-sm:is-full'
 								/>
 								<Button variant='contained' onClick={() => setAddUserOpen(!addUserOpen)} className='max-sm:is-full'>
-								  <i className='ri-add-line text-xl' />	Add New Category
+									<i className='ri-add-line text-xl' />	Add New Category
 								</Button>
 							</div>
 						</div>
