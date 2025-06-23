@@ -25,14 +25,39 @@ export const categoryService = {
   },
 
   // Create a new category
-  create: async (data) => {
-    return api.post(CATEGORY_ENDPOINT, data)
+   // Create a new category
+   create: async (data) => {
+    if (data.image && data.image instanceof File) {
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        if (key === 'image' && value) {
+          formData.append('image', value);
+        } else {
+          formData.append(key, value);
+        }
+      });
+      return api.post(CATEGORY_ENDPOINT, formData);
+    }
+    return api.post(CATEGORY_ENDPOINT, data);
   },
 
   // Update an existing category
   update: async (id, data) => {
-    return api.put(`${CATEGORY_ENDPOINT}/${id}`, data)
+    if (data.image && data.image instanceof File) {
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        if (key === 'image' && value) {
+          formData.append('image', value);
+        } else {
+          formData.append(key, value);
+        }
+      });
+      return api.put(`${CATEGORY_ENDPOINT}/${id}`, formData);
+    }
+    return api.put(`${CATEGORY_ENDPOINT}/${id}`, data);
   },
+
+  
 
   // Delete a category
   delete: async (id) => {
