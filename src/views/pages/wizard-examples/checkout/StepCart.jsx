@@ -178,6 +178,8 @@ const StepCart = ({ handleNext }) => {
     );
   }
   // // //console.log(JSON.stringify(orderSummary, null, 2), 'orderSummary');
+
+  console.log(cartItems,'cartItemscartItems')
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-4">
@@ -216,137 +218,140 @@ const StepCart = ({ handleNext }) => {
         </Collapse> */}
 
         <Typography className="rounded" variant="h5">
-          My Shopping Bag ({cartItems.length} {cartItems.length === 1 ? "Item" : "Items"})
+          {/* My Shopping Bag ({cartItems.length} {cartItems.length === 1 ? "Item" : "Items"}) */}
+          Your Basket
         </Typography>
 
         {cartItems.length === 0 ? (
           <Alert severity="info">Your cart is empty. Please add items to your cart to continue shopping.</Alert>
         ) : (
           <div className="border rounded">
-            {cartItems.map((product, index) => (
-              <div
-                key={product._id || index}
-                className="flex flex-col sm:flex-row items-center relative p-5 gap-4 [&:not(:last-child)]:border-be"
-              >
-                <img
-                  height={140}
-                  width={140}
-                  src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product?.variation?.variationImages[0]?.filePath}` || "/placeholder.svg?height=140&width=140"}
-                  alt={product?.product?.name || 'Product Image'}
-                  className="object-cover rounded-lg"
-                />
-                <IconButton
-                  size="small"
-                  className="absolute block-start-2 inline-end-2"
-                  onClick={() => removeItem(product._id)}
-                  disabled={isUpdating}
+            {cartItems.map((product, index) => {
+              const prod = product.product;
+              const variation = product.variation;
+              const locale = typeof window !== 'undefined' ? (window.location.pathname.split('/')[1] || 'en') : 'en';
+              // Attribute extraction helpers
+              const getAttr = (slug) => variation?.attributeVariations?.find(av => av.metaKey === slug);
+              const sizeAttr = getAttr('size');
+              const thicknessAttr = getAttr('thinkness') || getAttr('thickness');
+              const finishAttr = getAttr('finish');
+              const colorAttr = getAttr('color');
+              // Fallbacks
+              const size = sizeAttr?.metaValue || `${variation?.dimensions?.width || ''}x${variation?.dimensions?.length || ''}`;
+              const thickness = thicknessAttr?.metaValue || variation?.dimensions?.height;
+              const finish = finishAttr?.metaValue || 'N/A';
+              // Box logic
+              const boxSize = variation?.boxSize || 1;
+              const boxes = product?.quantity || 0;
+              const sqm = (boxes * boxSize).toFixed(2);
+              return (
+                <div
+                  key={product._id || index}
+                  className="flex flex-col sm:flex-row relative p-5 gap-4 [&:not(:last-child)]:border-be"
                 >
-                  <i className="ri-close-line text-lg" />
-                </IconButton>
-                <div className="flex flex-col sm:flex-row items-center sm:justify-between w-full">
-                  <div className="flex flex-col gap-2 items-center sm:items-start">
-                    <Typography className="font-medium" color="text.primary">
-                      {product?.isSample ?
-                        `${product?.product?.name} (${product?.sampleAttributes?.type} Sample)` :
-                        product?.product?.name}
-                    </Typography>
-
-                    {/* Variation Details */}
-                    <div className="flex flex-col gap-1">
-                      <Typography color="text.secondary" className="text-sm">
-                        Sold By: {product?.product?.supplier?.companyName || 'N/A'}
+                  <img
+                    height={140}
+                    width={140}
+                    src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${variation?.variationImages?.[0]?.filePath}` || "/placeholder.svg?height=140&width=140"}
+                    alt={prod?.name || 'Product Image'}
+                    className="object-cover rounded-lg"
+                  />
+                  <IconButton
+                    size="small"
+                    className="absolute block-start-2 inline-end-2"
+                    onClick={() => removeItem(product._id)}
+                    disabled={isUpdating}
+                  >
+                    <i className="ri-close-line text-lg" />
+                  </IconButton>
+                  <div className="flex flex-col sm:flex-row items-center sm:justify-between w-full">
+                    <div className="flex flex-col  items-center sm:items-start">
+                      {/* Tile Name (linked) */}
+                      <Typography className="font-medium text-red-800 mb-3">
+                        <Link
+                          href={`/${locale}/products/${prod?._id}?vid=${variation?._id}`}
+                          className="underline hover:text-primary cursor-pointer"
+                        >
+                          {prod?.name}
+                        </Link>
                       </Typography>
-                      {product?.isSample ? (
-                        <>
-                          <Typography color="text.secondary" className="text-sm">
-                            Sample Type: {product?.sampleAttributes?.type || 'N/A'}
-                          </Typography>
-                          <Typography color="text.secondary" className="text-sm">
-                            Size: {product?.sampleAttributes?.size || 'N/A'}
-                          </Typography>
-                        </>
-                      ) : (
-                        <>
-                          <Typography color="text.secondary" className="text-sm">
-                            Variation: {product?.variation?.description || 'Standard'}
-                          </Typography>
-                          <Typography color="text.secondary" className="text-sm">
-                            Tiles: {product?.numberOfTiles || 0}
-                          </Typography>
-                          <Typography color="text.secondary" className="text-sm">
-                            Boxes: {product?.numberOfPallets || 0}
-                          </Typography>
-                        </>
-                      )}
-                    </div>
+                      {/* Factory Name (linked) */}
+                      <Typography className="text-sm text-black">
+                        Factory: {prod?.supplier ? (
+                          <Link
+                            href={{ pathname: `/${locale}/products`, query: { supplier: prod?.supplier?._id } }}
+                            className="underline hover:text-primary cursor-pointer text-red-800"
+                          >
+                            {prod?.supplier?.companyName}
+                          </Link>
+                        ) : 'N/A'}
+                      </Typography>
+                      {/* Collection Name (linked) */}
+                      <Typography className="text-sm text-black">
+                        Collection: {variation?.categories?.length > 0 ? variation.categories.map((cat, idx) => (
+                          <Link
+                            key={cat._id}
+                            href={{ pathname: `/${locale}/products`, query: { category: cat._id } }}
+                            className="underline hover:text-primary cursor-pointer text-red-800"
+                            style={{ marginRight: 4 }}
+                          >
+                            {cat.name}{idx < variation.categories.length - 1 ? ', ' : ''}
+                          </Link>
+                        )) : 'N/A'}
+                      </Typography>
+                      {/* Size, Thickness, Finish */}
+                      
+                      <Typography className="text-sm text-black">Size: <span>{size || 'N/A'}</span></Typography>
 
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-1">
-                        <Typography color="text.disabled">Supplier:</Typography>
-                        <Typography color="primary.main">
-                          {product?.product?.supplier?.companyName || 'N/A'}
-                        </Typography>
-                      </div>
-                      {product?.variation?.stockQuantity > 0 ? (
-                        <Chip
-                          size="small"
-                          variant="tonal"
-                          color="success"
-                          label={`In Stock (${product.variation.stockQuantity} SQ.M)`}
-                        />
-                      ) : (
-                        <Chip size="small" variant="tonal" color="error" label="Out of Stock" />
-                      )}
-                    </div>
+                      <Typography className="text-sm text-black">Thickness: <span>{thickness || 'N/A'}</span></Typography>
 
-                    <div className="flex items-center gap-4 mt-2">
-                      {!product?.isSample && (
+                      <Typography className="text-sm text-black">Color: <span>{colorAttr?.metaValue || 'N/A'}</span></Typography>
+
+                      
+                      {/* Quantity Controls */}
+                      <div className="flex items-center gap-4 mt-4">
                         <TextField
                           size="small"
                           type="number"
-                          value={product?.quantity || 0}
+                          value={boxes}
                           onChange={(e) => updateItemQuantity(product._id, Number(e.target.value))}
                           className="block max-w-[100px]"
                           disabled={isUpdating}
                           inputProps={{ min: 1, step: 1 }}
-                          label="SQ.M"
+                          label="Boxes"
                         />
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col justify-between items-center mt-4 gap-3 sm:items-end">
-                    <div className="flex flex-col items-end">
-                      <Typography variant="h6" color="primary.main" className="font-semibold">
-                        £{(product?.price || 0).toFixed(2)}/SQ.M
-                      </Typography>
-                      <Typography color="text.secondary" className="text-sm">
-                        Total: £{((product?.price || 0) * (product?.quantity || 0)).toFixed(2)}
-                      </Typography>
-                      {product?.isCustomPrice && (
-                        <Chip
+                        <TextField
                           size="small"
-                          variant="tonal"
-                          color="info"
-                          label="Custom Price"
-                          className="mt-1"
+                          value={sqm}
+                          className="block max-w-[100px]"
+                          label="SQ.M"
+                          InputProps={{ readOnly: true }}
                         />
-                      )}
+                      </div>
                     </div>
-
-                    {/* <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() => moveToWishlist(product._id)}
-                      disabled={isUpdating}
-                      className="mt-2"
-                    >
-                      Move to wishlist
-                    </Button> */}
+                    <div className="flex flex-col justify-between items-center mt-4 gap-3 sm:items-end">
+                      <div className="flex flex-col items-end">
+                        <Typography variant="h6" color="primary.main" className="font-semibold">
+                          £{(product?.price || 0).toFixed(2)}/SQ.M
+                        </Typography>
+                        <Typography color="text.secondary" className="text-sm font-semibold ">
+                          Total (ex.VAT): <br/> £{((product?.price || 0) * (product?.quantity || 0)).toFixed(2)}
+                        </Typography>
+                        {product?.isCustomPrice && (
+                          <Chip
+                            size="small"
+                            variant="tonal"
+                            color="info"
+                            label="Custom Price"
+                            className="mt-1"
+                          />
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -372,11 +377,14 @@ const StepCart = ({ handleNext }) => {
         <div className="border rounded">
           <CardContent className="flex gap-4 flex-col">
             <Typography className="font-medium" color="text.primary">
+            Subtotal (Standard Delivery Included)
+            </Typography>
+            <Typography className="font-medium" color="text.primary">
               Price Details
             </Typography>
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <Typography color="text.primary">Bag Total</Typography>
+                <Typography color="text.primary"> Items Subtotal (ex. VAT)</Typography>
                 <Typography>£{orderSummary?.subtotal?.toFixed(2)}</Typography>
               </div>
 
@@ -472,7 +480,7 @@ const StepCart = ({ handleNext }) => {
               <CircularProgress size={24} />
             ) : (
               <>
-                Proceed to Checkout
+                Next: Choose Delivery Option
                 <i className="ri-arrow-right-line ml-2"></i>
               </>
             )}

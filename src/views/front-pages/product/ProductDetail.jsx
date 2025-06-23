@@ -770,6 +770,8 @@ export default function ProductDetailPage() {
     saveAs(zipBlob, `${product?.name || 'images'}-variant.zip`);
   };
 
+  console.log('product: product', product);
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navigation */}
@@ -1345,7 +1347,7 @@ export default function ProductDetailPage() {
             >
               <Tab
                 value="1"
-                label="Additional Information"
+                label="Product Overview"
                 className={
                   `${Tabvalue === '1'
                     ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:5px] [border-top-right-radius:5px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
@@ -1358,7 +1360,7 @@ export default function ProductDetailPage() {
               />
               <Tab
                 value="2"
-                label="Product Details"
+                label="Technical Details"
                 className={
                   `${Tabvalue === '2'
                     ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:5px] [border-top-right-radius:5px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
@@ -1369,9 +1371,20 @@ export default function ProductDetailPage() {
               />
               <Tab
                 value="3"
-                label="Reviews"
+                label="How to Order?"
                 className={
                   `${Tabvalue === '3'
+                    ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:5px] [border-top-right-radius:5px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
+                    : 'rounded-md'} px-4 py-2 flex items-center gap-2 capitalize font-montserrat text-15`
+                }
+                disableRipple
+                disableFocusRipple
+              />
+              <Tab
+                value="4"
+                label="Delivery & Returns"
+                className={
+                  `${Tabvalue === '4'
                     ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:5px] [border-top-right-radius:5px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
                     : 'rounded-md'} px-4 py-2 flex items-center gap-2 capitalize font-montserrat text-15`
                 }
@@ -1386,80 +1399,191 @@ export default function ProductDetailPage() {
 
             </TabPanel>
             <TabPanel value='2' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
-              <div className="grid md:grid-cols-3 gap-8">
-                {/* Product Details */}
-                <div>
-                  <h3 className="font-medium mb-4 text-redText">Product Details</h3>
-                  <ul className="text-sm space-y-2 list-none p-0">
-                    <li><span className="font-medium">Name:</span> {product.name || 'N/A'}</li>
-                    <li><span className="font-medium">SKU:</span> {product.sku || 'N/A'}</li>
-                    <li>
-                      <span className="font-medium">Collection:</span>
-                      {product.categories && product.categories.length > 0
-                        ? product.categories.map(cat => cat.name).join(', ')
-                        : 'N/A'}
-                    </li>
-                    <li><span className="font-medium">Factory:</span> {product?.supplier?.companyName || 'N/A'}</li>
-                    {/* <li><span className="font-medium">Origin:</span> {product?.origin || 'N/A'}</li>
-                    <li><span className="font-medium">Style:</span> {product?.style || 'N/A'}</li> */}
-                  </ul>
+              {/* Technical Details Section - Custom Design */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                  Technical Details
+                </h2>
+                <div className="text-base font-semibold text-red-500 mb-2">
+                  {/* Collapsable Tab Name (optional, if you want to show) */}
                 </div>
-                {/* Technical Details */}
-                <div>
-                  <h3 className="font-medium mb-4 text-redText">Technical Details</h3>
-                  <ul className="text-sm space-y-2 list-none p-0">
-                    {selected?.attributeVariationsDetail?.length > 0 && selected?.attributeVariationsDetail?.map((variation) => (
-                      <li><span className="font-medium">{convertSlugToName(variation.metaKey)}:</span> {variation.metaValue || 'N/A'} {variation.productMeasurementUnit?.symbol}</li>
+                <h4 className="font-semibold mb-2">Tile Specifications & European Standards</h4>
+                <p className="text-sm text-gray-700 mb-2">
+                  All tile specifications are provided in line with European manufacturing standards (EN 14411). This means slight variations in size, thickness, shade, and finish are perfectly normal and part of the production process—even within the same batch.
+                </p>
+                <p className="text-sm text-gray-700">
+                  If your project has specific technical requirements—such as wet areas, outdoor use, commercial settings, or slip resistance—please refer to the product's technical data or contact our team for additional documentation to suit your needs.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Left Card */}
+                <div className="rounded-xl bg-[#f7f0ef] p-6 shadow-sm">
+                  <ul className="text-sm space-y-2">
+                    <li><span className="font-semibold">Factory Name</span> <span className="float-right font-normal">  <Link
+                      href={{
+                        pathname: `/${locale}/products`,
+                        query: { supplier: product?.supplier?._id }
+                      }}
+                      className="underline hover:text-primary cursor-pointer"
+                    >
+                      {product?.supplier?.companyName || ''}
+                    </Link></span></li>
+                    <li><span className="font-semibold">Collection Name</span> <span className="float-right font-normal">
+                      {product?.categories?.map((cat, idx) => (
+                        <Link
+                          key={cat._id}
+                          href={{
+                            pathname: `/${locale}/products`,
+                            query: { category: cat._id }
+                          }}
+                          className="underline hover:text-primary cursor-pointer"
+                          style={{ marginRight: 4 }}
+                        >
+                          {cat.name}
+                          {idx < product.categories.length - 1 ? ', ' : ''}
+                        </Link>
+                      ))}
+                      {product?.categories?.length === 0 && 'N/A'}
 
+                    </span></li>
+                    <li><span className="font-semibold">Tile Name</span> <span className="float-right font-normal">{product?.name || 'N/A'}</span></li>
+                    <li><span className="font-semibold">SKU Code</span> <span className="float-right font-normal">{product?.sku || 'N/A'}</span></li>
+                    {/* <li><span className="font-semibold">Style</span> <span className="float-right font-normal">{selected?.style || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Size(s)</span> <span className="float-right font-normal">{selected.boxSize || 'N/A'}</span></li> */}
+                    <li><span className="font-semibold">Thickness (mm)</span> <span className="float-right font-normal">{selected?.dimensions?.height || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Width (mm)</span> <span className="float-right font-normal">{selected?.dimensions?.width || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Length (mm)</span> <span className="float-right font-normal">{selected?.dimensions?.length || 'N/A'}</span></li>
+                    {/* <li><span className="font-semibold">Finish</span> <span className="float-right font-normal">{selected?.finish || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Edge</span> <span className="float-right font-normal">{selected?.edge || 'N/A'}</span></li>
+                    <li><span className="font-semibold">No. of Tile Faces</span> <span className="float-right font-normal">{selected?.tileFaces || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Origin</span> <span className="float-right font-normal">{selected?.origin || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Colour Name</span> <span className="float-right font-normal">{selected?.colourName || 'N/A'}</span></li> */}
+                    {selected?.attributeVariationsDetail?.length > 0 && selected?.attributeVariationsDetail?.map((variation, idx) => (
+                      <li key={idx}>
+                        <span className="font-semibold">{convertSlugToName(variation.metaKey)}</span>
+                        <span className="float-right font-normal">
+                          {variation.metaValue || 'N/A'} {variation.productMeasurementUnit?.symbol}
+                        </span>
+                      </li>
                     ))}
-                    {selected?.attributeVariationsDetail?.length === 0 && (
-                      <li><span className="font-medium">No Technical Details Available</span></li>
+                    {(!selected?.attributeVariationsDetail || selected?.attributeVariationsDetail?.length === 0) && (
+                      <li>
+                        <span className="font-semibold">No Technical Details Available</span>
+                        <span className="float-right font-normal"></span>
+                      </li>
                     )}
                   </ul>
                 </div>
-                {/* Packaging Details */}
-                <div>
-                  <h3 className="font-medium mb-4 text-redText">Packaging Details</h3>
-                  <ul className="text-sm space-y-2 list-none p-0">
-                    <li><span className="font-medium">Box Size (sq.m):</span> {selected.boxSize || 'N/A'}</li>
-                    <li><span className="font-medium">SQ.M per Tile:</span> {selected.sqmPerTile || 'N/A'}</li>
-                    <li><span className="font-medium">Tiles per Box:</span> {selected.numberOfTiles || 'N/A'}</li>
-                    <li><span className="font-medium">Box Weight (KG):</span> {selected.boxWeight || 'N/A'}</li>
-                    <li><span className="font-medium">Pallet Size (sq.m):</span> {selected.palletSize || 'N/A'}</li>
-                    <li><span className="font-medium">Pallet Weight (KG):</span> {selected.palletWeight || 'N/A'}</li>
-                    <li><span className="font-medium">Boxes Per Pallet:</span> {selected.boxesPerPallet || 'N/A'}</li>
+                {/* Right Card */}
+                <div className="rounded-xl bg-[#f7f0ef] p-6 shadow-sm">
+                  <ul className="text-sm space-y-2">
+                    <li><span className="font-semibold">Box Size (sq.m):</span> <span className="float-right font-normal">{selected?.boxSize || 'N/A'}</span></li>
+                    <li><span className="font-semibold">SQ.M per Tile</span> <span className="float-right font-normal">{selected?.sqmPerTile || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Tiles per Box:</span> <span className="float-right font-normal">{selected?.numberOfTiles || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Box Weight (KG):</span> <span className="float-right font-normal">{selected?.boxWeight || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Pallet Size (sq.m):</span> <span className="float-right font-normal">{selected?.palletSize || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Pallet Weight (KG)</span> <span className="float-right font-normal">{selected?.palletWeight || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Boxes Per Pallet</span> <span className="float-right font-normal">{selected?.boxesPerPallet || 'N/A'}</span></li>
+                    {/* <li><span className="font-semibold">Shape:</span> <span className="float-right font-normal">{selected?.shape || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Matching Patio Option:</span> <span className="float-right font-normal">{selected?.matchingPatioOption || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Material:</span> <span className="float-right font-normal">{selected?.material || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Suitability:</span> <span className="float-right font-normal">{selected?.suitability || 'N/A'}</span></li>
+                    <li><span className="font-semibold">Frost Resistant</span> <span className="float-right font-normal">{selected?.frostResistant || 'N/A'}</span></li>
+                    <li><span className="font-semibold">PVT Rating:</span> <span className="float-right font-normal">{selected?.pvtRating || 'N/A'}</span></li> */}
                   </ul>
                 </div>
               </div>
             </TabPanel>
             <TabPanel value='3' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <i key={i} className="ri-star-fill fill-redText text-redText"></i>
-                  ))}
-                </div>
-                <span className="text-lg">4.8 out of 5 (126 reviews)</span>
+              <div className="bg-[#f7f0ef] rounded-xl p-6 mb-8 shadow-sm">
+                <h3 className="font-semibold text-lg mb-2">Plan Your Order</h3>
+                <p className="text-sm mb-2">
+                  Ordering from EUROTILE is straightforward—but getting your quantities right is crucial.
+                </p>
+                <p className="text-sm mb-2">
+                  Since all of our tiles are shipped directly from Italy or Spain, it’s important to double-check measurements before placing your order. We strongly recommend confirming quantities with your tiling contractor, as ordering small top-ups later can be significantly more expensive and may result in batch mismatches or longer lead times.
+                </p>
+                <p className="text-sm font-semibold mb-2">Follow these steps to avoid costly errors:</p>
+                <ol className="list-decimal list-inside text-sm mb-2 space-y-1">
+                  <li>
+                    Ask your installer how the tiles will be laid (e.g. stacked, staggered, horizontal, vertical).
+                  </li>
+                  <li>
+                    Think through the layout—centering and symmetry make a big visual impact.
+                  </li>
+                  <li>
+                    Calculate the exact number of tiles needed based on your layout.
+                  </li>
+                  <li>
+                    Then add 10% extra to cover cuts, breakages, and wastage.
+                  </li>
+                </ol>
+                <p className="text-sm mb-2">
+                  This is especially important for large-format tiles, where offcuts are harder to reuse.
+                </p>
+                <p className="text-sm mb-2">
+                  If you’re ordering floor tiles, don’t worry about having a few extra packs. It’s a smart move—cracks or damage from heavy use can happen over time, and keeping spares from the same batch means you’ll always have a perfect match.
+                </p>
+                <p className="text-sm">
+                  Still unsure? Our support team is on hand to help you get it right.
+                </p>
               </div>
-
-              <div className="space-y-6">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="border-b pb-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <i key={star} className={`ri-star-fill text-sm ${star <= 5 - (i % 2) ? "fill-redText text-redText" : "fill-gray-200 text-gray-200"}`}></i>
-                        ))}
-                      </div>
-                      <span className="text-sm font-medium">John D.</span>
-                      <span className="text-xs text-gray-500">Verified Purchase</span>
-                    </div>
-                    <p className="text-sm">
-                      Beautiful tiles that transformed our bathroom. The quality is excellent and they look even better in
-                      person than in the photos.
-                    </p>
-                  </div>
-                ))}
+            </TabPanel>
+            <TabPanel value='4' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
+              <div className="bg-[#f7f0ef] rounded-xl p-6 shadow-sm text-[15px] text-[#3d2c29]">
+              <h3 className="font-medium mb-4 text-redText">Delivery & Returns</h3>
+                <p className="mb-3">
+                  Our products are shipped directly from our trusted partners in Italy and Spain, ensuring premium quality and unbeatable value. Choose the delivery speed that works best for your project:
+                </p>
+                <div className="overflow-x-auto mb-5">
+                  <table className="w-full border border-[#e2d3ce] text-left text-[15px] bg-white rounded">
+                    <thead>
+                      <tr className="bg-[#ede3e0]">
+                        <th className="py-2 px-3 font-semibold border-b border-[#e2d3ce]">Delivery Service</th>
+                        <th className="py-2 px-3 font-semibold border-b border-[#e2d3ce]">Estimated Lead Time</th>
+                        <th className="py-2 px-3 font-semibold border-b border-[#e2d3ce]">Additional Charge</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="py-2 px-3 border-b border-[#e2d3ce]">Standard</td>
+                        <td className="py-2 px-3 border-b border-[#e2d3ce]">15 – 17 working days</td>
+                        <td className="py-2 px-3 border-b border-[#e2d3ce]">Free</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 px-3 border-b border-[#e2d3ce]">Express</td>
+                        <td className="py-2 px-3 border-b border-[#e2d3ce]">10 working days</td>
+                        <td className="py-2 px-3 border-b border-[#e2d3ce]">≈ £3 per m<sup>2</sup></td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 px-3">Rapid</td>
+                        <td className="py-2 px-3">3 – 5 working days</td>
+                        <td className="py-2 px-3">≈ £6 per m<sup>2</sup></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <ul className="list-disc pl-5 mb-3 space-y-1">
+                  <li>All deliveries are kerbside only. This means the driver will leave the pallet at the nearest accessible flat surface (e.g. driveway or pavement). Please ensure:</li>
+                  <ul className="list-disc pl-6 mb-2 space-y-1">
+                    <li>Someone is available on-site to receive the goods.</li>
+                    <li>If the driver cannot deliver safely, a £60 per pallet redelivery fee will apply.</li>
+                    <li>If you’re not ready to receive your order, we can store it free of charge for 30 days, then at £7.50 per pallet per week thereafter.</li>
+                  </ul>
+                </ul>
+                <h4 className="font-semibold mb-2 mt-4">Returns Options</h4>
+                <p className="mb-2">
+                  We understand plans can change. If you’d like to return your order, please notify us within 14 days of delivery. Once your return is authorised, you’ll have 7 days to arrange the return of the goods.
+                </p>
+                <p className="mb-2">
+                  All returns are sent back to our warehouses in Italy or Spain (at the purchaser’s cost). Goods must be returned:
+                </p>
+                <ul className="list-disc pl-5 mb-3 space-y-1">
+                  <li>In full (we do not accept part returns or leftover boxes)</li>
+                  <li>In their original packaging, unopened and undamaged</li>
+                  <li>Securely relabelled</li>
+                </ul>
+                
               </div>
             </TabPanel>
           </TabContext>
