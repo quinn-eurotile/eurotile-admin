@@ -774,7 +774,6 @@ export default function ProductDetailPage() {
     <div className="min-h-screen flex flex-col">
       {/* Navigation */}
 
-
       <main>
 
         <Container maxWidth="xl" sx={{ px: 2, py: 4, mt: 5 }}>
@@ -1335,6 +1334,161 @@ export default function ProductDetailPage() {
               </div>
             </Grid>
           </Grid>
+
+          <Divider className="mb-12" />
+
+          <TabContext value={Tabvalue}>
+            <TabList
+              onChange={handleTab}
+              aria-label="simple tabs example"
+              TabIndicatorProps={{ style: { display: 'none' } }}
+            >
+              <Tab
+                value="1"
+                label="Additional Information"
+                className={
+                  `${Tabvalue === '1'
+                    ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:5px] [border-top-right-radius:5px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
+                    : 'rounded-md'} px-4 py-2 flex items-center gap-2 capitalize font-montserrat text-15`
+                }
+
+
+                disableRipple
+                disableFocusRipple
+              />
+              <Tab
+                value="2"
+                label="Product Details"
+                className={
+                  `${Tabvalue === '2'
+                    ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:5px] [border-top-right-radius:5px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
+                    : 'rounded-md'} px-4 py-2 flex items-center gap-2 capitalize font-montserrat text-15`
+                }
+                disableRipple
+                disableFocusRipple
+              />
+              <Tab
+                value="3"
+                label="Reviews"
+                className={
+                  `${Tabvalue === '3'
+                    ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:5px] [border-top-right-radius:5px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
+                    : 'rounded-md'} px-4 py-2 flex items-center gap-2 capitalize font-montserrat text-15`
+                }
+                disableRipple
+                disableFocusRipple
+              />
+            </TabList>
+
+            <TabPanel value='1' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
+
+              {product?.description ?? ''}
+
+            </TabPanel>
+            <TabPanel value='2' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
+              <div className="grid md:grid-cols-3 gap-8">
+                {/* Product Details */}
+                <div>
+                  <h3 className="font-medium mb-4 text-redText">Product Details</h3>
+                  <ul className="text-sm space-y-2 list-none p-0">
+                    <li><span className="font-medium">Name:</span> {product.name || 'N/A'}</li>
+                    <li><span className="font-medium">SKU:</span> {product.sku || 'N/A'}</li>
+                    <li>
+                      <span className="font-medium">Collection:</span>
+                      {product.categories && product.categories.length > 0
+                        ? product.categories.map(cat => cat.name).join(', ')
+                        : 'N/A'}
+                    </li>
+                    <li><span className="font-medium">Factory:</span> {product?.supplier?.companyName || 'N/A'}</li>
+                    {/* <li><span className="font-medium">Origin:</span> {product?.origin || 'N/A'}</li>
+                    <li><span className="font-medium">Style:</span> {product?.style || 'N/A'}</li> */}
+                  </ul>
+                </div>
+                {/* Technical Details */}
+                <div>
+                  <h3 className="font-medium mb-4 text-redText">Technical Details</h3>
+                  <ul className="text-sm space-y-2 list-none p-0">
+                    {selected?.attributeVariationsDetail?.length > 0 && selected?.attributeVariationsDetail?.map((variation) => (
+                      <li><span className="font-medium">{convertSlugToName(variation.metaKey)}:</span> {variation.metaValue || 'N/A'} {variation.productMeasurementUnit?.symbol}</li>
+
+                    ))}
+                    {selected?.attributeVariationsDetail?.length === 0 && (
+                      <li><span className="font-medium">No Technical Details Available</span></li>
+                    )}
+                  </ul>
+                </div>
+                {/* Packaging Details */}
+                <div>
+                  <h3 className="font-medium mb-4 text-redText">Packaging Details</h3>
+                  <ul className="text-sm space-y-2 list-none p-0">
+                    <li><span className="font-medium">Box Size (sq.m):</span> {selected.boxSize || 'N/A'}</li>
+                    <li><span className="font-medium">SQ.M per Tile:</span> {selected.sqmPerTile || 'N/A'}</li>
+                    <li><span className="font-medium">Tiles per Box:</span> {selected.numberOfTiles || 'N/A'}</li>
+                    <li><span className="font-medium">Box Weight (KG):</span> {selected.boxWeight || 'N/A'}</li>
+                    <li><span className="font-medium">Pallet Size (sq.m):</span> {selected.palletSize || 'N/A'}</li>
+                    <li><span className="font-medium">Pallet Weight (KG):</span> {selected.palletWeight || 'N/A'}</li>
+                    <li><span className="font-medium">Boxes Per Pallet:</span> {selected.boxesPerPallet || 'N/A'}</li>
+                  </ul>
+                </div>
+              </div>
+            </TabPanel>
+            <TabPanel value='3' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <i key={i} className="ri-star-fill fill-redText text-redText"></i>
+                  ))}
+                </div>
+                <span className="text-lg">4.8 out of 5 (126 reviews)</span>
+              </div>
+
+              <div className="space-y-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="border-b pb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <i key={star} className={`ri-star-fill text-sm ${star <= 5 - (i % 2) ? "fill-redText text-redText" : "fill-gray-200 text-gray-200"}`}></i>
+                        ))}
+                      </div>
+                      <span className="text-sm font-medium">John D.</span>
+                      <span className="text-xs text-gray-500">Verified Purchase</span>
+                    </div>
+                    <p className="text-sm">
+                      Beautiful tiles that transformed our bathroom. The quality is excellent and they look even better in
+                      person than in the photos.
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </TabPanel>
+          </TabContext>
+
+
+          <div className="mt-12">
+            <Tooltip
+              title={
+                "Tiles from the same supplier qualify for combined pricing tiers —\nbundle more to unlock bigger savings."
+              }
+              arrow
+            >
+              <h2 className="text-2xl font-medium text-red-800 mb-6 text-center">
+                Add more from{" "}
+                <Link
+                  href={{
+                    pathname: `/${locale}/products`,
+                    query: { supplier: product?.supplier?._id },
+                  }}
+                  className="underline hover:text-primary cursor-pointer"
+                >
+                  {product?.supplier?.companyName || ""}
+                </Link>{" "}
+                for better discounts
+              </h2>
+            </Tooltip>
+
+            <RelatedProductGrid products={product?.associatedProducts || []} />
+          </div>
         </Container>
 
 
