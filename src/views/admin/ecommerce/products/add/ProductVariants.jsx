@@ -858,6 +858,26 @@ export default function ProductVariants({
                       />
                     </Grid>
 
+                    
+                    <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Controller
+                        name={`productVariations.${index}.isFeatured`}
+                        control={control}
+                        defaultValue={variation?.isFeatured ?? false}
+                        render={({ field, fieldState: { error } }) => (
+                          <>
+                            <Typography>Status</Typography>
+                            <Switch
+                              {...field}
+                              checked={Boolean(field.value)}
+                              onChange={e => field.onChange(e.target.checked)}
+                              sx={{ ml: 1 }}
+                            />
+                          </>
+                        )}
+                      />
+                    </Grid>
+
                     <Grid size={{ xs: 12 }}>
                       <Divider style={{ marginTop: '10px', marginBottom: '10px' }} />
                       <Typography variant='h5' mb={2}>

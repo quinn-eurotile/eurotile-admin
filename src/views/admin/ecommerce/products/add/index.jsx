@@ -124,6 +124,7 @@ const AddProduct = () => {
               shippingClass: variation.shippingClass || '',
               taxClass: variation.taxClass || '',
               status: variation.status || false,
+              isFeatured: variation.isFeatured || false,
               attributes: attributes, // Add the attributes array
               // Add attribute key-value pairs for the UI display
               ...product.attributeVariations.reduce((acc, attr) => {
