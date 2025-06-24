@@ -190,13 +190,14 @@ const StepAddress = ({ handleNext, cartItems }) => {
               className="absolute inline-end-5"
             />
             <VerticalContent variant="body2" className="my-auto">
-              {`Get your product in ${item.minDays === item.maxDays ? `${item.minDays} day${item.minDays > 1 ? "s" : ""}` : `${item.minDays}-${item.maxDays} days`}.`}
+              {/* {`Get your product in ${item.minDays === item.maxDays ? `${item.minDays} day${item.minDays > 1 ? "s" : ""}` : `${item.minDays}-${item.maxDays} days`}.`} */}
+              {item.description}
             </VerticalContent>
           </>
         ),
       }));
       setSelectedShipping(formattedOptions[0]?.value);
-   
+
       setShippingOptions(formattedOptions);
       handleShippingChange(formattedOptions[0]?.value, formattedOptions);
     } catch (error) {

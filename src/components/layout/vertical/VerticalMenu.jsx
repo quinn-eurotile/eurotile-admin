@@ -54,13 +54,13 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
     <ScrollWrapper
       {...(isBreakpointReached
         ? {
-            className: 'bs-full overflow-y-auto overflow-x-hidden',
-            onScroll: container => scrollMenu(container, false)
-          }
+          className: 'bs-full overflow-y-auto overflow-x-hidden',
+          onScroll: container => scrollMenu(container, false)
+        }
         : {
-            options: { wheelPropagation: false, suppressScrollX: true },
-            onScrollY: container => scrollMenu(container, true)
-          })}
+          options: { wheelPropagation: false, suppressScrollX: true },
+          onScrollY: container => scrollMenu(container, true)
+        })}
     >
       {/* Incase you also want to scroll NavHeader to scroll with Vertical Menu, remove NavHeader from above and paste it below this comment */}
       {/* Vertical Menu */}
@@ -119,6 +119,14 @@ const VerticalMenu = ({ dictionary, scrollMenu }) => {
                 icon={<i className='ri-team-fill' />}
               >
                 Trade Professionals
+              </MenuItem>
+              <MenuItem
+                href={`/${locale}/admin/retail-customers/list`}
+                exactMatch={false}
+                activeUrl='/admin/retail-customers/list'
+                icon={<i className='ri-team-fill' />}
+              >
+                Retail Customers
               </MenuItem>
               <SubMenu label={dictionary['navigation'].eCommerce} icon={<i className='ri-shopping-bag-3-line' />}>
                 <SubMenu label={dictionary['navigation'].products}>

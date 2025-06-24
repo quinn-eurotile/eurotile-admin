@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid2'
 
 // Component Imports
 import OrderCard from './OrderCard'
-import OrderListTable from './1-OrderListTable'
+import OrderListTable from './OrderListTable'
 import { getEcommerceData } from '@/app/server/actions'
 import { useState, useEffect } from 'react'
 

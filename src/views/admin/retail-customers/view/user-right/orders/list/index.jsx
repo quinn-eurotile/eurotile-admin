@@ -5,12 +5,12 @@ import Grid from '@mui/material/Grid2'
 
 // Component Imports
 import OrderCard from './OrderCard'
-import OrderListTable from './1-OrderListTable'
+import OrderListTable from './OrderListTable'
 import { getEcommerceData } from '@/app/server/actions'
 import { useState, useEffect } from 'react'
 
 // Fetch data for orders from the provided page
-import { orderData as fetchOrderData } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/view/[id]/page'
+import { orderData as fetchOrderData } from '@/app/[lang]/(dashboard)/(private)/admin/retail-customers/view/[id]/page'
 
 const OrderList = () => {
   // Local state to store order data

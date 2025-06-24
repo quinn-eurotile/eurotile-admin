@@ -53,10 +53,11 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
 
   // Set form values for editing
   useEffect(() => {
+    console.log(editData, 'editdata')
     if (editData) {
       setValue('id', editData.id || '');
       setValue('name', editData.name || '');
-      setValue('parent', editData?.parent?.id || '');
+      setValue('parent', editData?.parent?.id === undefined ? null : editData?.parent?.id);
       setValue('status', editData.status?.toString() || '1');
       if (editData.image) {
         setImagePreview(editData.image);
@@ -107,10 +108,9 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
     try {
       const transformedValues = {
         ...formValues,
-        parent: formValues.parent || null,
+        parent: formValues.parent,
         image: imageFile || undefined,
       };
-
       const response = editData
         ? await updateCategory(editData.id, transformedValues)
         : await createCategory(transformedValues);
@@ -195,7 +195,10 @@ const AddCategoryDrawer = ({ open, handleClose, editData }) => {
               name="parent"
               control={control}
               render={({ field }) => (
-                <Select {...field} label="Parent Category">
+                <Select {...field} label="Parent Category"
+                  onChange={e => field.onChange(e.target.value === '' ? null : e.target.value)}
+                  value={field.value === '' ? null : field.value}
+                >
                   <MenuItem value={''}>None</MenuItem>
                   {(editData?.id
                     ? parentOptions.filter(option => option._id !== editData.id)
