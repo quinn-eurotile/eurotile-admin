@@ -1349,14 +1349,14 @@ export default function ProductDetailPage() {
               </AccordionSummary>
               <AccordionDetails>
                 <div>
-                  <div className="bg-[#f7f0ef] rounded-xl p-10 mb-8">
-                    <h4 className="font-semibold mb-2 italic text-lg">More About This Tile...</h4>
+                  <div className="bg-[#f7f0ef] rounded-xl p-3 md:p-10 mb-8">
+                    <h4 className="font-semibold mb-2 italic ">More About This Tile...</h4>
                    <div className="text-[16px] mb-5">
                     {product?.description ?? ''}
                     </div>
 
                     <Grid container spacing={4} mb={5}>
-                      <Grid size={{xs: 4}}>
+                      <Grid size={{xs: 12, md: 4}}>
                         <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> Perfect for Underfloor Heating</div>
                         <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> Suitable for Walls & Floors</div>
                         <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> Matching Patio Tiles</div>
@@ -1364,7 +1364,7 @@ export default function ProductDetailPage() {
                         <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> More About This Tile...</div>
                         <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> High No. of Tile Faces</div>
                       </Grid>
-                       <Grid size={{xs: 8}}>
+                       <Grid size={{xs: 12, md: 8}}>
                         <p className="text-[16px] mb-3">Bathed in velvety light, the Calcis collection evokes a
                           sense of reassuring harmony. Italgraniti masterfully unites
                           the distinct personalities of two iconic natural stones in
@@ -1405,7 +1405,7 @@ export default function ProductDetailPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Left Card */}
-                    <div className="rounded-xl bg-[#f7f0ef] p-8">
+                    <div className="rounded-xl bg-[#f7f0ef] p-3 md:p-10">
                       <ul className="text-[16px] space-y-2">
                         <li className="flex justify-between pb-4 ">
                           <span className="font-semibold w-1/2">Factory Name</span>
@@ -1469,7 +1469,7 @@ export default function ProductDetailPage() {
                       </ul>
                     </div>
                     {/* Right Card */}
-                    <div className="rounded-xl bg-[#f7f0ef] p-8 ">
+                    <div className="rounded-xl bg-[#f7f0ef] p-3 md:p-10 ">
                       <ul className="text-sm space-y-2">
                         <li className="flex justify-between pb-4 "><span className="font-semibold">Box Size (sq.m):</span> <span className="float-right w-1/2 font-normal">{selected?.boxSize || 'N/A'}</span></li>
                         <li className="flex justify-between pb-4 "><span className="font-semibold">SQ.M per Tile</span> <span className="float-right w-1/2 font-normal">{selected?.sqmPerTile || 'N/A'}</span></li>
@@ -1497,7 +1497,7 @@ export default function ProductDetailPage() {
               </AccordionSummary>
               <AccordionDetails>
                 <div>
-                  <div className="bg-[#f7f0ef] rounded-xl p-10 mb-8">
+                  <div className="bg-[#f7f0ef] rounded-xl p-3 md:p-10 mb-8">
                     <h4 className="font-semibold text-lg mb-2 ">Plan Your Order</h4>
                     <p className="text-[16px] mb-3">
                       Ordering from EUROTILE is straightforward—but getting your quantities right is crucial.
@@ -1540,7 +1540,7 @@ export default function ProductDetailPage() {
               </AccordionSummary>
               <AccordionDetails>
                 <div>
-                  <div className="bg-[#f7f0ef] rounded-xl p-10 text-[15px] text-[#3d2c29]">
+                  <div className="bg-[#f7f0ef] rounded-xl p-3 md:p-10 text-[15px] text-[#3d2c29]">
                     <h4 className="font-semibold text-md mb-2 text-lg">Delivery Options</h4>
                     <p className="mb-3">
                       Our products are shipped directly from our trusted partners in Italy and Spain, ensuring premium quality and unbeatable value. Choose the delivery speed that works best for your project:
