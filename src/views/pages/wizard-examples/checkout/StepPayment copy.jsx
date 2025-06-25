@@ -462,7 +462,7 @@ const StepPayment = ({ handleNext, handleBack, cartItems, orderSummary, selected
               Order Summary
             </Typography>
             {cartItems && cartItems.map((item, index) => (
-              <div key={index} className="flex items-center gap-4 mb-4">
+              <div key={index} className="flex  gap-4 mb-4">
                 <img
                   width={64}
                   height={64}

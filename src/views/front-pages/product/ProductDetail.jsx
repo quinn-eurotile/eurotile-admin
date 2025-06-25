@@ -894,7 +894,7 @@ export default function ProductDetailPage() {
             <Grid size={{ xs: 12, md: 5 }}>
               {/* Product Details */}
               <div>
-                <h1 className="text-3xl font-medium text-red-800">{product.name || ""}</h1>
+                <h1 className="text-[33px] font-medium text-red-800">{product.name || ""}</h1>
                 <p className="text-sm text-gray-600">
                   <span className="font-semibold">From:</span>{" "}
                   <Link
@@ -1124,7 +1124,7 @@ export default function ProductDetailPage() {
 
                       return (
                         <div key={attributeId} className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block font-medium text-gray-700 mb-1 text-[16px]">
                             {'Tile ' + label}
                           </label>
                           <FormControl fullWidth>
@@ -1185,7 +1185,7 @@ export default function ProductDetailPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="rounded-md">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Quantity (SQ.M)</label>
+                      <label className="block text-[16px] font-medium text-gray-700 mb-1">Quantity (SQ.M)</label>
                       <input
                         size="small"
                         type="number"
@@ -1203,7 +1203,7 @@ export default function ProductDetailPage() {
                     </div>
 
                     <div className="rounded-md">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Number of Tiles</label>
+                      <label className="block text-[16px] font-medium text-gray-700 mb-1">Number of Tiles</label>
                       <input
                         type="number"
                         value={tiles}
@@ -1220,7 +1220,7 @@ export default function ProductDetailPage() {
                     </div>
 
                     <div className="rounded-md">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Boxes</label>
+                      <label className="block text-[16px] font-medium text-gray-700 mb-1">Boxes</label>
                       <input
                         type="number"
                         className={`w-full outline-none h-[38px] bg-bgLight px-3 py-4 rounded-md text-sm text-black border ${palletsError ? 'border-red-500' : 'border-[#ccc]'} `}
@@ -1241,11 +1241,11 @@ export default function ProductDetailPage() {
                     <div className="mb-6 p-4 bg-bgLight rounded-md">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-lg text-gray-600">Price per SQ.M:</p>
+                          <p className="text-[16px] font-medium text-gray-600">Price per SQ.M:</p>
                           <p className="text-lg font-medium text-red-800">£{calculatedValues.pricePerSqm?.toFixed(2)}</p>
                         </div>
                         <div>
-                          <p className="text-lg text-gray-600">Total Price:</p>
+                          <p className="text-[16px] font-medium text-gray-600">Total Price:</p>
                           <p className="text-lg font-medium text-red-800">£{calculatedValues.calculatedPrice?.toFixed(2)}</p>
                         </div>
                       </div>
@@ -1286,7 +1286,7 @@ export default function ProductDetailPage() {
 
                   <div className="flex flex-col sm:flex-row gap-4">
                     <Button
-                      className="flex-1 bg-red-800 hover:bg-red-900 text-white"
+                      className="flex-1 bg-red-800 hover:bg-red-900 text-white text-[18px]"
                       disabled={
                         !quantity || quantity <= 0 || !!quantityError || !!tilesError || !!palletsError
                       }
@@ -1295,7 +1295,7 @@ export default function ProductDetailPage() {
                       Get a Quote
                     </Button>
                     <Button
-                      className="flex-1 bg-red-800 hover:bg-red-900 text-white"
+                      className="flex-1 bg-red-800 hover:bg-red-900 text-white text-[18px]"
                       onClick={handleAddToCart}
                       disabled={
                         !quantity || quantity <= 0 || !!quantityError || !!tilesError || !!palletsError
@@ -1350,22 +1350,22 @@ export default function ProductDetailPage() {
               <AccordionDetails>
                 <div>
                   <div className="bg-[#f7f0ef] rounded-xl p-10 mb-8">
-                    <h4 className="font-semibold mb-2 italic">More About This Tile...</h4>
-                   <div className="text-sm mb-5">
+                    <h4 className="font-semibold mb-2 italic text-lg">More About This Tile...</h4>
+                   <div className="text-[16px] mb-5">
                     {product?.description ?? ''}
                     </div>
 
                     <Grid container spacing={4} mb={5}>
                       <Grid size={{xs: 4}}>
-                        <div className="mb-5 font-bold text-md flex gap-3"><i class="ri-check-line text-2xl"></i> Perfect for Underfloor Heating</div>
-                        <div className="mb-5 font-bold text-md flex gap-3"><i class="ri-check-line text-2xl"></i> Suitable for Walls & Floors</div>
-                        <div className="mb-5 font-bold text-md flex gap-3"><i class="ri-check-line text-2xl"></i> Matching Patio Tiles</div>
-                        <div className="mb-5 font-bold text-md flex gap-3"><i class="ri-check-line text-2xl"></i> Guaranteed Italian Made</div>
-                        <div className="mb-5 font-bold text-md flex gap-3"><i class="ri-check-line text-2xl"></i> More About This Tile...</div>
-                        <div className="mb-5 font-bold text-md flex gap-3"><i class="ri-check-line text-2xl"></i> High No. of Tile Faces</div>
+                        <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> Perfect for Underfloor Heating</div>
+                        <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> Suitable for Walls & Floors</div>
+                        <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> Matching Patio Tiles</div>
+                        <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> Guaranteed Italian Made</div>
+                        <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> More About This Tile...</div>
+                        <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> High No. of Tile Faces</div>
                       </Grid>
                        <Grid size={{xs: 8}}>
-                        <p className="text-sm mb-3">Bathed in velvety light, the Calcis collection evokes a
+                        <p className="text-[16px] mb-3">Bathed in velvety light, the Calcis collection evokes a
                           sense of reassuring harmony. Italgraniti masterfully unites
                           the distinct personalities of two iconic natural stones in
                           one refined surface: the soft-toned, delicately veined
@@ -1373,7 +1373,7 @@ export default function ProductDetailPage() {
                           renowned Alicante quarries—celebrated for its subtle
                           sophistication in both interior and exterior design.</p>
 
-                        <p className="text-sm mb-3">Available in a palette of warm, delicate shades aligned
+                        <p className="text-[16px] mb-3">Available in a palette of warm, delicate shades aligned
                           with contemporary trends, Calcis transforms spaces with a
                           radiant, calming aesthetic—perfect for creating peaceful,
                           elegant environments</p>
@@ -1395,18 +1395,18 @@ export default function ProductDetailPage() {
                     <div className="text-base font-semibold text-red-500 mb-2">
                       {/* Collapsable Tab Name (optional, if you want to show) */}
                     </div>
-                    <h4 className="font-semibold mb-2 mt-4">Tile Specifications & European Standards</h4>
-                    <p className="text-sm text-gray-700 mb-3">
+                    <h4 className="font-semibold mb-2 mt-4 text-lg">Tile Specifications & European Standards</h4>
+                    <p className="text-[16px] text-gray-700 mb-3">
                       All tile specifications are provided in line with European manufacturing standards (EN 14411). This means slight variations in size, thickness, shade, and finish are perfectly normal and part of the production process—even within the same batch.
                     </p>
-                    <p className="text-sm text-gray-700">
+                    <p className="text-[16px] text-gray-700">
                       If your project has specific technical requirements—such as wet areas, outdoor use, commercial settings, or slip resistance—please refer to the product's technical data or contact our team for additional documentation to suit your needs.
                     </p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Left Card */}
                     <div className="rounded-xl bg-[#f7f0ef] p-8">
-                      <ul className="text-sm space-y-2">
+                      <ul className="text-[16px] space-y-2">
                         <li className="flex justify-between pb-4 ">
                           <span className="font-semibold w-1/2">Factory Name</span>
                           <span className="float-right font-normal w-1/2">
@@ -1498,15 +1498,15 @@ export default function ProductDetailPage() {
               <AccordionDetails>
                 <div>
                   <div className="bg-[#f7f0ef] rounded-xl p-10 mb-8">
-                    <h4 className="font-semibold text-md mb-2">Plan Your Order</h4>
-                    <p className="text-sm mb-3">
+                    <h4 className="font-semibold text-lg mb-2 ">Plan Your Order</h4>
+                    <p className="text-[16px] mb-3">
                       Ordering from EUROTILE is straightforward—but getting your quantities right is crucial.
                     </p>
-                    <p className="text-sm mb-3">
+                    <p className="text-[16px] mb-3">
                       Since all of our tiles are shipped directly from Italy or Spain, it’s important to double-check measurements before placing your order. We strongly recommend confirming quantities with your tiling contractor, as ordering small top-ups later can be significantly more expensive and may result in batch mismatches or longer lead times.
                     </p>
-                    <h4 className="font-semibold text-md mb-2 italic">Follow these steps to avoid costly errors:</h4>
-                    <ol className="list-decimal list-inside text-sm mb-5 space-y-1">
+                    <h4 className="font-semibold mb-2 italic text-lg">Follow these steps to avoid costly errors:</h4>
+                    <ol className="list-decimal list-inside text-[16px] mb-5 space-y-1">
                       <li>
                         Ask your installer how the tiles will be laid (e.g. stacked, staggered, horizontal, vertical).
                       </li>
@@ -1520,13 +1520,13 @@ export default function ProductDetailPage() {
                         Then add 10% extra to cover cuts, breakages, and wastage.
                       </li>
                     </ol>
-                    <p className="text-sm mb-3">
+                    <p className="text-[16px] mb-3">
                       This is especially important for large-format tiles, where offcuts are harder to reuse.
                     </p>
-                    <p className="text-sm mb-3">
+                    <p className="text-[16px] mb-3">
                       If you’re ordering floor tiles, don’t worry about having a few extra packs. It’s a smart move—cracks or damage from heavy use can happen over time, and keeping spares from the same batch means you’ll always have a perfect match.
                     </p>
-                    <p className="text-sm mb-3">
+                    <p className="text-[16px] mb-3">
                       Still unsure? Our support team is on hand to help you get it right.
                     </p>
                   </div>
@@ -1541,7 +1541,7 @@ export default function ProductDetailPage() {
               <AccordionDetails>
                 <div>
                   <div className="bg-[#f7f0ef] rounded-xl p-10 text-[15px] text-[#3d2c29]">
-                    <h4 className="font-semibold text-md mb-2">Delivery Options</h4>
+                    <h4 className="font-semibold text-md mb-2 text-lg">Delivery Options</h4>
                     <p className="mb-3">
                       Our products are shipped directly from our trusted partners in Italy and Spain, ensuring premium quality and unbeatable value. Choose the delivery speed that works best for your project:
                     </p>
@@ -1573,35 +1573,35 @@ export default function ProductDetailPage() {
                         </tbody>
                       </table>
                     </div>
-                    <p className="mb-3">All deliveries are kerbside only. This means the driver will leave the pallet at the nearest accessible flat surface (e.g. driveway or pavement). Please ensure:</p>
+                    <p className="mb-3 text-[16px]">All deliveries are kerbside only. This means the driver will leave the pallet at the nearest accessible flat surface (e.g. driveway or pavement). Please ensure:</p>
 
-                    <ul className="list-disc pl-6 mb-2 space-y-1">
+                    <ul className="list-disc pl-6 mb-2 space-y-1 text-[16px]">
                       <li>Someone is available on-site to receive the goods.</li>
                       <li>If the driver cannot deliver safely, a £60 per pallet redelivery fee will apply.</li>
                       <li>If you’re not ready to receive your order, we can store it free of charge for 30 days, then at £7.50 per pallet per week thereafter.</li>
                     </ul>
-                    <h4 className="font-semibold mb-2 mt-4">Returns Options</h4>
-                    <p className="mb-3">
+                    <h4 className="font-semibold mb-2 mt-4 text-lg">Returns Options</h4>
+                    <p className="mb-3 text-[16px]">
                       We understand plans can change. If you’d like to return your order, please notify us within 14 days of delivery. Once your return is authorised, you’ll have 7 days to arrange the return of the goods.
                     </p>
-                    <p className="mb-3">
+                    <p className="mb-3 text-[16px]">
                       All returns are sent back to our warehouses in Italy or Spain (at the purchaser’s cost). Goods must be returned:
                     </p>
-                    <ul className="list-disc pl-5 mb-3 space-y-1">
+                    <ul className="list-disc pl-5 mb-3 text-[16px] space-y-1">
                       <li>In full (we do not accept part returns or leftover boxes)</li>
                       <li>In their original packaging, unopened and undamaged</li>
                       <li>Securely relabelled</li>
                     </ul>
 
 
-                    <p className="mb-3">You may arrange your own haulier, or we can coordinate collection at a cost of £200–£400 per pallet, depending on location
+                    <p className="mb-3 text-[16px]">You may arrange your own haulier, or we can coordinate collection at a cost of £200–£400 per pallet, depending on location
                       and quantity. We’ll confirm pricing before booking.</p>
 
-                    <h4 className="font-semibold mb-2 mt-4">Damages & Shortages</h4>
-                    <p className="mb-3">Please inspect your delivery upon arrival. If anything is missing or damaged, notify us within 24 hours and provide photographs
+                    <h4 className="font-semibold mb-2 mt-4 text-lg">Damages & Shortages</h4>
+                    <p className="mb-3 text-[16px]">Please inspect your delivery upon arrival. If anything is missing or damaged, notify us within 24 hours and provide photographs
                       where possible.</p>
 
-                    <p className="mb-3">Where damage exceeds what’s expected in standard transit, we will arrange a credit or replacement. If replacements are needed,
+                    <p className="mb-3 text-[16px]">Where damage exceeds what’s expected in standard transit, we will arrange a credit or replacement. If replacements are needed,
                       please allow 3-4 weeks for delivery, and note that exact batch colour matches cannot be guaranteed</p>
 
                   </div>
