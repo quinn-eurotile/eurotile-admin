@@ -87,6 +87,7 @@ const StepCart = ({ handleNext }) => {
 
   // Context
   const {
+    cartData,
     cartItems,
     setCartItems,
     orderSummary,
@@ -98,7 +99,7 @@ const StepCart = ({ handleNext }) => {
     calculateOrderSummary
   } = useContext(CheckoutContext);
 
-  //console.log(cartItems, 'cartItems.............');
+  console.log(cartData, 'orderSummary.............');
 
   useEffect(() => {
     if (!openFade) {
@@ -528,7 +529,7 @@ const StepCart = ({ handleNext }) => {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <Typography color="text.primary"> Items Subtotal (ex. VAT)</Typography>
-                <Typography>£{orderSummary?.subtotal?.toFixed(2)}</Typography>
+                <Typography>£{cartData?.subtotal?.toFixed(2)}</Typography>
               </div>
 
               {/* Supplier Discount Summary */}

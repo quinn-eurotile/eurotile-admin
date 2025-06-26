@@ -164,6 +164,7 @@ const getStepContent = (step, handleNext, handleBack, checkoutData) => {
 }
 
 const CheckoutWizard = ({ initialData }) => {
+  console.log(initialData, 'initialDatainitialData')
   // Get user session
   const { data: session, status } = useSession()
   // //console.log(initialData, 'initialData 3142');
@@ -339,6 +340,7 @@ const CheckoutWizard = ({ initialData }) => {
     loading,
     user: session?.user,
     adminSettings: initialData?.adminSettings,
+    cartData,
     calculateOrderSummary
   }
 
@@ -406,7 +408,7 @@ const CheckoutWizard = ({ initialData }) => {
                             fontWeight: index === activeStep ? 600 : 400,
                           }}
                         >
-                          {step.title} 
+                          {step.title}
                         </Typography>
                       </div>
 
