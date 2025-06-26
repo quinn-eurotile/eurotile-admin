@@ -44,6 +44,11 @@ import { addToCart } from "@/redux-store/slices/cart";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/router";
 
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import dayjs from 'dayjs';
+
 // Styled Components
 const HorizontalContent = styled(Typography, {
   name: "MuiCustomInputHorizontal",
@@ -102,6 +107,9 @@ const StepAddress = ({ handleNext, cartItems }) => {
   //// //console.log(isClientOrder, 'isClientOrder');
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingData, setShippingData] = useState([]);
+
+  // Delivery date picker state
+  const [selectedDate, setSelectedDate] = useState(null);
 
   // Button props for add address
   const buttonProps = {
@@ -457,22 +465,22 @@ const StepAddress = ({ handleNext, cartItems }) => {
           {!isClientOrder && (
             <>
               <Button
-  onClick={() => handleEditAddress(address)}
-  color="primary"
-  size="small"
-  variant="outlined"
->
-  Edit
-</Button>
+                onClick={() => handleEditAddress(address)}
+                color="primary"
+                size="small"
+                variant="outlined"
+              >
+                Edit
+              </Button>
 
-<Button
-  onClick={() => confirmDeleteAddress(address.id)}
-  color="primary"
-  size="small"
-  variant="outlined"
->
-  Remove
-</Button>
+              <Button
+                onClick={() => confirmDeleteAddress(address.id)}
+                color="primary"
+                size="small"
+                variant="outlined"
+              >
+                Remove
+              </Button>
 
             </>
           )}
@@ -680,6 +688,11 @@ const StepAddress = ({ handleNext, cartItems }) => {
     )
   }
 
+  const today = dayjs();
+  const selectedShippingOption = shippingOptions.find(opt => opt.value === selectedShipping);
+  const minDate = selectedShippingOption ? today.add(selectedShippingOption.minDays, 'day') : today;
+  const maxDate = selectedShippingOption ? today.add(selectedShippingOption.maxDays, 'day') : today;
+
   return (
     <>
       <Grid container spacing={6}>
@@ -761,7 +774,7 @@ const StepAddress = ({ handleNext, cartItems }) => {
                 }
                 return (
                   <CustomInputVertical
-                  className="flex-row flex-wrap" 
+                    className="flex-row flex-wrap"
                     type="radio"
                     key={item.value}
                     gridProps={{
@@ -781,6 +794,20 @@ const StepAddress = ({ handleNext, cartItems }) => {
             </Grid>
           </div>
 
+          <div>
+            <Typography mb={2}>Select Your Requested Delivery Date</Typography>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                label="Select Delivery Date"
+                value={selectedDate || null}
+                onChange={date => setSelectedDate(date)}
+                minDate={minDate}
+                maxDate={maxDate}
+                renderInput={params => <TextField {...params} fullWidth />}
+              />
+            </LocalizationProvider>
+          </div>
+
 
         </Grid>
 
@@ -791,7 +818,6 @@ const StepAddress = ({ handleNext, cartItems }) => {
           }
 
           <div className="flex justify-end">
-
             {isClientOrder ? (<Button
               className="max-sm:is-full lg:is-full"
               size="large"

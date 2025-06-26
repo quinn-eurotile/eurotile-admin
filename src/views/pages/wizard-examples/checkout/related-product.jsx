@@ -7,12 +7,48 @@ import 'keen-slider/keen-slider.min.css'
 import { useState } from 'react'
 
 export default function RelatedProductGrid({ products }) {
+
   const { lang: locale } = useParams();
   const [loaded, setLoaded] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [details, setDetails] = useState()
 
   const slidesPerView = 4;
+
+  const [sliderRef, instanceRef] = useKeenSlider(
+    products.length > slidesPerView
+      ? {
+        loop: true,
+        slideChanged: slider => setCurrentSlide(slider.track.details.rel),
+        created: () => setLoaded(true),
+        detailsChanged: s => setDetails(s.track.details),
+        slides: {
+          perView: slidesPerView,
+          spacing: 24
+        },
+        breakpoints: {
+          '(max-width: 1200px)': {
+            slides: {
+              perView: 3,
+              spacing: 24
+            }
+          },
+          '(max-width: 900px)': {
+            slides: {
+              perView: 2,
+              spacing: 24
+            }
+          },
+          '(max-width: 600px)': {
+            slides: {
+              perView: 1,
+              spacing: 24
+            }
+          }
+        }
+      }
+      : null
+  )
 
   if (!products || products.length === 0) {
     return <div className="py-4 mb-5 text-center">No related products available.</div>;
@@ -23,15 +59,13 @@ export default function RelatedProductGrid({ products }) {
     return (
       <div className="flex flex-wrap gap-6 justify-center">
         {products.map((product) => {
-          const imageSrc = product?.productFeaturedImage
-            ? `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product?.productFeaturedImage?.filePath}`
-            : "/placeholder.svg";
-          const price = product?.productVariations?.[0]?.regularPriceB2B || 0.0;
-          const variationId = product?.productVariations?.[0]?._id || null;
+          const imageSrc = product?.image || "/placeholder.svg";
+          const price = product?.variation?.regularPriceB2B || 0.0;
+          const variationId = product?.variation?._id || null;
           return (
             <div className="group w-60" key={product._id}>
               <Link rel='noopener noreferrer' href={{
-                pathname: `/${locale}/products/${product?.id}`,
+                pathname: `/${locale}/products/${product?._id}`,
                 query: { vid: variationId }
               }}
                 className="block p-2 bg-bgLight rounded-lg mb-3">
@@ -46,7 +80,7 @@ export default function RelatedProductGrid({ products }) {
               </Link>
               <div className="text-center">
                 <Link rel='noopener noreferrer' href={{
-                  pathname: `/${locale}/products/${product?.id}`,
+                  pathname: `/${locale}/products/${product?._id}`,
                   query: { vid: variationId }
                 }}
                   className="block">
@@ -69,72 +103,17 @@ export default function RelatedProductGrid({ products }) {
     );
   }
 
-  const [sliderRef, instanceRef] = useKeenSlider(
-    {
-      loop: true,
-      slideChanged: slider => setCurrentSlide(slider.track.details.rel),
-      created: () => setLoaded(true),
-      detailsChanged: s => setDetails(s.track.details),
-      slides: {
-        perView: slidesPerView,
-        spacing: 24
-      },
-      breakpoints: {
-        '(max-width: 1200px)': {
-          slides: {
-            perView: 3,
-            spacing: 24
-          }
-        },
-        '(max-width: 900px)': {
-          slides: {
-            perView: 2,
-            spacing: 24
-          }
-        },
-        '(max-width: 600px)': {
-          slides: {
-            perView: 1,
-            spacing: 24
-          }
-        }
-      }
-    },
-    [
-      slider => {
-        let timeout
-        const mouseOver = false
-        function clearNextTimeout() {
-          clearTimeout(timeout)
-        }
-        function nextTimeout() {
-          clearTimeout(timeout)
-          if (mouseOver) return
-          timeout = setTimeout(() => {
-            slider.next()
-          }, 3000)
-        }
-        slider.on('created', nextTimeout)
-        slider.on('dragStarted', clearNextTimeout)
-        slider.on('animationEnded', nextTimeout)
-        slider.on('updated', nextTimeout)
-      }
-    ]
-  )
-
   return (
     <div className="relative">
       <div ref={sliderRef} className="keen-slider">
         {products?.map((product) => {
-          const imageSrc = product?.productFeaturedImage
-            ? `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${product?.productFeaturedImage?.filePath}`
-            : "/placeholder.svg";
-          const price = product?.productVariations?.[0]?.regularPriceB2B || 0.0;
-          const variationId = product?.productVariations?.[0]?._id || null;
+          const imageSrc = product?.image || "/placeholder.svg";
+          const price = product?.variation?.regularPriceB2B || 0.0;
+          const variationId = product?.variation?._id || null;
           return (
             <div className="keen-slider__slide group" key={product._id}>
               <Link rel='noopener noreferrer' href={{
-                pathname: `/${locale}/products/${product?.id}`,
+                pathname: `/${locale}/products/${product?._id}`,
                 query: { vid: variationId }
               }}
                 className="block p-2 bg-bgLight rounded-lg mb-3">
@@ -149,7 +128,7 @@ export default function RelatedProductGrid({ products }) {
               </Link>
               <div className="text-center">
                 <Link rel='noopener noreferrer' href={{
-                  pathname: `/${locale}/products/${product?.id}`,
+                  pathname: `/${locale}/products/${product?._id}`,
                   query: { vid: variationId }
                 }}
                   className="block">
@@ -169,7 +148,7 @@ export default function RelatedProductGrid({ products }) {
           );
         })}
       </div>
-      {loaded && instanceRef.current && (
+      {loaded && instanceRef.current && products.length > slidesPerView && (
         <>
           <button
             onClick={e => instanceRef.current?.prev()}

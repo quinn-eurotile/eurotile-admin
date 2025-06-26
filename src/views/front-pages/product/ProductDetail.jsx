@@ -360,6 +360,7 @@ export default function ProductDetailPage() {
     },
   ];
 
+  console.log(product?.associatedProducts, 'product?.associatedProductsproduct?.associatedProductsproduct?.associatedProducts')
 
 
   const calculateValues = (type, value) => {

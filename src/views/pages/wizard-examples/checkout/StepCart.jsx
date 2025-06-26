@@ -32,6 +32,9 @@ import { cartApi } from "@/services/cart/index";
 import { cartRelatedSuppliersProducts, removeCartItem, updateCartItem } from "@/app/server/actions";
 import { toast } from "react-toastify";
 import { calculateTierValue } from "@/components/common/helper";
+import { Tooltip } from "@mui/material";
+import { useParams } from "next/navigation";
+import RelatedProductGrid from "./related-product";
 
 // API Import
 
@@ -85,6 +88,9 @@ const StepCart = ({ handleNext }) => {
   const [couponCode, setCouponCode] = useState("");
   const [showCouponInput, setShowCouponInput] = useState(false);
 
+
+
+
   // Context
   const {
     cartData,
@@ -96,7 +102,6 @@ const StepCart = ({ handleNext }) => {
     loading,
     user,
     adminSettings,
-    calculateOrderSummary
   } = useContext(CheckoutContext);
 
 
@@ -110,14 +115,7 @@ const StepCart = ({ handleNext }) => {
   }, [openFade]);
 
 
-  const relatedSuppliersProducts = async () => {
-    const response = await cartRelatedSuppliersProducts(cartData.userId);
-    console.log(response, 'responseresponse related products')
-  }
 
-  useEffect(() => {
-    relatedSuppliersProducts();
-  }, [])
 
 
   // Update cart item quantity
@@ -126,13 +124,16 @@ const StepCart = ({ handleNext }) => {
     setError("");
     try {
       const response = await updateCartItem(itemId, newQuantityOrObj);
-      // console.log(response, 'responseresponseresponse')
+      console.log(response, 'responseresponseresponse 3232232323')
       if (response.success) {
         const { items } = response.data;
         setCartItems(items);
+        const vatAmount = Number(((response.data.subtotal * response.data.vat) / 100).toFixed(2));
         setOrderSummary(prev => ({
           ...prev,
-          subtotal: items.subtotal
+          subtotal: response.data.subtotal,
+          total: response.data.total,
+          vat: vatAmount,
         }));
       } else {
         setError(response.message || "Error updating cart");
@@ -236,15 +237,16 @@ const StepCart = ({ handleNext }) => {
 
   // console.log(cartItems, 'cartItemscartItems')
   return (
-    <Grid container spacing={6}>
-      <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-4">
-        {error && (
-          <Alert severity="error" onClose={() => setError("")}>
-            {error}
-          </Alert>
-        )}
+    <>
+      <Grid container spacing={6}>
+        <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-4">
+          {error && (
+            <Alert severity="error" onClose={() => setError("")}>
+              {error}
+            </Alert>
+          )}
 
-        {/* <Collapse in={openCollapse}>
+          {/* <Collapse in={openCollapse}>
           <Fade in={openFade} timeout={{ exit: 300 }}>
             <Alert
               icon={<i className="ri-percent-line" />}
@@ -272,248 +274,248 @@ const StepCart = ({ handleNext }) => {
           </Fade>
         </Collapse> */}
 
-        <Typography className="rounded" variant="h5">
-          {/* My Shopping Bag ({cartItems.length} {cartItems.length === 1 ? "Item" : "Items"}) */}
-          Your Basket
-        </Typography>
+          <Typography className="rounded" variant="h5">
+            {/* My Shopping Bag ({cartItems.length} {cartItems.length === 1 ? "Item" : "Items"}) */}
+            Your Basket
+          </Typography>
 
-        {cartItems.length === 0 ? (
-          <Alert severity="info">Your cart is empty. Please add items to your cart to continue shopping.</Alert>
-        ) : (
-          <div className="border rounded">
-            {cartItems.map((product, index) => {
-              const prod = product.product;
-              const variation = product.variation;
-              const locale = typeof window !== 'undefined' ? (window.location.pathname.split('/')[1] || 'en') : 'en';
-              // Attribute extraction helpers
-              const getAttr = (slug) => variation?.attributeVariations?.find(av => av.metaKey === slug);
-              const sizeAttr = getAttr('size');
-              const thicknessAttr = getAttr('thinkness') || getAttr('thickness');
-              const finishAttr = getAttr('finish');
-              const colorAttr = getAttr('color');
-              // Fallbacks
-              const size = sizeAttr?.metaValue || `${variation?.dimensions?.width || ''}x${variation?.dimensions?.length || ''}`;
-              const thickness = thicknessAttr?.metaValue || variation?.dimensions?.height;
-              const finish = finishAttr?.metaValue || 'N/A';
-              // Box logic
-              const boxSize = variation?.boxSize || 1;
-              const boxes = product?.numberOfBoxes || 0;
-              const tilesPerBox = parseFloat(variation.numberOfTiles) || 1;
-              const sqmPerTile = parseFloat(variation.sqmPerTile) || 1;
-              const sqm = boxes * tilesPerBox * sqmPerTile;
+          {cartItems.length === 0 ? (
+            <Alert severity="info">Your cart is empty. Please add items to your cart to continue shopping.</Alert>
+          ) : (
+            <div className="border rounded">
+              {cartItems.map((product, index) => {
+                const prod = product.product;
+                const variation = product.variation;
+                const locale = typeof window !== 'undefined' ? (window.location.pathname.split('/')[1] || 'en') : 'en';
+                // Attribute extraction helpers
+                const getAttr = (slug) => variation?.attributeVariations?.find(av => av.metaKey === slug);
+                const sizeAttr = getAttr('size');
+                const thicknessAttr = getAttr('thinkness') || getAttr('thickness');
+                const finishAttr = getAttr('finish');
+                const colorAttr = getAttr('color');
+                // Fallbacks
+                const size = sizeAttr?.metaValue || `${variation?.dimensions?.width || ''}x${variation?.dimensions?.length || ''}`;
+                const thickness = thicknessAttr?.metaValue || variation?.dimensions?.height;
+                const finish = finishAttr?.metaValue || 'N/A';
+                // Box logic
+                const boxSize = variation?.boxSize || 1;
+                const boxes = product?.numberOfBoxes || 0;
+                const tilesPerBox = parseFloat(variation.numberOfTiles) || 1;
+                const sqmPerTile = parseFloat(variation.sqmPerTile) || 1;
+                const sqm = boxes * tilesPerBox * sqmPerTile;
 
-              let pricingTier;
-              if (sqm >= 1300) {
-                pricingTier = 'tierFirst';
-              } else if (sqm >= 153) {
-                pricingTier = 'tierSecond';
-              } else if (sqm >= 51) {
-                pricingTier = 'tierThird';
-              } else if (sqm >= 30) {
-                pricingTier = 'tierFourth';
-              } else {
-                pricingTier = 'tierFifth';
-              }
-              const tierData = variation.tierDiscount[pricingTier];
-              let pricePerSqm;
-              if (tierData) {
-                const { tierAddOn, tierMultiplyBy } = tierData;
-                pricePerSqm = calculateTierValue(
-                  variation.regularPriceB2B,
-                  1.17,
-                  tierAddOn,
-                  tierMultiplyBy
-                );
-              } else {
-                pricePerSqm = variation.regularPriceB2C;
-              }
+                let pricingTier;
+                if (sqm >= 1300) {
+                  pricingTier = 'tierFirst';
+                } else if (sqm >= 153) {
+                  pricingTier = 'tierSecond';
+                } else if (sqm >= 51) {
+                  pricingTier = 'tierThird';
+                } else if (sqm >= 30) {
+                  pricingTier = 'tierFourth';
+                } else {
+                  pricingTier = 'tierFifth';
+                }
+                const tierData = variation.tierDiscount[pricingTier];
+                let pricePerSqm;
+                if (tierData) {
+                  const { tierAddOn, tierMultiplyBy } = tierData;
+                  pricePerSqm = calculateTierValue(
+                    variation.regularPriceB2B,
+                    1.17,
+                    tierAddOn,
+                    tierMultiplyBy
+                  );
+                } else {
+                  pricePerSqm = variation.regularPriceB2C;
+                }
 
-              // Calculate supplier discount based on sqm
-              const { discountPercent, appliedDiscount } = calculateSupplierDiscount(prod?.supplier, sqm);
+                // Calculate supplier discount based on sqm
+                const { discountPercent, appliedDiscount } = calculateSupplierDiscount(prod?.supplier, sqm);
 
-              // Calculate total price with discount
-              let totalPrice = pricePerSqm * sqm;
-              if (discountPercent > 0) {
-                totalPrice = totalPrice * (1 - discountPercent / 100);
-              }
+                // Calculate total price with discount
+                let totalPrice = pricePerSqm * sqm;
+                if (discountPercent > 0) {
+                  totalPrice = totalPrice * (1 - discountPercent / 100);
+                }
 
-              return (
-                <div
-                  key={product._id || index}
-                  className="relative p-5 gap-4 [&:not(:last-child)]:border-be"
-                >
-                  <IconButton
-                    size="small"
-                    className="absolute block-start-2 inline-end-2"
-                    onClick={() => removeItem(product._id)}
-                    disabled={isUpdating}
+                return (
+                  <div
+                    key={product._id || index}
+                    className="relative p-5 gap-4 [&:not(:last-child)]:border-be"
                   >
-                    <i className="ri-close-line text-lg" />
-                  </IconButton>
-                  <div className="flex flex-col sm:flex-row sm:justify-between w-full mt-6 gap-3">
-                    <img
-                      height={140}
-                      width={140}
-                      src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${variation?.variationImages?.[0]?.filePath}` || "/placeholder.svg?height=140&width=140"}
-                      alt={prod?.name || 'Product Image'}
-                      className="object-cover rounded-lg"
-                    />
-
-                    <div className="flex flex-col sm:flex-row items-center sm:justify-between w-full">
-                      <div className="flex flex-col  items-center sm:items-start">
-                        {/* Tile Name (linked) */}
-                        <Typography className="font-medium text-red-800 mb-3">
-                          <Link
-                            href={`/${locale}/products/${prod?._id}?vid=${variation?._id}`}
-                            className="underline hover:text-primary cursor-pointer"
-                          >
-                            {prod?.name}
-                          </Link>
-                        </Typography>
-                        {/* Factory Name (linked) */}
-                        <Typography className="text-sm text-black">
-                          Factory: {prod?.supplier ? (
-                            <Link
-                              href={{ pathname: `/${locale}/products`, query: { supplier: prod?.supplier?._id } }}
-                              className="underline hover:text-primary cursor-pointer text-red-800"
-                            >
-                              {prod?.supplier?.companyName}
-                            </Link>
-                          ) : 'N/A'}
-                        </Typography>
-                        {/* Collection Name (linked) */}
-                        <Typography className="text-sm text-black">
-                          Collection: {variation?.categories?.length > 0 ? variation.categories.map((cat, idx) => (
-                            <Link
-                              key={cat._id}
-                              href={{ pathname: `/${locale}/products`, query: { category: cat._id } }}
-                              className="underline hover:text-primary cursor-pointer text-red-800"
-                              style={{ marginRight: 4 }}
-                            >
-                              {cat.name}{idx < variation.categories.length - 1 ? ', ' : ''}
-                            </Link>
-                          )) : 'N/A'}
-                        </Typography>
-                        {/* Size, Thickness, Finish */}
-
-                        <Typography className="text-sm text-black">Size: <span>{size || 'N/A'}</span></Typography>
-
-                        <Typography className="text-sm text-black">Thickness: <span>{thickness || 'N/A'}</span></Typography>
-
-                        <Typography className="text-sm text-black">Color: <span>{colorAttr?.metaValue || 'N/A'}</span></Typography>
-
-
-
-
-                      </div>
-                      <div className="flex flex-col justify-between items-center mt-4 gap-3 sm:items-end">
-                        <div className="flex flex-col items-end">
-                          <Typography variant="h6" color="primary.main" className="font-semibold">
-                            £{pricePerSqm.toFixed(2)}/SQ.M
-                          </Typography>
-                          <Typography color="text.secondary" className="text-sm font-semibold ">
-                            Total (ex.VAT): <br /> £{totalPrice.toFixed(2)}
-                          </Typography>
-                          {discountPercent > 0 && (
-                            <Chip
-                              size="small"
-                              variant="tonal"
-                              color="success"
-                              label={`${discountPercent}% Discount Applied`}
-                              className="mt-1"
-                            />
-                          )}
-                          {product?.isCustomPrice && (
-                            <Chip
-                              size="small"
-                              variant="tonal"
-                              color="info"
-                              label="Custom Price"
-                              className="mt-1"
-                            />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Quantity Controls */}
-                  <div className="flex items-center flex-wrap gap-4 mt-4">
-                    <TextField
+                    <IconButton
                       size="small"
-                      type="number"
-                      value={boxes}
-                      onChange={(e) => {
-                        const newBoxes = Number(e.target.value);
-                        const newNumberOfTiles = newBoxes * tilesPerBox;
-                        const sqm = newBoxes * tilesPerBox * sqmPerTile;
-                        const newQuantity = sqm; // quantity is now SQ.M
-                        const { discountPercent } = calculateSupplierDiscount(prod?.supplier, sqm);
-                        let pricePerSqm;
-                        let pricingTier;
-                        if (sqm >= 1300) {
-                          pricingTier = 'tierFirst';
-                        } else if (sqm >= 153) {
-                          pricingTier = 'tierSecond';
-                        } else if (sqm >= 51) {
-                          pricingTier = 'tierThird';
-                        } else if (sqm >= 30) {
-                          pricingTier = 'tierFourth';
-                        } else {
-                          pricingTier = 'tierFifth';
-                        }
-                        const tierData = variation.tierDiscount[pricingTier];
-                        if (tierData) {
-                          const { tierAddOn, tierMultiplyBy } = tierData;
-                          pricePerSqm = calculateTierValue(
-                            variation.regularPriceB2B,
-                            1.17,
-                            tierAddOn,
-                            tierMultiplyBy
-                          );
-                        } else {
-                          pricePerSqm = variation.regularPriceB2C;
-                        }
-                        updateItemQuantity(product._id, {
-                          quantity: newQuantity, // SQ.M
-                          numberOfTiles: newNumberOfTiles,
-                          numberOfBoxes: newBoxes,
-                          discount: discountPercent,
-                          price: pricePerSqm
-                        });
-                      }}
-                      className="block max-w-[130px]"
+                      className="absolute block-start-2 inline-end-2"
+                      onClick={() => removeItem(product._id)}
                       disabled={isUpdating}
-                      inputProps={{ min: 1, step: 1 }}
-                      label="No. of Boxes"
-                    />
-                    <TextField
-                      size="small"
-                      value={sqm}
-                      className="block max-w-[130px]"
-                      label="Total SQ.M"
-                      InputProps={{ readOnly: true }}
-                    />
-                    <div>
-                      {/* Next Tier Discount Message */}
-                      {prod?.supplier?.discounts && prod.supplier.discounts.length > 0 && (
-                        <div className="flex items-center w-full rounded-md text-redText text-sm bg-redText/25 px-4 py-2">
-                          <i className="ri-discount-percent-line me-1"></i>
-                          {getNextTierMessage(prod.supplier, sqm)}
+                    >
+                      <i className="ri-close-line text-lg" />
+                    </IconButton>
+                    <div className="flex flex-col sm:flex-row sm:justify-between w-full mt-6 gap-3">
+                      <img
+                        height={140}
+                        width={140}
+                        src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${variation?.variationImages?.[0]?.filePath}` || "/placeholder.svg?height=140&width=140"}
+                        alt={prod?.name || 'Product Image'}
+                        className="object-cover rounded-lg"
+                      />
+
+                      <div className="flex flex-col sm:flex-row items-center sm:justify-between w-full">
+                        <div className="flex flex-col  items-center sm:items-start">
+                          {/* Tile Name (linked) */}
+                          <Typography className="font-medium text-red-800 mb-3">
+                            <Link
+                              href={`/${locale}/products/${prod?._id}?vid=${variation?._id}`}
+                              className="underline hover:text-primary cursor-pointer"
+                            >
+                              {prod?.name}
+                            </Link>
+                          </Typography>
+                          {/* Factory Name (linked) */}
+                          <Typography className="text-sm text-black">
+                            Factory: {prod?.supplier ? (
+                              <Link
+                                href={{ pathname: `/${locale}/products`, query: { supplier: prod?.supplier?._id } }}
+                                className="underline hover:text-primary cursor-pointer text-red-800"
+                              >
+                                {prod?.supplier?.companyName}
+                              </Link>
+                            ) : 'N/A'}
+                          </Typography>
+                          {/* Collection Name (linked) */}
+                          <Typography className="text-sm text-black">
+                            Collection: {variation?.categories?.length > 0 ? variation.categories.map((cat, idx) => (
+                              <Link
+                                key={cat._id}
+                                href={{ pathname: `/${locale}/products`, query: { category: cat._id } }}
+                                className="underline hover:text-primary cursor-pointer text-red-800"
+                                style={{ marginRight: 4 }}
+                              >
+                                {cat.name}{idx < variation.categories.length - 1 ? ', ' : ''}
+                              </Link>
+                            )) : 'N/A'}
+                          </Typography>
+                          {/* Size, Thickness, Finish */}
+
+                          <Typography className="text-sm text-black">Size: <span>{size || 'N/A'}</span></Typography>
+
+                          <Typography className="text-sm text-black">Thickness: <span>{thickness || 'N/A'}</span></Typography>
+
+                          <Typography className="text-sm text-black">Color: <span>{colorAttr?.metaValue || 'N/A'}</span></Typography>
+
+
+
+
                         </div>
-                      )}
+                        <div className="flex flex-col justify-between items-center mt-4 gap-3 sm:items-end">
+                          <div className="flex flex-col items-end">
+                            <Typography variant="h6" color="primary.main" className="font-semibold">
+                              £{pricePerSqm.toFixed(2)}/SQ.M
+                            </Typography>
+                            <Typography color="text.secondary" className="text-sm font-semibold ">
+                              Total (ex.VAT): £{totalPrice.toFixed(2)}
+                            </Typography>
+                            {discountPercent > 0 && (
+                              <Chip
+                                size="small"
+                                variant="tonal"
+                                color="success"
+                                label={`${discountPercent}% Discount Applied`}
+                                className="mt-1"
+                              />
+                            )}
+                            {product?.isCustomPrice && (
+                              <Chip
+                                size="small"
+                                variant="tonal"
+                                color="info"
+                                label="Custom Price"
+                                className="mt-1"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
+                    {/* Quantity Controls */}
+                    <div className="flex items-center flex-wrap gap-4 mt-4">
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={boxes}
+                        onChange={(e) => {
+                          const newBoxes = Number(e.target.value);
+                          const newNumberOfTiles = newBoxes * tilesPerBox;
+                          const sqm = newBoxes * tilesPerBox * sqmPerTile;
+                          const newQuantity = sqm; // quantity is now SQ.M
+                          const { discountPercent } = calculateSupplierDiscount(prod?.supplier, sqm);
+                          let pricePerSqm;
+                          let pricingTier;
+                          if (sqm >= 1300) {
+                            pricingTier = 'tierFirst';
+                          } else if (sqm >= 153) {
+                            pricingTier = 'tierSecond';
+                          } else if (sqm >= 51) {
+                            pricingTier = 'tierThird';
+                          } else if (sqm >= 30) {
+                            pricingTier = 'tierFourth';
+                          } else {
+                            pricingTier = 'tierFifth';
+                          }
+                          const tierData = variation.tierDiscount[pricingTier];
+                          if (tierData) {
+                            const { tierAddOn, tierMultiplyBy } = tierData;
+                            pricePerSqm = calculateTierValue(
+                              variation.regularPriceB2B,
+                              1.17,
+                              tierAddOn,
+                              tierMultiplyBy
+                            );
+                          } else {
+                            pricePerSqm = variation.regularPriceB2C;
+                          }
+                          updateItemQuantity(product._id, {
+                            quantity: newQuantity, // SQ.M
+                            numberOfTiles: newNumberOfTiles,
+                            numberOfBoxes: newBoxes,
+                            discount: discountPercent,
+                            price: pricePerSqm
+                          });
+                        }}
+                        className="block max-w-[130px]"
+                        disabled={isUpdating}
+                        inputProps={{ min: 1, step: 1 }}
+                        label="No. of Boxes"
+                      />
+                      <TextField
+                        size="small"
+                        value={sqm}
+                        className="block max-w-[130px]"
+                        label="Total SQ.M"
+                        InputProps={{ readOnly: true }}
+                      />
+                      <div>
+                        {/* Next Tier Discount Message */}
+                        {prod?.supplier?.discounts && prod.supplier.discounts.length > 0 && (
+                          <div className="flex items-center w-full rounded-md text-redText text-sm bg-redText/25 px-4 py-2">
+                            <i className="ri-discount-percent-line me-1"></i>
+                            {getNextTierMessage(prod.supplier, sqm)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+
+
+
                   </div>
+                );
+              })}
+            </div>
+          )}
 
-
-
-
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* <Typography
+          {/* <Typography
           href="/"
           component={Link}
           onClick={(e) => e.preventDefault()}
@@ -527,81 +529,81 @@ const StepCart = ({ handleNext }) => {
             className="text-base"
           />
         </Typography> */}
-      </Grid>
+        </Grid>
+        {console.log('orderSummary?.subtotal', orderSummary?.subtotal)}
+        <Grid size={{ xs: 12, lg: 4 }} className="flex flex-col gap-2">
+          <div className="border rounded">
+            <CardContent className="flex gap-4 flex-col">
+              <Typography className="font-medium" color="text.primary">
+                Subtotal (Standard Delivery Included)
+              </Typography>
+              <Typography className="font-medium" color="text.primary">
+                Price Details
+              </Typography>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <Typography color="text.primary"> Items Subtotal (ex. VAT)</Typography>
+                  <Typography>£{orderSummary?.subtotal?.toFixed(2)}</Typography>
+                </div>
 
-      <Grid size={{ xs: 12, lg: 4 }} className="flex flex-col gap-2">
-        <div className="border rounded">
-          <CardContent className="flex gap-4 flex-col">
-            <Typography className="font-medium" color="text.primary">
-              Subtotal (Standard Delivery Included)
-            </Typography>
-            <Typography className="font-medium" color="text.primary">
-              Price Details
-            </Typography>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <Typography color="text.primary"> Items Subtotal (ex. VAT)</Typography>
-                <Typography>£{orderSummary?.subtotal?.toFixed(2)}</Typography>
-              </div>
+                {/* Supplier Discount Summary */}
+                {(() => {
+                  let totalDiscountAmount = 0;
+                  let hasDiscount = false;
 
-              {/* Supplier Discount Summary */}
-              {(() => {
-                let totalDiscountAmount = 0;
-                let hasDiscount = false;
+                  cartItems.forEach(product => {
+                    const prod = product.product;
+                    const variation = product.variation;
+                    const boxes = product?.quantity || 0;
+                    const tilesPerBox = parseFloat(variation.numberOfTiles) || 1;
+                    const sqmPerTile = parseFloat(variation.sqmPerTile) || 1;
+                    const sqm = boxes * tilesPerBox * sqmPerTile;
 
-                cartItems.forEach(product => {
-                  const prod = product.product;
-                  const variation = product.variation;
-                  const boxes = product?.quantity || 0;
-                  const tilesPerBox = parseFloat(variation.numberOfTiles) || 1;
-                  const sqmPerTile = parseFloat(variation.sqmPerTile) || 1;
-                  const sqm = boxes * tilesPerBox * sqmPerTile;
+                    const { discountPercent } = calculateSupplierDiscount(prod?.supplier, sqm);
+                    if (discountPercent > 0) {
+                      hasDiscount = true;
+                      // Calculate the original price and discount amount
+                      let pricingTier;
+                      if (sqm >= 1300) {
+                        pricingTier = 'tierFirst';
+                      } else if (sqm >= 153) {
+                        pricingTier = 'tierSecond';
+                      } else if (sqm >= 51) {
+                        pricingTier = 'tierThird';
+                      } else if (sqm >= 30) {
+                        pricingTier = 'tierFourth';
+                      } else {
+                        pricingTier = 'tierFifth';
+                      }
+                      const tierData = variation.tierDiscount[pricingTier];
+                      let pricePerSqm;
+                      if (tierData) {
+                        const { tierAddOn, tierMultiplyBy } = tierData;
+                        pricePerSqm = calculateTierValue(
+                          variation.regularPriceB2B,
+                          1.17,
+                          tierAddOn,
+                          tierMultiplyBy
+                        );
+                      } else {
+                        pricePerSqm = variation.regularPriceB2C;
+                      }
 
-                  const { discountPercent } = calculateSupplierDiscount(prod?.supplier, sqm);
-                  if (discountPercent > 0) {
-                    hasDiscount = true;
-                    // Calculate the original price and discount amount
-                    let pricingTier;
-                    if (sqm >= 1300) {
-                      pricingTier = 'tierFirst';
-                    } else if (sqm >= 153) {
-                      pricingTier = 'tierSecond';
-                    } else if (sqm >= 51) {
-                      pricingTier = 'tierThird';
-                    } else if (sqm >= 30) {
-                      pricingTier = 'tierFourth';
-                    } else {
-                      pricingTier = 'tierFifth';
+                      const originalPrice = pricePerSqm * sqm;
+                      const discountedPrice = originalPrice * (1 - discountPercent / 100);
+                      totalDiscountAmount += (originalPrice - discountedPrice);
                     }
-                    const tierData = variation.tierDiscount[pricingTier];
-                    let pricePerSqm;
-                    if (tierData) {
-                      const { tierAddOn, tierMultiplyBy } = tierData;
-                      pricePerSqm = calculateTierValue(
-                        variation.regularPriceB2B,
-                        1.17,
-                        tierAddOn,
-                        tierMultiplyBy
-                      );
-                    } else {
-                      pricePerSqm = variation.regularPriceB2C;
-                    }
+                  });
 
-                    const originalPrice = pricePerSqm * sqm;
-                    const discountedPrice = originalPrice * (1 - discountPercent / 100);
-                    totalDiscountAmount += (originalPrice - discountedPrice);
-                  }
-                });
+                  // return hasDiscount ? (
+                  //   <div className="flex items-center justify-between">
+                  //     <Typography color="success.main">Supplier Discount</Typography>
+                  //     <Typography color="success.main">-£{totalDiscountAmount.toFixed(2)}</Typography>
+                  //   </div>
+                  // ) : null;
+                })()}
 
-                // return hasDiscount ? (
-                //   <div className="flex items-center justify-between">
-                //     <Typography color="success.main">Supplier Discount</Typography>
-                //     <Typography color="success.main">-£{totalDiscountAmount.toFixed(2)}</Typography>
-                //   </div>
-                // ) : null;
-              })()}
-
-              {/* <div className="flex items-center justify-between">
+                {/* <div className="flex items-center justify-between">
                 <Typography color="text.primary">Coupon Discount</Typography>
                 {!showCouponInput ? (
                   <Button
@@ -639,7 +641,7 @@ const StepCart = ({ handleNext }) => {
               )}
               </div> */}
 
-              {/* <div className="flex items-center justify-between">
+                {/* <div className="flex items-center justify-between">
                 <Typography color="text.primary">Shipping Charges</Typography>
                 <div className="flex items-center gap-2">
                   {orderSummary?.shipping > 0 ? (
@@ -655,53 +657,57 @@ const StepCart = ({ handleNext }) => {
                 </div>
               </div> */}
 
-              <div className="flex items-center justify-between">
-                <Typography color="text.primary">VAT ({orderSummary?.vatRate || 0}%)</Typography>
-                <Typography>£{orderSummary?.vat?.toFixed(2)}</Typography>
+                <div className="flex items-center justify-between">
+                  <Typography color="text.primary">VAT ({orderSummary?.vatRate || 0}%)</Typography>
+                  <Typography>£{orderSummary?.vat?.toFixed(2)}</Typography>
+                </div>
+
+                {error && (
+                  <Alert severity="error" onClose={() => setError("")}>
+                    {error}
+                  </Alert>
+                )}
               </div>
+            </CardContent>
+            <Divider />
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <Typography className="font-medium" color="text.primary">
+                  Total Amount
+                </Typography>
+                <Typography className="font-medium" color="text.primary">
+                  £{orderSummary?.total?.toFixed(2)}
+                </Typography>
+              </div>
+            </CardContent>
+          </div>
 
-              {error && (
-                <Alert severity="error" onClose={() => setError("")}>
-                  {error}
-                </Alert>
+          <div className="flex justify-normal sm:justify-end xl:justify-normal">
+            <Button
+              fullWidth
+              size="large"
+              variant="contained"
+              onClick={handleNext}
+              disabled={cartItems.length === 0 || isUpdating}
+              className="bg-red-800 hover:bg-red-900 font-bold"
+            >
+              {isUpdating ? (
+                <CircularProgress size={24} />
+              ) : (
+                <>
+                  Next: Choose Delivery Option
+                  <i className="ri-arrow-right-line ml-2"></i>
+                </>
               )}
-            </div>
-          </CardContent>
-          <Divider />
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <Typography className="font-medium" color="text.primary">
-                Total Amount
-              </Typography>
-              <Typography className="font-medium" color="text.primary">
-                £{orderSummary?.total?.toFixed(2)}
-              </Typography>
-            </div>
-          </CardContent>
-        </div>
+            </Button>
+          </div>
 
-        <div className="flex justify-normal sm:justify-end xl:justify-normal">
-          <Button
-            fullWidth
-            size="large"
-            variant="contained"
-            onClick={handleNext}
-            disabled={cartItems.length === 0 || isUpdating}
-            className="bg-red-800 hover:bg-red-900 font-bold"
-          >
-            {isUpdating ? (
-              <CircularProgress size={24} />
-            ) : (
-              <>
-                Next: Choose Delivery Option
-                <i className="ri-arrow-right-line ml-2"></i>
-              </>
-            )}
-          </Button>
-        </div>
-
+        </Grid>
       </Grid>
-    </Grid>
+
+
+
+    </>
   );
 };
 

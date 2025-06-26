@@ -28,6 +28,10 @@ import AddEditAddress from '@components/dialogs/add-edit-address'
 // Styled Component Imports
 import StepperWrapper from '@core/styles/stepper'
 import { Tooltip } from '@mui/material'
+import { cartRelatedSuppliersProducts } from '@/app/server/actions'
+import { useParams } from 'next/navigation'
+import Link from 'next/link'
+import RelatedProductGrid from './related-product'
 
 // Context for sharing checkout data between steps
 export const CheckoutContext = createContext({
@@ -166,7 +170,6 @@ const getStepContent = (step, handleNext, handleBack, checkoutData) => {
 const CheckoutWizard = ({ initialData }) => {
   // Get user session
   const { data: session, status } = useSession()
-  console.log(initialData, 'initialData 3142');
   // States
   const [activeStep, setActiveStep] = useState(0)
   const [cartItems, setCartItems] = useState(initialData?.cartItems || [])
@@ -175,6 +178,7 @@ const CheckoutWizard = ({ initialData }) => {
   const [selectedAddress, setSelectedAddress] = useState(null)
   const [user, setUser] = useState(session?.user)
   const [selectedShipping, setSelectedShipping] = useState('standard')
+  const { lang: locale } = useParams();
   const [orderSummary, setOrderSummary] = useState(
     initialData?.orderSummary || {
       subtotal: 0,
@@ -184,7 +188,17 @@ const CheckoutWizard = ({ initialData }) => {
     }
   )
 
-  console.log(orderSummary, '............................')
+  const [relatedCartProducts, setRelatedCartProducts] = useState(null);
+
+  const relatedSuppliersProducts = async () => {
+    const response = await cartRelatedSuppliersProducts(cartData.userId);
+    setRelatedCartProducts(response?.data?.relatedProducts);
+  }
+
+  useEffect(() => {
+    relatedSuppliersProducts();
+  }, [])
+
 
   const [stepValidation, setStepValidation] = useState({
     0: cartItems.length > 0, // Cart step is valid if there are items
@@ -281,7 +295,6 @@ const CheckoutWizard = ({ initialData }) => {
     setOpen(false)
   }
 
-  console.log(initialData?.cartData, 'initialData?.cartDatainitialData?.cartData')
 
   // Calculate order summary with VAT
   const calculateOrderSummary = useCallback(() => {
@@ -312,6 +325,8 @@ const CheckoutWizard = ({ initialData }) => {
     // Calculate final total
     const total = subtotal - discount + shipping + vat;
 
+    console.log(subtotal, 'subtotalsubtotalsubtotalsubtotal again calling here')
+
     return {
       subtotal,
       discount,
@@ -327,7 +342,7 @@ const CheckoutWizard = ({ initialData }) => {
   useEffect(() => {
     const newSummary = calculateOrderSummary();
     setOrderSummary(newSummary);
-  }, [calculateOrderSummary]);
+  }, []);
 
   // Context value
   const contextValue = {
@@ -449,30 +464,44 @@ const CheckoutWizard = ({ initialData }) => {
         onSuccess={handleAddressSuccess}
       />
 
-      <div className="mt-12">
-        <Tooltip
-          title={
-            "Tiles from the same supplier qualify for combined pricing tiers —\nbundle more to unlock bigger savings."
-          }
-          arrow
-        >
-          <h2 className="text-2xl font-medium text-red-800 mb-6 text-center">
-            Add more from{" "}
-            {/* <Link
-              href={{
-                pathname: `/${locale}/products`,
-                query: { supplier: product?.supplier?._id },
-              }}
-              className="underline hover:text-primary cursor-pointer"
-            >
-              {product?.supplier?.companyName || ""}
-            </Link>{" "} */}
-            for better discounts
-          </h2>
-        </Tooltip>
 
-        {/* <RelatedProductGrid products={product?.associatedProducts || []} /> */}
-      </div>
+      {/* Related Products by Supplier Section */}
+      {activeStep == 0 &&
+        Array.isArray(relatedCartProducts) && relatedCartProducts.length > 0 && relatedCartProducts.map((relatedProduct, idx) => (
+          <div className="mt-16" key={relatedProduct._id || idx}>
+            <Tooltip
+              title={
+                "Tiles from the same supplier qualify for combined pricing tiers —\nbundle more to unlock bigger savings."
+              }
+              arrow
+            >
+              <h2 className="text-2xl font-medium text-red-800 mb-[30px] text-center">
+                Add more from {" "}
+                <Link
+                  href={{
+                    pathname: `/${locale}/products`,
+                    query: { supplier: relatedProduct?.supplier?._id },
+                  }}
+                  className="underline hover:text-primary cursor-pointer"
+                >
+                  {relatedProduct?.supplier?.companyName || ""}
+                </Link>{" "}
+                for better discounts
+              </h2>
+            </Tooltip>
+            <RelatedProductGrid products={relatedProduct.productVariations.map(variation => ({
+              ...relatedProduct,
+              variation,
+              image: variation.variationImages && variation.variationImages.length > 0
+                ? `${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${variation.variationImages[0].filePath}`
+                : undefined
+            }))} />
+
+          </div>
+        ))
+      }
+
+
     </CheckoutContext.Provider>
   )
 }
