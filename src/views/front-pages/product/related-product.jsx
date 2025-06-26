@@ -66,7 +66,7 @@ export default function RelatedProductGrid({ products }) {
   )
 
   if (!products || products.length === 0) {
-    return <div>No related products available.</div>;
+    return <div className="py-4 mb-5 text-center">No related products available.</div>;
   }
   return (
     <div className="relative">

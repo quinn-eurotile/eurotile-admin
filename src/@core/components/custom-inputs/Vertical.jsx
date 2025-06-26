@@ -17,8 +17,9 @@ const Root = styled('div', {
   cursor: 'pointer',
   position: 'relative',
   alignItems: 'center',
-  gap: theme.spacing(2),
-  flexDirection: 'column',
+  gap: theme.spacing(1),
+  flexDirection: 'row',
+  flexWrap: 'wrap',
   padding: theme.spacing(4),
   borderRadius: 'var(--mui-shape-borderRadius)',
   border: '1px solid var(--mui-palette-customColors-inputBorder)',
@@ -41,7 +42,35 @@ const Root = styled('div', {
   },
   '&.checkbox-only .MuiCheckbox-root': {
     marginTop: theme.spacing(-2)
-  }
+  },
+  '& .MuiTypography-body1': {
+    width: '100%',
+    textAlign: 'center'
+  },
+  '& .MuiTypography-body2': {
+    width: '100%',
+    color: '#000', 
+    marginBottom: '10px !important'
+  },
+   '& .MuiChip-root': {
+    width: 'auto',
+    order: 4,
+    marginLeft: 'auto',
+    position: 'relative !important',
+    color: '#000'
+  },
+'& .MuiButtonBase-root': {
+    width: 'auto',
+    margin: '0 auto 0 0',
+    padding: 0,
+    order: 5
+  },
+
+  
+
+  
+
+  
 }))
 
 const Title = styled(Typography, {
