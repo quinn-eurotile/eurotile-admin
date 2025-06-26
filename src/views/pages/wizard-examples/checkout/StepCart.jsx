@@ -335,15 +335,8 @@ const StepCart = ({ handleNext }) => {
               return (
                 <div
                   key={product._id || index}
-                  className="flex flex-col sm:flex-row relative p-5 gap-4 [&:not(:last-child)]:border-be"
+                  className="relative p-5 gap-4 [&:not(:last-child)]:border-be"
                 >
-                  <img
-                    height={140}
-                    width={140}
-                    src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${variation?.variationImages?.[0]?.filePath}` || "/placeholder.svg?height=140&width=140"}
-                    alt={prod?.name || 'Product Image'}
-                    className="object-cover rounded-lg"
-                  />
                   <IconButton
                     size="small"
                     className="absolute block-start-2 inline-end-2"
@@ -352,146 +345,163 @@ const StepCart = ({ handleNext }) => {
                   >
                     <i className="ri-close-line text-lg" />
                   </IconButton>
-                  <div className="flex flex-col sm:flex-row items-center sm:justify-between w-full">
-                    <div className="flex flex-col  items-center sm:items-start">
-                      {/* Tile Name (linked) */}
-                      <Typography className="font-medium text-red-800 mb-3">
-                        <Link
-                          href={`/${locale}/products/${prod?._id}?vid=${variation?._id}`}
-                          className="underline hover:text-primary cursor-pointer"
-                        >
-                          {prod?.name}
-                        </Link>
-                      </Typography>
-                      {/* Factory Name (linked) */}
-                      <Typography className="text-sm text-black">
-                        Factory: {prod?.supplier ? (
+                  <div className="flex flex-col sm:flex-row sm:justify-between w-full mt-6 gap-3">
+                    <img
+                      height={140}
+                      width={140}
+                      src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${variation?.variationImages?.[0]?.filePath}` || "/placeholder.svg?height=140&width=140"}
+                      alt={prod?.name || 'Product Image'}
+                      className="object-cover rounded-lg"
+                    />
+
+                    <div className="flex flex-col sm:flex-row items-center sm:justify-between w-full">
+                      <div className="flex flex-col  items-center sm:items-start">
+                        {/* Tile Name (linked) */}
+                        <Typography className="font-medium text-red-800 mb-3">
                           <Link
-                            href={{ pathname: `/${locale}/products`, query: { supplier: prod?.supplier?._id } }}
-                            className="underline hover:text-primary cursor-pointer text-red-800"
+                            href={`/${locale}/products/${prod?._id}?vid=${variation?._id}`}
+                            className="underline hover:text-primary cursor-pointer"
                           >
-                            {prod?.supplier?.companyName}
+                            {prod?.name}
                           </Link>
-                        ) : 'N/A'}
-                      </Typography>
-                      {/* Collection Name (linked) */}
-                      <Typography className="text-sm text-black">
-                        Collection: {variation?.categories?.length > 0 ? variation.categories.map((cat, idx) => (
-                          <Link
-                            key={cat._id}
-                            href={{ pathname: `/${locale}/products`, query: { category: cat._id } }}
-                            className="underline hover:text-primary cursor-pointer text-red-800"
-                            style={{ marginRight: 4 }}
-                          >
-                            {cat.name}{idx < variation.categories.length - 1 ? ', ' : ''}
-                          </Link>
-                        )) : 'N/A'}
-                      </Typography>
-                      {/* Size, Thickness, Finish */}
+                        </Typography>
+                        {/* Factory Name (linked) */}
+                        <Typography className="text-sm text-black">
+                          Factory: {prod?.supplier ? (
+                            <Link
+                              href={{ pathname: `/${locale}/products`, query: { supplier: prod?.supplier?._id } }}
+                              className="underline hover:text-primary cursor-pointer text-red-800"
+                            >
+                              {prod?.supplier?.companyName}
+                            </Link>
+                          ) : 'N/A'}
+                        </Typography>
+                        {/* Collection Name (linked) */}
+                        <Typography className="text-sm text-black">
+                          Collection: {variation?.categories?.length > 0 ? variation.categories.map((cat, idx) => (
+                            <Link
+                              key={cat._id}
+                              href={{ pathname: `/${locale}/products`, query: { category: cat._id } }}
+                              className="underline hover:text-primary cursor-pointer text-red-800"
+                              style={{ marginRight: 4 }}
+                            >
+                              {cat.name}{idx < variation.categories.length - 1 ? ', ' : ''}
+                            </Link>
+                          )) : 'N/A'}
+                        </Typography>
+                        {/* Size, Thickness, Finish */}
 
-                      <Typography className="text-sm text-black">Size: <span>{size || 'N/A'}</span></Typography>
+                        <Typography className="text-sm text-black">Size: <span>{size || 'N/A'}</span></Typography>
 
-                      <Typography className="text-sm text-black">Thickness: <span>{thickness || 'N/A'}</span></Typography>
+                        <Typography className="text-sm text-black">Thickness: <span>{thickness || 'N/A'}</span></Typography>
 
-                      <Typography className="text-sm text-black">Color: <span>{colorAttr?.metaValue || 'N/A'}</span></Typography>
+                        <Typography className="text-sm text-black">Color: <span>{colorAttr?.metaValue || 'N/A'}</span></Typography>
 
 
-                      {/* Quantity Controls */}
-                      <div className="flex items-center gap-4 mt-4">
-                        <TextField
-                          size="small"
-                          type="number"
-                          value={boxes}
-                          onChange={(e) => {
-                            const newBoxes = Number(e.target.value);
-                            const newNumberOfTiles = newBoxes * tilesPerBox;
-                            const sqm = newBoxes * tilesPerBox * sqmPerTile;
-                            const newQuantity = sqm; // quantity is now SQ.M
-                            const { discountPercent } = calculateSupplierDiscount(prod?.supplier, sqm);
-                            let pricePerSqm;
-                            let pricingTier;
-                            if (sqm >= 1300) {
-                              pricingTier = 'tierFirst';
-                            } else if (sqm >= 153) {
-                              pricingTier = 'tierSecond';
-                            } else if (sqm >= 51) {
-                              pricingTier = 'tierThird';
-                            } else if (sqm >= 30) {
-                              pricingTier = 'tierFourth';
-                            } else {
-                              pricingTier = 'tierFifth';
-                            }
-                            const tierData = variation.tierDiscount[pricingTier];
-                            if (tierData) {
-                              const { tierAddOn, tierMultiplyBy } = tierData;
-                              pricePerSqm = calculateTierValue(
-                                variation.regularPriceB2B,
-                                1.17,
-                                tierAddOn,
-                                tierMultiplyBy
-                              );
-                            } else {
-                              pricePerSqm = variation.regularPriceB2C;
-                            }
-                            updateItemQuantity(product._id, {
-                              quantity: newQuantity, // SQ.M
-                              numberOfTiles: newNumberOfTiles,
-                              numberOfBoxes: newBoxes,
-                              discount: discountPercent,
-                              price: pricePerSqm
-                            });
-                          }}
-                          className="block max-w-[100px]"
-                          disabled={isUpdating}
-                          inputProps={{ min: 1, step: 1 }}
-                          label="Boxes"
-                        />
-                        <TextField
-                          size="small"
-                          value={sqm}
-                          className="block max-w-[100px]"
-                          label="SQ.M"
-                          InputProps={{ readOnly: true }}
-                        />
+
+
                       </div>
-
+                      <div className="flex flex-col justify-between items-center mt-4 gap-3 sm:items-end">
+                        <div className="flex flex-col items-end">
+                          <Typography variant="h6" color="primary.main" className="font-semibold">
+                            £{pricePerSqm.toFixed(2)}/SQ.M
+                          </Typography>
+                          <Typography color="text.secondary" className="text-sm font-semibold ">
+                            Total (ex.VAT): <br /> £{totalPrice.toFixed(2)}
+                          </Typography>
+                          {discountPercent > 0 && (
+                            <Chip
+                              size="small"
+                              variant="tonal"
+                              color="success"
+                              label={`${discountPercent}% Discount Applied`}
+                              className="mt-1"
+                            />
+                          )}
+                          {product?.isCustomPrice && (
+                            <Chip
+                              size="small"
+                              variant="tonal"
+                              color="info"
+                              label="Custom Price"
+                              className="mt-1"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Quantity Controls */}
+                  <div className="flex items-center flex-wrap gap-4 mt-4">
+                    <TextField
+                      size="small"
+                      type="number"
+                      value={boxes}
+                      onChange={(e) => {
+                        const newBoxes = Number(e.target.value);
+                        const newNumberOfTiles = newBoxes * tilesPerBox;
+                        const sqm = newBoxes * tilesPerBox * sqmPerTile;
+                        const newQuantity = sqm; // quantity is now SQ.M
+                        const { discountPercent } = calculateSupplierDiscount(prod?.supplier, sqm);
+                        let pricePerSqm;
+                        let pricingTier;
+                        if (sqm >= 1300) {
+                          pricingTier = 'tierFirst';
+                        } else if (sqm >= 153) {
+                          pricingTier = 'tierSecond';
+                        } else if (sqm >= 51) {
+                          pricingTier = 'tierThird';
+                        } else if (sqm >= 30) {
+                          pricingTier = 'tierFourth';
+                        } else {
+                          pricingTier = 'tierFifth';
+                        }
+                        const tierData = variation.tierDiscount[pricingTier];
+                        if (tierData) {
+                          const { tierAddOn, tierMultiplyBy } = tierData;
+                          pricePerSqm = calculateTierValue(
+                            variation.regularPriceB2B,
+                            1.17,
+                            tierAddOn,
+                            tierMultiplyBy
+                          );
+                        } else {
+                          pricePerSqm = variation.regularPriceB2C;
+                        }
+                        updateItemQuantity(product._id, {
+                          quantity: newQuantity, // SQ.M
+                          numberOfTiles: newNumberOfTiles,
+                          numberOfBoxes: newBoxes,
+                          discount: discountPercent,
+                          price: pricePerSqm
+                        });
+                      }}
+                      className="block max-w-[130px]"
+                      disabled={isUpdating}
+                      inputProps={{ min: 1, step: 1 }}
+                      label="No. of Boxes"
+                    />
+                    <TextField
+                      size="small"
+                      value={sqm}
+                      className="block max-w-[130px]"
+                      label="Total SQ.M"
+                      InputProps={{ readOnly: true }}
+                    />
+                    <div>
                       {/* Next Tier Discount Message */}
                       {prod?.supplier?.discounts && prod.supplier.discounts.length > 0 && (
-                        <div className="flex items-center w-full rounded-md text-redText bg-redText/25 px-4 py-2 mt-2">
+                        <div className="flex items-center w-full rounded-md text-redText text-sm bg-redText/25 px-4 py-2">
                           <i className="ri-discount-percent-line me-1"></i>
                           {getNextTierMessage(prod.supplier, sqm)}
                         </div>
                       )}
                     </div>
-                    <div className="flex flex-col justify-between items-center mt-4 gap-3 sm:items-end">
-                      <div className="flex flex-col items-end">
-                        <Typography variant="h6" color="primary.main" className="font-semibold">
-                          £{pricePerSqm.toFixed(2)}/SQ.M
-                        </Typography>
-                        <Typography color="text.secondary" className="text-sm font-semibold ">
-                          Total (ex.VAT): <br /> £{totalPrice.toFixed(2)}
-                        </Typography>
-                        {discountPercent > 0 && (
-                          <Chip
-                            size="small"
-                            variant="tonal"
-                            color="success"
-                            label={`${discountPercent}% Discount Applied`}
-                            className="mt-1"
-                          />
-                        )}
-                        {product?.isCustomPrice && (
-                          <Chip
-                            size="small"
-                            variant="tonal"
-                            color="info"
-                            label="Custom Price"
-                            className="mt-1"
-                          />
-                        )}
-                      </div>
-                    </div>
                   </div>
+
+
+
+
                 </div>
               );
             })}
@@ -670,10 +680,11 @@ const StepCart = ({ handleNext }) => {
         <div className="flex justify-normal sm:justify-end xl:justify-normal">
           <Button
             fullWidth
+            size="large"
             variant="contained"
             onClick={handleNext}
             disabled={cartItems.length === 0 || isUpdating}
-            className="bg-red-800 hover:bg-red-900"
+            className="bg-red-800 hover:bg-red-900 font-bold"
           >
             {isUpdating ? (
               <CircularProgress size={24} />
