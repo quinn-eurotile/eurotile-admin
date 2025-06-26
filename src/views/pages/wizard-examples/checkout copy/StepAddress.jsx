@@ -165,8 +165,8 @@ const StepAddress = ({ handleNext }) => {
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, lg: 8 }} className='flex flex-col gap-6'>
         <div className='flex flex-col gap-4'>
-          <Typography color='text.primary' className='font-medium self-start'>
-            Select your preferable address
+          <Typography color='text.primary' className='font-bold self-start'>
+            Choose Your Delivery Option
           </Typography>
           <Grid container spacing={6} className='is-full'>
             {data.map((item, index) => (

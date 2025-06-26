@@ -76,7 +76,7 @@ const StepCart = ({ handleNext }) => {
     setError("");
     try {
       const response = await updateCartItem(itemId, newQuantity);
-       //console.log(response, 'response updateCartItem');
+      //console.log(response, 'response updateCartItem');
       if (response.success) {
         const { items, orderSummary: newOrderSummary } = response.data;
         setCartItems(items);
@@ -179,7 +179,7 @@ const StepCart = ({ handleNext }) => {
   }
   // // //console.log(JSON.stringify(orderSummary, null, 2), 'orderSummary');
 
-  console.log(cartItems,'cartItemscartItems')
+  console.log(cartItems, 'cartItemscartItems')
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-4">
@@ -217,7 +217,7 @@ const StepCart = ({ handleNext }) => {
           </Fade>
         </Collapse> */}
 
-        <Typography className="rounded" variant="h5">
+        <Typography className="rounded" variant="h4">
           {/* My Shopping Bag ({cartItems.length} {cartItems.length === 1 ? "Item" : "Items"}) */}
           Your Basket
         </Typography>
@@ -247,15 +247,8 @@ const StepCart = ({ handleNext }) => {
               return (
                 <div
                   key={product._id || index}
-                  className="flex flex-col sm:flex-row relative p-5 gap-4 [&:not(:last-child)]:border-be"
+                  className="relative p-5 gap-4 [&:not(:last-child)]:border-be"
                 >
-                  <img
-                    height={140}
-                    width={140}
-                    src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${variation?.variationImages?.[0]?.filePath}` || "/placeholder.svg?height=140&width=140"}
-                    alt={prod?.name || 'Product Image'}
-                    className="object-cover rounded-lg"
-                  />
                   <IconButton
                     size="small"
                     className="absolute block-start-2 inline-end-2"
@@ -264,91 +257,109 @@ const StepCart = ({ handleNext }) => {
                   >
                     <i className="ri-close-line text-lg" />
                   </IconButton>
-                  <div className="flex flex-col sm:flex-row items-center sm:justify-between w-full">
-                    <div className="flex flex-col  items-center sm:items-start">
-                      {/* Tile Name (linked) */}
-                      <Typography className="font-medium text-red-800 mb-3">
-                        <Link
-                          href={`/${locale}/products/${prod?._id}?vid=${variation?._id}`}
-                          className="underline hover:text-primary cursor-pointer"
-                        >
-                          {prod?.name}
-                        </Link>
-                      </Typography>
-                      {/* Factory Name (linked) */}
-                      <Typography className="text-sm text-black">
-                        Factory: {prod?.supplier ? (
+
+                  <div className="flex flex-col sm:flex-row sm:justify-between w-full mt-6">
+                    <img
+                      height={140}
+                      width={140}
+                      src={`${process.env.NEXT_PUBLIC_BACKEND_DOMAIN}${variation?.variationImages?.[0]?.filePath}` || "/placeholder.svg?height=140&width=140"}
+                      alt={prod?.name || 'Product Image'}
+                      className="object-cover rounded-lg"
+                    />
+
+                    <div className="flex flex-col sm:flex-row items-center sm:justify-between w-full">
+                      <div className="flex flex-col  items-center sm:items-start">
+                        {/* Tile Name (linked) */}
+                        <Typography className="font-medium text-red-800 mb-3">
                           <Link
-                            href={{ pathname: `/${locale}/products`, query: { supplier: prod?.supplier?._id } }}
-                            className="underline hover:text-primary cursor-pointer text-red-800"
+                            href={`/${locale}/products/${prod?._id}?vid=${variation?._id}`}
+                            className="underline hover:text-primary cursor-pointer"
                           >
-                            {prod?.supplier?.companyName}
+                            {prod?.name}
                           </Link>
-                        ) : 'N/A'}
-                      </Typography>
-                      {/* Collection Name (linked) */}
-                      <Typography className="text-sm text-black">
-                        Collection: {variation?.categories?.length > 0 ? variation.categories.map((cat, idx) => (
-                          <Link
-                            key={cat._id}
-                            href={{ pathname: `/${locale}/products`, query: { category: cat._id } }}
-                            className="underline hover:text-primary cursor-pointer text-red-800"
-                            style={{ marginRight: 4 }}
-                          >
-                            {cat.name}{idx < variation.categories.length - 1 ? ', ' : ''}
-                          </Link>
-                        )) : 'N/A'}
-                      </Typography>
-                      {/* Size, Thickness, Finish */}
-                      
-                      <Typography className="text-sm text-black">Size: <span>{size || 'N/A'}</span></Typography>
-
-                      <Typography className="text-sm text-black">Thickness: <span>{thickness || 'N/A'}</span></Typography>
-
-                      <Typography className="text-sm text-black">Color: <span>{colorAttr?.metaValue || 'N/A'}</span></Typography>
-
-                      
-                      {/* Quantity Controls */}
-                      <div className="flex items-center gap-4 mt-4">
-                        <TextField
-                          size="small"
-                          type="number"
-                          value={boxes}
-                          onChange={(e) => updateItemQuantity(product._id, Number(e.target.value))}
-                          className="block max-w-[100px]"
-                          disabled={isUpdating}
-                          inputProps={{ min: 1, step: 1 }}
-                          label="Boxes"
-                        />
-                        <TextField
-                          size="small"
-                          value={sqm}
-                          className="block max-w-[100px]"
-                          label="SQ.M"
-                          InputProps={{ readOnly: true }}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex flex-col justify-between items-center mt-4 gap-3 sm:items-end">
-                      <div className="flex flex-col items-end">
-                        <Typography variant="h6" color="primary.main" className="font-semibold">
-                          £{(product?.price || 0).toFixed(2)}/SQ.M
                         </Typography>
-                        <Typography color="text.secondary" className="text-sm font-semibold ">
-                          Total (ex.VAT): <br/> £{((product?.price || 0) * (product?.quantity || 0)).toFixed(2)}
+                        {/* Factory Name (linked) */}
+                        <Typography className="text-sm text-black">
+                          Factory: {prod?.supplier ? (
+                            <Link
+                              href={{ pathname: `/${locale}/products`, query: { supplier: prod?.supplier?._id } }}
+                              className="underline hover:text-primary cursor-pointer text-red-800"
+                            >
+                              {prod?.supplier?.companyName}
+                            </Link>
+                          ) : 'N/A'}
                         </Typography>
-                        {product?.isCustomPrice && (
-                          <Chip
-                            size="small"
-                            variant="tonal"
-                            color="info"
-                            label="Custom Price"
-                            className="mt-1"
-                          />
-                        )}
+                        {/* Collection Name (linked) */}
+                        <Typography className="text-sm text-black">
+                          Collection: {variation?.categories?.length > 0 ? variation.categories.map((cat, idx) => (
+                            <Link
+                              key={cat._id}
+                              href={{ pathname: `/${locale}/products`, query: { category: cat._id } }}
+                              className="underline hover:text-primary cursor-pointer text-red-800"
+                              style={{ marginRight: 4 }}
+                            >
+                              {cat.name}{idx < variation.categories.length - 1 ? ', ' : ''}
+                            </Link>
+                          )) : 'N/A'}
+                        </Typography>
+                        {/* Size, Thickness, Finish */}
+
+                        <Typography className="text-sm text-black">Size: <span>{size || 'N/A'}</span></Typography>
+
+                        <Typography className="text-sm text-black">Thickness: <span>{thickness || 'N/A'}</span></Typography>
+
+                        <Typography className="text-sm text-black">Color: <span>{colorAttr?.metaValue || 'N/A'}</span></Typography>
+
+
+                     
+
                       </div>
+
+                      <div className="flex flex-col justify-between items-center mt-4 gap-3 sm:items-end">
+                        <div className="flex flex-col items-end">
+                          <Typography variant="h6" color="primary.main" className="font-semibold">
+                            £{(product?.price || 0).toFixed(2)}/SQ.M
+                          </Typography>
+                          <Typography color="text.secondary" className="text-sm font-semibold ">
+                            Total (ex.VAT): <br /> £{((product?.price || 0) * (product?.quantity || 0)).toFixed(2)}
+                          </Typography>
+                          {product?.isCustomPrice && (
+                            <Chip
+                              size="small"
+                              variant="tonal"
+                              color="info"
+                              label="Custom Price"
+                              className="mt-1"
+                            />
+                          )}
+                        </div>
+                      </div>
+
                     </div>
+
+                       
                   </div>
+                  {/* Quantity Controls */}
+                        <div className="flex items-center gap-4 mt-6">
+                          <TextField
+                            size="small"
+                            type="number"
+                            value={boxes}
+                            onChange={(e) => updateItemQuantity(product._id, Number(e.target.value))}
+                            className="block max-w-[130px]"
+                            disabled={isUpdating}
+                            inputProps={{ min: 1, step: 1 }}
+                            label="No. of Boxes"
+                          />
+                          <TextField
+                            size="small"
+                            value={sqm}
+                            className="block max-w-[130px]"
+                            label="Total SQ.M"
+                            InputProps={{ readOnly: true }}
+                          />
+                        </div>
+
                 </div>
               );
             })}
@@ -377,7 +388,7 @@ const StepCart = ({ handleNext }) => {
         <div className="border rounded">
           <CardContent className="flex gap-4 flex-col">
             <Typography className="font-medium" color="text.primary">
-            Subtotal (Standard Delivery Included)
+              Subtotal (Standard Delivery Included)
             </Typography>
             <Typography className="font-medium" color="text.primary">
               Price Details
@@ -471,10 +482,11 @@ const StepCart = ({ handleNext }) => {
         <div className="flex justify-normal sm:justify-end xl:justify-normal">
           <Button
             fullWidth
+            size="large"
             variant="contained"
             onClick={handleNext}
             disabled={cartItems.length === 0 || isUpdating}
-            className="bg-red-800 hover:bg-red-900"
+            className="bg-red-800 hover:bg-red-900 font-bold"
           >
             {isUpdating ? (
               <CircularProgress size={24} />

@@ -52,26 +52,32 @@ export const CheckoutContext = createContext({
 const steps = [
   {
     title: 'Your Basket',
+    image: '/images/pages/shopping-cart-icon.png',
+    size: '50px',
     icon: (
-
       <i class="ri-shopping-cart-2-line text-6xl text-white"></i>
-
     )
   },
   {
     title: 'Address & Delivery',
+    image: '/images/pages/transport.png',
+    size: '70px',
     icon: (
       <i class="ri-truck-line text-6xl text-white"></i>
     )
   },
   {
     title: 'Payment',
+    image: '/images/pages/payment-protection.png',
+    size: '65px',
     icon: (
       <i class="ri-bank-card-line text-6xl text-white"></i>
     )
   },
   {
     title: 'Confirmation',
+    image: '/images/pages/checkmark.png',
+    size: '50px',
     icon: (
 
       <i class="ri-checkbox-circle-line text-6xl text-white"></i>
@@ -106,10 +112,10 @@ const Stepper = styled(MuiStepper)(({ theme }) => ({
       },
       "&.Mui-completed": {
         "& .MuiTypography-root": {
-          color: "var(--mui-palette-success-main)",
+          color: "var(--mui-palette-primary-main)",
         },
         "& svg": {
-          fill: "var(--mui-palette-success-main)",
+          fill: "var(--mui-palette-primary-main)",
         },
       },
       "&.Mui-disabled": {
@@ -122,7 +128,7 @@ const Stepper = styled(MuiStepper)(({ theme }) => ({
       },
     },
     "&.Mui-completed + i": {
-      color: "var(--mui-palette-success-main) !important",
+      color: "var(--mui-palette-primary-main) !important",
     },
     [theme.breakpoints.up("md")]: {
       paddingBottom: 0,
@@ -353,7 +359,7 @@ const CheckoutWizard = ({ initialData }) => {
         <CardContent>
           <StepperWrapper>
             <Stepper
-              className="gap-10 md:gap-4"
+              className="gap-10 md:gap-4 items-center"
               activeStep={activeStep}
               connector={
                 <DirectionalIcon
@@ -385,8 +391,9 @@ const CheckoutWizard = ({ initialData }) => {
                       className={`text-center ${!isStepClickable ? 'Mui-disabled' : ''}`}
                     >
                       <div className='flex flex-col items-center justify-center gap-2'>
-                        <div className="flex items-center justify-center bg-red-800 rounded-full" style={{ height: '80px', width: '80px' }}>
-                          {step.icon}
+                        <div className="flex items-center justify-center bg-red-800 rounded-full" style={{ height: '100px', width: '100px' }}>
+                          {/* {step.icon} */}
+                          <img src={step.image} width={step.size} />
                         </div>
                         <Typography
                           className="step-title"
@@ -394,12 +401,12 @@ const CheckoutWizard = ({ initialData }) => {
                             color: index === activeStep
                               ? 'primary.main'
                               : index < activeStep
-                                ? 'success.main'
+                                ? 'primary.main'
                                 : 'text.disabled',
                             fontWeight: index === activeStep ? 600 : 400,
                           }}
                         >
-                          {step.title}
+                          {step.title} 
                         </Typography>
                       </div>
 

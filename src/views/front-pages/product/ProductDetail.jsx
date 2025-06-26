@@ -30,6 +30,9 @@ import { redirect } from "next/navigation";
 import { saveAs } from 'file-saver';
 import JSZip from 'jszip';
 import Grid from '@mui/material/Grid2';
+import Accordion from '@mui/material/Accordion'
+import AccordionSummary from '@mui/material/AccordionSummary'
+import AccordionDetails from '@mui/material/AccordionDetails'
 
 // OUTSIDE the component
 const calculateImageSize = async (variation, backendDomain) => {
@@ -891,7 +894,7 @@ export default function ProductDetailPage() {
             <Grid size={{ xs: 12, md: 5 }}>
               {/* Product Details */}
               <div>
-                <h1 className="text-3xl font-medium text-red-800">{product.name || ""}</h1>
+                <h1 className="text-[33px] font-medium text-red-800">{product.name || ""}</h1>
                 <p className="text-sm text-gray-600">
                   <span className="font-semibold">From:</span>{" "}
                   <Link
@@ -1121,7 +1124,7 @@ export default function ProductDetailPage() {
 
                       return (
                         <div key={attributeId} className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block font-medium text-gray-700 mb-1 text-[16px]">
                             {'Tile ' + label}
                           </label>
                           <FormControl fullWidth>
@@ -1182,7 +1185,7 @@ export default function ProductDetailPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="rounded-md">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Quantity (SQ.M)</label>
+                      <label className="block text-[16px] font-medium text-gray-700 mb-1">Quantity (SQ.M)</label>
                       <input
                         size="small"
                         type="number"
@@ -1200,7 +1203,7 @@ export default function ProductDetailPage() {
                     </div>
 
                     <div className="rounded-md">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Number of Tiles</label>
+                      <label className="block text-[16px] font-medium text-gray-700 mb-1">Number of Tiles</label>
                       <input
                         type="number"
                         value={tiles}
@@ -1217,7 +1220,7 @@ export default function ProductDetailPage() {
                     </div>
 
                     <div className="rounded-md">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Boxes</label>
+                      <label className="block text-[16px] font-medium text-gray-700 mb-1">Boxes</label>
                       <input
                         type="number"
                         className={`w-full outline-none h-[38px] bg-bgLight px-3 py-4 rounded-md text-sm text-black border ${palletsError ? 'border-red-500' : 'border-[#ccc]'} `}
@@ -1238,11 +1241,11 @@ export default function ProductDetailPage() {
                     <div className="mb-6 p-4 bg-bgLight rounded-md">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-lg text-gray-600">Price per SQ.M:</p>
+                          <p className="text-[16px] font-medium text-gray-600">Price per SQ.M:</p>
                           <p className="text-lg font-medium text-red-800">£{calculatedValues.pricePerSqm?.toFixed(2)}</p>
                         </div>
                         <div>
-                          <p className="text-lg text-gray-600">Total Price:</p>
+                          <p className="text-[16px] font-medium text-gray-600">Total Price:</p>
                           <p className="text-lg font-medium text-red-800">£{calculatedValues.calculatedPrice?.toFixed(2)}</p>
                         </div>
                       </div>
@@ -1283,7 +1286,7 @@ export default function ProductDetailPage() {
 
                   <div className="flex flex-col sm:flex-row gap-4">
                     <Button
-                      className="flex-1 bg-red-800 hover:bg-red-900 text-white"
+                      className="flex-1 bg-red-800 hover:bg-red-900 text-white text-[18px]"
                       disabled={
                         !quantity || quantity <= 0 || !!quantityError || !!tilesError || !!palletsError
                       }
@@ -1292,7 +1295,7 @@ export default function ProductDetailPage() {
                       Get a Quote
                     </Button>
                     <Button
-                      className="flex-1 bg-red-800 hover:bg-red-900 text-white"
+                      className="flex-1 bg-red-800 hover:bg-red-900 text-white text-[18px]"
                       onClick={handleAddToCart}
                       disabled={
                         !quantity || quantity <= 0 || !!quantityError || !!tilesError || !!palletsError
@@ -1337,256 +1340,275 @@ export default function ProductDetailPage() {
             </Grid>
           </Grid>
 
-          <Divider className="mb-12" />
+          {/* <Divider className="mb-12" /> */}
 
-          <TabContext value={Tabvalue}>
-            <TabList
-              onChange={handleTab}
-              aria-label="simple tabs example"
-              TabIndicatorProps={{ style: { display: 'none' } }}
-            >
-              <Tab
-                value="1"
-                label="Product Overview"
-                className={
-                  `${Tabvalue === '1'
-                    ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:5px] [border-top-right-radius:5px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
-                    : 'rounded-md'} px-4 py-2 flex items-center gap-2 capitalize font-montserrat text-15`
-                }
+          <div className="mt-12">
+            <Accordion className="shadow-none border-b rounded-none">
+              <AccordionSummary id='panel-header-1' aria-controls='panel-content-1' className="py-5">
+                <Typography variant="h4">Product Overview</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <div>
+                  <div className="bg-[#f7f0ef] rounded-xl p-3 md:p-10 mb-8">
+                    <h4 className="font-semibold mb-2 italic ">More About This Tile...</h4>
+                   <div className="text-[16px] mb-5">
+                    {product?.description ?? ''}
+                    </div>
 
+                    <Grid container spacing={4} mb={5}>
+                      <Grid size={{xs: 12, md: 4}}>
+                        <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> Perfect for Underfloor Heating</div>
+                        <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> Suitable for Walls & Floors</div>
+                        <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> Matching Patio Tiles</div>
+                        <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> Guaranteed Italian Made</div>
+                        <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> More About This Tile...</div>
+                        <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> High No. of Tile Faces</div>
+                      </Grid>
+                       <Grid size={{xs: 12, md: 8}}>
+                        <p className="text-[16px] mb-3">Bathed in velvety light, the Calcis collection evokes a
+                          sense of reassuring harmony. Italgraniti masterfully unites
+                          the distinct personalities of two iconic natural stones in
+                          one refined surface: the soft-toned, delicately veined
+                          Limestone, and the timeless Marfil marble from Spain’s
+                          renowned Alicante quarries—celebrated for its subtle
+                          sophistication in both interior and exterior design.</p>
 
-                disableRipple
-                disableFocusRipple
-              />
-              <Tab
-                value="2"
-                label="Technical Details"
-                className={
-                  `${Tabvalue === '2'
-                    ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:5px] [border-top-right-radius:5px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
-                    : 'rounded-md'} px-4 py-2 flex items-center gap-2 capitalize font-montserrat text-15`
-                }
-                disableRipple
-                disableFocusRipple
-              />
-              <Tab
-                value="3"
-                label="How to Order?"
-                className={
-                  `${Tabvalue === '3'
-                    ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:5px] [border-top-right-radius:5px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
-                    : 'rounded-md'} px-4 py-2 flex items-center gap-2 capitalize font-montserrat text-15`
-                }
-                disableRipple
-                disableFocusRipple
-              />
-              <Tab
-                value="4"
-                label="Delivery & Returns"
-                className={
-                  `${Tabvalue === '4'
-                    ? 'bg-red-800 hover:bg-black text-white [border-top-left-radius:5px] [border-top-right-radius:5px] [border-bottom-left-radius:0] [border-bottom-right-radius:0]'
-                    : 'rounded-md'} px-4 py-2 flex items-center gap-2 capitalize font-montserrat text-15`
-                }
-                disableRipple
-                disableFocusRipple
-              />
-            </TabList>
-
-            <TabPanel value='1' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
-
-              {product?.description ?? ''}
-
-            </TabPanel>
-            <TabPanel value='2' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
-              {/* Technical Details Section - Custom Design */}
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
-                  Technical Details
-                </h2>
-                <div className="text-base font-semibold text-red-500 mb-2">
-                  {/* Collapsable Tab Name (optional, if you want to show) */}
+                        <p className="text-[16px] mb-3">Available in a palette of warm, delicate shades aligned
+                          with contemporary trends, Calcis transforms spaces with a
+                          radiant, calming aesthetic—perfect for creating peaceful,
+                          elegant environments</p>
+                      </Grid>
+                    </Grid>
+                  </div>
                 </div>
-                <h4 className="font-semibold mb-2">Tile Specifications & European Standards</h4>
-                <p className="text-sm text-gray-700 mb-2">
-                  All tile specifications are provided in line with European manufacturing standards (EN 14411). This means slight variations in size, thickness, shade, and finish are perfectly normal and part of the production process—even within the same batch.
-                </p>
-                <p className="text-sm text-gray-700">
-                  If your project has specific technical requirements—such as wet areas, outdoor use, commercial settings, or slip resistance—please refer to the product's technical data or contact our team for additional documentation to suit your needs.
-                </p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Left Card */}
-                <div className="rounded-xl bg-[#f7f0ef] p-6 shadow-sm">
-                  <ul className="text-sm space-y-2">
-                    <li><span className="font-semibold">Factory Name</span> <span className="float-right font-normal">  <Link
-                      href={{
-                        pathname: `/${locale}/products`,
-                        query: { supplier: product?.supplier?._id }
-                      }}
-                      className="underline hover:text-primary cursor-pointer"
-                    >
-                      {product?.supplier?.companyName || ''}
-                    </Link></span></li>
-                    <li><span className="font-semibold">Collection Name</span> <span className="float-right font-normal">
-                      {product?.categories?.map((cat, idx) => (
-                        <Link
-                          key={cat._id}
-                          href={{
-                            pathname: `/${locale}/products`,
-                            query: { category: cat._id }
-                          }}
-                          className="underline hover:text-primary cursor-pointer"
-                          style={{ marginRight: 4 }}
-                        >
-                          {cat.name}
-                          {idx < product.categories.length - 1 ? ', ' : ''}
-                        </Link>
-                      ))}
-                      {product?.categories?.length === 0 && 'N/A'}
+              </AccordionDetails>
+            </Accordion>
 
-                    </span></li>
-                    <li><span className="font-semibold">Tile Name</span> <span className="float-right font-normal">{product?.name || 'N/A'}</span></li>
-                    <li><span className="font-semibold">SKU Code</span> <span className="float-right font-normal">{product?.sku || 'N/A'}</span></li>
-                    {/* <li><span className="font-semibold">Style</span> <span className="float-right font-normal">{selected?.style || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Size(s)</span> <span className="float-right font-normal">{selected.boxSize || 'N/A'}</span></li> */}
-                    <li><span className="font-semibold">Thickness (mm)</span> <span className="float-right font-normal">{selected?.dimensions?.height || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Width (mm)</span> <span className="float-right font-normal">{selected?.dimensions?.width || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Length (mm)</span> <span className="float-right font-normal">{selected?.dimensions?.length || 'N/A'}</span></li>
-                    {/* <li><span className="font-semibold">Finish</span> <span className="float-right font-normal">{selected?.finish || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Edge</span> <span className="float-right font-normal">{selected?.edge || 'N/A'}</span></li>
-                    <li><span className="font-semibold">No. of Tile Faces</span> <span className="float-right font-normal">{selected?.tileFaces || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Origin</span> <span className="float-right font-normal">{selected?.origin || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Colour Name</span> <span className="float-right font-normal">{selected?.colourName || 'N/A'}</span></li> */}
-                    {selected?.attributeVariationsDetail?.length > 0 && selected?.attributeVariationsDetail?.map((variation, idx) => (
-                      <li key={idx}>
-                        <span className="font-semibold">{convertSlugToName(variation.metaKey)}</span>
-                        <span className="float-right font-normal">
-                          {variation.metaValue || 'N/A'} {variation.productMeasurementUnit?.symbol}
-                        </span>
-                      </li>
-                    ))}
-                    {(!selected?.attributeVariationsDetail || selected?.attributeVariationsDetail?.length === 0) && (
+            <Accordion className="shadow-none border-b rounded-none">
+              <AccordionSummary id='panel-header-2' aria-controls='panel-content-2' className="py-5">
+                <Typography variant="h4">Technical Details</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <div>
+                  {/* Technical Details Section - Custom Design */}
+                  <div className="mb-8">
+                    <div className="text-base font-semibold text-red-500 mb-2">
+                      {/* Collapsable Tab Name (optional, if you want to show) */}
+                    </div>
+                    <h4 className="font-semibold mb-2 mt-4 text-lg">Tile Specifications & European Standards</h4>
+                    <p className="text-[16px] text-gray-700 mb-3">
+                      All tile specifications are provided in line with European manufacturing standards (EN 14411). This means slight variations in size, thickness, shade, and finish are perfectly normal and part of the production process—even within the same batch.
+                    </p>
+                    <p className="text-[16px] text-gray-700">
+                      If your project has specific technical requirements—such as wet areas, outdoor use, commercial settings, or slip resistance—please refer to the product's technical data or contact our team for additional documentation to suit your needs.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Left Card */}
+                    <div className="rounded-xl bg-[#f7f0ef] p-3 md:p-10">
+                      <ul className="text-[16px] space-y-2">
+                        <li className="flex justify-between pb-4 ">
+                          <span className="font-semibold w-1/2">Factory Name</span>
+                          <span className="float-right font-normal w-1/2">
+                            <Link
+                              href={{
+                                pathname: `/${locale}/products`,
+                                query: { supplier: product?.supplier?._id }
+                              }}
+                              className="underline hover:text-primary cursor-pointer"
+                            >
+                              {product?.supplier?.companyName || ''}
+                            </Link></span>
+                        </li>
+                        <li className="flex justify-between pb-4 ">
+                          <span className="font-semibold">Collection Name</span>
+                          <span className="float-right w-1/2 font-normal">
+                            {product?.categories?.map((cat, idx) => (
+                              <Link
+                                key={cat._id}
+                                href={{
+                                  pathname: `/${locale}/products`,
+                                  query: { category: cat._id }
+                                }}
+                                className="underline hover:text-primary cursor-pointer"
+                                style={{ marginRight: 4 }}
+                              >
+                                {cat.name}
+                                {idx < product.categories.length - 1 ? ', ' : ''}
+                              </Link>
+                            ))}
+                            {product?.categories?.length === 0 && 'N/A'}
+
+                          </span></li>
+                        <li className="flex justify-between pb-4 "><span className="font-semibold">Tile Name</span> <span className="float-right w-1/2 font-normal">{product?.name || 'N/A'}</span></li>
+                        <li className="flex justify-between pb-4 "><span className="font-semibold">SKU Code</span> <span className="float-right w-1/2 font-normal">{product?.sku || 'N/A'}</span></li>
+                        {/* <li className="flex justify-between pb-4 "><span className="font-semibold">Style</span> <span className="float-right w-1/2 font-normal">{selected?.style || 'N/A'}</span></li>
+                    <li className="flex justify-between pb-4 "><span className="font-semibold">Size(s)</span> <span className="float-right w-1/2 font-normal">{selected.boxSize || 'N/A'}</span></li> */}
+                        <li className="flex justify-between pb-4 "><span className="font-semibold">Thickness (mm)</span> <span className="float-right w-1/2 font-normal">{selected?.dimensions?.height || 'N/A'}</span></li>
+                        <li className="flex justify-between pb-4 "><span className="font-semibold">Width (mm)</span> <span className="float-right w-1/2 font-normal">{selected?.dimensions?.width || 'N/A'}</span></li>
+                        <li className="flex justify-between pb-4 "><span className="font-semibold">Length (mm)</span> <span className="float-right w-1/2 font-normal">{selected?.dimensions?.length || 'N/A'}</span></li>
+                        {/* <li className="flex justify-between pb-4 "><span className="font-semibold">Finish</span> <span className="float-right w-1/2 font-normal">{selected?.finish || 'N/A'}</span></li>
+                    <li className="flex justify-between pb-4 "><span className="font-semibold">Edge</span> <span className="float-right w-1/2 font-normal">{selected?.edge || 'N/A'}</span></li>
+                    <li className="flex justify-between pb-4 "><span className="font-semibold">No. of Tile Faces</span> <span className="float-right w-1/2 font-normal">{selected?.tileFaces || 'N/A'}</span></li>
+                    <li className="flex justify-between pb-4 "><span className="font-semibold">Origin</span> <span className="float-right w-1/2 font-normal">{selected?.origin || 'N/A'}</span></li>
+                    <li className="flex justify-between pb-4 "><span className="font-semibold">Colour Name</span> <span className="float-right w-1/2 font-normal">{selected?.colourName || 'N/A'}</span></li> */}
+                        {selected?.attributeVariationsDetail?.length > 0 && selected?.attributeVariationsDetail?.map((variation, idx) => (
+                          <li key={idx}>
+                            <span className="font-semibold">{convertSlugToName(variation.metaKey)}</span>
+                            <span className="float-right w-1/2 font-normal">
+                              {variation.metaValue || 'N/A'} {variation.productMeasurementUnit?.symbol}
+                            </span>
+                          </li>
+                        ))}
+                        {(!selected?.attributeVariationsDetail || selected?.attributeVariationsDetail?.length === 0) && (
+                          <li className="flex justify-between pb-4 ">
+                            <span className="font-semibold">No Technical Details Available</span>
+                            <span className="float-right w-1/2 font-normal"></span>
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                    {/* Right Card */}
+                    <div className="rounded-xl bg-[#f7f0ef] p-3 md:p-10 ">
+                      <ul className="text-sm space-y-2">
+                        <li className="flex justify-between pb-4 "><span className="font-semibold">Box Size (sq.m):</span> <span className="float-right w-1/2 font-normal">{selected?.boxSize || 'N/A'}</span></li>
+                        <li className="flex justify-between pb-4 "><span className="font-semibold">SQ.M per Tile</span> <span className="float-right w-1/2 font-normal">{selected?.sqmPerTile || 'N/A'}</span></li>
+                        <li className="flex justify-between pb-4 "><span className="font-semibold">Tiles per Box:</span> <span className="float-right w-1/2 font-normal">{selected?.numberOfTiles || 'N/A'}</span></li>
+                        <li className="flex justify-between pb-4 "><span className="font-semibold">Box Weight (KG):</span> <span className="float-right w-1/2 font-normal">{selected?.boxWeight || 'N/A'}</span></li>
+                        <li className="flex justify-between pb-4 "><span className="font-semibold">Pallet Size (sq.m):</span> <span className="float-right w-1/2 font-normal">{selected?.palletSize || 'N/A'}</span></li>
+                        <li className="flex justify-between pb-4 "><span className="font-semibold">Pallet Weight (KG)</span> <span className="float-right w-1/2 font-normal">{selected?.palletWeight || 'N/A'}</span></li>
+                        <li className="flex justify-between pb-4 "><span className="font-semibold">Boxes Per Pallet</span> <span className="float-right w-1/2 font-normal">{selected?.boxesPerPallet || 'N/A'}</span></li>
+                        {/* <li className="flex justify-between pb-4 "><span className="font-semibold">Shape:</span> <span className="float-right w-1/2 font-normal">{selected?.shape || 'N/A'}</span></li>
+                    <li className="flex justify-between pb-4 "><span className="font-semibold">Matching Patio Option:</span> <span className="float-right w-1/2 font-normal">{selected?.matchingPatioOption || 'N/A'}</span></li>
+                    <li className="flex justify-between pb-4 "><span className="font-semibold">Material:</span> <span className="float-right w-1/2 font-normal">{selected?.material || 'N/A'}</span></li>
+                    <li className="flex justify-between pb-4 "><span className="font-semibold">Suitability:</span> <span className="float-right w-1/2 font-normal">{selected?.suitability || 'N/A'}</span></li>
+                    <li className="flex justify-between pb-4 "><span className="font-semibold">Frost Resistant</span> <span className="float-right w-1/2 font-normal">{selected?.frostResistant || 'N/A'}</span></li>
+                    <li className="flex justify-between pb-4 "><span className="font-semibold">PVT Rating:</span> <span className="float-right w-1/2 font-normal">{selected?.pvtRating || 'N/A'}</span></li> */}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion className="shadow-none border-b rounded-none">
+              <AccordionSummary id='panel-header-3' aria-controls='panel-content-3' className="py-5">
+                <Typography variant="h4">How to Order?</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <div>
+                  <div className="bg-[#f7f0ef] rounded-xl p-3 md:p-10 mb-8">
+                    <h4 className="font-semibold text-lg mb-2 ">Plan Your Order</h4>
+                    <p className="text-[16px] mb-3">
+                      Ordering from EUROTILE is straightforward—but getting your quantities right is crucial.
+                    </p>
+                    <p className="text-[16px] mb-3">
+                      Since all of our tiles are shipped directly from Italy or Spain, it’s important to double-check measurements before placing your order. We strongly recommend confirming quantities with your tiling contractor, as ordering small top-ups later can be significantly more expensive and may result in batch mismatches or longer lead times.
+                    </p>
+                    <h4 className="font-semibold mb-2 italic text-lg">Follow these steps to avoid costly errors:</h4>
+                    <ol className="list-decimal list-inside text-[16px] mb-5 space-y-1">
                       <li>
-                        <span className="font-semibold">No Technical Details Available</span>
-                        <span className="float-right font-normal"></span>
+                        Ask your installer how the tiles will be laid (e.g. stacked, staggered, horizontal, vertical).
                       </li>
-                    )}
-                  </ul>
+                      <li>
+                        Think through the layout—centering and symmetry make a big visual impact.
+                      </li>
+                      <li>
+                        Calculate the exact number of tiles needed based on your layout.
+                      </li>
+                      <li>
+                        Then add 10% extra to cover cuts, breakages, and wastage.
+                      </li>
+                    </ol>
+                    <p className="text-[16px] mb-3">
+                      This is especially important for large-format tiles, where offcuts are harder to reuse.
+                    </p>
+                    <p className="text-[16px] mb-3">
+                      If you’re ordering floor tiles, don’t worry about having a few extra packs. It’s a smart move—cracks or damage from heavy use can happen over time, and keeping spares from the same batch means you’ll always have a perfect match.
+                    </p>
+                    <p className="text-[16px] mb-3">
+                      Still unsure? Our support team is on hand to help you get it right.
+                    </p>
+                  </div>
                 </div>
-                {/* Right Card */}
-                <div className="rounded-xl bg-[#f7f0ef] p-6 shadow-sm">
-                  <ul className="text-sm space-y-2">
-                    <li><span className="font-semibold">Box Size (sq.m):</span> <span className="float-right font-normal">{selected?.boxSize || 'N/A'}</span></li>
-                    <li><span className="font-semibold">SQ.M per Tile</span> <span className="float-right font-normal">{selected?.sqmPerTile || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Tiles per Box:</span> <span className="float-right font-normal">{selected?.numberOfTiles || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Box Weight (KG):</span> <span className="float-right font-normal">{selected?.boxWeight || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Pallet Size (sq.m):</span> <span className="float-right font-normal">{selected?.palletSize || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Pallet Weight (KG)</span> <span className="float-right font-normal">{selected?.palletWeight || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Boxes Per Pallet</span> <span className="float-right font-normal">{selected?.boxesPerPallet || 'N/A'}</span></li>
-                    {/* <li><span className="font-semibold">Shape:</span> <span className="float-right font-normal">{selected?.shape || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Matching Patio Option:</span> <span className="float-right font-normal">{selected?.matchingPatioOption || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Material:</span> <span className="float-right font-normal">{selected?.material || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Suitability:</span> <span className="float-right font-normal">{selected?.suitability || 'N/A'}</span></li>
-                    <li><span className="font-semibold">Frost Resistant</span> <span className="float-right font-normal">{selected?.frostResistant || 'N/A'}</span></li>
-                    <li><span className="font-semibold">PVT Rating:</span> <span className="float-right font-normal">{selected?.pvtRating || 'N/A'}</span></li> */}
-                  </ul>
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion className="shadow-none border-b rounded-none">
+              <AccordionSummary id='panel-header-4' aria-controls='panel-content-4' className="py-5">
+                <Typography variant="h4">Delivery & Returns</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <div>
+                  <div className="bg-[#f7f0ef] rounded-xl p-3 md:p-10 text-[15px] text-[#3d2c29]">
+                    <h4 className="font-semibold text-md mb-2 text-lg">Delivery Options</h4>
+                    <p className="mb-3">
+                      Our products are shipped directly from our trusted partners in Italy and Spain, ensuring premium quality and unbeatable value. Choose the delivery speed that works best for your project:
+                    </p>
+                    <div className="overflow-x-auto mb-5">
+                      <table cellspacing="0" cellpadding="0" className="w-full border border-[#e2d3ce] text-left text-[15px] bg-transparent rounded">
+                        <thead>
+                          <tr className="bg-[#ede3e0]">
+                            <th className="py-2 px-3 font-semibold border-b border-[#e2d3ce]">Delivery Service</th>
+                            <th className="py-2 px-3 font-semibold border-b border-[#e2d3ce]">Estimated Lead Time</th>
+                            <th className="py-2 px-3 font-semibold border-b border-[#e2d3ce]">Additional Charge</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td className="py-2 px-3 border-b border-[#e2d3ce] border-r">Standard</td>
+                            <td className="py-2 px-3 border-b border-[#e2d3ce] border-r">15 – 17 working days</td>
+                            <td className="py-2 px-3 border-b border-[#e2d3ce]">Free</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 px-3 border-b border-[#e2d3ce] border-r">Express</td>
+                            <td className="py-2 px-3 border-b border-[#e2d3ce] border-r">10 working days</td>
+                            <td className="py-2 px-3 border-b border-[#e2d3ce]">≈ £3 per m<sup>2</sup></td>
+                          </tr>
+                          <tr>
+                            <td className="py-2 px-3 border-[#e2d3ce] border-r">Rapid</td>
+                            <td className="py-2 px-3 border-[#e2d3ce] border-r">3 – 5 working days</td>
+                            <td className="py-2 px-3">≈ £6 per m<sup>2</sup></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="mb-3 text-[16px]">All deliveries are kerbside only. This means the driver will leave the pallet at the nearest accessible flat surface (e.g. driveway or pavement). Please ensure:</p>
+
+                    <ul className="list-disc pl-6 mb-2 space-y-1 text-[16px]">
+                      <li>Someone is available on-site to receive the goods.</li>
+                      <li>If the driver cannot deliver safely, a £60 per pallet redelivery fee will apply.</li>
+                      <li>If you’re not ready to receive your order, we can store it free of charge for 30 days, then at £7.50 per pallet per week thereafter.</li>
+                    </ul>
+                    <h4 className="font-semibold mb-2 mt-4 text-lg">Returns Options</h4>
+                    <p className="mb-3 text-[16px]">
+                      We understand plans can change. If you’d like to return your order, please notify us within 14 days of delivery. Once your return is authorised, you’ll have 7 days to arrange the return of the goods.
+                    </p>
+                    <p className="mb-3 text-[16px]">
+                      All returns are sent back to our warehouses in Italy or Spain (at the purchaser’s cost). Goods must be returned:
+                    </p>
+                    <ul className="list-disc pl-5 mb-3 text-[16px] space-y-1">
+                      <li>In full (we do not accept part returns or leftover boxes)</li>
+                      <li>In their original packaging, unopened and undamaged</li>
+                      <li>Securely relabelled</li>
+                    </ul>
+
+
+                    <p className="mb-3 text-[16px]">You may arrange your own haulier, or we can coordinate collection at a cost of £200–£400 per pallet, depending on location
+                      and quantity. We’ll confirm pricing before booking.</p>
+
+                    <h4 className="font-semibold mb-2 mt-4 text-lg">Damages & Shortages</h4>
+                    <p className="mb-3 text-[16px]">Please inspect your delivery upon arrival. If anything is missing or damaged, notify us within 24 hours and provide photographs
+                      where possible.</p>
+
+                    <p className="mb-3 text-[16px]">Where damage exceeds what’s expected in standard transit, we will arrange a credit or replacement. If replacements are needed,
+                      please allow 3-4 weeks for delivery, and note that exact batch colour matches cannot be guaranteed</p>
+
+                  </div>
                 </div>
-              </div>
-            </TabPanel>
-            <TabPanel value='3' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
-              <div className="bg-[#f7f0ef] rounded-xl p-6 mb-8 shadow-sm">
-                <h3 className="font-semibold text-lg mb-2">Plan Your Order</h3>
-                <p className="text-sm mb-2">
-                  Ordering from EUROTILE is straightforward—but getting your quantities right is crucial.
-                </p>
-                <p className="text-sm mb-2">
-                  Since all of our tiles are shipped directly from Italy or Spain, it’s important to double-check measurements before placing your order. We strongly recommend confirming quantities with your tiling contractor, as ordering small top-ups later can be significantly more expensive and may result in batch mismatches or longer lead times.
-                </p>
-                <p className="text-sm font-semibold mb-2">Follow these steps to avoid costly errors:</p>
-                <ol className="list-decimal list-inside text-sm mb-2 space-y-1">
-                  <li>
-                    Ask your installer how the tiles will be laid (e.g. stacked, staggered, horizontal, vertical).
-                  </li>
-                  <li>
-                    Think through the layout—centering and symmetry make a big visual impact.
-                  </li>
-                  <li>
-                    Calculate the exact number of tiles needed based on your layout.
-                  </li>
-                  <li>
-                    Then add 10% extra to cover cuts, breakages, and wastage.
-                  </li>
-                </ol>
-                <p className="text-sm mb-2">
-                  This is especially important for large-format tiles, where offcuts are harder to reuse.
-                </p>
-                <p className="text-sm mb-2">
-                  If you’re ordering floor tiles, don’t worry about having a few extra packs. It’s a smart move—cracks or damage from heavy use can happen over time, and keeping spares from the same batch means you’ll always have a perfect match.
-                </p>
-                <p className="text-sm">
-                  Still unsure? Our support team is on hand to help you get it right.
-                </p>
-              </div>
-            </TabPanel>
-            <TabPanel value='4' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
-              <div className="bg-[#f7f0ef] rounded-xl p-6 shadow-sm text-[15px] text-[#3d2c29]">
-              <h3 className="font-medium mb-4 text-redText">Delivery & Returns</h3>
-                <p className="mb-3">
-                  Our products are shipped directly from our trusted partners in Italy and Spain, ensuring premium quality and unbeatable value. Choose the delivery speed that works best for your project:
-                </p>
-                <div className="overflow-x-auto mb-5">
-                  <table className="w-full border border-[#e2d3ce] text-left text-[15px] bg-white rounded">
-                    <thead>
-                      <tr className="bg-[#ede3e0]">
-                        <th className="py-2 px-3 font-semibold border-b border-[#e2d3ce]">Delivery Service</th>
-                        <th className="py-2 px-3 font-semibold border-b border-[#e2d3ce]">Estimated Lead Time</th>
-                        <th className="py-2 px-3 font-semibold border-b border-[#e2d3ce]">Additional Charge</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="py-2 px-3 border-b border-[#e2d3ce]">Standard</td>
-                        <td className="py-2 px-3 border-b border-[#e2d3ce]">15 – 17 working days</td>
-                        <td className="py-2 px-3 border-b border-[#e2d3ce]">Free</td>
-                      </tr>
-                      <tr>
-                        <td className="py-2 px-3 border-b border-[#e2d3ce]">Express</td>
-                        <td className="py-2 px-3 border-b border-[#e2d3ce]">10 working days</td>
-                        <td className="py-2 px-3 border-b border-[#e2d3ce]">≈ £3 per m<sup>2</sup></td>
-                      </tr>
-                      <tr>
-                        <td className="py-2 px-3">Rapid</td>
-                        <td className="py-2 px-3">3 – 5 working days</td>
-                        <td className="py-2 px-3">≈ £6 per m<sup>2</sup></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <ul className="list-disc pl-5 mb-3 space-y-1">
-                  <li>All deliveries are kerbside only. This means the driver will leave the pallet at the nearest accessible flat surface (e.g. driveway or pavement). Please ensure:</li>
-                  <ul className="list-disc pl-6 mb-2 space-y-1">
-                    <li>Someone is available on-site to receive the goods.</li>
-                    <li>If the driver cannot deliver safely, a £60 per pallet redelivery fee will apply.</li>
-                    <li>If you’re not ready to receive your order, we can store it free of charge for 30 days, then at £7.50 per pallet per week thereafter.</li>
-                  </ul>
-                </ul>
-                <h4 className="font-semibold mb-2 mt-4">Returns Options</h4>
-                <p className="mb-2">
-                  We understand plans can change. If you’d like to return your order, please notify us within 14 days of delivery. Once your return is authorised, you’ll have 7 days to arrange the return of the goods.
-                </p>
-                <p className="mb-2">
-                  All returns are sent back to our warehouses in Italy or Spain (at the purchaser’s cost). Goods must be returned:
-                </p>
-                <ul className="list-disc pl-5 mb-3 space-y-1">
-                  <li>In full (we do not accept part returns or leftover boxes)</li>
-                  <li>In their original packaging, unopened and undamaged</li>
-                  <li>Securely relabelled</li>
-                </ul>
-                
-              </div>
-            </TabPanel>
-          </TabContext>
+              </AccordionDetails>
+            </Accordion>
+          </div>
 
 
           <div className="mt-12">

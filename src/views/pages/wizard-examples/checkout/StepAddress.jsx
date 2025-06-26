@@ -456,22 +456,24 @@ const StepAddress = ({ handleNext, cartItems }) => {
         <div className="flex items-center gap-4 mbs-0.5">
           {!isClientOrder && (
             <>
-              <Typography
-                component="button"
-                onClick={() => handleEditAddress(address)}
-                color="primary.main"
-                className="cursor-pointer"
-              >
-                Edit
-              </Typography>
-              <Typography
-                component="button"
-                onClick={() => confirmDeleteAddress(address.id)}
-                color="primary.main"
-                className="cursor-pointer"
-              >
-                Remove
-              </Typography>
+              <Button
+  onClick={() => handleEditAddress(address)}
+  color="primary"
+  size="small"
+  variant="outlined"
+>
+  Edit
+</Button>
+
+<Button
+  onClick={() => confirmDeleteAddress(address.id)}
+  color="primary"
+  size="small"
+  variant="outlined"
+>
+  Remove
+</Button>
+
             </>
           )}
         </div>
@@ -717,8 +719,8 @@ const StepAddress = ({ handleNext, cartItems }) => {
             )}
           </div>
           <div className="flex flex-col gap-4">
-            <Typography color="text.primary" className="font-medium self-start">
-              Select your preferable address
+            <Typography color="text.primary" className="font-bold self-start">
+              Select Your Delivery Address
             </Typography>
 
             {formattedAddresses.length === 0 ? (
@@ -748,17 +750,18 @@ const StepAddress = ({ handleNext, cartItems }) => {
 
 
           <div className="flex flex-col gap-4">
-            <Typography color="text.primary" className="font-medium self-start">
-              Choose Delivery Speed
+            <Typography color="text.primary" className="font-bold self-start">
+              Choose Your Delivery Option
             </Typography>
             <Grid container spacing={6} className="is-full">
               {shippingOptions.map((item, index) => {
                 let asset;
                 if (item.asset && typeof item.asset === "string") {
-                  asset = <i className={classnames(item.asset, "text-[28px]")} />;
+                  asset = <div className="w-full text-center"><i className={classnames(item.asset, "text-[28px]")} /></div>;
                 }
                 return (
                   <CustomInputVertical
+                  className="flex-row flex-wrap" 
                     type="radio"
                     key={item.value}
                     gridProps={{
@@ -791,6 +794,7 @@ const StepAddress = ({ handleNext, cartItems }) => {
 
             {isClientOrder ? (<Button
               className="max-sm:is-full lg:is-full"
+              size="large"
               variant="contained"
               onClick={sentClientToPayment}
               disabled={!selectedAddress || isUpdating}
@@ -807,6 +811,7 @@ const StepAddress = ({ handleNext, cartItems }) => {
               :
               (<Button
                 className="max-sm:is-full lg:is-full"
+                size="large"
                 variant="contained"
                 onClick={handleNext}
                 disabled={!selectedAddress || isUpdating}
