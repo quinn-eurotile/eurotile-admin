@@ -258,7 +258,7 @@ const StepCart = ({ handleNext }) => {
                     <i className="ri-close-line text-lg" />
                   </IconButton>
 
-                  <div className="flex flex-col sm:flex-row sm:justify-between w-full mt-6">
+                  <div className="flex flex-col sm:flex-row sm:justify-between w-full mt-6 gap-3">
                     <img
                       height={140}
                       width={140}
@@ -311,7 +311,7 @@ const StepCart = ({ handleNext }) => {
                         <Typography className="text-sm text-black">Color: <span>{colorAttr?.metaValue || 'N/A'}</span></Typography>
 
 
-                     
+
 
                       </div>
 
@@ -337,28 +337,28 @@ const StepCart = ({ handleNext }) => {
 
                     </div>
 
-                       
+
                   </div>
                   {/* Quantity Controls */}
-                        <div className="flex items-center gap-4 mt-6">
-                          <TextField
-                            size="small"
-                            type="number"
-                            value={boxes}
-                            onChange={(e) => updateItemQuantity(product._id, Number(e.target.value))}
-                            className="block max-w-[130px]"
-                            disabled={isUpdating}
-                            inputProps={{ min: 1, step: 1 }}
-                            label="No. of Boxes"
-                          />
-                          <TextField
-                            size="small"
-                            value={sqm}
-                            className="block max-w-[130px]"
-                            label="Total SQ.M"
-                            InputProps={{ readOnly: true }}
-                          />
-                        </div>
+                  <div className="flex items-center gap-4 mt-6">
+                    <TextField
+                      size="small"
+                      type="number"
+                      value={boxes}
+                      onChange={(e) => updateItemQuantity(product._id, Number(e.target.value))}
+                      className="block max-w-[130px]"
+                      disabled={isUpdating}
+                      inputProps={{ min: 1, step: 1 }}
+                      label="No. of Boxes"
+                    />
+                    <TextField
+                      size="small"
+                      value={sqm}
+                      className="block max-w-[130px]"
+                      label="Total SQ.M"
+                      InputProps={{ readOnly: true }}
+                    />
+                  </div>
 
                 </div>
               );
