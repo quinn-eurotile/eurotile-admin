@@ -12,28 +12,28 @@ import Promotions from '@/views/dashboards/crm/MeetingSchedule';
 import OrderListTable from '@/views/trade-professional/orders/OrderListTable'
 
 
-export const getDashboardData = async() => {
-    const data = await fetchDashboardData();
-    return data;
+export const getDashboardData = async () => {
+  const data = await fetchDashboardData();
+  return data;
 }
 
-const DashboardAnalytics = async() => {
+const DashboardAnalytics = async () => {
   const dashboardData = await getDashboardData();
   //console.log('dashboardData',dashboardData)
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, md: 4 }}>
-        <Profile userData={dashboardData?.data?.user}/>
+        <Profile userData={dashboardData?.data?.user} />
       </Grid>
       <Grid size={{ xs: 12, md: 8, lg: 8 }}>
         <Orders statusSummary={dashboardData?.data?.statusSummary} />
       </Grid>
       <Grid size={{ xs: 12, md: 6, lg: 7 }}>
-      <OrderListTable isDashboard={true}/>
+        <OrderListTable isDashboard={true} />
       </Grid>
 
       <Grid size={{ xs: 12, md: 4, lg: 5 }}>
-      <Promotions  />
+        <Promotions />
       </Grid>
     </Grid>
   )
