@@ -29,7 +29,7 @@ import DirectionalIcon from "@components/DirectionalIcon";
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard";
 import { cartApi } from "@/services/cart/index";
-import { removeCartItem, updateCartItem } from "@/app/server/actions";
+import { cartRelatedSuppliersProducts, removeCartItem, updateCartItem } from "@/app/server/actions";
 import { toast } from "react-toastify";
 import { calculateTierValue } from "@/components/common/helper";
 
@@ -99,7 +99,7 @@ const StepCart = ({ handleNext }) => {
     calculateOrderSummary
   } = useContext(CheckoutContext);
 
-  console.log(cartData, 'orderSummary.............');
+
 
   useEffect(() => {
     if (!openFade) {
@@ -109,29 +109,31 @@ const StepCart = ({ handleNext }) => {
     }
   }, [openFade]);
 
+
+  const relatedSuppliersProducts = async () => {
+    const response = await cartRelatedSuppliersProducts(cartData.userId);
+    console.log(response, 'responseresponse related products')
+  }
+
+  useEffect(() => {
+    relatedSuppliersProducts();
+  }, [])
+
+
   // Update cart item quantity
   const updateItemQuantity = async (itemId, newQuantityOrObj) => {
-    // If called with the new object signature
-    if (typeof newQuantityOrObj === 'object' && newQuantityOrObj !== null) {
-      const { quantity, numberOfTiles, numberOfBoxes, discount, price } = newQuantityOrObj;
-      // Log the values for now
-      console.log('Update Item:', { itemId, quantity, numberOfTiles, numberOfBoxes, discount, price });
-      // You can send these to the backend here in the future
-      // For now, also call the original logic with quantity (numberOfBoxes)
-      // newQuantityOrObj = numberOfBoxes;
-    }
-
-    console.log(newQuantityOrObj, 'newQuantityOrObjnewQuantityOrObjnewQuantityOrObj')
-    // Original logic (preserved)
-    if (newQuantityOrObj < 1) return;
     setIsUpdating(true);
     setError("");
     try {
       const response = await updateCartItem(itemId, newQuantityOrObj);
+      // console.log(response, 'responseresponseresponse')
       if (response.success) {
-        const { items, orderSummary: newOrderSummary } = response.data;
+        const { items } = response.data;
         setCartItems(items);
-        setOrderSummary(newOrderSummary);
+        setOrderSummary(prev => ({
+          ...prev,
+          subtotal: items.subtotal
+        }));
       } else {
         setError(response.message || "Error updating cart");
       }
@@ -142,6 +144,8 @@ const StepCart = ({ handleNext }) => {
       setIsUpdating(false);
     }
   };
+
+
 
   // Remove item from cart
   const removeItem = async (itemId) => {
@@ -230,7 +234,7 @@ const StepCart = ({ handleNext }) => {
   }
   // // //console.log(JSON.stringify(orderSummary, null, 2), 'orderSummary');
 
-  console.log(cartItems, 'cartItemscartItems')
+  // console.log(cartItems, 'cartItemscartItems')
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-4">
@@ -526,8 +530,6 @@ const StepCart = ({ handleNext }) => {
       </Grid>
 
       <Grid size={{ xs: 12, lg: 4 }} className="flex flex-col gap-2">
-
-
         <div className="border rounded">
           <CardContent className="flex gap-4 flex-col">
             <Typography className="font-medium" color="text.primary">
@@ -539,7 +541,7 @@ const StepCart = ({ handleNext }) => {
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <Typography color="text.primary"> Items Subtotal (ex. VAT)</Typography>
-                <Typography>£{cartData?.subtotal?.toFixed(2)}</Typography>
+                <Typography>£{orderSummary?.subtotal?.toFixed(2)}</Typography>
               </div>
 
               {/* Supplier Discount Summary */}

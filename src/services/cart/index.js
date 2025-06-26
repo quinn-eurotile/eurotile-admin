@@ -149,5 +149,8 @@ export const cartApi = createApiService(CART_API, {
   },
   getOrderById: async orderId => {
     return await api.get(`${CART_API}/order/${orderId}`)
+  },
+  getCartRelatedSuppliersProducts: async userId => {
+    return await api.get(`${CART_API}/related-products/${userId}`)
   }
 })

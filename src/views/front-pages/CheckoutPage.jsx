@@ -27,9 +27,14 @@ const CheckoutPage = ({ initialData, session }) => {
     };
 
     // Calculate subtotal from cart items
-    const subtotal = cartItems.reduce((sum, item) => {
-      return sum + (item.variation?.regularPriceB2C * item.quantity);
-    }, 0);
+    // const subtotal = cartItems.reduce((sum, item) => {
+    //   return sum + (item.variation?.regularPriceB2C * item.quantity);
+    // }, 0);
+
+    const subtotal = initialData?.cartData?.subtotal;
+
+    console.log(subtotal, 'subtotalsubtotal')
+
 
     // Get other values from existing order summary
     const discount = orderSummary?.discount || 0;
@@ -57,10 +62,13 @@ const CheckoutPage = ({ initialData, session }) => {
     setOrderSummary(newTotals);
   }, [cartItems, initialData?.orderSummary]);
 
+  console.log(orderSummary, 'orderSummaryorderSummary')
+
+
   return (
     <SessionProvider session={session}>
       <section className={classnames("md:plb-[100px] plb-6", frontCommonStyles.layoutSpacing)}>
-        <CheckoutWizard initialData={{...initialData, orderSummary}} />
+        <CheckoutWizard initialData={{ ...initialData, orderSummary }} />
       </section>
 
     </SessionProvider>
