@@ -154,6 +154,8 @@ const OrderListTable = ({ orderData, isDashboard = false }) => {
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await getOrderList(currentPage, pageSize, search, filter);
+
+      console.log(response, 'responseresponseresponseresponse')
       dispatch(callCommonAction({ loading: false }));
 
       if (response.statusCode === 200 && response.data) {
@@ -336,35 +338,35 @@ const OrderListTable = ({ orderData, isDashboard = false }) => {
       </div>
 
       <CardContent className='pt-0'>
-       
-          <Grid container spacing={5}>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TableFilters setFilter={setFilter} filter={filter} className='w-full' />
+
+        <Grid container spacing={5}>
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <TableFilters setFilter={setFilter} filter={filter} className='w-full' />
           </Grid>
           {!isDashboard && (
-          <Grid size={{ xs: 12, sm: 8 }}>
-            <div className='flex items-center gap-2 justify-end pt-2'>
-              <div className='flex flex-col items-end'>
-                <span>Total Commission: <strong>€{totalCommission?.toFixed(2)}</strong></span>
-                <span>Eligible for Payout: <strong>€{eligibleCommission?.toFixed(2)}</strong></span>
-                <Typography variant='caption' color='textSecondary'>
-                  (Only includes commissions from orders shipped 14+ days ago)
-                </Typography>
+            <Grid size={{ xs: 12, sm: 8 }}>
+              <div className='flex items-center gap-2 justify-end pt-2'>
+                <div className='flex flex-col items-end'>
+                  <span>Total Commission: <strong>€{totalCommission?.toFixed(2)}</strong></span>
+                  <span>Eligible for Payout: <strong>€{eligibleCommission?.toFixed(2)}</strong></span>
+                  <Typography variant='caption' color='textSecondary'>
+                    (Only includes commissions from orders shipped 14+ days ago)
+                  </Typography>
+                </div>
+                <Button
+                  variant='contained'
+                  color='primary'
+                  startIcon={<i className="ri-wallet-2-fill"></i>}
+                  onClick={handleOpenDialog}
+                  disabled={eligibleCommission <= 0}
+                >
+                  Payout
+                </Button>
               </div>
-              <Button
-                variant='contained'
-                color='primary'
-                startIcon={<i className="ri-wallet-2-fill"></i>}
-                onClick={handleOpenDialog}
-                disabled={eligibleCommission <= 0}
-              >
-                Payout
-              </Button>
-            </div>
             </Grid>
           )}
-          </Grid>
-        
+        </Grid>
+
       </CardContent>
 
       <div className='overflow-x-auto'>

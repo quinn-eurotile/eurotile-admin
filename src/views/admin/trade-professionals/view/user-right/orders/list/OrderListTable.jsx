@@ -43,6 +43,7 @@ import { paymentStatus, statusChipColor } from '@/components/common/common';
 import TextField from '@mui/material/TextField';
 import Grid from '@mui/material/Grid2';
 import { toast } from 'react-toastify';
+import OrderSummary from './OrderSummary';
 
 
 
@@ -71,6 +72,7 @@ const OrderListTable = ({ isDashboard = false }) => {
   const [totalRecords, setTotalRecords] = useState(0);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState({ status: '', user_id: id });
+  const [statusSummary, setStatusSummary] = useState('');
 
 
   useEffect(() => {
@@ -102,6 +104,7 @@ const OrderListTable = ({ isDashboard = false }) => {
           supportticketmsgs: order?.supportticketmsgs,
         }));
         setData(formatted);
+        setStatusSummary(response.data?.statusSummary);
         setTotalRecords(response.data.totalDocs || 0);
       }
     } catch (error) {
@@ -232,64 +235,74 @@ const OrderListTable = ({ isDashboard = false }) => {
   };
 
   return (
-    <Card>
-      <div className='flex items-center gap-2 justify-between'>
-        <CardHeader title='Filters' />
-
-        <div className='pe-4'>
-          <DebouncedInput
-            value={search}
-            onChange={value => setSearch(value)}
-            placeholder='Search Order'
-            className='sm:is-auto'
-          />
-        </div>
-      </div>
-
-      <CardContent className='pt-0'>
-
-        <Grid container spacing={5}>
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <TableFilters setFilter={setFilter} filter={filter} className='w-full' />
-          </Grid>
+    <>
+      <Grid container spacing={6}>
+        <Grid size={{ xs: 12 }}>
+          <OrderSummary statusSummary={statusSummary} />
         </Grid>
+        <Grid size={{ xs: 12 }}>
 
-      </CardContent>
+          <Card>
+            <div className='flex items-center gap-2 justify-between'>
+              <CardHeader title='Filters' />
 
-      <div className='overflow-x-auto'>
-        <table className={tableStyles.table}>
-          <thead className={tableStyles.thead}>
-            {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th key={header.id}>{flexRender(header.column.columnDef.header, header.getContext())}</th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody className={tableStyles.tbody}>
-            {table.getRowModel().rows.map(row => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map(cell => (
-                  <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              <div className='pe-4'>
+                <DebouncedInput
+                  value={search}
+                  onChange={value => setSearch(value)}
+                  placeholder='Search Order'
+                  className='sm:is-auto'
+                />
+              </div>
+            </div>
 
-      <TablePagination
-        component='div'
-        count={totalRecords}
-        page={page}
-        onPageChange={handleChangePage}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        rowsPerPageOptions={[1, 10, 20, 50]}
-      />
+            <CardContent className='pt-0'>
 
-    </Card>
+              <Grid container spacing={5}>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <TableFilters setFilter={setFilter} filter={filter} className='w-full' />
+                </Grid>
+              </Grid>
+
+            </CardContent>
+
+            <div className='overflow-x-auto'>
+              <table className={tableStyles.table}>
+                <thead className={tableStyles.thead}>
+                  {table.getHeaderGroups().map(headerGroup => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map(header => (
+                        <th key={header.id}>{flexRender(header.column.columnDef.header, header.getContext())}</th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody className={tableStyles.tbody}>
+                  {table.getRowModel().rows.map(row => (
+                    <tr key={row.id}>
+                      {row.getVisibleCells().map(cell => (
+                        <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <TablePagination
+              component='div'
+              count={totalRecords}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              rowsPerPageOptions={[1, 10, 20, 50]}
+            />
+
+          </Card>
+        </Grid>
+      </Grid>
+    </>
   );
 };
 

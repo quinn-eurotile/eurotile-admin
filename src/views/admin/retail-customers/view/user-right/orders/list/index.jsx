@@ -11,8 +11,9 @@ import { useState, useEffect } from 'react'
 
 // Fetch data for orders from the provided page
 import { orderData as fetchOrderData } from '@/app/[lang]/(dashboard)/(private)/admin/retail-customers/view/[id]/page'
+import OrderSummary from './OrderSummary'
 
-const OrderList = () => {
+const OrderList = ({ dashboardData }) => {
   // Local state to store order data
   const [orderData, setOrderData] = useState([])
   useEffect(() => {
@@ -26,14 +27,8 @@ const OrderList = () => {
   }, []) // Empty dependency array ensures it runs once when the component mounts
 
   return (
-    <Grid container spacing={6}>
-      <Grid size={{ xs: 12 }}>
-        <OrderCard />
-      </Grid>
-      <Grid size={{ xs: 12 }}>
-        <OrderListTable orderData={orderData} />
-      </Grid>
-    </Grid>
+
+    <OrderListTable orderData={orderData} />
   )
 }
 

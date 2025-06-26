@@ -373,46 +373,35 @@ export default function ProductDetailPage() {
 
     switch (type) {
       case 'sqm':
-        // Calculate number of tiles needed to cover the square meters
         const tiles = Math.ceil(parseFloat(value) / sqmPerTile);
-        // Calculate number of boxes needed
         const boxes = Math.ceil(tiles / tilesPerBox);
-
         newValues = {
           sqm: parseFloat(value) || 0,
           tiles: tiles,
-          pallets: boxes // We're using pallets field to store boxes count
+          pallets: boxes
         };
         break;
-
       case 'tiles':
-        // Calculate square meters from tiles
         const sqmFromTiles = parseFloat(value) * sqmPerTile;
-        // Calculate number of boxes needed
         const boxesFromTiles = Math.ceil(parseFloat(value) / tilesPerBox);
-
         newValues = {
           sqm: sqmFromTiles,
           tiles: parseFloat(value) || 0,
-          pallets: boxesFromTiles // We're using pallets field to store boxes count
+          pallets: boxesFromTiles
         };
         break;
-
-      case 'pallets': // This case is for boxes input
-        // Calculate number of tiles from boxes
+      case 'pallets':
         const tilesFromBoxes = parseFloat(value) * tilesPerBox;
-        // Calculate square meters from tiles
         const sqmFromBoxes = tilesFromBoxes * sqmPerTile;
-
         newValues = {
           sqm: sqmFromBoxes,
           tiles: tilesFromBoxes,
-          pallets: parseFloat(value) || 0 // We're using pallets field to store boxes count
+          pallets: parseFloat(value) || 0
         };
         break;
     }
 
-    // Calculate the tier discount
+    // Calculate the tier discount (restore previous logic for pricePerSqm)
     const sqm = newValues.sqm;
     let pricingTier;
     let pricePerSqm;
@@ -446,7 +435,24 @@ export default function ProductDetailPage() {
 
     newValues.tier = pricingTier;
     newValues.pricePerSqm = pricePerSqm;
-    newValues.calculatedPrice = pricePerSqm * sqm;
+
+    // Calculate total price using supplier discount if available
+    let discountPercent = 0;
+    if (product?.supplier?.discounts) {
+      const discounts = [...product.supplier.discounts]
+        .filter(d => d.status === 1)
+        .sort((a, b) => a.minimumAreaSqFt - b.minimumAreaSqFt);
+      for (const d of discounts) {
+        if (sqm >= d.minimumAreaSqFt) discountPercent = d.discountPercentage;
+        else break;
+      }
+    }
+    let totalPrice = pricePerSqm * sqm;
+    if (discountPercent > 0) {
+      totalPrice = totalPrice * (1 - discountPercent / 100);
+    }
+    newValues.calculatedPrice = totalPrice;
+    newValues.discountPercent = discountPercent;
 
     setCalculatedValues(newValues);
     updatePricingTier(newValues.sqm);
@@ -524,7 +530,7 @@ export default function ProductDetailPage() {
       variation: selectedVariation,
       quantity: calculatedValues.sqm,
       numberOfTiles: calculatedValues.tiles,
-      numberOfPallets: calculatedValues.pallets,
+      numberOfBoxes: calculatedValues.pallets,
       attributes: selectedAttributes,
       price: calculatedValues.pricePerSqm,
       totalPrice: calculatedValues.calculatedPrice
@@ -602,36 +608,43 @@ export default function ProductDetailPage() {
       let cartItems = [];
 
       if (!openSampleDialog) {
+        console.log("under it ");
         // Add saved variations
         selectedVariations.forEach(variation => {
+          console.log("under it 1");
           cartItems.push({
             productId: product._id,
             variationId: variation.variation._id,
             quantity: variation.quantity,
             numberOfTiles: variation.numberOfTiles,
-            numberOfPallets: variation.numberOfPallets,
+            numberOfBoxes: variation.numberOfBoxes,
             attributes: variation.attributes,
             price: variation.price,
             isSample: false,
-            sampleAttributes: null
+            sampleAttributes: null,
+            discount: variation.discountPercent || 0
           });
         });
 
         // Add current selection if exists
         if (selectedVariation && calculatedValues.sqm) {
+          console.log("under it 2");
           cartItems.push({
             productId: product._id,
             variationId: selectedVariation._id,
             quantity: calculatedValues.sqm,
             numberOfTiles: calculatedValues.tiles,
-            numberOfPallets: calculatedValues.pallets,
+            numberOfBoxes: calculatedValues.pallets,
             attributes: selectedAttributes,
             price: calculatedValues.pricePerSqm,
             isSample: false,
-            sampleAttributes: null
+            sampleAttributes: null,
+            discount: calculatedValues.discountPercent || 0
           });
         }
       }
+
+      console.log(cartItems, 'cartItemscartItemscartItems');
 
       // Add selected samples if any
       const selectedTypes = Object.entries(selectedSamples)
@@ -647,7 +660,7 @@ export default function ProductDetailPage() {
           variationId: selectedVariation?._id,
           quantity: 1,
           numberOfTiles: 0,
-          numberOfPallets: 0,
+          numberOfBoxes: 0,
           attributes: {
             size: type === 'small' ? '15x15cm' : type === 'large' ? '60x60cm' : 'Full Size',
             type: type
@@ -719,16 +732,16 @@ export default function ProductDetailPage() {
   };
 
   const getNextTierMessage = (sqm) => {
-    const tiers = getDynamicTierData();
-
-    for (const tier of tiers) {
-      if (sqm < tier.threshold) {
-        const sqmNeeded = (tier.threshold - sqm).toFixed(2);
-        return `Add ${sqmNeeded} sq.m more and you will get ${tier.discountPercent}% discount`;
+    if (!product?.supplier?.discounts) return '';
+    const discounts = [...product.supplier.discounts]
+      .filter(d => d.status === 1)
+      .sort((a, b) => a.minimumAreaSqFt - b.minimumAreaSqFt);
+    for (const d of discounts) {
+      if (sqm < d.minimumAreaSqFt) {
+        const sqmNeeded = (d.minimumAreaSqFt - sqm).toFixed(2);
+        return `Add ${sqmNeeded} sq.ft more and you will get ${d.discountPercentage}% discount`;
       }
     }
-
-    // If user already reached highest tier
     return 'You have unlocked the maximum discount!';
   };
 
@@ -1246,6 +1259,24 @@ export default function ProductDetailPage() {
                           <p className="text-lg font-medium text-red-800">£{calculatedValues.calculatedPrice?.toFixed(2)}</p>
                         </div>
                       </div>
+                      {(() => {
+                        if (!product?.supplier?.discounts) return null;
+                        const discounts = [...product.supplier.discounts]
+                          .filter(d => d.status === 1)
+                          .sort((a, b) => a.minimumAreaSqFt - b.minimumAreaSqFt);
+                        const sqm = Number(quantity) || 0;
+                        let appliedDiscount = null;
+                        for (const d of discounts) {
+                          if (sqm >= d.minimumAreaSqFt) appliedDiscount = d;
+                          else break;
+                        }
+                        if (appliedDiscount && appliedDiscount.discountPercentage > 0) {
+                          return (
+                            <p className="text-green-700 text-sm font-semibold mt-1">Discount Applied: {appliedDiscount.discountPercentage}%</p>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                   )}
 
@@ -1265,7 +1296,7 @@ export default function ProductDetailPage() {
                               <p className="font-medium">{item.variation.description || 'Variation'}</p>
                               <p className="text-sm text-gray-600">Quantity: {item.quantity} SQ.M</p>
                               <p className="text-sm text-gray-600">Tiles: {item.numberOfTiles}</p>
-                              <p className="text-sm text-gray-600">Pallets: {item.numberOfPallets}</p>
+                              <p className="text-sm text-gray-600">Pallets: {item.numberOfBoxes}</p>
                               <p className="text-sm text-red-800">£{item.price}/SQ.M</p>
                             </div>
                             <Button
@@ -1328,7 +1359,7 @@ export default function ProductDetailPage() {
                     {calculatedValues?.sqm !== undefined && (
                       <div className="flex items-center w-1/2 rounded-md text-redText bg-redText/25 px-4 py-2">
                         <i className="ri-discount-percent-line me-1"></i>
-                        {getNextTierMessage(calculatedValues.sqm)}
+                        {getNextTierMessage(Number(quantity) || 0)}
                       </div>
                     )}
                   </div>
@@ -1501,7 +1532,7 @@ export default function ProductDetailPage() {
                   Ordering from EUROTILE is straightforward—but getting your quantities right is crucial.
                 </p>
                 <p className="text-sm mb-2">
-                  Since all of our tiles are shipped directly from Italy or Spain, it’s important to double-check measurements before placing your order. We strongly recommend confirming quantities with your tiling contractor, as ordering small top-ups later can be significantly more expensive and may result in batch mismatches or longer lead times.
+                  Since all of our tiles are shipped directly from Italy or Spain, it's important to double-check measurements before placing your order. We strongly recommend confirming quantities with your tiling contractor, as ordering small top-ups later can be significantly more expensive and may result in batch mismatches or longer lead times.
                 </p>
                 <p className="text-sm font-semibold mb-2">Follow these steps to avoid costly errors:</p>
                 <ol className="list-decimal list-inside text-sm mb-2 space-y-1">
@@ -1522,7 +1553,7 @@ export default function ProductDetailPage() {
                   This is especially important for large-format tiles, where offcuts are harder to reuse.
                 </p>
                 <p className="text-sm mb-2">
-                  If you’re ordering floor tiles, don’t worry about having a few extra packs. It’s a smart move—cracks or damage from heavy use can happen over time, and keeping spares from the same batch means you’ll always have a perfect match.
+                  If you're ordering floor tiles, don't worry about having a few extra packs. It's a smart move—cracks or damage from heavy use can happen over time, and keeping spares from the same batch means you'll always have a perfect match.
                 </p>
                 <p className="text-sm">
                   Still unsure? Our support team is on hand to help you get it right.
@@ -1531,7 +1562,7 @@ export default function ProductDetailPage() {
             </TabPanel>
             <TabPanel value='4' className="border [border-bottom-left-radius:10px] [border-bottom-right-radius:10px] p-10">
               <div className="bg-[#f7f0ef] rounded-xl p-6 shadow-sm text-[15px] text-[#3d2c29]">
-              <h3 className="font-medium mb-4 text-redText">Delivery & Returns</h3>
+                <h3 className="font-medium mb-4 text-redText">Delivery & Returns</h3>
                 <p className="mb-3">
                   Our products are shipped directly from our trusted partners in Italy and Spain, ensuring premium quality and unbeatable value. Choose the delivery speed that works best for your project:
                 </p>
@@ -1568,51 +1599,52 @@ export default function ProductDetailPage() {
                   <ul className="list-disc pl-6 mb-2 space-y-1">
                     <li>Someone is available on-site to receive the goods.</li>
                     <li>If the driver cannot deliver safely, a £60 per pallet redelivery fee will apply.</li>
-                    <li>If you’re not ready to receive your order, we can store it free of charge for 30 days, then at £7.50 per pallet per week thereafter.</li>
+                    <li>If you're not ready to receive your order, we can store it free of charge for 30 days, then at £7.50 per pallet per week thereafter.</li>
                   </ul>
                 </ul>
                 <h4 className="font-semibold mb-2 mt-4">Returns Options</h4>
                 <p className="mb-2">
-                  We understand plans can change. If you’d like to return your order, please notify us within 14 days of delivery. Once your return is authorised, you’ll have 7 days to arrange the return of the goods.
+                  We understand plans can change. If you'd like to return your order, please notify us within 14 days of delivery. Once your return is authorised, you'll have 7 days to arrange the return of the goods.
                 </p>
                 <p className="mb-2">
-                  All returns are sent back to our warehouses in Italy or Spain (at the purchaser’s cost). Goods must be returned:
+                  All returns are sent back to our warehouses in Italy or Spain (at the purchaser's cost). Goods must be returned:
                 </p>
                 <ul className="list-disc pl-5 mb-3 space-y-1">
                   <li>In full (we do not accept part returns or leftover boxes)</li>
                   <li>In their original packaging, unopened and undamaged</li>
                   <li>Securely relabelled</li>
                 </ul>
-                
+
               </div>
             </TabPanel>
           </TabContext>
 
+          {product?.supplier?.discounts.length > 0 &&
+            <div className="mt-12">
+              <Tooltip
+                title={
+                  "Tiles from the same supplier qualify for combined pricing tiers —\nbundle more to unlock bigger savings."
+                }
+                arrow
+              >
+                <h2 className="text-2xl font-medium text-red-800 mb-6 text-center">
+                  Add more from{" "}
+                  <Link
+                    href={{
+                      pathname: `/${locale}/products`,
+                      query: { supplier: product?.supplier?._id },
+                    }}
+                    className="underline hover:text-primary cursor-pointer"
+                  >
+                    {product?.supplier?.companyName || ""}
+                  </Link>{" "}
+                  for better discounts
+                </h2>
+              </Tooltip>
 
-          <div className="mt-12">
-            <Tooltip
-              title={
-                "Tiles from the same supplier qualify for combined pricing tiers —\nbundle more to unlock bigger savings."
-              }
-              arrow
-            >
-              <h2 className="text-2xl font-medium text-red-800 mb-6 text-center">
-                Add more from{" "}
-                <Link
-                  href={{
-                    pathname: `/${locale}/products`,
-                    query: { supplier: product?.supplier?._id },
-                  }}
-                  className="underline hover:text-primary cursor-pointer"
-                >
-                  {product?.supplier?.companyName || ""}
-                </Link>{" "}
-                for better discounts
-              </h2>
-            </Tooltip>
-
-            <RelatedProductGrid products={product?.associatedProducts || []} />
-          </div>
+              <RelatedProductGrid products={product?.associatedProducts || []} />
+            </div>
+          }
         </Container>
 
 

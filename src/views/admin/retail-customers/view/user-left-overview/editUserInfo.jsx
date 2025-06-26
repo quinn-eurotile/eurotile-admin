@@ -16,19 +16,13 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import { update } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/view/[id]/page';
 import { toast } from 'react-toastify';
-import { updateTradeProfessional } from '@/app/server/trade-professional';
 import { CircularProgress, InputAdornment, List, ListItem, ListItemText, Paper } from '@mui/material';
+import { update } from '@/app/[lang]/(dashboard)/(private)/admin/retail-customers/view/[id]/page';
+import { updateProfile } from '@/app/server/trade-professional';
 
 
-const statusOptions = [
-  { label: 'Active', value: 1 },
-  { label: 'Inactive', value: 0 },
-  { label: 'Pending', value: 2 }
-];
-
-const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your address...', setValue }) => {
+const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your address...', setValue, clearErrors }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -122,6 +116,18 @@ const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your add
     setValue('address.country', country);
     setValue('address.lat', lat);
     setValue('address.long', long);
+    if (clearErrors) {
+      clearErrors([
+        'address.addressLine1',
+        'address.addressLine2',
+        'address.city',
+        'address.state',
+        'address.postalCode',
+        'address.country',
+        'address.lat',
+        'address.long',
+      ]);
+    }
 
     // Update search query with selected address
     setSearchQuery(displayName);
@@ -141,6 +147,18 @@ const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your add
     setValue('address.country', '');
     setValue('address.lat', '');
     setValue('address.long', '');
+    if (clearErrors) {
+      clearErrors([
+        'address.addressLine1',
+        'address.addressLine2',
+        'address.city',
+        'address.state',
+        'address.postalCode',
+        'address.country',
+        'address.lat',
+        'address.long',
+      ]);
+    }
   };
 
   return (
@@ -216,21 +234,12 @@ const AddressSearch = ({ label = 'Search Address', placeholder = 'Enter your add
   );
 };
 
-const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
+const EditUserInfo = ({ open, setOpen, data, setRefresh }) => {
   const formatInitialData = data => ({
     fullName: data?.name || '',
     email: data?.email || '',
     phone: data?.phone || '',
-    role: data?.roles?.[0]?.name || '',
     status: data?.status ?? '',
-    businessId: data?.business?._id || '',
-    businessName: data?.business?.name || '',
-    businessEmail: data?.business?.email || '',
-    businessPhone: data?.business?.phone || '',
-    businessStatus: data?.business?.status ?? '',
-    businessCreatedAt: data?.business?.createdAt || '',
-    businessUpdatedAt: data?.business?.updatedAt || '',
-
     address: {
       addressLine1: data?.addresses?.addressLine1 || '',
       addressLine2: data?.addresses?.addressLine2 || '',
@@ -244,14 +253,13 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
     }
   });
 
-
-
   const {
     register,
     handleSubmit,
     reset,
     setValue,
     watch,
+    clearErrors,
     formState: { errors }
   } = useForm({
     defaultValues: formatInitialData(data)
@@ -273,9 +281,8 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
     try {
       const requestData = {
         name: formValues.fullName,
-        email: formValues.email,
         phone: formValues.phone,
-        address: {
+        addresses: {
           addressLine1: formValues.address?.addressLine1 || '',
           addressLine2: formValues.address?.addressLine2 || '',
           city: formValues.address?.city || '',
@@ -285,17 +292,12 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
           lat: formValues.address?.lat || '',
           long: formValues.address?.long || ''
         },
-        business_name: formValues.businessName,
-        business_email: formValues.businessEmail,
-        business_phone: formValues.businessPhone,
-        status: formValues.status,
-        business_status: formValues.businessStatus,
-        accept_term: 1
       };
 
-      const response = await updateTradeProfessional(data._id, requestData);
+      const response = await updateProfile(data._id, requestData);
 
       const isSuccess = response?.statusCode === 200 || response?.statusCode === 201;
+
 
       if (isSuccess) {
         toast.success(response?.message || 'Operation successful');
@@ -319,12 +321,12 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
     }
   };
 
-  //// //console.log('formatInitialDataformatInitialData', data);
+  //// console.log('formatInitialDataformatInitialData', data);
 
   return (
     <Dialog fullWidth open={open} onClose={handleClose} maxWidth='md' scroll='body'>
       <DialogTitle variant='h4' className='flex gap-0 flex-col items-center sm:pbs-16 sm:pbe-6 sm:pli-16 mb-3'>
-        <div className='max-sm:is-[80%] max-sm:text-center'>Edit Trade Professional</div>
+        <div className='max-sm:is-[80%] max-sm:text-center'>Edit User Info</div>
         <Typography component='span' className='flex flex-col text-center'>
           Updating this user will trigger a privacy audit.
         </Typography>
@@ -338,37 +340,11 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
 
           <Grid container spacing={5}>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Full Name' {...register('fullName')} />
+              <TextField fullWidth label='Full Name' {...register('fullName', { required: 'Full Name is required' })} error={Boolean(errors?.fullName)} helperText={errors?.fullName?.message} />
             </Grid>
             <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Email' type='email' {...register('email')} />
+              <TextField fullWidth label='Phone' {...register('phone', { required: 'Phone is required' })} error={Boolean(errors?.phone)} helperText={errors?.phone?.message} />
             </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Phone' {...register('phone')} />
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Role' disabled {...register('role')} />
-            </Grid>
-            {isAdmin && (
-              <Grid size={{ xs: 12, md: 4 }}>
-                <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    label='Status'
-                    {...register('status')}
-                    value={watch('status')}
-                    onChange={e => setValue('status', e.target.value)}
-                  >
-                    {statusOptions.map(status => (
-                      <MenuItem key={status.value} value={status.value}>
-                        {status.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-            )}
-
             {/* Address Search Section */}
             <Grid size={{ xs: 12 }}>
               <Typography variant='h6' className='mb-3'>
@@ -377,7 +353,7 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
             </Grid>
 
             <Grid size={{ xs: 12 }}>
-              <AddressSearch label='Search Address' placeholder='Start typing your address...' setValue={setValue} />
+              <AddressSearch label='Search Address' placeholder='Start typing your address...' setValue={setValue} clearErrors={clearErrors} />
             </Grid>
 
             {/* Address Fields - Auto-filled by AddressSearch */}
@@ -397,8 +373,6 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 {...register('address.addressLine2')}
-                error={Boolean(errors?.address?.addressLine2)}
-                helperText={errors?.address?.addressLine2?.message}
                 fullWidth
                 label='Address Line 2'
                 placeholder='Apartment, suite, etc. (optional)'
@@ -465,65 +439,6 @@ const EditUserInfo = ({ open, setOpen, data, setRefresh, isAdmin }) => {
             {/* Hidden fields for coordinates */}
             <input type='hidden' {...register('address.lat')} />
             <input type='hidden' {...register('address.long')} />
-
-            {/* Business Info Fields */}
-            <Grid size={{ xs: 12 }}>
-              <Typography
-                variant='h5'
-                className='mb-2'
-                sx={{ borderBottom: '1px solid #ebebeb', paddingBottom: '8px' }}
-              >
-                Business Information
-              </Typography>
-            </Grid>
-
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Business Name' {...register('businessName')} />
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Business Email' {...register('businessEmail')} />
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField fullWidth label='Business Phone' {...register('businessPhone')} />
-            </Grid>
-
-            {isAdmin && (
-              <Grid size={{ xs: 12, md: 4 }}>
-                <FormControl fullWidth>
-                  <InputLabel>Business Status</InputLabel>
-                  <Select
-                    label='Business Status'
-                    {...register('businessStatus')}
-                    value={watch('businessStatus')}
-                    onChange={e => setValue('businessStatus', e.target.value)}
-                  >
-                    {statusOptions.map(status => (
-                      <MenuItem key={status.value} value={status.value}>
-                        {status.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-            )}
-
-            {/* Read-only business metadata */}
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField
-                fullWidth
-                label='Business Created At'
-                value={new Date(watch('businessCreatedAt')).toLocaleString()}
-                disabled
-              />
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField
-                fullWidth
-                label='Business Updated At'
-                value={new Date(watch('businessUpdatedAt')).toLocaleString()}
-                disabled
-              />
-            </Grid>
           </Grid>
         </DialogContent>
 

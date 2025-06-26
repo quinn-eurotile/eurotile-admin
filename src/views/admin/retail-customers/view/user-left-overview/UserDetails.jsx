@@ -10,54 +10,24 @@ import {
   Button,
   CircularProgress,
   Box,
-  FormControlLabel,
-  FormGroup,
-  Switch,
   IconButton,
   Menu,
   MenuItem
 } from '@mui/material';
 
-import ConfirmationDialog from '@components/dialogs/confirmation-dialog';
 import OpenDialogOnElementClick from '@components/dialogs/OpenDialogOnElementClick';
 import CustomAvatar from '@core/components/mui/Avatar';
-import { updateStatus } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/list/page';
 import { toast } from 'react-toastify';
-import AlertDialog from '@/components/common/AlertDialog';
-import EditUserInfo from './editUserInfo';
-import { fetchById } from '@/app/[lang]/(dashboard)/(private)/admin/trade-professionals/view/[id]/page';
-import { updateBusinessStatus, updateProfile } from '@/app/server/trade-professional';
-import { checkUserRoleIsAdmin } from '@/components/common/userRole';
-import { useSession } from "next-auth/react"
+import EditUserInfo from '../user-left-overview/editUserInfo';
+import { updateProfile } from '@/app/server/trade-professional';
+import { fetchById } from '@/app/[lang]/(dashboard)/(private)/admin/retail-customers/view/[id]/page';
 
 const UserDetails = ({ data }) => {
   const [userData, setUserData] = useState(data ?? []);
   const [isLoading, setIsLoading] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [userStatus, setUserStatus] = useState(userData.status == 1);
-  const [rejectionReasonText, setRejectionReasonText] = useState('');
-  const [showInput, setShowInput] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null); // for edit menu anchor
   const inputFileRef = useRef(null);
-  const { data: session, status } = useSession()
-
-
-
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const verifyRole = async () => {
-      const isAdminUser = await checkUserRoleIsAdmin();
-      if (isAdminUser) {
-        setIsAdmin(true);
-      } else {
-        setIsAdmin(false);
-      }
-    };
-
-    verifyRole();
-  }, []);
 
 
   const buttonProps = (children, color, variant) => ({
@@ -65,72 +35,6 @@ const UserDetails = ({ data }) => {
     color,
     variant
   });
-
-  const [dialogConfig, setDialogConfig] = useState({
-    title: '',
-    description: '',
-    confirmText: 'Yes',
-    cancelText: 'No',
-    confirmColor: 'success',
-    cancelColor: 'inherit',
-    onConfirm: null
-  });
-
-  const roleName = userData.roles?.[0]?.name || 'Unknown';
-
-  const handleBusiness = async (status, reasonText = '') => {
-    // If rejecting and no reason is provided, do not proceed
-    if (status === 0 && !reasonText.trim()) {
-      toast.error('Rejection reason is required.');
-      return; // Prevent request and dialog close
-    }
-
-    // setIsLoading(true)
-
-    const requestData = {
-      reason: status === 0 ? reasonText : null,
-      email: userData.email,
-      name: userData.name,
-      userRole: userData.roles?.[0]?.name || 'Unknown',
-      status
-    };
-
-    try {
-      const response = await updateBusinessStatus(userData?.business?._id, 'status', requestData);
-      toast.success(`User ${status === 3 ? 'approved' : 'rejected'} successfully.`);
-      refreshUserDetails(userData._id);
-      setDialogOpen(false);
-      setRejectionReasonText(''); // Clear input after success
-    } catch (error) {
-      console.error(error);
-      toast.error(`Failed to ${status === 3 ? 'approve' : 'reject'} user. Please try again.`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const openConfirmationDialog = ({
-    title,
-    description,
-    confirmText,
-    cancelText,
-    confirmColor,
-    cancelColor,
-    status,
-    showInput = false
-  }) => {
-    setShowInput(showInput);
-    setDialogConfig({
-      title,
-      description,
-      confirmText,
-      cancelText,
-      confirmColor,
-      cancelColor,
-      onConfirm: reason => handleBusiness(status, reason)
-    });
-    setDialogOpen(true);
-  };
 
   useEffect(() => {
     if (refresh) {
@@ -214,19 +118,7 @@ const UserDetails = ({ data }) => {
     }
   };
 
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 1:
-        return { label: 'Approved', color: 'success' };
-      case 0:
-        return { label: 'Rejected', color: 'error' };
-      case 2:
-      default:
-        return { label: 'Pending', color: 'warning' };
-    }
-  };
-
-  const statusDetails = getStatusLabel(userData?.business?.status);
+  const roleName = userData.roles?.[0]?.name || 'Unknown';
 
   return (
     <Card>
@@ -391,87 +283,15 @@ const UserDetails = ({ data }) => {
           </div>
         )}
 
-        <div>Business Status: <Chip
-          label={statusDetails.label}
-          color={statusDetails.color}
-          variant='outlined'
-        />
-
-        </div>
-
-
-        {isAdmin && (
-          <div className='flex gap-4 justify-center'>
-            <Button
-              variant='outlined'
-              color='success'
-              disabled={userData?.business?.status === 1} // Disable if already approved
-              onClick={() =>
-                openConfirmationDialog({
-                  title: 'Approve Business',
-                  description: 'Are you sure you want to approve the Business?',
-                  confirmText: 'Approve',
-                  cancelText: 'Cancel',
-                  confirmColor: 'success',
-                  cancelColor: 'inherit',
-                  status: 1,
-                  showInput: false
-                })
-              }
-            >
-              Approve Business
-            </Button>
-
-            <Button
-              variant='outlined'
-              color='error'
-              disabled={userData?.business?.status === 0} // Disable if already rejected
-              onClick={() =>
-                openConfirmationDialog({
-                  title: 'Reject Business',
-                  description: 'Are you sure you want to reject the Business?',
-                  confirmText: 'Reject',
-                  cancelText: 'Cancel',
-                  confirmColor: 'error',
-                  cancelColor: 'inherit',
-                  status: 0,
-                  showInput: true
-                })
-              }
-            >
-              Reject Business
-            </Button>
-          </div>
-        )}
-
         {/* <Chip label='Status Disabled' color='error' size='small' variant='tonal' /> */}
 
         <OpenDialogOnElementClick
           element={Button}
           elementProps={buttonProps('Edit', 'primary', 'contained')}
           dialog={EditUserInfo}
-          dialogProps={{ data: userData, setRefresh: setRefresh, isAdmin: isAdmin }}
+          dialogProps={{ data: userData, setRefresh: setRefresh }}
         />
       </CardContent>
-
-      <AlertDialog
-        open={dialogOpen}
-        title={dialogConfig.title}
-        description={dialogConfig.description}
-        confirmText={dialogConfig.confirmText}
-        cancelText={dialogConfig.cancelText}
-        confirmColor={dialogConfig.confirmColor}
-        cancelColor={dialogConfig.cancelColor}
-        onConfirm={dialogConfig.onConfirm}
-        onCancel={() => {
-          setDialogOpen(false);
-          setRejectionReasonText('');
-        }}
-        isLoading={isLoading}
-        showInput={showInput}
-        rejectionReasonText={rejectionReasonText}
-        setRejectionReasonText={setRejectionReasonText}
-      />
     </Card>
   );
 };

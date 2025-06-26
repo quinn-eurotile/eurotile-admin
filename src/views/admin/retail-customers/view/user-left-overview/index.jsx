@@ -27,12 +27,8 @@ const UserLeftOverview = ({ data }) => {
 
   return (
     <>
-        {isAdmin && session?.user?._id == data?._id ? (
-          <AdminDetails data={data} />
-        ) : (
-          <UserDetails data={data} />
-        )}
-        </>
+      <UserDetails data={data} />
+    </>
   )
 }
 

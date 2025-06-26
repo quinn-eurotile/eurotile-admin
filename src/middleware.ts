@@ -43,8 +43,11 @@ export async function middleware(request: NextRequest) {
 
   // 2. If not authenticated, redirect to login
   if (!token || !token.user) {
-    return NextResponse.next()
+    const loginUrl = new URL('/en/login', request.url)
+    loginUrl.searchParams.set('callbackUrl', pathname)
+    return NextResponse.redirect(loginUrl)
   }
+ 
 
   if (pathname.startsWith('/en/checkout')) {
     return NextResponse.next()
