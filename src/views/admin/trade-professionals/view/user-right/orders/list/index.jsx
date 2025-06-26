@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid2'
 
 // Component Imports
 import OrderCard from './OrderCard'
-import OrderListTable from './1-OrderListTable'
+import OrderListTable from './OrderListTable'
 import { getEcommerceData } from '@/app/server/actions'
 import { useState, useEffect } from 'react'
 
@@ -26,14 +26,7 @@ const OrderList = () => {
   }, []) // Empty dependency array ensures it runs once when the component mounts
 
   return (
-    <Grid container spacing={6}>
-      <Grid size={{ xs: 12 }}>
-        <OrderCard />
-      </Grid>
-      <Grid size={{ xs: 12 }}>
-        <OrderListTable orderData={orderData} />
-      </Grid>
-    </Grid>
+    <OrderListTable orderData={orderData} />
   )
 }
 

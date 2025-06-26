@@ -47,6 +47,7 @@ export async function middleware(request: NextRequest) {
     loginUrl.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(loginUrl)
   }
+ 
 
   if (pathname.startsWith('/en/checkout')) {
     return NextResponse.next()

@@ -183,6 +183,11 @@ export const deleteAddresses = async (id) => {
 export const updateCartItem = async (itemId, data) => {
   return await cartApi.updateCartItem(itemId, data);
 };
+
+export const cartRelatedSuppliersProducts = async (userId) => {
+  return await cartApi.getCartRelatedSuppliersProducts(userId);
+};
+
 export const getAllClients = async () => {
   return await userTradeProfessionalService.getAllClients();
 };

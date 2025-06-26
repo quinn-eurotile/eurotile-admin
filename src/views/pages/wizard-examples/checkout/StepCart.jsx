@@ -29,11 +29,51 @@ import DirectionalIcon from "@components/DirectionalIcon";
 // Context Import
 import { CheckoutContext } from "./CheckoutWizard";
 import { cartApi } from "@/services/cart/index";
-import { removeCartItem, updateCartItem } from "@/app/server/actions";
+import { cartRelatedSuppliersProducts, removeCartItem, updateCartItem } from "@/app/server/actions";
 import { toast } from "react-toastify";
+import { calculateTierValue } from "@/components/common/helper";
 
 // API Import
 
+// Helper function to calculate supplier discount based on sqm
+const calculateSupplierDiscount = (supplier, sqm) => {
+  if (!supplier?.discounts || !Array.isArray(supplier.discounts)) {
+    return { discountPercent: 0, appliedDiscount: null };
+  }
+
+  const discounts = [...supplier.discounts]
+    .filter(d => d.status === 1)
+    .sort((a, b) => a.minimumAreaSqFt - b.minimumAreaSqFt);
+
+  let discountPercent = 0;
+  let appliedDiscount = null;
+
+  for (const discount of discounts) {
+    if (sqm >= discount.minimumAreaSqFt) {
+      discountPercent = discount.discountPercentage;
+      appliedDiscount = discount;
+    } else {
+      break;
+    }
+  }
+
+  return { discountPercent, appliedDiscount };
+};
+
+// Helper function to get next tier discount message
+const getNextTierMessage = (supplier, sqm) => {
+  if (!supplier?.discounts) return '';
+  const discounts = [...supplier.discounts]
+    .filter(d => d.status === 1)
+    .sort((a, b) => a.minimumAreaSqFt - b.minimumAreaSqFt);
+  for (const d of discounts) {
+    if (sqm < d.minimumAreaSqFt) {
+      const sqmNeeded = (d.minimumAreaSqFt - sqm).toFixed(2);
+      return `Add ${sqmNeeded} sq.ft more and you will get ${d.discountPercentage}% discount`;
+    }
+  }
+  return 'You have unlocked the maximum discount!';
+};
 
 const StepCart = ({ handleNext }) => {
   // States
@@ -47,6 +87,7 @@ const StepCart = ({ handleNext }) => {
 
   // Context
   const {
+    cartData,
     cartItems,
     setCartItems,
     orderSummary,
@@ -58,7 +99,7 @@ const StepCart = ({ handleNext }) => {
     calculateOrderSummary
   } = useContext(CheckoutContext);
 
-  //console.log(cartItems, 'cartItems.............');
+
 
   useEffect(() => {
     if (!openFade) {
@@ -68,19 +109,31 @@ const StepCart = ({ handleNext }) => {
     }
   }, [openFade]);
 
-  // Update cart item quantity
-  const updateItemQuantity = async (itemId, newQuantity) => {
-    if (newQuantity < 1) return;
 
+  const relatedSuppliersProducts = async () => {
+    const response = await cartRelatedSuppliersProducts(cartData.userId);
+    console.log(response, 'responseresponse related products')
+  }
+
+  useEffect(() => {
+    relatedSuppliersProducts();
+  }, [])
+
+
+  // Update cart item quantity
+  const updateItemQuantity = async (itemId, newQuantityOrObj) => {
     setIsUpdating(true);
     setError("");
     try {
-      const response = await updateCartItem(itemId, newQuantity);
-      //console.log(response, 'response updateCartItem');
+      const response = await updateCartItem(itemId, newQuantityOrObj);
+      // console.log(response, 'responseresponseresponse')
       if (response.success) {
-        const { items, orderSummary: newOrderSummary } = response.data;
+        const { items } = response.data;
         setCartItems(items);
-        setOrderSummary(newOrderSummary);
+        setOrderSummary(prev => ({
+          ...prev,
+          subtotal: items.subtotal
+        }));
       } else {
         setError(response.message || "Error updating cart");
       }
@@ -91,6 +144,8 @@ const StepCart = ({ handleNext }) => {
       setIsUpdating(false);
     }
   };
+
+
 
   // Remove item from cart
   const removeItem = async (itemId) => {
@@ -179,7 +234,7 @@ const StepCart = ({ handleNext }) => {
   }
   // // //console.log(JSON.stringify(orderSummary, null, 2), 'orderSummary');
 
-  console.log(cartItems, 'cartItemscartItems')
+  // console.log(cartItems, 'cartItemscartItems')
   return (
     <Grid container spacing={6}>
       <Grid size={{ xs: 12, lg: 8 }} className="flex flex-col gap-4">
@@ -217,7 +272,7 @@ const StepCart = ({ handleNext }) => {
           </Fade>
         </Collapse> */}
 
-        <Typography className="rounded" variant="h4">
+        <Typography className="rounded" variant="h5">
           {/* My Shopping Bag ({cartItems.length} {cartItems.length === 1 ? "Item" : "Items"}) */}
           Your Basket
         </Typography>
@@ -242,8 +297,46 @@ const StepCart = ({ handleNext }) => {
               const finish = finishAttr?.metaValue || 'N/A';
               // Box logic
               const boxSize = variation?.boxSize || 1;
-              const boxes = product?.quantity || 0;
-              const sqm = (boxes * boxSize).toFixed(2);
+              const boxes = product?.numberOfBoxes || 0;
+              const tilesPerBox = parseFloat(variation.numberOfTiles) || 1;
+              const sqmPerTile = parseFloat(variation.sqmPerTile) || 1;
+              const sqm = boxes * tilesPerBox * sqmPerTile;
+
+              let pricingTier;
+              if (sqm >= 1300) {
+                pricingTier = 'tierFirst';
+              } else if (sqm >= 153) {
+                pricingTier = 'tierSecond';
+              } else if (sqm >= 51) {
+                pricingTier = 'tierThird';
+              } else if (sqm >= 30) {
+                pricingTier = 'tierFourth';
+              } else {
+                pricingTier = 'tierFifth';
+              }
+              const tierData = variation.tierDiscount[pricingTier];
+              let pricePerSqm;
+              if (tierData) {
+                const { tierAddOn, tierMultiplyBy } = tierData;
+                pricePerSqm = calculateTierValue(
+                  variation.regularPriceB2B,
+                  1.17,
+                  tierAddOn,
+                  tierMultiplyBy
+                );
+              } else {
+                pricePerSqm = variation.regularPriceB2C;
+              }
+
+              // Calculate supplier discount based on sqm
+              const { discountPercent, appliedDiscount } = calculateSupplierDiscount(prod?.supplier, sqm);
+
+              // Calculate total price with discount
+              let totalPrice = pricePerSqm * sqm;
+              if (discountPercent > 0) {
+                totalPrice = totalPrice * (1 - discountPercent / 100);
+              }
+
               return (
                 <div
                   key={product._id || index}
@@ -257,7 +350,6 @@ const StepCart = ({ handleNext }) => {
                   >
                     <i className="ri-close-line text-lg" />
                   </IconButton>
-
                   <div className="flex flex-col sm:flex-row sm:justify-between w-full mt-6 gap-3">
                     <img
                       height={140}
@@ -314,15 +406,23 @@ const StepCart = ({ handleNext }) => {
 
 
                       </div>
-
                       <div className="flex flex-col justify-between items-center mt-4 gap-3 sm:items-end">
                         <div className="flex flex-col items-end">
                           <Typography variant="h6" color="primary.main" className="font-semibold">
-                            £{(product?.price || 0).toFixed(2)}/SQ.M
+                            £{pricePerSqm.toFixed(2)}/SQ.M
                           </Typography>
                           <Typography color="text.secondary" className="text-sm font-semibold ">
-                            Total (ex.VAT): <br /> £{((product?.price || 0) * (product?.quantity || 0)).toFixed(2)}
+                            Total (ex.VAT): <br /> £{totalPrice.toFixed(2)}
                           </Typography>
+                          {discountPercent > 0 && (
+                            <Chip
+                              size="small"
+                              variant="tonal"
+                              color="success"
+                              label={`${discountPercent}% Discount Applied`}
+                              className="mt-1"
+                            />
+                          )}
                           {product?.isCustomPrice && (
                             <Chip
                               size="small"
@@ -334,18 +434,53 @@ const StepCart = ({ handleNext }) => {
                           )}
                         </div>
                       </div>
-
                     </div>
-
-
                   </div>
                   {/* Quantity Controls */}
-                  <div className="flex items-center gap-4 mt-6">
+                  <div className="flex items-center flex-wrap gap-4 mt-4">
                     <TextField
                       size="small"
                       type="number"
                       value={boxes}
-                      onChange={(e) => updateItemQuantity(product._id, Number(e.target.value))}
+                      onChange={(e) => {
+                        const newBoxes = Number(e.target.value);
+                        const newNumberOfTiles = newBoxes * tilesPerBox;
+                        const sqm = newBoxes * tilesPerBox * sqmPerTile;
+                        const newQuantity = sqm; // quantity is now SQ.M
+                        const { discountPercent } = calculateSupplierDiscount(prod?.supplier, sqm);
+                        let pricePerSqm;
+                        let pricingTier;
+                        if (sqm >= 1300) {
+                          pricingTier = 'tierFirst';
+                        } else if (sqm >= 153) {
+                          pricingTier = 'tierSecond';
+                        } else if (sqm >= 51) {
+                          pricingTier = 'tierThird';
+                        } else if (sqm >= 30) {
+                          pricingTier = 'tierFourth';
+                        } else {
+                          pricingTier = 'tierFifth';
+                        }
+                        const tierData = variation.tierDiscount[pricingTier];
+                        if (tierData) {
+                          const { tierAddOn, tierMultiplyBy } = tierData;
+                          pricePerSqm = calculateTierValue(
+                            variation.regularPriceB2B,
+                            1.17,
+                            tierAddOn,
+                            tierMultiplyBy
+                          );
+                        } else {
+                          pricePerSqm = variation.regularPriceB2C;
+                        }
+                        updateItemQuantity(product._id, {
+                          quantity: newQuantity, // SQ.M
+                          numberOfTiles: newNumberOfTiles,
+                          numberOfBoxes: newBoxes,
+                          discount: discountPercent,
+                          price: pricePerSqm
+                        });
+                      }}
                       className="block max-w-[130px]"
                       disabled={isUpdating}
                       inputProps={{ min: 1, step: 1 }}
@@ -358,7 +493,19 @@ const StepCart = ({ handleNext }) => {
                       label="Total SQ.M"
                       InputProps={{ readOnly: true }}
                     />
+                    <div>
+                      {/* Next Tier Discount Message */}
+                      {prod?.supplier?.discounts && prod.supplier.discounts.length > 0 && (
+                        <div className="flex items-center w-full rounded-md text-redText text-sm bg-redText/25 px-4 py-2">
+                          <i className="ri-discount-percent-line me-1"></i>
+                          {getNextTierMessage(prod.supplier, sqm)}
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+
+
 
                 </div>
               );
@@ -383,8 +530,6 @@ const StepCart = ({ handleNext }) => {
       </Grid>
 
       <Grid size={{ xs: 12, lg: 4 }} className="flex flex-col gap-2">
-
-
         <div className="border rounded">
           <CardContent className="flex gap-4 flex-col">
             <Typography className="font-medium" color="text.primary">
@@ -399,43 +544,99 @@ const StepCart = ({ handleNext }) => {
                 <Typography>£{orderSummary?.subtotal?.toFixed(2)}</Typography>
               </div>
 
-              {/* <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <Typography color="text.primary">Coupon Discount</Typography>
-                  {!showCouponInput ? (
-                    <Button
-                      color="primary"
-                      onClick={() => setShowCouponInput(true)}
-                      disabled={isUpdating}
-                    >
-                      Apply Coupon
-                    </Button>
-                  ) : (
-                    <Typography color="success.main">
-                      -£{orderSummary.discount?.toFixed(2)}
-                    </Typography>
-                  )}
-                </div>
+              {/* Supplier Discount Summary */}
+              {(() => {
+                let totalDiscountAmount = 0;
+                let hasDiscount = false;
 
-                {showCouponInput && (
-                  <div className="flex gap-2">
-                    <TextField
-                      size="small"
-                      fullWidth
-                      placeholder="Enter coupon code"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      disabled={isUpdating}
-                    />
-                    <Button
-                      variant="contained"
-                      onClick={handleApplyCoupon}
-                      disabled={isUpdating || !couponCode.trim()}
-                    >
-                      Apply
-                    </Button>
-                  </div>
+                cartItems.forEach(product => {
+                  const prod = product.product;
+                  const variation = product.variation;
+                  const boxes = product?.quantity || 0;
+                  const tilesPerBox = parseFloat(variation.numberOfTiles) || 1;
+                  const sqmPerTile = parseFloat(variation.sqmPerTile) || 1;
+                  const sqm = boxes * tilesPerBox * sqmPerTile;
+
+                  const { discountPercent } = calculateSupplierDiscount(prod?.supplier, sqm);
+                  if (discountPercent > 0) {
+                    hasDiscount = true;
+                    // Calculate the original price and discount amount
+                    let pricingTier;
+                    if (sqm >= 1300) {
+                      pricingTier = 'tierFirst';
+                    } else if (sqm >= 153) {
+                      pricingTier = 'tierSecond';
+                    } else if (sqm >= 51) {
+                      pricingTier = 'tierThird';
+                    } else if (sqm >= 30) {
+                      pricingTier = 'tierFourth';
+                    } else {
+                      pricingTier = 'tierFifth';
+                    }
+                    const tierData = variation.tierDiscount[pricingTier];
+                    let pricePerSqm;
+                    if (tierData) {
+                      const { tierAddOn, tierMultiplyBy } = tierData;
+                      pricePerSqm = calculateTierValue(
+                        variation.regularPriceB2B,
+                        1.17,
+                        tierAddOn,
+                        tierMultiplyBy
+                      );
+                    } else {
+                      pricePerSqm = variation.regularPriceB2C;
+                    }
+
+                    const originalPrice = pricePerSqm * sqm;
+                    const discountedPrice = originalPrice * (1 - discountPercent / 100);
+                    totalDiscountAmount += (originalPrice - discountedPrice);
+                  }
+                });
+
+                // return hasDiscount ? (
+                //   <div className="flex items-center justify-between">
+                //     <Typography color="success.main">Supplier Discount</Typography>
+                //     <Typography color="success.main">-£{totalDiscountAmount.toFixed(2)}</Typography>
+                //   </div>
+                // ) : null;
+              })()}
+
+              {/* <div className="flex items-center justify-between">
+                <Typography color="text.primary">Coupon Discount</Typography>
+                {!showCouponInput ? (
+                  <Button
+                    color="primary"
+                    onClick={() => setShowCouponInput(true)}
+                    disabled={isUpdating}
+                  >
+                    Apply Coupon
+                  </Button>
+                ) : (
+                  <Typography color="success.main">
+                    -£{orderSummary.discount?.toFixed(2)}
+                  </Typography>
                 )}
+              </div>
+
+              {showCouponInput && (
+                <div className="flex gap-2">
+                  <TextField
+                    size="small"
+                    fullWidth
+                    placeholder="Enter coupon code"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    disabled={isUpdating}
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={handleApplyCoupon}
+                    disabled={isUpdating || !couponCode.trim()}
+                  >
+                    Apply
+                  </Button>
+                </div>
+              )}
               </div> */}
 
               {/* <div className="flex items-center justify-between">

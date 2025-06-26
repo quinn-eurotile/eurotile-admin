@@ -376,46 +376,35 @@ export default function ProductDetailPage() {
 
     switch (type) {
       case 'sqm':
-        // Calculate number of tiles needed to cover the square meters
         const tiles = Math.ceil(parseFloat(value) / sqmPerTile);
-        // Calculate number of boxes needed
         const boxes = Math.ceil(tiles / tilesPerBox);
-
         newValues = {
           sqm: parseFloat(value) || 0,
           tiles: tiles,
-          pallets: boxes // We're using pallets field to store boxes count
+          pallets: boxes
         };
         break;
-
       case 'tiles':
-        // Calculate square meters from tiles
         const sqmFromTiles = parseFloat(value) * sqmPerTile;
-        // Calculate number of boxes needed
         const boxesFromTiles = Math.ceil(parseFloat(value) / tilesPerBox);
-
         newValues = {
           sqm: sqmFromTiles,
           tiles: parseFloat(value) || 0,
-          pallets: boxesFromTiles // We're using pallets field to store boxes count
+          pallets: boxesFromTiles
         };
         break;
-
-      case 'pallets': // This case is for boxes input
-        // Calculate number of tiles from boxes
+      case 'pallets':
         const tilesFromBoxes = parseFloat(value) * tilesPerBox;
-        // Calculate square meters from tiles
         const sqmFromBoxes = tilesFromBoxes * sqmPerTile;
-
         newValues = {
           sqm: sqmFromBoxes,
           tiles: tilesFromBoxes,
-          pallets: parseFloat(value) || 0 // We're using pallets field to store boxes count
+          pallets: parseFloat(value) || 0
         };
         break;
     }
 
-    // Calculate the tier discount
+    // Calculate the tier discount (restore previous logic for pricePerSqm)
     const sqm = newValues.sqm;
     let pricingTier;
     let pricePerSqm;
@@ -449,7 +438,24 @@ export default function ProductDetailPage() {
 
     newValues.tier = pricingTier;
     newValues.pricePerSqm = pricePerSqm;
-    newValues.calculatedPrice = pricePerSqm * sqm;
+
+    // Calculate total price using supplier discount if available
+    let discountPercent = 0;
+    if (product?.supplier?.discounts) {
+      const discounts = [...product.supplier.discounts]
+        .filter(d => d.status === 1)
+        .sort((a, b) => a.minimumAreaSqFt - b.minimumAreaSqFt);
+      for (const d of discounts) {
+        if (sqm >= d.minimumAreaSqFt) discountPercent = d.discountPercentage;
+        else break;
+      }
+    }
+    let totalPrice = pricePerSqm * sqm;
+    if (discountPercent > 0) {
+      totalPrice = totalPrice * (1 - discountPercent / 100);
+    }
+    newValues.calculatedPrice = totalPrice;
+    newValues.discountPercent = discountPercent;
 
     setCalculatedValues(newValues);
     updatePricingTier(newValues.sqm);
@@ -527,7 +533,7 @@ export default function ProductDetailPage() {
       variation: selectedVariation,
       quantity: calculatedValues.sqm,
       numberOfTiles: calculatedValues.tiles,
-      numberOfPallets: calculatedValues.pallets,
+      numberOfBoxes: calculatedValues.pallets,
       attributes: selectedAttributes,
       price: calculatedValues.pricePerSqm,
       totalPrice: calculatedValues.calculatedPrice
@@ -605,36 +611,43 @@ export default function ProductDetailPage() {
       let cartItems = [];
 
       if (!openSampleDialog) {
+        console.log("under it ");
         // Add saved variations
         selectedVariations.forEach(variation => {
+          console.log("under it 1");
           cartItems.push({
             productId: product._id,
             variationId: variation.variation._id,
             quantity: variation.quantity,
             numberOfTiles: variation.numberOfTiles,
-            numberOfPallets: variation.numberOfPallets,
+            numberOfBoxes: variation.numberOfBoxes,
             attributes: variation.attributes,
             price: variation.price,
             isSample: false,
-            sampleAttributes: null
+            sampleAttributes: null,
+            discount: variation.discountPercent || 0
           });
         });
 
         // Add current selection if exists
         if (selectedVariation && calculatedValues.sqm) {
+          console.log("under it 2");
           cartItems.push({
             productId: product._id,
             variationId: selectedVariation._id,
             quantity: calculatedValues.sqm,
             numberOfTiles: calculatedValues.tiles,
-            numberOfPallets: calculatedValues.pallets,
+            numberOfBoxes: calculatedValues.pallets,
             attributes: selectedAttributes,
             price: calculatedValues.pricePerSqm,
             isSample: false,
-            sampleAttributes: null
+            sampleAttributes: null,
+            discount: calculatedValues.discountPercent || 0
           });
         }
       }
+
+      console.log(cartItems, 'cartItemscartItemscartItems');
 
       // Add selected samples if any
       const selectedTypes = Object.entries(selectedSamples)
@@ -650,7 +663,7 @@ export default function ProductDetailPage() {
           variationId: selectedVariation?._id,
           quantity: 1,
           numberOfTiles: 0,
-          numberOfPallets: 0,
+          numberOfBoxes: 0,
           attributes: {
             size: type === 'small' ? '15x15cm' : type === 'large' ? '60x60cm' : 'Full Size',
             type: type
@@ -722,16 +735,16 @@ export default function ProductDetailPage() {
   };
 
   const getNextTierMessage = (sqm) => {
-    const tiers = getDynamicTierData();
-
-    for (const tier of tiers) {
-      if (sqm < tier.threshold) {
-        const sqmNeeded = (tier.threshold - sqm).toFixed(2);
-        return `Add ${sqmNeeded} sq.m more and you will get ${tier.discountPercent}% discount`;
+    if (!product?.supplier?.discounts) return '';
+    const discounts = [...product.supplier.discounts]
+      .filter(d => d.status === 1)
+      .sort((a, b) => a.minimumAreaSqFt - b.minimumAreaSqFt);
+    for (const d of discounts) {
+      if (sqm < d.minimumAreaSqFt) {
+        const sqmNeeded = (d.minimumAreaSqFt - sqm).toFixed(2);
+        return `Add ${sqmNeeded} sq.ft more and you will get ${d.discountPercentage}% discount`;
       }
     }
-
-    // If user already reached highest tier
     return 'You have unlocked the maximum discount!';
   };
 
@@ -1249,6 +1262,24 @@ export default function ProductDetailPage() {
                           <p className="text-lg font-medium text-red-800">£{calculatedValues.calculatedPrice?.toFixed(2)}</p>
                         </div>
                       </div>
+                      {(() => {
+                        if (!product?.supplier?.discounts) return null;
+                        const discounts = [...product.supplier.discounts]
+                          .filter(d => d.status === 1)
+                          .sort((a, b) => a.minimumAreaSqFt - b.minimumAreaSqFt);
+                        const sqm = Number(quantity) || 0;
+                        let appliedDiscount = null;
+                        for (const d of discounts) {
+                          if (sqm >= d.minimumAreaSqFt) appliedDiscount = d;
+                          else break;
+                        }
+                        if (appliedDiscount && appliedDiscount.discountPercentage > 0) {
+                          return (
+                            <p className="text-green-700 text-sm font-semibold mt-1">Discount Applied: {appliedDiscount.discountPercentage}%</p>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                   )}
 
@@ -1268,7 +1299,7 @@ export default function ProductDetailPage() {
                               <p className="font-medium">{item.variation.description || 'Variation'}</p>
                               <p className="text-sm text-gray-600">Quantity: {item.quantity} SQ.M</p>
                               <p className="text-sm text-gray-600">Tiles: {item.numberOfTiles}</p>
-                              <p className="text-sm text-gray-600">Pallets: {item.numberOfPallets}</p>
+                              <p className="text-sm text-gray-600">Pallets: {item.numberOfBoxes}</p>
                               <p className="text-sm text-red-800">£{item.price}/SQ.M</p>
                             </div>
                             <Button
@@ -1331,7 +1362,7 @@ export default function ProductDetailPage() {
                     {calculatedValues?.sqm !== undefined && (
                       <div className="flex items-center w-1/2 rounded-md text-redText bg-redText/25 px-4 py-2">
                         <i className="ri-discount-percent-line me-1"></i>
-                        {getNextTierMessage(calculatedValues.sqm)}
+                        {getNextTierMessage(Number(quantity) || 0)}
                       </div>
                     )}
                   </div>
@@ -1351,12 +1382,12 @@ export default function ProductDetailPage() {
                 <div>
                   <div className="bg-[#f7f0ef] rounded-xl p-3 md:p-10 mb-8">
                     <h4 className="font-semibold mb-2 italic ">More About This Tile...</h4>
-                   <div className="text-[16px] mb-5">
-                    {product?.description ?? ''}
+                    <div className="text-[16px] mb-5">
+                      {product?.description ?? ''}
                     </div>
 
                     <Grid container spacing={4} mb={5}>
-                      <Grid size={{xs: 12, md: 4}}>
+                      <Grid size={{ xs: 12, md: 4 }}>
                         <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> Perfect for Underfloor Heating</div>
                         <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> Suitable for Walls & Floors</div>
                         <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> Matching Patio Tiles</div>
@@ -1364,7 +1395,7 @@ export default function ProductDetailPage() {
                         <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> More About This Tile...</div>
                         <div className="mb-5 font-bold text-[16px] flex gap-3"><i class="ri-check-line text-2xl"></i> High No. of Tile Faces</div>
                       </Grid>
-                       <Grid size={{xs: 12, md: 8}}>
+                      <Grid size={{ xs: 12, md: 8 }}>
                         <p className="text-[16px] mb-3">Bathed in velvety light, the Calcis collection evokes a
                           sense of reassuring harmony. Italgraniti masterfully unites
                           the distinct personalities of two iconic natural stones in
@@ -1610,31 +1641,32 @@ export default function ProductDetailPage() {
             </Accordion>
           </div>
 
+          {product?.supplier?.discounts.length > 0 &&
+            <div className="mt-12">
+              <Tooltip
+                title={
+                  "Tiles from the same supplier qualify for combined pricing tiers —\nbundle more to unlock bigger savings."
+                }
+                arrow
+              >
+                <h2 className="text-2xl font-medium text-red-800 mb-6 text-center">
+                  Add more from{" "}
+                  <Link
+                    href={{
+                      pathname: `/${locale}/products`,
+                      query: { supplier: product?.supplier?._id },
+                    }}
+                    className="underline hover:text-primary cursor-pointer"
+                  >
+                    {product?.supplier?.companyName || ""}
+                  </Link>{" "}
+                  for better discounts
+                </h2>
+              </Tooltip>
 
-          <div className="mt-12">
-            <Tooltip
-              title={
-                "Tiles from the same supplier qualify for combined pricing tiers —\nbundle more to unlock bigger savings."
-              }
-              arrow
-            >
-              <h2 className="text-2xl font-medium text-red-800 mb-6 text-center">
-                Add more from{" "}
-                <Link
-                  href={{
-                    pathname: `/${locale}/products`,
-                    query: { supplier: product?.supplier?._id },
-                  }}
-                  className="underline hover:text-primary cursor-pointer"
-                >
-                  {product?.supplier?.companyName || ""}
-                </Link>{" "}
-                for better discounts
-              </h2>
-            </Tooltip>
-
-            <RelatedProductGrid products={product?.associatedProducts || []} />
-          </div>
+              <RelatedProductGrid products={product?.associatedProducts || []} />
+            </div>
+          }
         </Container>
 
 

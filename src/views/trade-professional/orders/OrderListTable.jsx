@@ -157,6 +157,8 @@ const OrderListTable = ({ orderData, isDashboard = false }) => {
     try {
       dispatch(callCommonAction({ loading: true }));
       const response = await getOrderList(currentPage, pageSize, search, filter);
+
+      console.log(response, 'responseresponseresponseresponse')
       dispatch(callCommonAction({ loading: false }));
       console.log('res', response)
       if (response.statusCode === 200 && response.data) {

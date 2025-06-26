@@ -166,7 +166,7 @@ const getStepContent = (step, handleNext, handleBack, checkoutData) => {
 const CheckoutWizard = ({ initialData }) => {
   // Get user session
   const { data: session, status } = useSession()
-  // //console.log(initialData, 'initialData 3142');
+  console.log(initialData, 'initialData 3142');
   // States
   const [activeStep, setActiveStep] = useState(0)
   const [cartItems, setCartItems] = useState(initialData?.cartItems || [])
@@ -183,6 +183,9 @@ const CheckoutWizard = ({ initialData }) => {
       total: 0
     }
   )
+
+  console.log(orderSummary, '............................')
+
   const [stepValidation, setStepValidation] = useState({
     0: cartItems.length > 0, // Cart step is valid if there are items
     1: false, // Address step requires selection
@@ -278,6 +281,8 @@ const CheckoutWizard = ({ initialData }) => {
     setOpen(false)
   }
 
+  console.log(initialData?.cartData, 'initialData?.cartDatainitialData?.cartData')
+
   // Calculate order summary with VAT
   const calculateOrderSummary = useCallback(() => {
     if (!cartItems || cartItems.length === 0) return {
@@ -289,9 +294,11 @@ const CheckoutWizard = ({ initialData }) => {
     };
 
     // Calculate subtotal from cart items
-    const subtotal = cartItems.reduce((sum, item) => {
-      return sum + (item.price * item.quantity);
-    }, 0);
+    // const subtotal = cartItems.reduce((sum, item) => {
+    //   return sum + (item.price * item.quantity);
+    // }, 0);
+
+    const subtotal = initialData?.cartData?.subtotal;
 
     // Get other values
     const discount = orderSummary?.discount || 0;
@@ -324,6 +331,7 @@ const CheckoutWizard = ({ initialData }) => {
 
   // Context value
   const contextValue = {
+    cartData,
     cartItems,
     setCartItems,
     addresses,
@@ -406,7 +414,7 @@ const CheckoutWizard = ({ initialData }) => {
                             fontWeight: index === activeStep ? 600 : 400,
                           }}
                         >
-                          {step.title} 
+                          {step.title}
                         </Typography>
                       </div>
 
