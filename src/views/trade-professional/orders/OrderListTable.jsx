@@ -91,6 +91,7 @@ const OrderListTable = ({ orderData, isDashboard = false }) => {
   // Input field value state
   const [payoutAmount, setPayoutAmount] = useState(0);
   const [eligibleCommission, setEligibleCommission] = useState(null);
+  const [eligibleOrderIds, setEligibleOrderIds] = useState([]);
   const [totalCommission, setTotalCommission] = useState(null);
   const [adminSettings, setAdminSettings] = useState(null);
 
@@ -110,7 +111,8 @@ const OrderListTable = ({ orderData, isDashboard = false }) => {
 
   // Modify the handleSubmit function to validate payout amount
   const handleSubmit = () => {
-    const amount = parseFloat(payoutAmount);
+    // const amount = parseFloat(payoutAmount);
+    const amount = parseFloat(eligibleCommission);
     if (amount <= 0) {
       // Show error message
       return;
@@ -120,7 +122,8 @@ const OrderListTable = ({ orderData, isDashboard = false }) => {
       return;
     }
     // TODO: Call your API endpoint to process the payout
-    processPayout(parseFloat(payoutAmount));
+    // processPayout(parseFloat(payoutAmount));
+    processPayout(parseFloat(eligibleCommission));
     handleCloseDialog();
   };
 
@@ -129,7 +132,7 @@ const OrderListTable = ({ orderData, isDashboard = false }) => {
   const processPayout = async (amount) => {
     try {
       dispatch(callCommonAction({ loading: true }));
-      const response = await payoutProcess({ amount: parseFloat(amount) });
+      const response = await payoutProcess({ amount: parseFloat(amount), eligibleOrderIds: eligibleOrderIds });
       //console.log(response, 'responseresponseresponseresponse');
       dispatch(callCommonAction({ loading: false }));
       if (response.statusCode === 200 && response.data) {
@@ -157,7 +160,7 @@ const OrderListTable = ({ orderData, isDashboard = false }) => {
 
       console.log(response, 'responseresponseresponseresponse')
       dispatch(callCommonAction({ loading: false }));
-
+      console.log('res', response)
       if (response.statusCode === 200 && response.data) {
         const formatted = response.data.docs.map(order => ({
           id: order?._id,
@@ -177,6 +180,8 @@ const OrderListTable = ({ orderData, isDashboard = false }) => {
         }));
         setData(formatted);
         setEligibleCommission(response.data.eligibleCommission);
+        setEligibleOrderIds(response.data.eligibleOrderIds);
+        setPayoutAmount(response.data.eligibleCommission - (response.data.eligibleCommission * response.data.adminSettings.vatOnCommission) / 100)
         setAdminSettings(response.data.adminSettings);
         setTotalCommission(response.data.totalCommission);
         setTotalRecords(response.data.totalDocs || 0);
@@ -411,7 +416,7 @@ const OrderListTable = ({ orderData, isDashboard = false }) => {
               Available for payout: €{eligibleCommission?.toFixed(2)}
             </Typography>
           </div>
-          <TextField
+          {/* <TextField
             fullWidth
             label='Amount to Transfer'
             variant='outlined'
@@ -424,17 +429,17 @@ const OrderListTable = ({ orderData, isDashboard = false }) => {
               step: '0.01'
             }}
             helperText={`Enter an amount between €0 and €${eligibleCommission?.toFixed(2)}`}
-          />
-          {payoutAmount > 0 && adminSettings?.vatOnCommission && (
+          /> */}
+          {eligibleCommission > 0 && adminSettings?.vatOnCommission && (
             <div className='mt-4 space-y-2'>
               <Typography variant='body2'>
                 VAT Rate: {adminSettings.vatOnCommission}%
               </Typography>
               <Typography variant='body2'>
-                VAT Amount: €{((payoutAmount * adminSettings.vatOnCommission) / 100).toFixed(2)}
+                VAT Amount: €{((eligibleCommission * adminSettings.vatOnCommission) / 100).toFixed(2)}
               </Typography>
               <Typography variant='body2' fontWeight='bold'>
-                Final Amount (after VAT): €{(payoutAmount - (payoutAmount * adminSettings.vatOnCommission) / 100).toFixed(2)}
+                Final Amount (after VAT): €{(eligibleCommission - (eligibleCommission * adminSettings.vatOnCommission) / 100).toFixed(2)}
               </Typography>
             </div>
           )}
@@ -444,7 +449,7 @@ const OrderListTable = ({ orderData, isDashboard = false }) => {
           <Button
             variant='contained'
             onClick={handleSubmit}
-            disabled={!payoutAmount || parseFloat(payoutAmount) <= 0 || parseFloat(payoutAmount) > eligibleCommission}
+            disabled={!eligibleCommission || parseFloat(eligibleCommission) <= 0}
           >
             Request Payout
           </Button>

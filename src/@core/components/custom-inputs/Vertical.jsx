@@ -7,6 +7,7 @@ import { styled } from '@mui/material/styles'
 
 // Third-party Imports
 import classnames from 'classnames'
+import { Chip } from '@mui/material'
 
 const Root = styled('div', {
   name: 'MuiCustomInputVertical',
@@ -49,28 +50,27 @@ const Root = styled('div', {
   },
   '& .MuiTypography-body2': {
     width: '100%',
-    color: '#000', 
+    color: '#000',
     marginBottom: '10px !important'
   },
-   '& .MuiChip-root': {
+  '& .MuiChip-root': {
     width: 'auto',
     order: 4,
-    marginLeft: 'auto',
     position: 'relative !important',
     color: '#000'
   },
-'& .MuiButtonBase-root': {
+  '& .MuiButtonBase-root': {
     width: 'auto',
-    margin: '0 auto 0 0',
+    margin: '0 0 0 0',
     padding: 0,
     order: 5
   },
 
-  
 
-  
 
-  
+
+
+
 }))
 
 const Title = styled(Typography, {
@@ -105,7 +105,7 @@ const CheckboxInput = styled(Checkbox, {
 
 const CustomInputVertical = props => {
   // Props
-  const { type, data, name, selected, gridProps, handleChange, color = 'primary', disabled } = props
+  const { type, data, name, selected, gridProps, handleChange, color = 'primary', disabled, item } = props
 
   // Vars
   const { title, value, content, asset } = data
@@ -125,18 +125,32 @@ const CustomInputVertical = props => {
         >
           {asset || null}
           {title ? typeof title === 'string' ? <Title>{title}</Title> : title : null}
-          {content ? typeof content === 'string' ? <Content>{content}</Content> : content : null}
-          {type === 'radio' ? (
-            <RadioInput name={name} color={color} value={value} onChange={handleChange} checked={selected === value} disabled={disabled} />
-          ) : (
-            <CheckboxInput
-              color={color}
-              name={`${name}-${value}`}
-              checked={selected.includes(value)}
-              onChange={() => handleChange(value)}
-              disabled={disabled}
+          {console.log('content', content)}
+
+
+          {/*  {content ? typeof content === 'string' ? <Content>{content}</Content> : content : null} */}
+
+          <Typography color="text.primary" className="text-sm mb-3">{item?.description}</Typography>
+
+          <div className="flex justify-center items-center w-full gap-2">
+            <Chip
+              size="small"
+              label={item?.cost > 0 ? `Add £${item.cost} per SQ.M` : 'No Added Charge'}
             />
-          )}
+
+            {type === 'radio' ? (
+              <RadioInput name={name} color={color} value={value} onChange={handleChange} checked={selected === value} disabled={disabled} />
+            ) : (
+              <CheckboxInput
+                color={color}
+                name={`${name}-${value}`}
+                checked={selected.includes(value)}
+                onChange={() => handleChange(value)}
+                disabled={disabled}
+              />
+            )}
+
+          </div>
         </Root>
       </Grid>
     )

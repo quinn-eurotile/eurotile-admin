@@ -63,6 +63,9 @@ const VerticalContent = styled(Typography, {
 });
 
 const StepAddress = ({ handleNext, cartItems }) => {
+
+  const [date, setDate] = useState(new Date())
+
   // Context
   const {
     addresses,
@@ -180,7 +183,7 @@ const StepAddress = ({ handleNext, cartItems }) => {
       const response = await getAllShippingOptions();
       const shippingOptionList = response?.data || [];
       // Map API response to UI format
-      const formattedOptions = shippingOptionList.map((item, index) => ({
+      const formattedOptions = shippingOptionList?.map((item, index) => ({
         value: item._id,
         title: item.name,
         cost: item.cost,
@@ -767,7 +770,8 @@ const StepAddress = ({ handleNext, cartItems }) => {
               Choose Your Delivery Option
             </Typography>
             <Grid container spacing={6} className="is-full">
-              {shippingOptions.map((item, index) => {
+              {shippingOptions?.map((item, index) => {
+                console.log('item', item)
                 let asset;
                 if (item.asset && typeof item.asset === "string") {
                   asset = <div className="w-full text-center"><i className={classnames(item.asset, "text-[28px]")} /></div>;
@@ -784,6 +788,7 @@ const StepAddress = ({ handleNext, cartItems }) => {
                       },
                     }}
                     selected={selectedShipping}
+                    item={item}
                     name="shipping-option"
                     handleChange={() => handleShippingChange(item.value, shippingOptions)}
                     data={typeof item.asset === "string" ? { ...item, asset } : item}
@@ -792,6 +797,9 @@ const StepAddress = ({ handleNext, cartItems }) => {
                 );
               })}
             </Grid>
+
+
+
           </div>
 
           <div>
